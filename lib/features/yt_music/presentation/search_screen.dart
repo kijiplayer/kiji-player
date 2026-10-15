@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/app_colors.dart';
+import '../../downloads/presentation/download_button.dart';
 import '../data/ytm_client.dart';
 import '../domain/yt_track_mapper.dart';
 
@@ -74,6 +76,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     setState(() => _resolvingVideoId = result.videoId);
 
     try {
+      // Descargada: no hace falta internet, el reproductor la lee del disco.
+      if (ref.read(downloadsProvider).completed.containsKey(result.videoId)) {
+        await ref.read(playbackProvider.notifier).playTrack(ytTrackFromResult(result, audioUrl: ''));
+        return;
+      }
+
       final audioUrl = await _client.getAudioStreamUrl(result.videoId);
 
       if (audioUrl == null) {
@@ -173,7 +181,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : null,
+              : DownloadButton(track: ytTrackFromResult(result, audioUrl: '')),
           onTap: isResolving ? null : () => _play(result),
         );
       },

@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/downloads/presentation/download_button.dart';
+import '../../models/track.dart';
 import '../../providers/playback_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/duration_formatter.dart';
@@ -54,7 +56,7 @@ class PlayerScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  _PlayerAppBar(onClose: () => Navigator.of(context).pop()),
+                  _PlayerAppBar(track: track, onClose: () => Navigator.of(context).pop()),
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -174,8 +176,9 @@ class _PlayerBackground extends StatelessWidget {
 }
 
 class _PlayerAppBar extends StatelessWidget {
-  const _PlayerAppBar({required this.onClose});
+  const _PlayerAppBar({required this.track, required this.onClose});
 
+  final Track track;
   final VoidCallback onClose;
 
   @override
@@ -193,12 +196,39 @@ class _PlayerAppBar extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
-            onPressed: () {},
+            onPressed: () => _showMenu(context),
             icon: const Icon(Icons.more_horiz_rounded),
             color: AppColors.onSurfaceMuted,
             tooltip: 'Más opciones',
           ),
         ],
+      ),
+    );
+  }
+
+  void _showMenu(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (track.youtubeVideoId != null)
+              ListTile(
+                leading: const Icon(Icons.download_for_offline_outlined),
+                title: const Text('Escuchar sin conexión'),
+                subtitle: const Text('Descargar dentro de Kiji'),
+                trailing: DownloadButton(track: track),
+              )
+            else
+              const ListTile(
+                leading: Icon(Icons.phone_android_rounded),
+                title: Text('Canción guardada en el dispositivo'),
+                subtitle: Text('Ya suena sin conexión'),
+              ),
+          ],
+        ),
       ),
     );
   }

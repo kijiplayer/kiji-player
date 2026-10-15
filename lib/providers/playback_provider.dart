@@ -10,6 +10,7 @@ import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
 import '../features/yt_music/data/ytm_client.dart';
 import '../models/track.dart';
+import 'downloads_provider.dart';
 
 /// Nombrado "PlaybackRepeatMode" (no "RepeatMode" a secas) porque Flutter
 /// ya expone su propio `RepeatMode` en material.dart (usado por animaciones
@@ -215,26 +216,37 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     try {
       var playable = track;
       final videoId = track.youtubeVideoId;
-      if (videoId != null && track.audioUrl.isEmpty) {
-        final url = await _ytClient.getAudioStreamUrl(videoId);
-        if (token != _loadToken) return false;
-        if (url == null) {
-          debugPrint('=== REPRODUCCION: sin URL de audio para $videoId ===');
-          return false;
-        }
-        playable = track.copyWith(audioUrl: url);
-        // Solo en memoria: al guardar, la URL se descarta (vence en horas).
-        final queue = [...state.queue];
-        if (index < queue.length && queue[index].id == track.id) {
-          queue[index] = playable;
-          state = state.copyWith(queue: queue, track: playable);
-        }
-      }
 
-      if (playable.source == TrackSource.local) {
-        await _audioPlayer.setFilePath(playable.audioUrl, initialPosition: initialPosition);
+      // Si está descargada, suena desde el disco (funciona en modo avión).
+      final downloaded =
+          videoId == null ? null : await ref.read(downloadsRepositoryProvider).fileFor(videoId);
+      if (token != _loadToken) return false;
+
+      if (downloaded != null) {
+        debugPrint('=== REPRODUCCION: "${track.title}" desde la descarga ===');
+        await _audioPlayer.setFilePath(downloaded.path, initialPosition: initialPosition);
       } else {
-        await _audioPlayer.setUrl(playable.audioUrl, initialPosition: initialPosition);
+        if (videoId != null && track.audioUrl.isEmpty) {
+          final url = await _ytClient.getAudioStreamUrl(videoId);
+          if (token != _loadToken) return false;
+          if (url == null) {
+            debugPrint('=== REPRODUCCION: sin URL de audio para $videoId ===');
+            return false;
+          }
+          playable = track.copyWith(audioUrl: url);
+          // Solo en memoria: al guardar, la URL se descarta (vence en horas).
+          final queue = [...state.queue];
+          if (index < queue.length && queue[index].id == track.id) {
+            queue[index] = playable;
+            state = state.copyWith(queue: queue, track: playable);
+          }
+        }
+
+        if (playable.source == TrackSource.local) {
+          await _audioPlayer.setFilePath(playable.audioUrl, initialPosition: initialPosition);
+        } else {
+          await _audioPlayer.setUrl(playable.audioUrl, initialPosition: initialPosition);
+        }
       }
       if (token != _loadToken) return false;
 

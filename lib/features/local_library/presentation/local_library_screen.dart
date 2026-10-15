@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
+import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../utils/duration_formatter.dart';
+import '../../../utils/byte_formatter.dart';
+import '../../downloads/presentation/downloads_screen.dart';
 import '../data/local_library_service.dart';
 import '../domain/local_track_mapper.dart';
 
@@ -58,6 +61,17 @@ class _LocalLibraryScreenState extends State<LocalLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Las descargas se ven aunque no haya permiso ni música local.
+        const _DownloadsEntry(),
+        const Divider(height: 1, color: Color(0xFF1F1F26)),
+        Expanded(child: _buildLocal()),
+      ],
+    );
+  }
+
+  Widget _buildLocal() {
     return RefreshIndicator(
       onRefresh: _load,
       child: switch (_status) {
@@ -88,6 +102,30 @@ class _LocalLibraryScreenState extends State<LocalLibraryScreen> {
           ),
         _LibraryStatus.ready => _SongList(tracks: _tracks),
       },
+    );
+  }
+}
+
+class _DownloadsEntry extends ConsumerWidget {
+  const _DownloadsEntry();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final downloads = ref.watch(downloadsProvider);
+    final count = downloads.completed.length;
+    final active = downloads.active.length;
+
+    return ListTile(
+      leading: const Icon(Icons.download_for_offline_rounded, color: AppColors.seed),
+      title: const Text('Descargadas'),
+      subtitle: Text(
+        count == 0 && active == 0
+            ? 'Para escuchar sin conexión'
+            : '$count ${count == 1 ? 'canción' : 'canciones'} · ${formatBytes(downloads.usedBytes)}'
+                '${active > 0 ? ' · $active descargando' : ''}',
+      ),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => DownloadsScreen.open(context),
     );
   }
 }
