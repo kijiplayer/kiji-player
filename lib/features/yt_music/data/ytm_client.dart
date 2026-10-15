@@ -1,3 +1,9 @@
+// Adaptado de Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
+// Archivos originales: innertube/.../models/YouTubeClient.kt (clientes VISIONOS y ANDROID_VR)
+// y app/src/main/kotlin/.../utils/YTPlayerUtils.kt (orden de clientes y visitorData).
+
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
@@ -48,6 +54,15 @@ class YtMusicClient {
 
   final YtCipherSolver _cipherSolver;
 
+  /// Dio limpio para pedir el audio: sin headers heredados del cliente de
+  /// búsqueda (cada "cliente" de YouTube manda los suyos propios).
+  final Dio _playerDio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
+
   final Dio _dio;
 
   /// Clave pública embebida en el frontend web de YouTube Music. No es
@@ -55,29 +70,11 @@ class YtMusicClient {
   /// prácticamente todos los clientes FOSS de YTM.
   static const _apiKey = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL47NlEVNIeM';
 
-  /// Clave asociada al cliente oficial de Android de YouTube. Tan pública
-  /// como la de arriba — la usan NewPipe, yt-dlp, y prácticamente todo
-  /// extractor FOSS, porque el cliente Android suele devolver URLs de
-  /// audio directas (sin cifrar), evitando la necesidad de descifrado.
-  static const _androidApiKey = 'AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w';
-
-  Map<String, dynamic> get _androidContext => {
-        'context': {
-          'client': {
-            'clientName': 'ANDROID',
-            'clientVersion': '19.09.37',
-            'androidSdkVersion': 30,
-            'hl': 'es',
-            'gl': 'US',
-          },
-        },
-      };
-
   Map<String, dynamic> get _context => {
         'context': {
           'client': {
             'clientName': 'WEB_REMIX',
-            'clientVersion': '1.20241201.01.00',
+            'clientVersion': '1.20260213.01.00',
             'hl': 'es',
             'gl': 'US',
           },
@@ -175,7 +172,8 @@ class YtMusicClient {
         artist: (subtitle == null || subtitle.isEmpty) ? 'Artista desconocido' : subtitle,
         thumbnailUrl: thumbnailUrl,
       );
-    } catch (_) {
+    } catch (error) {
+      debugPrint('=== YTM parse: item descartado: $error ===');
       return null;
     }
   }
@@ -203,138 +201,255 @@ class YtMusicClient {
     return runs.map((run) => (run as Map)['text']).join();
   }
 
-  /// Resuelve la URL de audio directo para [videoId].
-  ///
-  /// Primero prueba con el cliente "Android" de YouTube, que normalmente
-  /// entrega URLs de audio ya listas (sin cifrar) — el mismo truco que usan
-  /// NewPipe y otros extractores para no necesitar descifrado casi nunca.
-  /// Si eso no trae nada, recién ahí recurre al cliente Web + descifrado
-  /// con JavaScript real como respaldo.
-  Future<String?> getAudioStreamUrl(String videoId) async {
-    final signatureTimestamp = await _cipherSolver.getSignatureTimestamp(videoId);
+  // ---------------------------------------------------------------------
+  // Reproducción: la receta que usa Echo Music / Metrolist (probada en
+  // producción). Los clientes "VISIONOS" y "ANDROID_VR 1.65.10" devuelven
+  // URLs de audio DIRECTAS (sin firma cifrada, sin tocar JavaScript), pero
+  // exigen mandar un `visitorData` válido. El descifrado con JS queda solo
+  // como último respaldo.
+  // ---------------------------------------------------------------------
 
-    final androidUrl = await _tryGetStreamUrl(
-      videoId,
-      apiKey: _androidApiKey,
-      context: _androidContext,
-      clientLabel: 'ANDROID',
-      // El cliente Android usa un host de API distinto al de la web.
-      endpoint: 'https://youtubei.googleapis.com/youtubei/v1/player',
-      signatureTimestamp: signatureTimestamp,
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
-        'X-YouTube-Client-Name': '3',
-        'X-YouTube-Client-Version': '19.09.37',
-      },
-    );
-    if (androidUrl != null) return androidUrl;
+  static const _webUserAgent =
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 '
+      '(KHTML, like Gecko) Version/18.0 Safari/605.1.15';
 
-    debugPrint('=== YTM stream: cliente ANDROID no dio resultado, probando cliente WEB ===');
-    return _tryGetStreamUrl(
-      videoId,
-      apiKey: _apiKey,
-      context: _context,
-      clientLabel: 'WEB_REMIX',
-      endpoint: 'https://www.youtube.com/youtubei/v1/player',
-      signatureTimestamp: signatureTimestamp,
-      headers: {
-        'Content-Type': 'application/json',
-        'Origin': 'https://music.youtube.com',
-        'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'X-YouTube-Client-Name': '67',
-        'X-YouTube-Client-Version': '1.20241201.01.00',
-      },
-    );
+  static const _playerClients = <_PlayerClient>[
+    _PlayerClient(
+      label: 'VISIONOS',
+      name: 'VISIONOS',
+      id: '101',
+      version: '0.1',
+      userAgent: _webUserAgent,
+      osName: 'visionOS',
+      osVersion: '1.3.21O771',
+      deviceMake: 'Apple',
+      deviceModel: 'RealityDevice14,1',
+    ),
+    _PlayerClient(
+      label: 'ANDROID_VR',
+      name: 'ANDROID_VR',
+      id: '28',
+      version: '1.65.10',
+      userAgent: 'com.google.android.apps.youtube.vr.oculus/1.65.10 '
+          '(Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
+      osName: 'Android',
+      osVersion: '12L',
+      deviceMake: 'Oculus',
+      deviceModel: 'Quest 3',
+      androidSdkVersion: 32,
+    ),
+  ];
+
+  String? _visitorData;
+
+  /// Pide un `visitorData` (identificador anónimo de visitante) a la web de
+  /// YouTube Music. Es público y no identifica a nadie: es lo que cualquier
+  /// navegador recibe al abrir music.youtube.com por primera vez.
+  Future<String?> _getVisitorData() async {
+    final cached = _visitorData;
+    if (cached != null) return cached;
+
+    try {
+      final response = await Dio().get<String>(
+        'https://music.youtube.com/sw.js_data',
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'User-Agent': _webUserAgent},
+        ),
+      );
+
+      final body = response.data ?? '';
+      final start = body.indexOf('[');
+      if (start == -1) {
+        debugPrint('=== YTM visitorData: respuesta inesperada ===');
+        return null;
+      }
+
+      final decoded = jsonDecode(body.substring(start));
+      final candidate = RegExp(r'^Cg[ts]');
+
+      String? found;
+      void walk(dynamic node) {
+        if (found != null) return;
+        if (node is String) {
+          if (candidate.hasMatch(node) && node.length > 20) found = node;
+        } else if (node is List) {
+          node.forEach(walk);
+        } else if (node is Map) {
+          node.values.forEach(walk);
+        }
+      }
+
+      walk(decoded);
+      debugPrint('=== YTM visitorData: ${found == null ? "NO encontrado" : "obtenido OK"} ===');
+      _visitorData = found;
+      return found;
+    } catch (error) {
+      debugPrint('=== YTM visitorData: falló: $error ===');
+      return null;
+    }
   }
 
-  Future<String?> _tryGetStreamUrl(
-    String videoId, {
-    required String apiKey,
-    required Map<String, dynamic> context,
-    required String clientLabel,
-    required String endpoint,
-    required Map<String, String> headers,
-    int? signatureTimestamp,
-  }) async {
+  /// Resuelve una URL de audio reproducible para [videoId].
+  /// Orden: VISIONOS -> ANDROID_VR -> (último respaldo) WEB + descifrado JS.
+  Future<String?> getAudioStreamUrl(String videoId) async {
+    final visitorData = await _getVisitorData();
+
+    if (visitorData != null) {
+      for (final client in _playerClients) {
+        final url = await _tryDirectClient(videoId, client, visitorData);
+        if (url != null) return url;
+      }
+    }
+
+    debugPrint('=== YTM stream: clientes directos sin resultado, probando WEB + descifrado ===');
+    return _tryWebWithCipher(videoId, visitorData);
+  }
+
+  Future<String?> _tryDirectClient(
+    String videoId,
+    _PlayerClient client,
+    String visitorData,
+  ) async {
     final Map<String, dynamic>? data;
     try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        endpoint,
-        queryParameters: {'key': apiKey},
-        // Headers propios de este pedido — pisan por completo los que trae
-        // el Dio compartido (evita mezclar, por ejemplo, "soy Android" en el
-        // cuerpo con encabezados de navegador de escritorio, que es lo que
-        // causaba el 400).
-        options: Options(headers: headers),
+      final response = await _playerDio.post<Map<String, dynamic>>(
+        'https://music.youtube.com/youtubei/v1/player',
+        queryParameters: {'prettyPrint': 'false'},
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Format-Version': '1',
+          'X-YouTube-Client-Name': client.id,
+          'X-YouTube-Client-Version': client.version,
+          'X-Origin': 'https://music.youtube.com',
+          'Referer': 'https://music.youtube.com/',
+          'X-Goog-Visitor-Id': visitorData,
+          'User-Agent': client.userAgent,
+        }),
         data: {
-          ...context,
-          'videoId': videoId,
-          if (signatureTimestamp != null)
-            'playbackContext': {
-              'contentPlaybackContext': {
-                'signatureTimestamp': signatureTimestamp,
-              },
+          'context': {
+            'client': {
+              'clientName': client.name,
+              'clientVersion': client.version,
+              'osName': client.osName,
+              'osVersion': client.osVersion,
+              'deviceMake': client.deviceMake,
+              'deviceModel': client.deviceModel,
+              if (client.androidSdkVersion != null)
+                'androidSdkVersion': client.androidSdkVersion,
+              'hl': 'es',
+              'gl': 'US',
+              'visitorData': visitorData,
             },
+          },
+          'videoId': videoId,
+          'contentCheckOk': true,
+          'racyCheckOk': true,
         },
       );
       data = response.data;
     } catch (error) {
-      // Importante: si este cliente falla (400, timeout, lo que sea), NO
-      // dejamos que la excepción se escape hacia arriba — así el llamador
-      // todavía puede intentar con el otro cliente como respaldo.
       String detail = '$error';
       if (error is DioException && error.response?.data != null) {
         detail = '$detail\n>>> Respuesta del servidor: ${error.response?.data}';
       }
-      debugPrint('=== YTM stream [$clientLabel]: falló el pedido: $detail ===');
+      debugPrint('=== YTM stream [${client.label}]: falló el pedido: $detail ===');
       return null;
     }
 
     if (data == null) return null;
 
-    final playabilityStatus = data['playabilityStatus'] as Map?;
+    final playability = data['playabilityStatus'] as Map?;
     debugPrint(
-      '=== YTM stream [$clientLabel]: playabilityStatus = '
-      '${playabilityStatus?['status']} (${playabilityStatus?['reason']}) ===',
+      '=== YTM stream [${client.label}]: playabilityStatus = '
+      '${playability?['status']} (${playability?['reason']}) ===',
     );
 
-    final formats = (data['streamingData']?['adaptiveFormats'] as List?) ?? const [];
+    final audio = _audioFormats(data);
+    debugPrint('=== YTM stream [${client.label}]: ${audio.length} formatos de audio ===');
 
-    final audioFormats = formats.where((format) {
-      final mimeType = (format as Map)['mimeType'] as String? ?? '';
-      return mimeType.startsWith('audio/');
-    }).toList()
-      ..sort((a, b) {
-        final bitrateA = (a as Map)['bitrate'] as int? ?? 0;
-        final bitrateB = (b as Map)['bitrate'] as int? ?? 0;
-        return bitrateB.compareTo(bitrateA);
-      });
-
-    debugPrint('=== YTM stream [$clientLabel]: ${audioFormats.length} formatos de audio disponibles ===');
-
-    for (final format in audioFormats) {
-      final map = format as Map;
-
-      // Caso simple: ya viene con URL usable.
-      final directUrl = map['url'] as String?;
-      if (directUrl != null) {
-        debugPrint('=== YTM stream [$clientLabel]: formato sin cifrar, aplicando fix de "n" ===');
-        return _applyNFix(videoId, directUrl);
+    for (final format in audio) {
+      final url = format['url'] as String?;
+      if (url != null) {
+        debugPrint('=== YTM stream [${client.label}]: URL directa lista ===');
+        return url;
       }
+    }
+    return null;
+  }
 
-      // Caso cifrado: hay que descifrar la firma con el motor JS.
-      final cipher = map['signatureCipher'] as String? ?? map['cipher'] as String?;
+  /// Último recurso: cliente WEB_REMIX + descifrado de firma con JS real.
+  Future<String?> _tryWebWithCipher(String videoId, String? visitorData) async {
+    final signatureTimestamp = await _cipherSolver.getSignatureTimestamp(videoId);
+
+    final Map<String, dynamic>? data;
+    try {
+      final response = await _playerDio.post<Map<String, dynamic>>(
+        'https://music.youtube.com/youtubei/v1/player',
+        queryParameters: {'prettyPrint': 'false'},
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Format-Version': '1',
+          'X-YouTube-Client-Name': '67',
+          'X-YouTube-Client-Version': '1.20260213.01.00',
+          'X-Origin': 'https://music.youtube.com',
+          'Referer': 'https://music.youtube.com/',
+          'X-Goog-Visitor-Id': ?visitorData,
+          'User-Agent': _webUserAgent,
+        }),
+        data: {
+          'context': {
+            'client': {
+              'clientName': 'WEB_REMIX',
+              'clientVersion': '1.20260213.01.00',
+              'hl': 'es',
+              'gl': 'US',
+              'visitorData': ?visitorData,
+            },
+          },
+          'videoId': videoId,
+          if (signatureTimestamp != null)
+            'playbackContext': {
+              'contentPlaybackContext': {'signatureTimestamp': signatureTimestamp},
+            },
+        },
+      );
+      data = response.data;
+    } catch (error) {
+      debugPrint('=== YTM stream [WEB_REMIX]: falló el pedido: $error ===');
+      return null;
+    }
+
+    if (data == null) return null;
+
+    final playability = data['playabilityStatus'] as Map?;
+    debugPrint(
+      '=== YTM stream [WEB_REMIX]: playabilityStatus = '
+      '${playability?['status']} (${playability?['reason']}) ===',
+    );
+
+    for (final format in _audioFormats(data)) {
+      final directUrl = format['url'] as String?;
+      if (directUrl != null) return _applyNFix(videoId, directUrl);
+
+      final cipher = format['signatureCipher'] as String? ?? format['cipher'] as String?;
       if (cipher != null) {
         final resolved = await _resolveCipheredUrl(videoId, cipher);
         if (resolved != null) return resolved;
-        debugPrint('=== YTM stream [$clientLabel]: no se pudo resolver este formato cifrado, probando el siguiente ===');
       }
     }
-
     return null;
+  }
+
+  /// Formatos de audio de `streamingData`, de mayor a menor bitrate.
+  List<Map> _audioFormats(Map<String, dynamic> data) {
+    final formats = (data['streamingData']?['adaptiveFormats'] as List?) ?? const [];
+    return formats
+        .whereType<Map>()
+        .where((f) => ((f['mimeType'] as String?) ?? '').startsWith('audio/'))
+        .toList()
+      ..sort((a, b) =>
+          ((b['bitrate'] as int?) ?? 0).compareTo((a['bitrate'] as int?) ?? 0));
   }
 
   /// Parsea un `signatureCipher` (algo como `s=XXX&sp=sig&url=YYY`),
@@ -382,4 +497,31 @@ class YtMusicClient {
     );
     return newUri.toString();
   }
+}
+
+/// Datos de un "cliente" de YouTube (quién dice ser la app que pide el audio).
+class _PlayerClient {
+  const _PlayerClient({
+    required this.label,
+    required this.name,
+    required this.id,
+    required this.version,
+    required this.userAgent,
+    required this.osName,
+    required this.osVersion,
+    required this.deviceMake,
+    required this.deviceModel,
+    this.androidSdkVersion,
+  });
+
+  final String label;
+  final String name;
+  final String id;
+  final String version;
+  final String userAgent;
+  final String osName;
+  final String osVersion;
+  final String deviceMake;
+  final String deviceModel;
+  final int? androidSdkVersion;
 }

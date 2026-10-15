@@ -14,6 +14,12 @@ personas que los construyen y mantienen.
 | [Metrolist](https://github.com/MetrolistGroup/Metrolist) (MetrolistGroup y colaboradores) | GPL-3.0 | Base de la que parte Echo Music; referencia de arquitectura del cliente InnerTube, la generación de PO token y el diseño de funciones. |
 | InnerTune (Zion Huang, Malopieds) y OuterTune (Davide Garberi, Michael Zh) | GPL-3.0 | Proyectos originales de los que descienden Metrolist y Echo Music. |
 
+## Archivos de Kiji adaptados de otros proyectos
+
+| Archivo de Kiji | Proyecto | Archivo original |
+|---|---|---|
+| `lib/features/yt_music/data/ytm_client.dart` | Echo Music | `innertube/.../models/YouTubeClient.kt`, `app/src/main/kotlin/.../utils/YTPlayerUtils.kt` |
+
 ## Componentes de terceros usados tal cual
 
 | Componente | Licencia | Uso |
