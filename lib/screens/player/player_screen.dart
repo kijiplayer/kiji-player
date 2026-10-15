@@ -38,7 +38,11 @@ class PlayerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.watch(playbackProvider);
-    final coverColor = playback.track.coverColor;
+    final track = playback.track;
+    if (track == null) {
+      return const Scaffold(body: Center(child: Text('Elige una canción')));
+    }
+    final coverColor = track.coverColor;
 
     return Scaffold(
       body: Stack(
@@ -70,7 +74,7 @@ class PlayerScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: 32),
                             Text(
-                              playback.track.title,
+                              track.title,
                               textAlign: TextAlign.center,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -81,7 +85,7 @@ class PlayerScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              playback.track.artist,
+                              track.artist,
                               textAlign: TextAlign.center,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

@@ -29,6 +29,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final playback = ref.watch(playbackProvider);
+    final track = playback.track;
+
+    ref.listen<String?>(playbackNoticeProvider, (previous, message) {
+      if (message == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ref.read(playbackNoticeProvider.notifier).state = null;
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -49,7 +56,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '${playback.statusLabel}: ${playback.track.title}',
+                  track == null
+                      ? 'Elige una canción'
+                      : '${playback.statusLabel}: ${track.title}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,

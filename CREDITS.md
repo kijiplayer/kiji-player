@@ -19,6 +19,7 @@ personas que los construyen y mantienen.
 | Archivo de Kiji | Proyecto | Archivo original |
 |---|---|---|
 | `lib/features/yt_music/data/ytm_client.dart` | Echo Music | `innertube/.../models/YouTubeClient.kt`, `app/src/main/kotlin/.../utils/YTPlayerUtils.kt` |
+| `lib/features/playback_memory/data/playback_memory_store.dart` | Echo Music (idea, no código) | `core/.../models/PersistQueue.kt`, `PersistPlayerState.kt`, `MusicService.kt` (qué guardar, cuándo y borrar el guardado dañado) |
 
 ## Componentes de terceros usados tal cual
 

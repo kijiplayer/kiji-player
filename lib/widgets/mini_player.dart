@@ -14,6 +14,9 @@ class MiniPlayer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.watch(playbackProvider);
+    final track = playback.track;
+    // Sin canción elegida, el mini-player no ocupa lugar.
+    if (track == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
 
     return Material(
@@ -33,7 +36,7 @@ class MiniPlayer extends ConsumerWidget {
                 onTap: () => PlayerScreen.open(context),
                 child: Row(
                   children: [
-                    AlbumCover(color: playback.track.coverColor),
+                    AlbumCover(color: track.coverColor),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -41,7 +44,7 @@ class MiniPlayer extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            playback.track.title,
+                            track.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.titleSmall?.copyWith(
@@ -51,7 +54,7 @@ class MiniPlayer extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            playback.track.artist,
+                            track.artist,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(

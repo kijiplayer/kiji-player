@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
-
 /// Origen de una pista: descargada/leída del dispositivo o transmitida
 /// desde YouTube Music (streaming/anónimo).
 enum TrackSource { local, youtube }
@@ -26,21 +24,45 @@ class Track {
   final Color coverColor;
 
   /// URL remota (streaming) o ruta de archivo local, según [source].
+  /// Para YouTube puede venir vacía (pista restaurada del guardado): se
+  /// resuelve de nuevo con el `videoId` antes de reproducir.
   final String audioUrl;
   final TrackSource source;
   final String? thumbnailUrl;
   final String? album;
   final int durationMs;
 
-  static const demo = Track(
-    id: 'demo-sintel',
-    title: 'Midnight Echoes',
-    artist: 'Luna Nova',
-    coverColor: AppColors.seed,
-    audioUrl:
-        'https://storage.googleapis.com/media-session/sintel/sintel_carl.mp3',
-    source: TrackSource.youtube,
-  );
+  /// `videoId` de YouTube (sale de `id = 'yt-<videoId>'`), o null si la
+  /// pista no es de YouTube.
+  String? get youtubeVideoId =>
+      source == TrackSource.youtube && id.startsWith('yt-') ? id.substring(3) : null;
+
+  /// Para YouTube no se guarda la URL de audio: vence en unas horas.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'artist': artist,
+        'coverColor': coverColor.toARGB32(),
+        'source': source.name,
+        if (source == TrackSource.local) 'audioUrl': audioUrl,
+        if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
+        if (album != null) 'album': album,
+        'durationMs': durationMs,
+      };
+
+  factory Track.fromJson(Map<String, dynamic> json) {
+    return Track(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      artist: json['artist'] as String,
+      coverColor: Color(json['coverColor'] as int),
+      audioUrl: json['audioUrl'] as String? ?? '',
+      source: TrackSource.values.byName(json['source'] as String),
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      album: json['album'] as String?,
+      durationMs: json['durationMs'] as int? ?? 0,
+    );
+  }
 
   Track copyWith({
     String? id,

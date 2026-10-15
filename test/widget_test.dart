@@ -6,17 +6,32 @@ import 'package:kiji_player/app.dart';
 import 'package:kiji_player/models/track.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
 
+const _testTrack = Track(
+  id: 'local-1',
+  title: 'Midnight Echoes',
+  artist: 'Luna Nova',
+  coverColor: Color(0xFF7C5CFF),
+  audioUrl: '/storage/emulated/0/Music/midnight.mp3',
+  source: TrackSource.local,
+);
+
+/// Simula la app recién instalada: nada guardado, nada sonando.
+class EmptyPlaybackNotifier extends PlaybackNotifier {
+  @override
+  PlaybackState build() => PlaybackState.initial();
+}
+
 class MockPlaybackNotifier extends PlaybackNotifier {
   @override
   PlaybackState build() {
-    return PlaybackState(
-      track: Track.demo,
+    return const PlaybackState(
+      track: _testTrack,
       isPlaying: true,
-      position: const Duration(minutes: 1, seconds: 23),
-      duration: const Duration(minutes: 3, seconds: 45),
+      position: Duration(minutes: 1, seconds: 23),
+      duration: Duration(minutes: 3, seconds: 45),
       shuffleEnabled: false,
       isInitialized: true,
-      queue: const [Track.demo],
+      queue: [_testTrack],
       currentIndex: 0,
       repeatMode: PlaybackRepeatMode.off,
     );
@@ -64,6 +79,21 @@ class MockPlaybackNotifier extends PlaybackNotifier {
 }
 
 void main() {
+  testWidgets('Sin nada guardado arranca vacío y sin mini-player', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          playbackProvider.overrideWith(EmptyPlaybackNotifier.new),
+        ],
+        child: const KijiApp(),
+      ),
+    );
+
+    expect(find.text('Elige una canción'), findsOneWidget);
+    expect(find.text('Midnight Echoes'), findsNothing);
+    expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+  });
+
   testWidgets('HomeScreen muestra mini-player y estado de reproducción', (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
