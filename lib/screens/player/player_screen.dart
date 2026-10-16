@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/downloads/presentation/download_button.dart';
+import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../models/track.dart';
 import '../../providers/playback_provider.dart';
@@ -196,6 +197,12 @@ class _PlayerAppBar extends StatelessWidget {
             tooltip: 'Minimizar',
           ),
           const Spacer(),
+          IconButton(
+            onPressed: () => QueueScreen.open(context),
+            icon: const Icon(Icons.queue_music_rounded),
+            color: AppColors.onSurfaceMuted,
+            tooltip: 'Cola',
+          ),
           IconButton(
             onPressed: () => _showMenu(context),
             icon: const Icon(Icons.more_horiz_rounded),

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../downloads/presentation/download_button.dart';
+import '../../queue/presentation/track_actions.dart';
 import '../data/ytm_client.dart';
 import '../domain/yt_track_mapper.dart';
 
@@ -150,18 +151,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         final result = _results[index];
         final isResolving = _resolvingVideoId == result.videoId;
 
-        return ListTile(
-          leading: _Thumbnail(url: result.thumbnailUrl),
-          title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
-          trailing: isResolving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : DownloadButton(track: ytTrackFromResult(result, audioUrl: '')),
-          onTap: isResolving ? null : () => _play(result),
+        final track = ytTrackFromResult(result, audioUrl: '');
+
+        // Mantener apretado (celular) o clic derecho (PC): "Reproducir a
+        // continuación" / "Agregar a la cola".
+        return GestureDetector(
+          onSecondaryTap: () => showTrackActions(context, ref, track),
+          child: ListTile(
+            leading: _Thumbnail(url: result.thumbnailUrl),
+            title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+            trailing: isResolving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : DownloadButton(track: track),
+            onTap: isResolving ? null : () => _play(result),
+            onLongPress: () => showTrackActions(context, ref, track),
+          ),
         );
       },
     );

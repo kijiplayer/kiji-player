@@ -9,6 +9,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
+import '../features/queue/domain/queue_operations.dart';
 import '../features/stream_cache/data/stream_cache.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/extractor_health.dart';
@@ -293,7 +294,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
     if (state.repeatMode == PlaybackRepeatMode.one) {
       await _audioPlayer.seek(Duration.zero);
-      await _audioPlayer.play();
+      _startPlaying();
       return;
     }
     await nextTrack();
@@ -337,7 +338,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('=== REPRODUCCION: "${track.title}" cargada en '
           '${_audioPlayer.position.inSeconds} s ===');
       unawaited(_saveState());
-      if (autoPlay) await _audioPlayer.play();
+      if (autoPlay) _startPlaying();
       return LoadResult.loaded;
     } catch (error, stackTrace) {
       if (token != _loadToken) return LoadResult.cancelled;
@@ -427,6 +428,15 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     }
   }
 
+  /// Arranca la música sin esperar: en just_audio, play() termina recién
+  /// cuando la música se pausa, y quien llamó (la búsqueda, el botón de la
+  /// notificación) quedaría "cargando" todo ese tiempo.
+  void _startPlaying() {
+    unawaited(_audioPlayer.play().catchError(
+          (Object error) => debugPrint('=== REPRODUCCION: play() falló: $error ==='),
+        ));
+  }
+
   Future<bool> _isOnline() async {
     try {
       final result = await Connectivity().checkConnectivity();
@@ -450,8 +460,14 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     Track track,
     int index, {
     Duration initialPosition = Duration.zero,
+    bool autoPlay = true,
   }) async {
-    final result = await _loadTrack(track, index, initialPosition: initialPosition);
+    final result = await _loadTrack(
+      track,
+      index,
+      initialPosition: initialPosition,
+      autoPlay: autoPlay,
+    );
     if (result == LoadResult.offline || result == LoadResult.unplayable) {
       await _grace(track, index, result, initialPosition);
     }
@@ -562,6 +578,99 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final index = startIndex.clamp(0, tracks.length - 1);
     state = state.copyWith(queue: tracks, currentIndex: index);
     await _loadOrRecover(tracks[index], index);
+  }
+
+  // ---------------------------------------------------------------------
+  // Cola (Tarea E)
+  // ---------------------------------------------------------------------
+
+  QueueSnapshot get _queueSnapshot => QueueSnapshot(state.queue, state.currentIndex);
+
+  void _applyQueue(QueueSnapshot queue) {
+    state = state.copyWith(queue: queue.tracks, currentIndex: queue.currentIndex);
+    unawaited(_saveState());
+  }
+
+  /// Reordena la cola (índices finales, ya ajustados).
+  void moveInQueue(int from, int to) => _applyQueue(_queueSnapshot.move(from, to));
+
+  /// Salta a la canción [index] de la cola.
+  Future<void> playFromQueue(int index) => _playAtIndex(index);
+
+  /// Quita la canción [index]. Devuelve lo necesario para deshacerlo.
+  Future<RemovedFromQueue?> removeFromQueue(int index) async {
+    if (index < 0 || index >= state.queue.length) return null;
+    final removed = RemovedFromQueue(
+      track: state.queue[index],
+      index: index,
+      wasCurrent: index == state.currentIndex,
+      position: _audioPlayer.position,
+      wasPlaying: _audioPlayer.playing,
+    );
+    final queue = _queueSnapshot.remove(index);
+
+    if (queue.tracks.isEmpty) {
+      // Cola vacía: se detiene y se olvida el guardado (si no, al reabrir
+      // volvería la cola que el usuario acaba de vaciar).
+      ++_loadToken;
+      await _audioPlayer.stop();
+      state = PlaybackState(
+        track: null,
+        isPlaying: false,
+        position: Duration.zero,
+        duration: Duration.zero,
+        shuffleEnabled: state.shuffleEnabled,
+        isInitialized: false,
+        queue: const [],
+        currentIndex: 0,
+        repeatMode: state.repeatMode,
+      );
+      await _memory.clear();
+      return removed;
+    }
+
+    _applyQueue(queue);
+    if (removed.wasCurrent) {
+      await _loadOrRecover(queue.current!, queue.currentIndex, autoPlay: removed.wasPlaying);
+    }
+    return removed;
+  }
+
+  /// Deshace [removeFromQueue]: la canción vuelve a su lugar y, si era la que
+  /// sonaba, vuelve al mismo segundo.
+  Future<void> undoRemove(RemovedFromQueue removed) async {
+    if (state.queue.isEmpty) {
+      state = state.copyWith(queue: [removed.track], currentIndex: 0);
+      await _loadOrRecover(
+        removed.track,
+        0,
+        initialPosition: removed.position,
+        autoPlay: removed.wasPlaying,
+      );
+      return;
+    }
+    final queue = _queueSnapshot.insert(removed.index, removed.track, wasCurrent: removed.wasCurrent);
+    _applyQueue(queue);
+    if (removed.wasCurrent) {
+      await _loadOrRecover(
+        removed.track,
+        queue.currentIndex,
+        initialPosition: removed.position,
+        autoPlay: removed.wasPlaying,
+      );
+    }
+  }
+
+  /// "Reproducir a continuación". Si no suena nada, la reproduce ya.
+  Future<void> playNext(Track track) async {
+    if (state.track == null) return playTrack(track);
+    _applyQueue(_queueSnapshot.playNext(track));
+  }
+
+  /// "Agregar a la cola" (al final). Si no suena nada, la reproduce ya.
+  Future<void> addToQueue(Track track) async {
+    if (state.track == null) return playTrack(track);
+    _applyQueue(_queueSnapshot.addToEnd(track));
   }
 
   Future<void> _playAtIndex(int index) async {
@@ -698,7 +807,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       // red): reintentar ahora, desde la posición guardada.
       await _loadOrRecover(track, state.currentIndex, initialPosition: state.position);
     } else {
-      await _audioPlayer.play();
+      _startPlaying();
     }
   }
 
@@ -767,7 +876,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         await _audioPlayer.seek(Duration.zero);
       } else {
         await _audioPlayer.seek(Duration.zero);
-        await _audioPlayer.play();
+        _startPlaying();
       }
       return;
     }
@@ -795,6 +904,23 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       await _playAtIndex(0);
     }
   }
+}
+
+/// Lo que hace falta para deshacer "quitar de la cola".
+class RemovedFromQueue {
+  const RemovedFromQueue({
+    required this.track,
+    required this.index,
+    required this.wasCurrent,
+    required this.position,
+    required this.wasPlaying,
+  });
+
+  final Track track;
+  final int index;
+  final bool wasCurrent;
+  final Duration position;
+  final bool wasPlaying;
 }
 
 final playbackProvider =

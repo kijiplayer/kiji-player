@@ -10,6 +10,7 @@ import '../../../theme/app_colors.dart';
 import '../../../utils/byte_formatter.dart';
 import '../domain/download_settings.dart';
 import '../domain/downloaded_track.dart';
+import '../../queue/presentation/track_actions.dart';
 import 'download_button.dart';
 
 /// Sección "Descargadas" de la Biblioteca: lo que se puede escuchar sin
@@ -97,6 +98,7 @@ class DownloadsScreen extends ConsumerWidget {
                 onPressed: () => confirmDeleteDownload(context, ref, track.title, track.videoId),
               ),
               onTap: () => _playAll(ref, completed, index),
+              onLongPress: () => showTrackActions(context, ref, track.toTrack()),
             ),
         ],
       ),

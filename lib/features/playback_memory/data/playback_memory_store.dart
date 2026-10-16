@@ -41,4 +41,9 @@ class PlaybackMemoryStore {
   Future<void> save(PlaybackSnapshot snapshot) async {
     await (await _jsonFile()).write(snapshot.toJson());
   }
+
+  /// Olvida la cola guardada (el usuario la vació).
+  Future<void> clear() async {
+    await (await _jsonFile()).delete();
+  }
 }

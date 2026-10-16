@@ -41,6 +41,18 @@ class JsonFile {
     }
   }
 
+  /// Borra el archivo (si existe), después de las escrituras pendientes.
+  Future<void> delete() {
+    return _pendingWrite = _pendingWrite.then((_) async {
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (error) {
+        debugPrint('=== $logTag: no se pudo borrar $path: $error ===');
+      }
+    });
+  }
+
   Future<void> write(Object json) {
     return _pendingWrite = _pendingWrite.then((_) async {
       try {
