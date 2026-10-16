@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/queue/presentation/queue_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/yt_music/data/extractor_health.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../providers/playback_provider.dart';
@@ -99,6 +100,13 @@ class _Sidebar extends ConsumerWidget {
             ),
           ),
           const Spacer(),
+          ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
+            leading: const Icon(Icons.settings_outlined, color: KijiColors.muted),
+            title: const Text('Configuración'),
+            onTap: () => SettingsScreen.open(context),
+          ),
+          const SizedBox(height: 8),
           const _HealthBox(),
         ],
       ),

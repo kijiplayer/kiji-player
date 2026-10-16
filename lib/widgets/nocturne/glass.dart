@@ -127,14 +127,21 @@ class GlassIconButton extends StatelessWidget {
             ),
           );
 
-    return Tooltip(
-      message: tooltip,
-      child: Glass(
-        radius: KijiRadii.pill,
-        blur: false,
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(onTap: onPressed, customBorder: const StadiumBorder(), child: content),
+    // Nombre explícito para lectores de pantalla (el Tooltip solo no alcanza).
+    return Semantics(
+      button: true,
+      enabled: onPressed != null,
+      label: label ?? tooltip,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: tooltip,
+        child: Glass(
+          radius: KijiRadii.pill,
+          blur: false,
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(onTap: onPressed, customBorder: const StadiumBorder(), child: content),
+          ),
         ),
       ),
     );

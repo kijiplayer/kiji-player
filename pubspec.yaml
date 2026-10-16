@@ -82,6 +82,10 @@ flutter:
 
   # Kiji Nocturne. Tipografías incluidas en la app (licencia OFL, ver los OFL.txt):
   # no se descargan de Google al usarla, así nada sale del teléfono sin pedirlo.
+  # Créditos que se muestran en Configuración → Acerca de (Tarea G).
+  assets:
+    - CREDITS.md
+
   fonts:
     - family: SpaceGrotesk
       fonts:

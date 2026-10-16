@@ -11,6 +11,7 @@ import '../features/history/listening_history.dart';
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
 import '../features/queue/domain/queue_operations.dart';
+import '../features/settings/data/settings_store.dart';
 import '../features/stream_cache/data/stream_cache.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/extractor_health.dart';
@@ -431,7 +432,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           if (mode != _SourceMode.cached) {
             debugPrint('=== REPRODUCCION: "${track.title}" sin caché (${mode.name}) ===');
           }
-          unawaited(_cache.evict(limitBytes: StreamCache.defaultLimitBytes, keepVideoId: videoId));
+          unawaited(_cache.evict(
+            limitBytes: ref.read(settingsProvider).streamCacheLimitBytes,
+            keepVideoId: videoId,
+          ));
           return LoadResult.loaded;
         } on PlayerInterruptedException {
           return LoadResult.cancelled;
@@ -444,6 +448,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       tried.add(stream.client);
     }
   }
+
+  /// Olvida la cola guardada (al apagar "Recordar la cola al cerrar").
+  Future<void> forgetSavedQueue() => _memory.clear();
+
+  /// Vacía la caché de lo escuchado (Configuración → Almacenamiento).
+  Future<void> clearStreamCache() => _cache.clear();
 
   /// Arranca la música sin esperar: en just_audio, play() termina recién
   /// cuando la música se pausa, y quien llamó (la búsqueda, el botón de la
@@ -719,7 +729,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
   Future<void> _saveState() async {
     final queue = state.queue;
-    if (queue.isEmpty) return;
+    if (queue.isEmpty || !ref.read(settingsProvider).rememberQueue) return;
     final position = state.isInitialized ? _audioPlayer.position : state.position;
     await _memory.save(
       PlaybackSnapshot(
@@ -735,6 +745,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// Recupera la cola guardada y deja la canción EN PAUSA en su posición
   /// (Cero Sorpresas: nunca reproducir sola al abrir).
   Future<void> _restoreState() async {
+    // Configuración → "Recordar la cola al cerrar" (Tarea A, punto 5).
+    final settings = await ref.read(settingsProvider.notifier).loaded;
+    if (!settings.rememberQueue) {
+      debugPrint('=== MEMORIA: "recordar la cola" está apagado, se arranca vacío ===');
+      return;
+    }
     final snapshot = await _memory.load();
     if (snapshot == null) {
       debugPrint('=== MEMORIA: nada guardado, se arranca vacío ===');

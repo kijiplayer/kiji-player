@@ -13,6 +13,7 @@ import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/presentation/downloads_screen.dart';
 import '../../queue/presentation/track_actions.dart';
+import '../../settings/data/settings_store.dart';
 import '../../stream_cache/data/stream_cache.dart';
 import '../domain/local_library_source.dart';
 
@@ -82,11 +83,16 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     if (await _source.requestAccess()) await _load();
   }
 
-  /// Canciones descargadas (YT ↓) y locales (LOCAL), en ese orden.
-  List<Track> _allSongs() => [
-        for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack(),
-        ..._local,
-      ];
+  /// Canciones descargadas (YT ↓) y locales (LOCAL), en ese orden. Los
+  /// audios cortos se ocultan si así se eligió en Configuración.
+  List<Track> _allSongs() {
+    final settings = ref.watch(settingsProvider);
+    return [
+      for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack(),
+      for (final track in _local)
+        if (!settings.hides(track.durationMs)) track,
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +243,11 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     }
 
     // Android: la música agrupada por la carpeta donde está.
-    final byFolder = groupByFolder(_local);
+    final settings = ref.watch(settingsProvider);
+    final byFolder = groupByFolder([
+      for (final track in _local)
+        if (!settings.hides(track.durationMs)) track,
+    ]);
     return [
       SliverList.builder(
         itemCount: byFolder.length,

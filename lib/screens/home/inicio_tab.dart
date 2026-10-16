@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/history/listening_history.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import '../../models/track.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
@@ -123,12 +124,24 @@ class _GreetingState extends State<_Greeting> {
   @override
   Widget build(BuildContext context) {
     final time = '${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}';
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(time, style: KijiText.mono(size: 13, color: KijiColors.cyan)),
-        const SizedBox(height: 4),
-        Text(greetingFor(_now), style: KijiText.title(size: 30)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(time, style: KijiText.mono(size: 13, color: KijiColors.cyan)),
+              const SizedBox(height: 4),
+              Text(greetingFor(_now), style: KijiText.title(size: 30)),
+            ],
+          ),
+        ),
+        GlassIconButton(
+          icon: Icons.settings_outlined,
+          tooltip: 'Configuración',
+          onPressed: () => SettingsScreen.open(context),
+        ),
       ],
     );
   }

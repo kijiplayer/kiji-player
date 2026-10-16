@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/local_library/data/android_media_store_source.dart';
 import '../features/local_library/data/desktop_folder_source.dart';
 import '../features/local_library/domain/local_library_source.dart';
+import '../features/settings/data/settings_store.dart';
 import '../models/track.dart';
 
 /// Fuente de la biblioteca local según la plataforma.
@@ -22,7 +23,11 @@ final localTracksProvider = FutureProvider<List<Track>>((ref) async {
   final source = ref.watch(localLibrarySourceProvider);
   try {
     if (!await source.hasAccess()) return const [];
-    return await source.loadTracks();
+    final settings = ref.watch(settingsProvider);
+    return [
+      for (final track in await source.loadTracks())
+        if (!settings.hides(track.durationMs)) track,
+    ];
   } catch (error) {
     debugPrint('=== BIBLIOTECA: no se pudo leer para buscar: $error ===');
     return const [];
