@@ -14,7 +14,9 @@ import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/presentation/download_button.dart';
 import '../../queue/presentation/track_actions.dart';
+import '../data/ytm_browse_parser.dart';
 import '../data/ytm_client.dart';
+import 'collection_screens.dart';
 import '../domain/yt_track_mapper.dart';
 
 /// Qué se busca (chips del mockup, §7).
@@ -53,6 +55,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Timer? _debounce;
 
   List<YtMusicSearchResult> _results = const [];
+  List<YtCollection> _collections = const [];
   bool _loading = false;
   String? _error;
   String? _resolvingVideoId;
@@ -86,9 +89,28 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _error = null;
     });
 
-    if (_kind != SearchKind.songs) {
-      // Mis archivos se filtra en pantalla; Artistas y Álbumes, más adelante.
+    if (_kind == SearchKind.myFiles) {
+      // Mis archivos se filtra en pantalla, sin internet.
       setState(() => _loading = false);
+      return;
+    }
+    if (_kind == SearchKind.artists || _kind == SearchKind.albums) {
+      try {
+        final kind = _kind == SearchKind.artists ? YtCollectionKind.artist : YtCollectionKind.album;
+        final collections = await _client.searchCollections(query, kind);
+        if (!mounted) return;
+        setState(() {
+          _collections = collections;
+          _loading = false;
+        });
+      } catch (error) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'No se pudo buscar. Revisá tu conexión a Internet.';
+          _loading = false;
+        });
+        debugPrint('=== ERROR AL BUSCAR ${_kind.label.toUpperCase()} "$query": $error ===');
+      }
       return;
     }
 
@@ -186,20 +208,31 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           child: switch (_kind) {
             SearchKind.songs => _buildBody(),
             SearchKind.myFiles => _buildMyFiles(),
-            SearchKind.artists || SearchKind.albums => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Text(
-                    'Buscar ${_kind.label.toLowerCase()} llega en una próxima versión. '
-                    'Por ahora, probá con Canciones.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.onSurfaceMuted),
-                  ),
-                ),
-              ),
+            SearchKind.artists || SearchKind.albums => _buildCollections(),
           },
         ),
       ],
+    );
+  }
+
+  /// Artistas o álbumes de YouTube Music (anónimo).
+  Widget _buildCollections() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(child: Text(_error!, style: const TextStyle(color: AppColors.onSurfaceMuted)));
+    }
+    if (_controller.text.trim().isEmpty) {
+      return Center(
+        child: Text('Buscá ${_kind.label.toLowerCase()}', style: const TextStyle(color: AppColors.onSurfaceMuted)),
+      );
+    }
+    if (_collections.isEmpty) {
+      return const Center(child: Text('Sin resultados', style: TextStyle(color: AppColors.onSurfaceMuted)));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 180),
+      itemCount: _collections.length,
+      itemBuilder: (context, index) => CollectionTile(collection: _collections[index]),
     );
   }
 

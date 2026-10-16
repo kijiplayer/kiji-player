@@ -28,6 +28,7 @@ personas que los construyen y mantienen.
 | `lib/features/settings/` (`settings_store.dart`, `setting_search.dart`, `settings_screen.dart`) | Echo Music (idea, no código) | `constants/PreferenceKeys.kt`, `ui/screens/settings/`, `SearchableSettings.kt` (secciones y buscador de opciones) |
 | `lib/features/sleep_timer/` (`sleep_timer_logic.dart`) | Echo Music (idea, no código) | `playback/SleepTimer.kt` (temporizador por minutos y al terminar la canción) |
 | `lib/features/lyrics/` (`lyrics.dart`, `lrclib_client.dart`, `lyrics_repository.dart`, `lyrics_screen.dart`) | Echo Music (idea, no código) | `lyrics/LrcLibLyricsProvider.kt`, `LyricsHelper.kt`, `LyricsUtils.kt`, `ui/component/LyricsV2.kt` |
+| `lib/features/playlists/` (`playlist.dart`, `smart_lists.dart`, `playlist_screens.dart`) | Echo Music (idea, no código) | `ui/screens/playlist/LocalPlaylistScreen.kt`, `AutoPlaylistScreen.kt` |
 
 ## Servicios que usa Kiji (solo cuando el usuario lo pide)
 

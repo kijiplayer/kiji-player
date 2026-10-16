@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
 import '../../../providers/playback_provider.dart';
+import '../../playlists/presentation/playlist_screens.dart';
 import '../../sleep_timer/sleep_timer_provider.dart';
 
 /// Menú de una canción (mantener apretado en el celular, clic derecho en la
@@ -49,6 +50,14 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
               Navigator.pop(context);
               notifier.addToQueue(track);
               done('«${track.title}» se agregó al final de la cola');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.library_add_rounded),
+            title: const Text('Agregar a playlist'),
+            onTap: () {
+              Navigator.pop(context);
+              showAddToPlaylistSheet(context, ref, [track]);
             },
           ),
           if (inQueue)

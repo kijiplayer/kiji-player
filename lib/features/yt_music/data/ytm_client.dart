@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 
 import '../domain/subtitle_parser.dart';
 import 'extractor_health.dart';
+import 'ytm_browse_parser.dart';
 import 'yt_cipher_solver.dart';
 
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
@@ -133,6 +134,48 @@ class YtMusicClient {
     debugPrint('=== YTM search: ${results.length} resultados parseados ===');
 
     return results;
+  }
+
+  /// Filtros de la búsqueda de YouTube Music para Artistas y Álbumes (los
+  /// mismos `params` que manda la web al tocar esos chips).
+  static const artistsFilter = 'EgWKAQIgAWoKEAkQChAFEAMQBA==';
+  static const albumsFilter = 'EgWKAQIYAWoKEAkQChAFEAMQBA==';
+
+  /// Busca artistas o álbumes (anónimo).
+  Future<List<YtCollection>> searchCollections(String query, YtCollectionKind kind) async {
+    if (query.trim().isEmpty) return const [];
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/search',
+      queryParameters: {'key': _apiKey},
+      data: {
+        ..._context,
+        'query': query,
+        'params': kind == YtCollectionKind.artist ? artistsFilter : albumsFilter,
+      },
+    );
+    final data = response.data;
+    return data == null ? const [] : parseCollectionResults(data, kind);
+  }
+
+  Future<Map<String, dynamic>?> _browse(String browseId) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/browse',
+      queryParameters: {'key': _apiKey},
+      data: {..._context, 'browseId': browseId},
+    );
+    return response.data;
+  }
+
+  /// Página de un artista (anónimo): canciones más escuchadas y álbumes.
+  Future<ArtistPage?> artist(String browseId) async {
+    final data = await _browse(browseId);
+    return data == null ? null : parseArtistPage(data);
+  }
+
+  /// Página de un álbum (anónimo): sus pistas.
+  Future<AlbumPage?> album(String browseId) async {
+    final data = await _browse(browseId);
+    return data == null ? null : parseAlbumPage(data);
   }
 
   /// Recorre recursivamente [data['contents']] buscando cualquier nodo

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/lyrics/presentation/lyrics_screen.dart';
+import '../../features/playlists/playlists_provider.dart';
+import '../../features/playlists/presentation/playlist_screens.dart';
 import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
@@ -95,14 +97,33 @@ class _Sidebar extends ConsumerWidget {
             padding: const EdgeInsets.only(left: 8, bottom: 8),
             child: Text('TUS LISTAS', style: KijiText.mono(size: 11)),
           ),
-          const Padding(
-            padding: EdgeInsets.only(left: 8),
-            child: Text(
-              'Tus playlists van a aparecer acá.',
-              style: TextStyle(color: KijiColors.muted, fontSize: 13),
-            ),
+          Expanded(
+            child: Builder(builder: (context) {
+              final playlists = ref.watch(playlistsProvider);
+              if (playlists.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Text(
+                    'Tus playlists van a aparecer acá.',
+                    style: TextStyle(color: KijiColors.muted, fontSize: 13),
+                  ),
+                );
+              }
+              return ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  for (final playlist in playlists)
+                    ListTile(
+                      dense: true,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
+                      leading: const Icon(Icons.queue_music_rounded, size: 20, color: KijiColors.violet),
+                      title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      onTap: () => PlaylistScreen.open(context, playlist.id),
+                    ),
+                ],
+              );
+            }),
           ),
-          const Spacer(),
           ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
             leading: const Icon(Icons.settings_outlined, color: KijiColors.muted),

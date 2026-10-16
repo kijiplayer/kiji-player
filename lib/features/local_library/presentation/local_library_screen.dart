@@ -12,6 +12,7 @@ import '../../../utils/duration_formatter.dart';
 import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/presentation/downloads_screen.dart';
+import '../../playlists/presentation/playlist_screens.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../settings/data/settings_store.dart';
 import '../../stream_cache/data/stream_cache.dart';
@@ -139,16 +140,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
             LibraryTab.downloads => [
                 const SliverFillRemaining(child: DownloadsView(bottomPadding: 180)),
               ],
-            LibraryTab.playlists => [
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _InfoCard(
-                    icon: Icons.queue_music_rounded,
-                    message: 'Tus playlists van a aparecer acá. '
-                        'Mientras tanto, marcá canciones con ♥ en el reproductor.',
-                  ),
-                ),
-              ],
+            LibraryTab.playlists => [const SliverToBoxAdapter(child: PlaylistsView())],
             LibraryTab.folders => _foldersSlivers(),
           },
           const SliverToBoxAdapter(child: SizedBox(height: 180)),
