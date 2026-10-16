@@ -7,12 +7,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
 import '../../../providers/playback_provider.dart';
+import '../../sleep_timer/sleep_timer_provider.dart';
 
 /// Menú de una canción (mantener apretado en el celular, clic derecho en la
 /// PC): "Reproducir a continuación" y "Agregar a la cola".
 Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) {
   final messenger = ScaffoldMessenger.of(context);
   final notifier = ref.read(playbackProvider.notifier);
+  // "Pausar al terminar esta" solo tiene sentido si la canción está en la cola.
+  final inQueue = ref.read(playbackProvider).queue.any((t) => t.id == track.id);
 
   void done(String message) => messenger
     ..hideCurrentSnackBar()
@@ -48,6 +51,17 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
               done('«${track.title}» se agregó al final de la cola');
             },
           ),
+          if (inQueue)
+            ListTile(
+              leading: const Icon(Icons.bedtime_outlined),
+              title: const Text('Pausar al terminar esta'),
+              subtitle: const Text('El temporizador para cuando termine esta canción'),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(sleepTimerProvider.notifier).startUntilTrack(track);
+                done('La música se va a pausar al terminar «${track.title}»');
+              },
+            ),
         ],
       ),
     ),

@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/downloads/presentation/download_button.dart';
 import '../../features/favorites/favorites.dart';
 import '../../features/lyrics/presentation/lyrics_screen.dart';
-import '../../features/sleep_timer/domain/sleep_timer_logic.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import '../../features/sleep_timer/sleep_timer_provider.dart';
 import '../../features/queue/presentation/queue_screen.dart';
@@ -410,10 +409,8 @@ class _BottomActions extends ConsumerWidget {
         GlassIconButton(
           icon: timer == null ? Icons.bedtime_outlined : Icons.bedtime_rounded,
           // Activo: muestra cuánto falta, en cian.
-          label: timer == null
-              ? 'Temporizador'
-              : (timer.remaining == null ? 'Al final' : SleepTimerLogic.format(timer.remaining!)),
-          tooltip: timer == null ? 'Temporizador' : 'Temporizador activo',
+          label: sleepTimerButtonLabel(timer),
+          tooltip: timer == null ? 'Temporizador' : 'Temporizador activo: ${timer.mode.label}',
           active: timer != null,
           onPressed: () => showSleepTimerSheet(context),
         ),

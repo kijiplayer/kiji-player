@@ -8,6 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/track.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/kiji_tokens.dart';
+import '../../sleep_timer/domain/sleep_timer_logic.dart';
+import '../../sleep_timer/sleep_timer_provider.dart';
 import '../../../widgets/album_cover.dart';
 
 /// "Qué suena después": reordenar arrastrando, quitar (con Deshacer) y
@@ -64,6 +67,9 @@ class QueueList extends ConsumerWidget {
     final playback = ref.watch(playbackProvider);
     final queue = playback.queue;
     final notifier = ref.read(playbackProvider.notifier);
+    final timer = ref.watch(sleepTimerProvider);
+    final pauseAfterId =
+        timer?.mode == SleepTimerMode.untilTrack ? timer?.targetTrackId : null;
 
     return queue.isEmpty
           ? const Center(
@@ -93,6 +99,10 @@ class QueueList extends ConsumerWidget {
                   isPlaying: isCurrent && playback.isPlaying,
                   onTap: () => notifier.playFromQueue(index),
                   onRemove: () => _remove(context, ref, index),
+                  pauseAfter: track.id == pauseAfterId,
+                  onTogglePauseAfter: () => track.id == pauseAfterId
+                      ? ref.read(sleepTimerProvider.notifier).cancel()
+                      : ref.read(sleepTimerProvider.notifier).startUntilTrack(track),
                 );
               },
             );
@@ -127,6 +137,8 @@ class _QueueTile extends StatelessWidget {
     required this.isPlaying,
     required this.onTap,
     required this.onRemove,
+    required this.pauseAfter,
+    required this.onTogglePauseAfter,
   });
 
   final int index;
@@ -135,6 +147,10 @@ class _QueueTile extends StatelessWidget {
   final bool isPlaying;
   final VoidCallback onTap;
   final VoidCallback onRemove;
+
+  /// Tarea H2: el temporizador pausa al terminar esta canción (luna).
+  final bool pauseAfter;
+  final VoidCallback onTogglePauseAfter;
 
   @override
   Widget build(BuildContext context) {
@@ -174,10 +190,38 @@ class _QueueTile extends StatelessWidget {
                 fontWeight: isCurrent ? FontWeight.w600 : null,
               ),
             ),
-            subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Row(
+              children: [
+                if (pauseAfter) ...[
+                  const Icon(Icons.bedtime_rounded, size: 14, color: KijiColors.cyan),
+                  const SizedBox(width: 4),
+                ],
+                Expanded(child: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis)),
+              ],
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                PopupMenuButton<String>(
+                  tooltip: 'Más opciones',
+                  icon: Icon(
+                    pauseAfter ? Icons.bedtime_rounded : Icons.more_vert_rounded,
+                    color: pauseAfter ? KijiColors.cyan : AppColors.onSurfaceMuted,
+                  ),
+                  onSelected: (_) => onTogglePauseAfter(),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'pausa',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(pauseAfter ? Icons.bedtime_off_outlined : Icons.bedtime_outlined),
+                        title: Text(pauseAfter
+                            ? 'Quitar la pausa programada'
+                            : 'Pausar al terminar esta'),
+                      ),
+                    ),
+                  ],
+                ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),
                   tooltip: 'Quitar de la cola',

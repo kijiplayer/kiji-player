@@ -4,12 +4,21 @@
 
 /// Cómo termina el temporizador.
 enum SleepTimerMode {
-  minutes('En unos minutos'),
-  endOfTrack('Al terminar esta canción'),
-  endOfQueue('Al terminar la cola');
+  minutes('En unos minutos', 'Minutos'),
+  endOfTrack('Al terminar esta canción', 'Esta canción'),
+  endOfQueue('Al terminar la cola', 'Fin de la cola'),
 
-  const SleepTimerMode(this.label);
+  /// Tarea H2: al terminar una canción elegida de la cola.
+  untilTrack('Hasta una canción de la cola', 'Hasta canción'),
+
+  /// Tarea H2: en un segundo exacto de la canción que suena.
+  atPosition('En un momento exacto', 'Momento exacto');
+
+  const SleepTimerMode(this.label, this.shortLabel);
   final String label;
+
+  /// Para el botón del reproductor cuando todavía no se sabe cuánto falta.
+  final String shortLabel;
 }
 
 /// Lógica pura del temporizador (sin reproductor ni relojes reales).
@@ -17,11 +26,16 @@ abstract final class SleepTimerLogic {
   /// El volumen baja de a poco durante los últimos 30 segundos.
   static const fadeDuration = Duration(seconds: 30);
 
-  /// Opciones de "en X minutos".
+  /// Opciones rápidas de "en X minutos".
   static const minuteOptions = [5, 10, 15, 30, 45, 60, 90];
 
+  /// "En X minutos" con número a elección (Tarea H2).
+  static const minMinutes = 1;
+  static const maxMinutes = 600;
+
   /// Cuánto falta para pausar, o null si todavía no se puede saber (por
-  /// ejemplo, "al terminar la cola" mientras no suena la última canción).
+  /// ejemplo, "al terminar la cola" mientras no suena la última canción, o
+  /// "hasta una canción" mientras no suena esa).
   static Duration? remaining({
     required SleepTimerMode mode,
     required DateTime now,
@@ -29,6 +43,9 @@ abstract final class SleepTimerLogic {
     required Duration position,
     required Duration duration,
     required bool isLastInQueue,
+    String? currentTrackId,
+    String? targetTrackId,
+    Duration? targetPosition,
   }) {
     switch (mode) {
       case SleepTimerMode.minutes:
@@ -39,6 +56,41 @@ abstract final class SleepTimerLogic {
         return _trackLeft(position, duration);
       case SleepTimerMode.endOfQueue:
         return isLastInQueue ? _trackLeft(position, duration) : null;
+      case SleepTimerMode.untilTrack:
+        return currentTrackId != null && currentTrackId == targetTrackId
+            ? _trackLeft(position, duration)
+            : null;
+      case SleepTimerMode.atPosition:
+        if (targetPosition == null) return null;
+        final left = targetPosition - position;
+        return left.isNegative ? Duration.zero : left;
+    }
+  }
+
+  /// Si el temporizador ya no tiene sentido y hay que apagarlo, el motivo
+  /// para avisar al usuario; si no, null.
+  static String? cancelReason({
+    required SleepTimerMode mode,
+    required List<String> queueIds,
+    String? currentTrackId,
+    String? targetTrackId,
+    String? targetTitle,
+  }) {
+    switch (mode) {
+      case SleepTimerMode.untilTrack:
+        if (targetTrackId != null && !queueIds.contains(targetTrackId)) {
+          return 'Se quitó «${targetTitle ?? 'la canción'}» de la cola: el temporizador se apagó.';
+        }
+        return null;
+      case SleepTimerMode.atPosition:
+        if (targetTrackId != null && currentTrackId != targetTrackId) {
+          return 'Cambió la canción: el temporizador de momento exacto se apagó.';
+        }
+        return null;
+      case SleepTimerMode.minutes:
+      case SleepTimerMode.endOfTrack:
+      case SleepTimerMode.endOfQueue:
+        return null;
     }
   }
 
@@ -48,21 +100,36 @@ abstract final class SleepTimerLogic {
     return left.isNegative ? Duration.zero : left;
   }
 
-  /// Factor de volumen (0..1) para [remaining]: 1 hasta los últimos 30 s, y
-  /// de ahí baja en línea recta hasta 0.
-  static double fadeFactor(Duration? remaining) {
-    if (remaining == null || remaining >= fadeDuration) return 1;
-    if (remaining <= Duration.zero) return 0;
-    return remaining.inMilliseconds / fadeDuration.inMilliseconds;
+  /// Ventana del desvanecimiento: 30 s, o lo que falte si es menos cuando
+  /// se conoce el final ("o menos si falta poco"). Así nunca hay un salto
+  /// brusco de volumen.
+  static Duration fadeWindowFor(Duration remaining) =>
+      remaining < fadeDuration ? remaining : fadeDuration;
+
+  /// Factor de volumen (0..1) para [remaining]: 1 hasta que empieza la
+  /// ventana de desvanecimiento, y de ahí baja en línea recta hasta 0.
+  static double fadeFactor(Duration? remaining, {Duration window = fadeDuration}) {
+    if (remaining == null || remaining >= window) return 1;
+    if (remaining <= Duration.zero || window <= Duration.zero) return 0;
+    return remaining.inMilliseconds / window.inMilliseconds;
   }
 
   /// Hay que pausar ya. Para canciones se pausa un instante antes del final,
   /// así no llega a arrancar la siguiente.
   static bool shouldStop(SleepTimerMode mode, Duration? remaining) {
     if (remaining == null) return false;
-    final margin =
-        mode == SleepTimerMode.minutes ? Duration.zero : const Duration(milliseconds: 400);
+    final margin = switch (mode) {
+      SleepTimerMode.minutes || SleepTimerMode.atPosition => Duration.zero,
+      _ => const Duration(milliseconds: 400),
+    };
     return remaining <= margin;
+  }
+
+  /// Momento por defecto de "en un momento exacto": 1 minuto antes del final
+  /// (o el principio, si la canción dura menos de un minuto).
+  static Duration defaultTargetPosition(Duration duration) {
+    final target = duration - const Duration(minutes: 1);
+    return target.isNegative ? Duration.zero : target;
   }
 
   /// "12:05" o "1:02:05" para mostrar cuánto falta.
