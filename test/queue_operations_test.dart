@@ -109,4 +109,30 @@ void main() {
       expect(identical(queue.addToEnd(_t('b')), queue), isTrue);
     });
   });
+
+  group('"A continuación" gana sobre el aleatorio', () {
+    test('Sin pedidos no hay preferencia', () {
+      expect(queue.nextRequestedIndex({}), isNull);
+    });
+
+    test('Elige la pedida más cercana después de la que suena', () {
+      final q = queue.playNext(_t('x')).playNext(_t('y'));
+      // a b c y x d e — sonando c
+      expect(_ids(q), ['a', 'b', 'c', 'y', 'x', 'd', 'e']);
+      expect(q.tracks[q.nextRequestedIndex({'yt-x', 'yt-y'})!].title, 'y');
+      expect(q.tracks[q.nextRequestedIndex({'yt-x'})!].title, 'x');
+    });
+
+    test('Si se reordenó y quedó antes de la que suena, igual se elige', () {
+      expect(queue.tracks[queue.nextRequestedIndex({'yt-a'})!].title, 'a');
+    });
+
+    test('Una pedida que ya no está en la cola se ignora', () {
+      expect(queue.nextRequestedIndex({'yt-zzz'}), isNull);
+    });
+
+    test('La que suena no cuenta como pedida', () {
+      expect(queue.nextRequestedIndex({'yt-c'}), isNull);
+    });
+  });
 }

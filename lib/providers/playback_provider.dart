@@ -149,6 +149,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   bool _recovering = false;
   int _consecutiveFailures = 0;
 
+  /// Canciones pedidas con "Reproducir a continuación" que todavía no
+  /// sonaron. Ganan sobre el aleatorio.
+  final Set<String> _requestedNext = {};
+
   @override
   PlaybackState build() {
     _player = AudioPlayer();
@@ -312,6 +316,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     Set<String> skipClients = const {},
   }) async {
     final token = ++_loadToken;
+    _requestedNext.remove(track.id);
     _currentClient = null;
     _lastPlayedPosition = initialPosition;
     state = state.copyWith(
@@ -566,6 +571,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// Reproduce una única pista suelta, convirtiéndola en una cola de un
   /// solo elemento.
   Future<void> playTrack(Track track) async {
+    _requestedNext.clear();
     state = state.copyWith(queue: [track], currentIndex: 0);
     await _loadOrRecover(track, 0);
   }
@@ -576,6 +582,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> playQueue(List<Track> tracks, {int startIndex = 0}) async {
     if (tracks.isEmpty) return;
     final index = startIndex.clamp(0, tracks.length - 1);
+    _requestedNext.clear();
     state = state.copyWith(queue: tracks, currentIndex: index);
     await _loadOrRecover(tracks[index], index);
   }
@@ -665,6 +672,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> playNext(Track track) async {
     if (state.track == null) return playTrack(track);
     _applyQueue(_queueSnapshot.playNext(track));
+    _requestedNext.add(track.id);
   }
 
   /// "Agregar a la cola" (al final). Si no suena nada, la reproduce ya.
@@ -878,6 +886,14 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         await _audioPlayer.seek(Duration.zero);
         _startPlaying();
       }
+      return;
+    }
+
+    // "Reproducir a continuación" siempre se respeta, aun con aleatorio
+    // (decisión del proyecto, igual que en Echo).
+    final requested = _queueSnapshot.nextRequestedIndex(_requestedNext);
+    if (requested != null) {
+      await _playAtIndex(requested);
       return;
     }
 

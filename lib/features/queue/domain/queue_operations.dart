@@ -80,6 +80,21 @@ class QueueSnapshot {
     return insert(currentIndex + 1, track);
   }
 
+  /// Índice de la próxima canción pedida con "Reproducir a continuación"
+  /// ([pendingIds]), o null si no hay ninguna. Gana sobre el aleatorio
+  /// (como en Echo): primero la más cercana después de la que suena; si
+  /// quedaron antes (porque se reordenó la cola), la primera de esas.
+  int? nextRequestedIndex(Set<String> pendingIds) {
+    if (pendingIds.isEmpty) return null;
+    int? before;
+    for (var i = 0; i < tracks.length; i++) {
+      if (i == currentIndex || !pendingIds.contains(tracks[i].id)) continue;
+      if (i > currentIndex) return i;
+      before ??= i;
+    }
+    return before;
+  }
+
   /// Agrega [track] al final. Si ya estaba, no hace nada.
   QueueSnapshot addToEnd(Track track) {
     if (tracks.any((t) => t.id == track.id)) return this;
