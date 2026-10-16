@@ -9,7 +9,14 @@ class AppSettings {
     this.reduceMotion = false,
     this.streamCacheLimitBytes = defaultCacheLimit,
     this.hideShortAudios = false,
+    this.pauseOnMute = false,
+    this.resumeOnBluetooth = false,
+    this.crossfadeSeconds = 0,
+    this.dataSaver = false,
   });
+
+  /// Opciones de la transición suave entre canciones (0 = apagada).
+  static const crossfadeOptions = [0, 3, 5, 8, 12];
 
   static const _mb = 1024 * 1024;
   static const defaultCacheLimit = 300 * _mb;
@@ -33,17 +40,40 @@ class AppSettings {
   /// Contenido: ocultar de la Biblioteca los audios de menos de 30 s.
   final bool hideShortAudios;
 
+  /// Reproductor (Tarea K): pausar si el volumen del teléfono llega a cero y
+  /// seguir al subirlo (solo si fue esa la causa de la pausa).
+  final bool pauseOnMute;
+
+  /// Reproductor (Tarea K): si se cortó la música al desconectarse los
+  /// auriculares Bluetooth, seguir al reconectarlos (dentro de 10 minutos).
+  final bool resumeOnBluetooth;
+
+  /// Reproductor (Tarea K): segundos de la transición suave entre canciones.
+  final int crossfadeSeconds;
+
+  /// Almacenamiento (Tarea K): con datos móviles, YouTube a la calidad más
+  /// baja. Con WiFi, siempre la mejor.
+  final bool dataSaver;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
     int? streamCacheLimitBytes,
     bool? hideShortAudios,
+    bool? pauseOnMute,
+    bool? resumeOnBluetooth,
+    int? crossfadeSeconds,
+    bool? dataSaver,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
         reduceMotion: reduceMotion ?? this.reduceMotion,
         streamCacheLimitBytes: streamCacheLimitBytes ?? this.streamCacheLimitBytes,
         hideShortAudios: hideShortAudios ?? this.hideShortAudios,
+        pauseOnMute: pauseOnMute ?? this.pauseOnMute,
+        resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
+        crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
+        dataSaver: dataSaver ?? this.dataSaver,
       );
 
   Map<String, dynamic> toJson() => {
@@ -52,6 +82,10 @@ class AppSettings {
         'reduceMotion': reduceMotion,
         'streamCacheLimitBytes': streamCacheLimitBytes,
         'hideShortAudios': hideShortAudios,
+        'pauseOnMute': pauseOnMute,
+        'resumeOnBluetooth': resumeOnBluetooth,
+        'crossfadeSeconds': crossfadeSeconds,
+        'dataSaver': dataSaver,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -60,11 +94,16 @@ class AppSettings {
     const d = AppSettings();
     T read<T>(String key, T fallback) => json[key] is T ? json[key] as T : fallback;
     final limit = read<int>('streamCacheLimitBytes', d.streamCacheLimitBytes);
+    final crossfade = read<int>('crossfadeSeconds', d.crossfadeSeconds);
     return AppSettings(
       rememberQueue: read('rememberQueue', d.rememberQueue),
       reduceMotion: read('reduceMotion', d.reduceMotion),
       streamCacheLimitBytes: cacheLimitOptions.contains(limit) ? limit : d.streamCacheLimitBytes,
       hideShortAudios: read('hideShortAudios', d.hideShortAudios),
+      pauseOnMute: read('pauseOnMute', d.pauseOnMute),
+      resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),
+      crossfadeSeconds: crossfadeOptions.contains(crossfade) ? crossfade : d.crossfadeSeconds,
+      dataSaver: read('dataSaver', d.dataSaver),
     );
   }
 

@@ -190,6 +190,67 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => EqualizerScreen.open(context),
         ),
       ),
+      SettingOption(
+        section: SettingsSection.player,
+        title: 'Transición suave entre canciones',
+        subtitle: 'La canción baja al final y la siguiente sube al empezar.',
+        keywords: const ['crossfade', 'fundido', 'mezcla', 'fade', 'transicion'],
+        builder: (context, ref) {
+          final seconds = ref.watch(settingsProvider.select((s) => s.crossfadeSeconds));
+          return ListTile(
+            leading: const Icon(Icons.swap_horiz_rounded),
+            title: const Text('Transición suave entre canciones'),
+            subtitle: Text(seconds == 0
+                ? 'Apagada'
+                : '$seconds s: la canción baja al final y la siguiente sube al empezar.'),
+            trailing: PopupMenuButton<int>(
+              initialValue: seconds,
+              tooltip: 'Duración',
+              onSelected: (value) =>
+                  ref.read(settingsProvider.notifier).update((s) => s.copyWith(crossfadeSeconds: value)),
+              itemBuilder: (context) => [
+                for (final option in AppSettings.crossfadeOptions)
+                  PopupMenuItem(value: option, child: Text(option == 0 ? 'Apagada' : '$option segundos')),
+              ],
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(seconds == 0 ? 'No' : '$seconds s', style: KijiText.mono(size: 13)),
+              ),
+            ),
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.player,
+        title: 'Pausar al silenciar',
+        subtitle: 'Si bajás el volumen a cero, la música se pausa; al subirlo, sigue.',
+        keywords: const ['mute', 'silencio', 'volumen cero', 'pausa'],
+        builder: (context, ref) => SwitchListTile(
+          title: const Text('Pausar al silenciar'),
+          subtitle: const Text(
+            'Si bajás el volumen del teléfono a cero, la música se pausa; al subirlo, sigue. Solo en Android.',
+          ),
+          value: ref.watch(settingsProvider).pauseOnMute,
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(pauseOnMute: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
+        title: 'Retomar al reconectar el Bluetooth',
+        subtitle: 'Si la música se cortó al desconectarse los auriculares, sigue al volver.',
+        keywords: const ['auriculares', 'bluetooth', 'reanudar', 'auto', 'coche'],
+        builder: (context, ref) => SwitchListTile(
+          title: const Text('Retomar al reconectar el Bluetooth'),
+          subtitle: const Text(
+            'Si la música sonaba cuando se desconectaron los auriculares y vuelven en menos de 10 minutos, '
+            'sigue sola.',
+          ),
+          value: ref.watch(settingsProvider).resumeOnBluetooth,
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(resumeOnBluetooth: value)),
+        ),
+      ),
       // Contenido
       SettingOption(
         section: SettingsSection.content,
@@ -300,6 +361,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               if (context.mounted) _done(context, 'Caché vaciada');
             },
           ),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.storage,
+        title: 'Ahorro de datos',
+        subtitle: 'Con datos móviles, YouTube suena en calidad baja. Con WiFi, en la mejor.',
+        keywords: const ['datos', 'movil', 'calidad', 'consumo', 'megas'],
+        builder: (context, ref) => SwitchListTile(
+          title: const Text('Ahorro de datos'),
+          subtitle: const Text(
+            'Con datos móviles, YouTube suena en la calidad más baja (gasta unas 4 veces menos). '
+            'Con WiFi, siempre en la mejor.',
+          ),
+          value: ref.watch(settingsProvider).dataSaver,
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(dataSaver: value)),
         ),
       ),
       SettingOption(

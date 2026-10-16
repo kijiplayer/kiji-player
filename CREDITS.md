@@ -31,12 +31,14 @@ personas que los construyen y mantienen.
 | `lib/features/playlists/` (`playlist.dart`, `smart_lists.dart`, `playlist_screens.dart`) | Echo Music (idea, no código) | `ui/screens/playlist/LocalPlaylistScreen.kt`, `AutoPlaylistScreen.kt` |
 | `lib/features/import/data/import_parsers.dart` | Echo Music (estructura del formato, no código) | `viewmodels/BackupRestoreViewModel.kt`, `ui/screens/settings/BackupAndRestore.kt`, `core/.../db/entities/` (tablas song, artist, playlist, event) |
 | `lib/features/equalizer/` (`equalizer_model.dart`, `equalizer_screen.dart`) | Echo Music (idea, no código) | `ui/screens/equalizer/EqScreen.kt`, `EQViewModel.kt`, `dsp-core/.../models/SavedEQProfile.kt` (perfiles guardados y uno activo) |
+| `lib/features/playback_extras/` (`playback_rules.dart`) | Echo Music (idea, no código) | `playback/crossfade/EqualPowerCurve.kt` (curva de potencia constante), `playback/MusicService.kt` (PauseOnMute, ResumeOnBluetoothConnect) |
 
 ## Servicios que usa Kiji (solo cuando el usuario lo pide)
 
 | Servicio | Para qué | Qué se envía |
 |---|---|---|
 | [LRCLIB](https://lrclib.net) | Letras sincronizadas (libres, sin cuenta) | Título, artista, álbum y duración, al tocar "Letra". |
+| [song.link / Odesli](https://odesli.co) | Enlace universal al compartir una canción | Nada desde Kiji: solo se arma el enlace con el id del video; lo abre quien lo recibe. |
 
 ## Componentes de terceros usados tal cual
 

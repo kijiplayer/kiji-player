@@ -419,7 +419,13 @@ class YtMusicClient {
   /// [skipClients] excluye clientes que ya fallaron con esta canción.
   /// Cada resultado queda registrado en la Salud del Extractor; los cortes de
   /// conexión no cuentan como falla del cliente.
-  Future<YtStream?> resolveStream(String videoId, {Set<String> skipClients = const {}}) async {
+  /// Con [lowQuality] (ahorro de datos) se elige el formato de menor bitrate.
+  Future<YtStream?> resolveStream(
+    String videoId, {
+    Set<String> skipClients = const {},
+    bool lowQuality = false,
+  }) async {
+    _lowQuality = lowQuality;
     final health = ExtractorHealth.instance;
     lastResolveWasOffline = false;
     final visitorData = await _getVisitorData();
@@ -614,15 +620,24 @@ class YtMusicClient {
     return null;
   }
 
-  /// Formatos de audio de `streamingData`, de mayor a menor bitrate.
-  List<Map> _audioFormats(Map<String, dynamic> data) {
-    final formats = (data['streamingData']?['adaptiveFormats'] as List?) ?? const [];
+  /// Ahorro de datos del pedido en curso (ver [resolveStream]).
+  bool _lowQuality = false;
+
+  List<Map> _audioFormats(Map<String, dynamic> data) => sortAudioFormats(
+        (data['streamingData']?['adaptiveFormats'] as List?) ?? const [],
+        lowQuality: _lowQuality,
+      );
+
+  /// Formatos de audio de `streamingData`, de mayor a menor bitrate (con
+  /// [lowQuality], de menor a mayor: el primero es el más liviano).
+  @visibleForTesting
+  static List<Map> sortAudioFormats(List formats, {bool lowQuality = false}) {
+    int bitrate(Map f) => (f['bitrate'] as int?) ?? 0;
     return formats
         .whereType<Map>()
         .where((f) => ((f['mimeType'] as String?) ?? '').startsWith('audio/'))
         .toList()
-      ..sort((a, b) =>
-          ((b['bitrate'] as int?) ?? 0).compareTo((a['bitrate'] as int?) ?? 0));
+      ..sort((a, b) => lowQuality ? bitrate(a).compareTo(bitrate(b)) : bitrate(b).compareTo(bitrate(a)));
   }
 
   /// Parsea un `signatureCipher` (algo como `s=XXX&sp=sig&url=YYY`),

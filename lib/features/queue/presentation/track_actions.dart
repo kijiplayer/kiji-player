@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
 import '../../../providers/playback_provider.dart';
+import '../../playback_extras/data/share_track.dart';
 import '../../playlists/presentation/playlist_screens.dart';
 import '../../sleep_timer/sleep_timer_provider.dart';
 
@@ -58,6 +59,17 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
             onTap: () {
               Navigator.pop(context);
               showAddToPlaylistSheet(context, ref, [track]);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.share_rounded),
+            title: const Text('Compartir'),
+            subtitle: Text(track.youtubeVideoId != null
+                ? 'Con un enlace de song.link que abre en cualquier app de música'
+                : 'El título y el artista (es un archivo de este dispositivo)'),
+            onTap: () {
+              Navigator.pop(context);
+              shareTrack(track);
             },
           ),
           if (inQueue)

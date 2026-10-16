@@ -10,6 +10,7 @@ import 'package:just_audio/just_audio.dart';
 import '../features/equalizer/data/equalizer_engine.dart';
 import '../features/equalizer/data/equalizer_notifier.dart';
 import '../features/history/listening_history.dart';
+import '../features/playback_extras/domain/playback_rules.dart';
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
 import '../features/queue/domain/queue_operations.dart';
@@ -257,6 +258,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
             if (player.processingState != ProcessingState.completed) {
               _lastPlayedPosition = player.position;
             }
+            _updateTransition(player.position);
           }
         }),
       )
@@ -312,7 +314,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       return;
     }
 
+    // Terminó sola: la siguiente entra con la transición suave (si está activa).
+    _fadeInPending = true;
     if (state.repeatMode == PlaybackRepeatMode.one) {
+      _fadeInPending = false;
+      _fadeInToken = _loadToken;
       await _audioPlayer.seek(Duration.zero);
       _startPlaying();
       return;
@@ -332,6 +338,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     Set<String> skipClients = const {},
   }) async {
     final token = ++_loadToken;
+    _fadeInToken = _fadeInPending ? token : -1;
+    _fadeInPending = false;
     _requestedNext.remove(track.id);
     _currentClient = null;
     _lastPlayedPosition = initialPosition;
@@ -414,7 +422,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
     final tried = {...skipClients};
     while (true) {
-      final stream = await _ytClient.resolveStream(videoId, skipClients: tried);
+      final lowQuality = await _useLowQuality();
+      final stream = await _ytClient.resolveStream(videoId, skipClients: tried, lowQuality: lowQuality);
       if (token != _loadToken) return LoadResult.cancelled;
       if (stream == null) {
         final offline = _ytClient.lastResolveWasOffline || !await _isOnline();
@@ -428,7 +437,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       for (final mode in _SourceMode.values) {
         try {
           final source = switch (mode) {
-            _SourceMode.cached => await _cache.sourceFor(videoId, stream),
+            // Con ahorro de datos no se guarda en la caché: así, con WiFi,
+            // la canción vuelve a sonar en la mejor calidad.
+            _SourceMode.cached => lowQuality ? null : await _cache.sourceFor(videoId, stream),
             _SourceMode.withHeaders =>
               AudioSource.uri(Uri.parse(stream.url), headers: {'User-Agent': stream.userAgent}),
             _SourceMode.plain => AudioSource.uri(Uri.parse(stream.url)),
@@ -470,6 +481,20 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     unawaited(_audioPlayer.play().catchError(
           (Object error) => debugPrint('=== REPRODUCCION: play() falló: $error ==='),
         ));
+  }
+
+  /// Ahorro de datos (Tarea K): calidad baja con datos móviles.
+  Future<bool> _useLowQuality() async {
+    final dataSaver = ref.read(settingsProvider).dataSaver;
+    if (!dataSaver) return false;
+    try {
+      final low = useLowQuality(dataSaver: true, connection: await Connectivity().checkConnectivity());
+      if (low) debugPrint('=== REPRODUCCION: ahorro de datos, calidad baja ===');
+      return low;
+    } catch (error) {
+      debugPrint('=== REPRODUCCION: no se pudo ver el tipo de conexión: $error ===');
+      return false;
+    }
   }
 
   Future<bool> _isOnline() async {
@@ -891,7 +916,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> changeVolume(double delta) async {
     final volume = (state.volume + delta).clamp(0.0, 1.0);
     state = state.copyWith(volume: volume);
-    await _audioPlayer.setVolume(volume * _fade);
+    await _applyVolume();
   }
 
   /// Desvanecimiento del temporizador (Tarea H): multiplica el volumen de Kiji
@@ -902,8 +927,30 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final clamped = factor.clamp(0.0, 1.0);
     if (clamped == _fade) return;
     _fade = clamped;
-    await _audioPlayer.setVolume(state.volume * _fade);
+    await _applyVolume();
   }
+
+  /// Transición suave entre canciones (Tarea K): otro multiplicador del
+  /// volumen, que baja al final de la canción y sube al empezar la siguiente
+  /// (solo si la anterior terminó sola).
+  double _transition = 1;
+  bool _fadeInPending = false;
+  int _fadeInToken = -1;
+
+  void _updateTransition(Duration position) {
+    final seconds = ref.read(settingsProvider).crossfadeSeconds;
+    final gain = transitionGain(
+      position: position,
+      duration: state.duration,
+      seconds: seconds,
+      fadeIn: _fadeInToken == _loadToken,
+    );
+    if ((gain - _transition).abs() < 0.01 && !(gain == 1 && _transition != 1)) return;
+    _transition = gain;
+    unawaited(_applyVolume());
+  }
+
+  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition);
 
   Future<void> seekToProgress(double progress) async {
     final duration = state.duration;
