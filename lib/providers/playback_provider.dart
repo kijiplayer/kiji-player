@@ -7,6 +7,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../features/equalizer/data/equalizer_engine.dart';
+import '../features/equalizer/data/equalizer_notifier.dart';
 import '../features/history/listening_history.dart';
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
@@ -163,7 +165,13 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
   @override
   PlaybackState build() {
-    _player = AudioPlayer();
+    // Ecualizador del sistema (Tarea J, solo Android): el efecto se conecta
+    // al crear el reproductor y el notificador aplica el perfil guardado.
+    final equalizer = ref.read(androidEqualizerProvider);
+    _player = AudioPlayer(
+      audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]),
+    );
+    ref.read(equalizerProvider);
     ref.onDispose(_dispose);
 
     _controls = ref.read(systemMediaControlsProvider)

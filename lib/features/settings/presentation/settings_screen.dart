@@ -13,6 +13,8 @@ import '../../../utils/byte_formatter.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/domain/download_settings.dart';
 import '../../downloads/presentation/downloads_screen.dart';
+import '../../equalizer/data/equalizer_notifier.dart';
+import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
 import '../data/settings_store.dart';
@@ -171,6 +173,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // Apagarlo borra la cola guardada: no queda nada a escondidas.
             if (!value) await ref.read(playbackProvider.notifier).forgetSavedQueue();
           },
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
+        title: 'Ecualizador',
+        subtitle: 'Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).',
+        keywords: const ['eq', 'graves', 'agudos', 'bajos', 'sonido', 'auriculares', 'bluetooth'],
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.equalizer_rounded),
+          title: const Text('Ecualizador'),
+          subtitle: Text(ref.watch(equalizerProvider.select((e) => e.settings.enabled))
+              ? 'Encendido: ${ref.watch(equalizerProvider.select((e) => e.activeProfile.label))}'
+              : 'Apagado'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => EqualizerScreen.open(context),
         ),
       ),
       // Contenido
