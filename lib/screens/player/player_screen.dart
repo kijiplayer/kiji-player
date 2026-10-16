@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/downloads/presentation/download_button.dart';
 import '../../features/favorites/favorites.dart';
+import '../../features/lyrics/presentation/lyrics_screen.dart';
 import '../../features/sleep_timer/domain/sleep_timer_logic.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import '../../features/sleep_timer/sleep_timer_provider.dart';
@@ -382,7 +383,7 @@ class PlaybackControlsRow extends ConsumerWidget {
   }
 }
 
-/// Botones de vidrio de abajo: Letra (Tarea I), Cola y Temporizador (Tarea H).
+/// Botones de vidrio de abajo: Letra, Cola y Temporizador.
 class _BottomActions extends ConsumerWidget {
   const _BottomActions();
 
@@ -394,11 +395,11 @@ class _BottomActions extends ConsumerWidget {
       spacing: 10,
       runSpacing: 10,
       children: [
-        const GlassIconButton(
+        GlassIconButton(
           icon: Icons.lyrics_outlined,
           label: 'Letra',
-          tooltip: 'Letras: llegan en una próxima versión',
-          onPressed: null,
+          tooltip: 'Letra',
+          onPressed: () => LyricsScreen.open(context),
         ),
         GlassIconButton(
           icon: Icons.queue_music_rounded,

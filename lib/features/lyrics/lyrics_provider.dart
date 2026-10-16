@@ -1,0 +1,23 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/track.dart';
+import 'data/lyrics_repository.dart';
+import 'domain/lyrics.dart';
+
+final lyricsRepositoryProvider = Provider<LyricsRepository>((ref) => LyricsRepository());
+
+/// Pedido de letra para [track].
+LyricsRequest lyricsRequestFor(Track track) => (
+      id: track.id,
+      title: track.title,
+      artist: track.artist,
+      album: track.album,
+      durationMs: track.durationMs,
+      localPath: track.source == TrackSource.local ? track.audioUrl : null,
+    );
+
+/// Letra de una canción. Se pide solo cuando se abre la pantalla de letras
+/// (nada sale del teléfono sin que el usuario lo pida).
+final lyricsProvider = FutureProvider.autoDispose.family<Lyrics, LyricsRequest>(
+  (ref, request) => ref.watch(lyricsRepositoryProvider).get(request),
+);

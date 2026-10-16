@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/lyrics/presentation/lyrics_screen.dart';
 import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
@@ -345,10 +346,11 @@ class _PlayerBar extends ConsumerWidget {
               semanticFormatterCallback: (value) => 'Volumen ${(value * 100).round()} %',
             ),
           ),
-          const IconButton(
-            tooltip: 'Letras: llegan en una próxima versión',
-            onPressed: null,
-            icon: Icon(Icons.lyrics_outlined),
+          IconButton(
+            tooltip: 'Letra',
+            onPressed: () => LyricsScreen.open(context),
+            icon: const Icon(Icons.lyrics_outlined),
+            color: KijiColors.muted,
           ),
           IconButton(
             tooltip: ref.watch(sleepTimerProvider) == null ? 'Temporizador' : 'Temporizador activo',
