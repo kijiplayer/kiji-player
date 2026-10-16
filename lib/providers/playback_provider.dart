@@ -883,7 +883,18 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> changeVolume(double delta) async {
     final volume = (state.volume + delta).clamp(0.0, 1.0);
     state = state.copyWith(volume: volume);
-    await _audioPlayer.setVolume(volume);
+    await _audioPlayer.setVolume(volume * _fade);
+  }
+
+  /// Desvanecimiento del temporizador (Tarea H): multiplica el volumen de Kiji
+  /// sin cambiarlo (al terminar, vuelve a 1 y suena como antes).
+  double _fade = 1;
+
+  Future<void> setFadeFactor(double factor) async {
+    final clamped = factor.clamp(0.0, 1.0);
+    if (clamped == _fade) return;
+    _fade = clamped;
+    await _audioPlayer.setVolume(state.volume * _fade);
   }
 
   Future<void> seekToProgress(double progress) async {

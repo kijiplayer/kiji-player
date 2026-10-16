@@ -26,6 +26,7 @@ personas que los construyen y mantienen.
 | `lib/features/queue/` (`queue_operations.dart`, `queue_screen.dart`, `track_actions.dart`) | Echo Music (idea, no código) | `ui/player/Queue.kt`, `ui/menu/QueueMenu.kt` (reordenar, quitar, reproducir a continuación) |
 | `lib/widgets/nocturne/glass.dart` | Echo Music (idea, no código) | `ui/component/GlassEffect.kt` y carpeta `backdrop/` (superficies de vidrio) |
 | `lib/features/settings/` (`settings_store.dart`, `setting_search.dart`, `settings_screen.dart`) | Echo Music (idea, no código) | `constants/PreferenceKeys.kt`, `ui/screens/settings/`, `SearchableSettings.kt` (secciones y buscador de opciones) |
+| `lib/features/sleep_timer/` (`sleep_timer_logic.dart`) | Echo Music (idea, no código) | `playback/SleepTimer.kt` (temporizador por minutos y al terminar la canción) |
 
 ## Componentes de terceros usados tal cual
 

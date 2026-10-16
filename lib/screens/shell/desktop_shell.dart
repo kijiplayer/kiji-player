@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
+import '../../features/sleep_timer/sleep_timer_provider.dart';
 import '../../features/yt_music/data/extractor_health.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../providers/playback_provider.dart';
@@ -347,6 +349,12 @@ class _PlayerBar extends ConsumerWidget {
             tooltip: 'Letras: llegan en una próxima versión',
             onPressed: null,
             icon: Icon(Icons.lyrics_outlined),
+          ),
+          IconButton(
+            tooltip: ref.watch(sleepTimerProvider) == null ? 'Temporizador' : 'Temporizador activo',
+            onPressed: () => showSleepTimerSheet(context),
+            icon: const Icon(Icons.bedtime_outlined),
+            color: ref.watch(sleepTimerProvider) == null ? KijiColors.muted : KijiColors.cyan,
           ),
           IconButton(
             tooltip: showQueue ? 'Ocultar la cola' : 'Mostrar la cola',

@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/downloads/presentation/download_button.dart';
 import '../../features/favorites/favorites.dart';
+import '../../features/sleep_timer/domain/sleep_timer_logic.dart';
+import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
+import '../../features/sleep_timer/sleep_timer_provider.dart';
 import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../models/track.dart';
@@ -380,11 +383,12 @@ class PlaybackControlsRow extends ConsumerWidget {
 }
 
 /// Botones de vidrio de abajo: Letra (Tarea I), Cola y Temporizador (Tarea H).
-class _BottomActions extends StatelessWidget {
+class _BottomActions extends ConsumerWidget {
   const _BottomActions();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final timer = ref.watch(sleepTimerProvider);
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 10,
@@ -402,11 +406,15 @@ class _BottomActions extends StatelessWidget {
           tooltip: 'Cola',
           onPressed: () => QueueScreen.open(context),
         ),
-        const GlassIconButton(
-          icon: Icons.bedtime_outlined,
-          label: 'Temporizador',
-          tooltip: 'Temporizador: llega en una próxima versión',
-          onPressed: null,
+        GlassIconButton(
+          icon: timer == null ? Icons.bedtime_outlined : Icons.bedtime_rounded,
+          // Activo: muestra cuánto falta, en cian.
+          label: timer == null
+              ? 'Temporizador'
+              : (timer.remaining == null ? 'Al final' : SleepTimerLogic.format(timer.remaining!)),
+          tooltip: timer == null ? 'Temporizador' : 'Temporizador activo',
+          active: timer != null,
+          onPressed: () => showSleepTimerSheet(context),
         ),
       ],
     );
