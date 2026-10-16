@@ -22,6 +22,7 @@ personas que los construyen y mantienen.
 | `lib/features/playback_memory/data/playback_memory_store.dart` | Echo Music (idea, no código) | `core/.../models/PersistQueue.kt`, `PersistPlayerState.kt`, `MusicService.kt` (qué guardar, cuándo y borrar el guardado dañado) |
 | `lib/features/downloads/data/download_service.dart`, `downloads_repository.dart` | Echo Music (idea, no código) | `playback/DownloadUtil.kt`, `ExoDownloadService.kt` (descargas dentro de la app, separadas de la caché, reanudables, opción solo WiFi) |
 | `lib/features/system_media/data/audio_service_controls.dart` | Echo Music (idea, no código) | `playback/MusicService.kt`, `MediaLibrarySessionCallback.kt` (sesión multimedia, notificación y botones del sistema) |
+| `lib/features/stream_cache/data/stream_cache.dart` | Echo Music (idea, no código) | `playback/DownloadUtil.kt` (`playerCache`: caché de lo escuchado, separada de las descargas, con límite) |
 
 ## Componentes de terceros usados tal cual
 

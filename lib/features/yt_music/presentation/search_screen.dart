@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../downloads/presentation/download_button.dart';
@@ -76,29 +75,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     setState(() => _resolvingVideoId = result.videoId);
 
     try {
-      // Descargada: no hace falta internet, el reproductor la lee del disco.
-      if (ref.read(downloadsProvider).completed.containsKey(result.videoId)) {
-        await ref.read(playbackProvider.notifier).playTrack(ytTrackFromResult(result, audioUrl: ''));
-        return;
-      }
-
-      final audioUrl = await _client.getAudioStreamUrl(result.videoId);
-
-      if (audioUrl == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'No se pudo obtener el audio de esta canción (formato protegido). Probá con otra.',
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      final track = ytTrackFromResult(result, audioUrl: audioUrl);
-      await ref.read(playbackProvider.notifier).playTrack(track);
+      // El reproductor resuelve el audio (descarga, caché o YouTube) y, si
+      // falla, avisa en palabras simples (Modo de Gracia).
+      await ref.read(playbackProvider.notifier).playTrack(ytTrackFromResult(result, audioUrl: ''));
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -3,11 +3,13 @@
 // y app/src/main/kotlin/.../utils/YTPlayerUtils.kt (orden de clientes y visitorData).
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../domain/subtitle_parser.dart';
+import 'extractor_health.dart';
 import 'yt_cipher_solver.dart';
 
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
@@ -28,6 +30,17 @@ class YtMusicSearchResult {
   final String? thumbnailUrl;
   final String? album;
   final int? durationMs;
+}
+
+/// URL de audio lista para reproducir, con el cliente de YouTube que la
+/// entregó. El reproductor manda el mismo `User-Agent`
+/// y, si falla a mitad de canción, reintenta excluyendo ese cliente.
+class YtStream {
+  const YtStream({required this.url, required this.client, required this.userAgent});
+
+  final String url;
+  final String client;
+  final String userAgent;
 }
 
 /// Cliente para el endpoint interno de YouTube Music (InnerTube), el mismo
@@ -316,19 +329,72 @@ class YtMusicClient {
   }
 
   /// Resuelve una URL de audio reproducible para [videoId].
+  Future<String?> getAudioStreamUrl(String videoId) async =>
+      (await resolveStream(videoId))?.url;
+
+  /// Motivo del último intento fallido, en palabras simples.
+  String? _failure;
+
+  /// true si el último [resolveStream] falló por falta de conexión (y no
+  /// porque YouTube rechazara a los clientes).
+  bool lastResolveWasOffline = false;
+
   /// Orden: VISIONOS -> ANDROID_VR -> (último respaldo) WEB + descifrado JS.
-  Future<String?> getAudioStreamUrl(String videoId) async {
+  /// [skipClients] excluye clientes que ya fallaron con esta canción.
+  /// Cada resultado queda registrado en la Salud del Extractor; los cortes de
+  /// conexión no cuentan como falla del cliente.
+  Future<YtStream?> resolveStream(String videoId, {Set<String> skipClients = const {}}) async {
+    final health = ExtractorHealth.instance;
+    lastResolveWasOffline = false;
     final visitorData = await _getVisitorData();
 
-    if (visitorData != null) {
-      for (final client in _playerClients) {
-        final url = await _tryDirectClient(videoId, client, visitorData);
-        if (url != null) return url;
+    void failed(String client) {
+      final reason = _failure ?? 'YouTube no entregó el audio';
+      if (reason == _offline) {
+        lastResolveWasOffline = true;
+      } else {
+        health.recordFailure(client, reason);
       }
     }
 
+    if (visitorData != null) {
+      for (final client in _playerClients) {
+        if (skipClients.contains(client.label)) continue;
+        _failure = null;
+        final url = await _tryDirectClient(videoId, client, visitorData);
+        if (url != null) {
+          health.recordSuccess(client.label);
+          return YtStream(url: url, client: client.label, userAgent: client.userAgent);
+        }
+        failed(client.label);
+      }
+    }
+
+    if (skipClients.contains('WEB_REMIX')) return null;
     debugPrint('=== YTM stream: clientes directos sin resultado, probando WEB + descifrado ===');
-    return _tryWebWithCipher(videoId, visitorData);
+    _failure = null;
+    final url = await _tryWebWithCipher(videoId, visitorData);
+    if (url != null) {
+      health.recordSuccess('WEB_REMIX');
+      return YtStream(url: url, client: 'WEB_REMIX', userAgent: _webUserAgent);
+    }
+    failed('WEB_REMIX');
+    if (visitorData == null && _failure == null) lastResolveWasOffline = true;
+    return null;
+  }
+
+  static const _offline = 'sin conexión';
+
+  /// Motivo simple para un pedido que falló.
+  static String _requestFailure(Object error) {
+    if (error is DioException &&
+        (error.type == DioExceptionType.connectionError ||
+            error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout ||
+            error.error is SocketException)) {
+      return _offline;
+    }
+    return 'YouTube rechazó el pedido';
   }
 
   Future<String?> _tryDirectClient(
@@ -379,6 +445,7 @@ class YtMusicClient {
         detail = '$detail\n>>> Respuesta del servidor: ${error.response?.data}';
       }
       debugPrint('=== YTM stream [${client.label}]: falló el pedido: $detail ===');
+      _failure = _requestFailure(error);
       return null;
     }
 
@@ -400,6 +467,9 @@ class YtMusicClient {
         return url;
       }
     }
+    _failure = playability?['status'] == 'OK'
+        ? 'YouTube no entregó audio directo'
+        : 'YouTube no permitió reproducir con este cliente';
     return null;
   }
 
@@ -442,6 +512,7 @@ class YtMusicClient {
       data = response.data;
     } catch (error) {
       debugPrint('=== YTM stream [WEB_REMIX]: falló el pedido: $error ===');
+      _failure = _requestFailure(error);
       return null;
     }
 
@@ -463,6 +534,7 @@ class YtMusicClient {
         if (resolved != null) return resolved;
       }
     }
+    _failure = 'No se pudo descifrar el audio';
     return null;
   }
 

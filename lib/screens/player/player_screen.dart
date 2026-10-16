@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/downloads/presentation/download_button.dart';
+import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../models/track.dart';
 import '../../providers/playback_provider.dart';
 import '../../theme/app_colors.dart';
@@ -207,6 +208,7 @@ class _PlayerAppBar extends StatelessWidget {
   }
 
   void _showMenu(BuildContext context) {
+    final navigator = Navigator.of(context);
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -226,6 +228,18 @@ class _PlayerAppBar extends StatelessWidget {
                 leading: Icon(Icons.phone_android_rounded),
                 title: Text('Canción guardada en el dispositivo'),
                 subtitle: Text('Ya suena sin conexión'),
+              ),
+            if (track.youtubeVideoId != null)
+              ListTile(
+                leading: const Icon(Icons.health_and_safety_outlined),
+                title: const Text('Salud del Extractor'),
+                subtitle: const Text('Cómo está funcionando YouTube hoy'),
+                onTap: () {
+                  Navigator.pop(context);
+                  navigator.push(MaterialPageRoute<void>(
+                    builder: (_) => const ExtractorHealthScreen(),
+                  ));
+                },
               ),
           ],
         ),

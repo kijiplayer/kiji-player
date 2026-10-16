@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/downloads/presentation/downloads_screen.dart';
 import '../../features/local_library/presentation/local_library_screen.dart';
 import '../../features/yt_music/presentation/search_screen.dart';
 import '../../providers/playback_provider.dart';
@@ -31,9 +32,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final playback = ref.watch(playbackProvider);
     final track = playback.track;
 
-    ref.listen<String?>(playbackNoticeProvider, (previous, message) {
-      if (message == null) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ref.listen<PlaybackNotice?>(playbackNoticeProvider, (previous, notice) {
+      if (notice == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(notice.message),
+        duration: Duration(seconds: notice.action == null ? 4 : 8),
+        // Con acción, Flutter lo deja fijo por defecto; un aviso no debería
+        // quedarse tapando la pantalla.
+        persist: false,
+        action: switch (notice.action) {
+          NoticeAction.openDownloads => SnackBarAction(
+              label: 'Ver descargadas',
+              onPressed: () => DownloadsScreen.open(context),
+            ),
+          null => null,
+        },
+      ));
       ref.read(playbackNoticeProvider.notifier).state = null;
     });
 

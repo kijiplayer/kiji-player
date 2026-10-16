@@ -3,12 +3,15 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
+import '../features/stream_cache/data/stream_cache.dart';
 import '../features/system_media/domain/system_media_controls.dart';
+import '../features/yt_music/data/extractor_health.dart';
 import '../features/yt_music/data/ytm_client.dart';
 import '../features/yt_music/domain/subtitle_parser.dart';
 import '../models/track.dart';
@@ -96,7 +99,23 @@ class PlaybackState {
 
 /// Avisos cortos para el usuario (sin detalles técnicos). La pantalla
 /// principal los muestra como SnackBar y los limpia.
-final playbackNoticeProvider = StateProvider<String?>((ref) => null);
+final playbackNoticeProvider = StateProvider<PlaybackNotice?>((ref) => null);
+
+enum NoticeAction { openDownloads }
+
+/// Aviso corto para el usuario, con una acción opcional.
+class PlaybackNotice {
+  const PlaybackNotice(this.message, {this.action});
+
+  final String message;
+  final NoticeAction? action;
+}
+
+/// Formas de abrir una URL de YouTube, de la preferida a la de respaldo.
+enum _SourceMode { cached, withHeaders, plain }
+
+/// Cómo terminó un intento de cargar una canción.
+enum LoadResult { loaded, cancelled, offline, unplayable }
 
 class PlaybackNotifier extends Notifier<PlaybackState> {
   AudioPlayer? _player;
@@ -120,6 +139,15 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// (Cero Sorpresas).
   bool _shownInSystem = false;
 
+  /// Caché de lo escuchado (Tarea D).
+  late final _cache = StreamCache();
+
+  /// Cliente de YouTube de la canción que suena (para reintentar con otro).
+  String? _currentClient;
+  Duration _lastPlayedPosition = Duration.zero;
+  bool _recovering = false;
+  int _consecutiveFailures = 0;
+
   @override
   PlaybackState build() {
     _player = AudioPlayer();
@@ -136,6 +164,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       ));
 
     _listenToPlayer();
+    unawaited(ExtractorHealth.instance.load());
 
     // Guardado periódico mientras suena y al pasar a segundo plano.
     _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) {
@@ -188,8 +217,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       )
       ..add(player.playbackEventStream.listen(
         (_) => _pushSystemState(),
-        onError: (Object error) => debugPrint('=== REPRODUCCION: error del reproductor: $error ==='),
+        onError: (Object error) => unawaited(_onPlaybackError(error)),
       ))
+      // just_audio 0.10 informa los errores de reproducción por acá (no
+      // como error de playbackEventStream).
+      ..add(player.errorStream.listen((error) => unawaited(_onPlaybackError(error))))
       ..add(
         player.positionStream.listen((_) {
           // Sin fuente cargada (p. ej. YouTube restaurado sin red), el
@@ -199,6 +231,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           // posición restaurada.
           if (state.isInitialized) {
             state = state.copyWith(position: player.position);
+            // Última posición real mientras suena: al "terminar", just_audio
+            // informa la duración completa aunque el audio se haya cortado.
+            if (player.processingState != ProcessingState.completed) {
+              _lastPlayedPosition = player.position;
+            }
           }
         }),
       )
@@ -240,6 +277,20 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   }
 
   Future<void> _handleTrackCompleted() async {
+    // Si se corta la red, el proxy de la caché entrega el audio incompleto y
+    // el reproductor lo da por terminado. Si "terminó" lejos del final real,
+    // es un corte: lo maneja el Modo de Gracia (y no se pierde la posición).
+    final duration = state.duration;
+    final position = _lastPlayedPosition;
+    if (_currentClient != null &&
+        ((duration > Duration.zero && position < duration - const Duration(seconds: 5)) ||
+            !await _isOnline())) {
+      await _onPlaybackError('terminó antes de tiempo en ${position.inSeconds} s '
+          'de ${duration.inSeconds} s',
+          at: position);
+      return;
+    }
+
     if (state.repeatMode == PlaybackRepeatMode.one) {
       await _audioPlayer.seek(Duration.zero);
       await _audioPlayer.play();
@@ -248,17 +299,20 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     await nextTrack();
   }
 
-  /// Carga [track] (índice [index] de la cola) en el reproductor. Usa
-  /// `setFilePath` para audio local y `setUrl` para streaming remoto. Si es
-  /// de YouTube y no tiene URL (vienen así del guardado), la resuelve de
-  /// nuevo con su `videoId`. Devuelve false si no se pudo cargar.
-  Future<bool> _loadTrack(
+  /// Carga [track] (índice [index] de la cola) en el reproductor, en este
+  /// orden: archivo local → descarga → caché de lo escuchado → streaming de
+  /// YouTube (con reintento por cliente). No decide qué hacer si falla: eso
+  /// lo hace [_loadOrRecover] con el Modo de Gracia.
+  Future<LoadResult> _loadTrack(
     Track track,
     int index, {
     bool autoPlay = true,
     Duration initialPosition = Duration.zero,
+    Set<String> skipClients = const {},
   }) async {
     final token = ++_loadToken;
+    _currentClient = null;
+    _lastPlayedPosition = initialPosition;
     state = state.copyWith(
       track: track,
       currentIndex: index,
@@ -269,58 +323,227 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (_shownInSystem) unawaited(_controls.showTrack(track));
 
     try {
-      var playable = track;
-      final videoId = track.youtubeVideoId;
-
-      // Si está descargada, suena desde el disco (funciona en modo avión).
-      final downloaded =
-          videoId == null ? null : await ref.read(downloadsRepositoryProvider).fileFor(videoId);
-      if (token != _loadToken) return false;
-
-      if (downloaded != null) {
-        debugPrint('=== REPRODUCCION: "${track.title}" desde la descarga ===');
-        await _audioPlayer.setFilePath(downloaded.path, initialPosition: initialPosition);
-      } else {
-        if (videoId != null && track.audioUrl.isEmpty) {
-          final url = await _ytClient.getAudioStreamUrl(videoId);
-          if (token != _loadToken) return false;
-          if (url == null) {
-            debugPrint('=== REPRODUCCION: sin URL de audio para $videoId ===');
-            return false;
-          }
-          playable = track.copyWith(audioUrl: url);
-          // Solo en memoria: al guardar, la URL se descarta (vence en horas).
-          final queue = [...state.queue];
-          if (index < queue.length && queue[index].id == track.id) {
-            queue[index] = playable;
-            state = state.copyWith(queue: queue, track: playable);
-          }
-        }
-
-        if (playable.source == TrackSource.local) {
-          await _audioPlayer.setFilePath(playable.audioUrl, initialPosition: initialPosition);
-        } else {
-          await _audioPlayer.setUrl(playable.audioUrl, initialPosition: initialPosition);
-        }
+      final result = await _setSource(track, initialPosition, token, skipClients);
+      if (token != _loadToken) return LoadResult.cancelled;
+      if (result != LoadResult.loaded) {
+        state = state.copyWith(isInitialized: false, position: initialPosition);
+        // Que la UI no siga mostrando "Reproduciendo" sobre una carga fallida.
+        await _audioPlayer.pause();
+        return result;
       }
-      if (token != _loadToken) return false;
 
+      _consecutiveFailures = 0;
       state = state.copyWith(isInitialized: true, position: _audioPlayer.position);
-      debugPrint('=== REPRODUCCION: "${playable.title}" cargada en '
+      debugPrint('=== REPRODUCCION: "${track.title}" cargada en '
           '${_audioPlayer.position.inSeconds} s ===');
       unawaited(_saveState());
       if (autoPlay) await _audioPlayer.play();
-      return true;
+      return LoadResult.loaded;
     } catch (error, stackTrace) {
+      if (token != _loadToken) return LoadResult.cancelled;
       debugPrint('=== ERROR AL CARGAR "${track.title}" ===');
       debugPrint('$error');
       debugPrint('$stackTrace');
-      if (token == _loadToken) {
-        state = state.copyWith(isInitialized: false);
-        // Que la UI no siga mostrando "Reproduciendo" sobre una carga fallida.
-        await _audioPlayer.pause();
+      state = state.copyWith(isInitialized: false);
+      await _audioPlayer.pause();
+      return await _isOnline() ? LoadResult.unplayable : LoadResult.offline;
+    }
+  }
+
+  Future<LoadResult> _setSource(
+    Track track,
+    Duration initialPosition,
+    int token,
+    Set<String> skipClients,
+  ) async {
+    final videoId = track.youtubeVideoId;
+    if (videoId == null) {
+      await _audioPlayer.setFilePath(track.audioUrl, initialPosition: initialPosition);
+      return LoadResult.loaded;
+    }
+
+    // Descargada: suena desde el disco (funciona en modo avión).
+    final downloaded = await ref.read(downloadsRepositoryProvider).fileFor(videoId);
+    if (token != _loadToken) return LoadResult.cancelled;
+    if (downloaded != null) {
+      debugPrint('=== REPRODUCCION: "${track.title}" desde la descarga ===');
+      await _audioPlayer.setFilePath(downloaded.path, initialPosition: initialPosition);
+      return LoadResult.loaded;
+    }
+
+    // Ya sonó entera antes: está en la caché, no se vuelve a bajar.
+    final cached = await _cache.completeFile(videoId);
+    if (token != _loadToken) return LoadResult.cancelled;
+    if (cached != null) {
+      debugPrint('=== REPRODUCCION: "${track.title}" desde la caché ===');
+      unawaited(_cache.touch(cached));
+      await _audioPlayer.setFilePath(cached.path, initialPosition: initialPosition);
+      return LoadResult.loaded;
+    }
+
+    // Sin red no tiene sentido probar los clientes (cada uno espera su
+    // tiempo de conexión): el Modo de Gracia responde en el acto.
+    if (!await _isOnline()) return LoadResult.offline;
+
+    final tried = {...skipClients};
+    while (true) {
+      final stream = await _ytClient.resolveStream(videoId, skipClients: tried);
+      if (token != _loadToken) return LoadResult.cancelled;
+      if (stream == null) {
+        final offline = _ytClient.lastResolveWasOffline || !await _isOnline();
+        debugPrint('=== REPRODUCCION: sin audio para $videoId '
+            '(${offline ? "sin conexión" : "clientes agotados"}) ===');
+        return offline ? LoadResult.offline : LoadResult.unplayable;
       }
-      return false;
+
+      // Primero con caché; si la caché falla, la misma URL sin caché; y por
+      // último sin headers (sin el proxy interno de just_audio).
+      for (final mode in _SourceMode.values) {
+        try {
+          final source = switch (mode) {
+            _SourceMode.cached => await _cache.sourceFor(videoId, stream),
+            _SourceMode.withHeaders =>
+              AudioSource.uri(Uri.parse(stream.url), headers: {'User-Agent': stream.userAgent}),
+            _SourceMode.plain => AudioSource.uri(Uri.parse(stream.url)),
+          };
+          if (source == null) continue; // ya se está guardando: probar sin caché
+          await _audioPlayer.setAudioSource(source, initialPosition: initialPosition);
+          if (token != _loadToken) return LoadResult.cancelled;
+          _currentClient = stream.client;
+          if (mode != _SourceMode.cached) {
+            debugPrint('=== REPRODUCCION: "${track.title}" sin caché (${mode.name}) ===');
+          }
+          unawaited(_cache.evict(limitBytes: StreamCache.defaultLimitBytes, keepVideoId: videoId));
+          return LoadResult.loaded;
+        } on PlayerInterruptedException {
+          return LoadResult.cancelled;
+        } on PlayerException catch (error) {
+          debugPrint('=== REPRODUCCION: [${stream.client}] modo ${mode.name} '
+              'falló: ${error.code} ${error.message} ===');
+        }
+      }
+      ExtractorHealth.instance.recordFailure(stream.client, 'El audio no se pudo abrir');
+      tried.add(stream.client);
+    }
+  }
+
+  Future<bool> _isOnline() async {
+    try {
+      final result = await Connectivity().checkConnectivity();
+      return !result.every((r) => r == ConnectivityResult.none);
+    } catch (error) {
+      debugPrint('=== REPRODUCCION: no se pudo saber si hay conexión: $error ===');
+      return true;
+    }
+  }
+
+  /// Puede sonar sin internet: local que existe, descargada o en caché completa.
+  Future<bool> _isAvailableOffline(Track track) async {
+    final videoId = track.youtubeVideoId;
+    if (videoId == null) return _isAvailable(track);
+    return await ref.read(downloadsRepositoryProvider).fileFor(videoId) != null ||
+        await _cache.completeFile(videoId) != null;
+  }
+
+  /// Carga y, si falla, aplica el Modo de Gracia.
+  Future<void> _loadOrRecover(
+    Track track,
+    int index, {
+    Duration initialPosition = Duration.zero,
+  }) async {
+    final result = await _loadTrack(track, index, initialPosition: initialPosition);
+    if (result == LoadResult.offline || result == LoadResult.unplayable) {
+      await _grace(track, index, result, initialPosition);
+    }
+  }
+
+  /// Modo de Gracia (Tarea D): la música no se traba ni muestra errores
+  /// técnicos. Sin conexión, sigue con lo que está guardado en el teléfono; si
+  /// YouTube no deja reproducir una canción, pasa a la siguiente.
+  Future<void> _grace(Track track, int index, LoadResult result, Duration position) async {
+    final queue = state.queue;
+
+    if (result == LoadResult.offline) {
+      for (var step = 1; step < queue.length; step++) {
+        final candidate = (index + step) % queue.length;
+        if (await _isAvailableOffline(queue[candidate])) {
+          _notify(PlaybackNotice(
+            'Sin conexión. Seguimos con «${queue[candidate].title}», '
+            'que está guardada en el teléfono.',
+          ));
+          await _loadOrRecover(queue[candidate], candidate);
+          return;
+        }
+      }
+      // Nada para escuchar sin red: queda en pausa en el mismo punto, y al
+      // tocar play se reintenta desde ahí.
+      await _audioPlayer.pause();
+      state = state.copyWith(
+        track: track,
+        currentIndex: index,
+        position: position,
+        isInitialized: false,
+      );
+      _notify(const PlaybackNotice(
+        'Sin conexión: la música quedó en pausa. Cuando vuelva internet, tocá play.',
+        action: NoticeAction.openDownloads,
+      ));
+      return;
+    }
+
+    _consecutiveFailures++;
+    final next = index + 1 < queue.length
+        ? index + 1
+        : (state.repeatMode == PlaybackRepeatMode.off ? null : 0);
+    if (next == null || next == index || _consecutiveFailures >= 3) {
+      _consecutiveFailures = 0;
+      await _audioPlayer.pause();
+      state = state.copyWith(position: position, isInitialized: false);
+      _notify(const PlaybackNotice(
+        'YouTube no está dejando reproducir ahora. Probá en un rato o escuchá tu música guardada.',
+        action: NoticeAction.openDownloads,
+      ));
+      return;
+    }
+    _notify(PlaybackNotice('No se pudo reproducir «${track.title}». Pasamos a la siguiente.'));
+    await _loadOrRecover(queue[next], next);
+  }
+
+  /// Error a mitad de canción (se cortó la red, la URL venció...).
+  Future<void> _onPlaybackError(Object error, {Duration? at}) async {
+    final track = state.track;
+    // Durante una carga los errores los maneja el propio _setSource (prueba
+    // otro modo u otro cliente); acá solo llegan los de una canción que ya
+    // estaba sonando.
+    if (track == null || _recovering || !state.isInitialized) {
+      debugPrint('=== REPRODUCCION: error durante la carga (lo maneja la carga): $error ===');
+      return;
+    }
+    _recovering = true;
+    try {
+      final position = at ?? _lastPlayedPosition;
+      final index = state.currentIndex;
+      debugPrint('=== REPRODUCCION: error a mitad de "${track.title}" en '
+          '${position.inSeconds} s: $error ===');
+
+      final client = _currentClient;
+      if (client != null && await _isOnline()) {
+        // Reintentar con el siguiente cliente.
+        ExtractorHealth.instance.recordFailure(client, 'Se cortó durante la reproducción');
+        final result = await _loadTrack(
+          track,
+          index,
+          initialPosition: position,
+          skipClients: {client},
+        );
+        if (result == LoadResult.loaded || result == LoadResult.cancelled) return;
+        await _grace(track, index, result, position);
+        return;
+      }
+      final online = await _isOnline();
+      await _grace(track, index, online ? LoadResult.unplayable : LoadResult.offline, position);
+    } finally {
+      _recovering = false;
     }
   }
 
@@ -328,7 +551,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// solo elemento.
   Future<void> playTrack(Track track) async {
     state = state.copyWith(queue: [track], currentIndex: 0);
-    await _loadTrack(track, 0);
+    await _loadOrRecover(track, 0);
   }
 
   /// Reproduce [tracks] como cola completa, empezando en [startIndex].
@@ -338,7 +561,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (tracks.isEmpty) return;
     final index = startIndex.clamp(0, tracks.length - 1);
     state = state.copyWith(queue: tracks, currentIndex: index);
-    await _loadTrack(tracks[index], index);
+    await _loadOrRecover(tracks[index], index);
   }
 
   Future<void> _playAtIndex(int index) async {
@@ -351,14 +574,14 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       final missing = queue[index];
       final next = await _nextAvailableIndex(queue, index);
       if (next == null) {
-        _notify('Las canciones de esta cola ya no están en el dispositivo.');
+        _notify(PlaybackNotice('Las canciones de esta cola ya no están en el dispositivo.'));
         await _audioPlayer.pause();
         return;
       }
-      _notify('«${missing.title}» ya no está en el dispositivo. Pasamos a la siguiente.');
+      _notify(PlaybackNotice('«${missing.title}» ya no está en el dispositivo. Pasamos a la siguiente.'));
       index = next;
     }
-    await _loadTrack(queue[index], index);
+    await _loadOrRecover(queue[index], index);
   }
 
   // ---------------------------------------------------------------------
@@ -407,10 +630,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       final next = await _nextAvailableIndex(queue, index);
       if (next == null) {
         debugPrint('=== MEMORIA: ningún archivo de la cola existe ===');
-        _notify('Las canciones de tu última cola ya no están en el dispositivo.');
+        _notify(PlaybackNotice('Las canciones de tu última cola ya no están en el dispositivo.'));
         return;
       }
-      _notify('«${missing.title}» ya no está en el dispositivo. Pasamos a la siguiente.');
+      _notify(PlaybackNotice('«${missing.title}» ya no está en el dispositivo. Pasamos a la siguiente.'));
       index = next;
       position = Duration.zero;
     }
@@ -440,8 +663,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     return null;
   }
 
-  void _notify(String message) {
-    ref.read(playbackNoticeProvider.notifier).state = message;
+  void _notify(PlaybackNotice notice) {
+    ref.read(playbackNoticeProvider.notifier).state = notice;
   }
 
   Future<void> _dispose() async {
@@ -473,7 +696,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (!state.isInitialized) {
       // Pista restaurada que no se pudo cargar al abrir (p. ej. YouTube sin
       // red): reintentar ahora, desde la posición guardada.
-      await _loadTrack(track, state.currentIndex, initialPosition: state.position);
+      await _loadOrRecover(track, state.currentIndex, initialPosition: state.position);
     } else {
       await _audioPlayer.play();
     }

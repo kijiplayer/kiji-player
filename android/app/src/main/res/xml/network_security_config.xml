@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- La caché de streaming de just_audio (LockCachingAudioSource) y los headers del
+     reproductor pasan por un proxy dentro de la propia app, en 127.0.0.1. Android
+     bloquea HTTP sin cifrar por defecto: se permite SOLO hacia el propio teléfono.
+     Todo lo que sale a internet sigue exigiendo HTTPS. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,15 @@ import 'providers/system_media_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Errores asíncronos que nadie capturó (por ejemplo, el proxy de la caché
+  // de just_audio cuando se corta la red): se registran y la app sigue. El
+  // reproductor se entera por su propio canal de errores (Modo de Gracia).
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    debugPrint('=== ERROR NO CAPTURADO: $error ===');
+    debugPrint('$stackTrace');
+    return true;
+  };
 
   // Controles del sistema (notificación, pantalla de bloqueo, auriculares).
   // Se inician antes de la app para que el servicio de audio esté listo.
