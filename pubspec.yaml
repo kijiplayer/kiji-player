@@ -51,6 +51,7 @@ dependencies:
   path_provider: ^2.1.6
   connectivity_plus: ^7.3.2
   path: ^1.9.1
+  audio_service: ^0.18.19
 
 dev_dependencies:
   flutter_test:

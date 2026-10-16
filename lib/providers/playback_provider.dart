@@ -8,10 +8,12 @@ import 'package:just_audio/just_audio.dart';
 
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
+import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/ytm_client.dart';
 import '../features/yt_music/domain/subtitle_parser.dart';
 import '../models/track.dart';
 import 'downloads_provider.dart';
+import 'system_media_provider.dart';
 
 /// Nombrado "PlaybackRepeatMode" (no "RepeatMode" a secas) porque Flutter
 /// ya expone su propio `RepeatMode` en material.dart (usado por animaciones
@@ -110,10 +112,28 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   int _loadToken = 0;
   bool _wasPlaying = false;
 
+  /// Notificación, pantalla de bloqueo y auriculares (Tarea C).
+  late SystemMediaControls _controls;
+
+  /// La notificación aparece recién cuando el usuario reproduce algo en esta
+  /// sesión: abrir la app con una canción restaurada en pausa no muestra nada
+  /// (Cero Sorpresas).
+  bool _shownInSystem = false;
+
   @override
   PlaybackState build() {
     _player = AudioPlayer();
     ref.onDispose(_dispose);
+
+    _controls = ref.read(systemMediaControlsProvider)
+      ..attach(MediaCommands(
+        play: play,
+        pause: pause,
+        next: nextTrack,
+        previous: previousTrack,
+        seek: seekTo,
+        stop: pause,
+      ));
 
     _listenToPlayer();
 
@@ -163,8 +183,13 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           if (playerState.processingState == ProcessingState.completed) {
             unawaited(_handleTrackCompleted());
           }
+          _pushSystemState();
         }),
       )
+      ..add(player.playbackEventStream.listen(
+        (_) => _pushSystemState(),
+        onError: (Object error) => debugPrint('=== REPRODUCCION: error del reproductor: $error ==='),
+      ))
       ..add(
         player.positionStream.listen((_) {
           // Sin fuente cargada (p. ej. YouTube restaurado sin red), el
@@ -181,9 +206,37 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         player.durationStream.listen((duration) {
           if (duration != null) {
             state = state.copyWith(duration: duration);
+            final track = state.track;
+            if (_shownInSystem && track != null) {
+              unawaited(_controls.showTrack(track, duration: duration));
+            }
           }
         }),
       );
+  }
+
+  /// Informa al sistema (notificación, pantalla de bloqueo) qué está pasando.
+  void _pushSystemState() {
+    final player = _player;
+    final track = state.track;
+    if (player == null || track == null) return;
+    if (!_shownInSystem) {
+      if (!player.playing) return;
+      _shownInSystem = true;
+      unawaited(_controls.showTrack(track, duration: player.duration));
+    }
+    _controls.updatePlayback(
+      playing: player.playing,
+      processing: switch (player.processingState) {
+        ProcessingState.idle => MediaProcessing.idle,
+        ProcessingState.loading => MediaProcessing.loading,
+        ProcessingState.buffering => MediaProcessing.buffering,
+        ProcessingState.ready => MediaProcessing.ready,
+        ProcessingState.completed => MediaProcessing.completed,
+      },
+      position: player.position,
+      bufferedPosition: player.bufferedPosition,
+    );
   }
 
   Future<void> _handleTrackCompleted() async {
@@ -213,6 +266,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       position: initialPosition,
       duration: Duration(milliseconds: track.durationMs),
     );
+    if (_shownInSystem) unawaited(_controls.showTrack(track));
 
     try {
       var playable = track;
@@ -406,19 +460,30 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   // ---------------------------------------------------------------------
 
   Future<void> togglePlayPause() async {
+    if (_audioPlayer.playing) {
+      await pause();
+    } else {
+      await play();
+    }
+  }
+
+  Future<void> play() async {
     final track = state.track;
     if (track == null) return;
-
-    final player = _audioPlayer;
-    if (player.playing) {
-      await player.pause();
-    } else if (!state.isInitialized) {
+    if (!state.isInitialized) {
       // Pista restaurada que no se pudo cargar al abrir (p. ej. YouTube sin
       // red): reintentar ahora, desde la posición guardada.
       await _loadTrack(track, state.currentIndex, initialPosition: state.position);
     } else {
-      await player.play();
+      await _audioPlayer.play();
     }
+  }
+
+  Future<void> pause() => _audioPlayer.pause();
+
+  Future<void> seekTo(Duration position) async {
+    if (!state.isInitialized) return;
+    await _audioPlayer.seek(position);
   }
 
   void toggleShuffle() {
