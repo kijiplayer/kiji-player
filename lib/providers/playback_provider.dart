@@ -35,7 +35,11 @@ class PlaybackState {
     required this.queue,
     required this.currentIndex,
     required this.repeatMode,
+    this.volume = 1.0,
   });
+
+  /// Volumen de Kiji, de 0 a 1 (independiente del volumen del sistema).
+  final double volume;
 
   /// Pista actual, o null si todavía no se eligió ninguna (app recién
   /// instalada o sin guardado).
@@ -81,6 +85,7 @@ class PlaybackState {
     List<Track>? queue,
     int? currentIndex,
     PlaybackRepeatMode? repeatMode,
+    double? volume,
   }) {
     return PlaybackState(
       track: track ?? this.track,
@@ -92,6 +97,7 @@ class PlaybackState {
       queue: queue ?? this.queue,
       currentIndex: currentIndex ?? this.currentIndex,
       repeatMode: repeatMode ?? this.repeatMode,
+      volume: volume ?? this.volume,
     );
   }
 
@@ -839,6 +845,23 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     };
     state = state.copyWith(repeatMode: next);
     unawaited(_saveState());
+  }
+
+  /// Adelanta (o retrocede, si [offset] es negativo) dentro de la canción.
+  Future<void> seekBy(Duration offset) async {
+    if (!state.isInitialized) return;
+    final target = _audioPlayer.position + offset;
+    final duration = state.duration;
+    await seekTo(target < Duration.zero
+        ? Duration.zero
+        : (duration > Duration.zero && target > duration ? duration : target));
+  }
+
+  /// Sube o baja el volumen de Kiji ([delta] entre -1 y 1).
+  Future<void> changeVolume(double delta) async {
+    final volume = (state.volume + delta).clamp(0.0, 1.0);
+    state = state.copyWith(volume: volume);
+    await _audioPlayer.setVolume(volume);
   }
 
   Future<void> seekToProgress(double progress) async {

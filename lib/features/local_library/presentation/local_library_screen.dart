@@ -8,20 +8,21 @@ import '../../../theme/app_colors.dart';
 import '../../../utils/duration_formatter.dart';
 import '../../../utils/byte_formatter.dart';
 import '../../downloads/presentation/downloads_screen.dart';
-import '../data/local_library_service.dart';
-import '../domain/local_track_mapper.dart';
+import '../../../providers/local_library_provider.dart';
+import '../domain/local_library_source.dart';
 
 enum _LibraryStatus { loading, denied, empty, ready, error }
 
-class LocalLibraryScreen extends StatefulWidget {
+class LocalLibraryScreen extends ConsumerStatefulWidget {
   const LocalLibraryScreen({super.key});
 
   @override
-  State<LocalLibraryScreen> createState() => _LocalLibraryScreenState();
+  ConsumerState<LocalLibraryScreen> createState() => _LocalLibraryScreenState();
 }
 
-class _LocalLibraryScreenState extends State<LocalLibraryScreen> {
-  final _service = LocalLibraryService();
+class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
+  /// MediaStore en Android, carpetas elegidas en PC.
+  LocalLibrarySource get _source => ref.read(localLibrarySourceProvider);
   _LibraryStatus _status = _LibraryStatus.loading;
   List<Track> _tracks = const [];
 
@@ -34,8 +35,11 @@ class _LocalLibraryScreenState extends State<LocalLibraryScreen> {
   Future<void> _load() async {
     setState(() => _status = _LibraryStatus.loading);
 
-    final alreadyGranted = await _service.hasPermission();
-    final granted = alreadyGranted || await _service.requestPermission();
+    // En PC no se abre el selector de carpetas solo: se espera a que el
+    // usuario toque "Elegir carpeta" (Cero Sorpresas).
+    final alreadyGranted = await _source.hasAccess();
+    final granted =
+        alreadyGranted || (!_source.usesFolders && await _source.requestAccess());
 
     if (!granted) {
       if (mounted) setState(() => _status = _LibraryStatus.denied);
@@ -43,20 +47,63 @@ class _LocalLibraryScreenState extends State<LocalLibraryScreen> {
     }
 
     try {
-      final songs = await _service.fetchSongs();
-      final tracks = songs
-          .where((song) => song.isMusic ?? true)
-          .map(localTrackFromSong)
-          .toList(growable: false);
+      final tracks = await _source.loadTracks();
 
       if (!mounted) return;
       setState(() {
         _tracks = tracks;
         _status = tracks.isEmpty ? _LibraryStatus.empty : _LibraryStatus.ready;
       });
-    } catch (_) {
+    } catch (error) {
+      debugPrint('=== BIBLIOTECA: no se pudo leer la música local: $error ===');
       if (mounted) setState(() => _status = _LibraryStatus.error);
     }
+  }
+
+  Future<void> _chooseFolder() async {
+    if (await _source.requestAccess()) await _load();
+  }
+
+  Future<void> _manageFolders() async {
+    final folders = await _source.folders();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ListTile(
+              title: Text('Carpetas de música'),
+              subtitle: Text('Quitar una carpeta no borra ningún archivo.'),
+            ),
+            for (final folder in folders)
+              ListTile(
+                leading: const Icon(Icons.folder_outlined),
+                title: Text(folder, maxLines: 2, overflow: TextOverflow.ellipsis),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Dejar de leer esta carpeta',
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await _source.removeFolder(folder);
+                    await _load();
+                  },
+                ),
+              ),
+            ListTile(
+              leading: const Icon(Icons.create_new_folder_outlined),
+              title: const Text('Agregar carpeta'),
+              onTap: () {
+                Navigator.pop(context);
+                _chooseFolder();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -65,6 +112,13 @@ class _LocalLibraryScreenState extends State<LocalLibraryScreen> {
       children: [
         // Las descargas se ven aunque no haya permiso ni música local.
         const _DownloadsEntry(),
+        if (_source.usesFolders && _status != _LibraryStatus.denied)
+          ListTile(
+            leading: const Icon(Icons.folder_open_rounded, color: AppColors.seed),
+            title: const Text('Carpetas de música'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: _manageFolders,
+          ),
         const Divider(height: 1, color: Color(0xFF1F1F26)),
         Expanded(child: _buildLocal()),
       ],
@@ -79,12 +133,20 @@ class _LocalLibraryScreenState extends State<LocalLibraryScreen> {
             child: CircularProgressIndicator(),
           ),
         _LibraryStatus.denied => _CenteredMessage(
-            child: _InfoCard(
-              icon: Icons.lock_outline_rounded,
-              message: 'Kiji necesita permiso para leer tu música local.',
-              actionLabel: 'Conceder permiso',
-              onAction: _load,
-            ),
+            child: _source.usesFolders
+                ? _InfoCard(
+                    icon: Icons.folder_open_rounded,
+                    message: 'Elegí la carpeta donde guardás tu música. '
+                        'Kiji solo lee las carpetas que vos elijas.',
+                    actionLabel: 'Elegir carpeta',
+                    onAction: _chooseFolder,
+                  )
+                : _InfoCard(
+                    icon: Icons.lock_outline_rounded,
+                    message: 'Kiji necesita permiso para leer tu música local.',
+                    actionLabel: 'Conceder permiso',
+                    onAction: _load,
+                  ),
           ),
         _LibraryStatus.error => _CenteredMessage(
             child: _InfoCard(
