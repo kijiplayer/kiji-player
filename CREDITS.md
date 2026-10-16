@@ -24,6 +24,7 @@ personas que los construyen y mantienen.
 | `lib/features/system_media/data/audio_service_controls.dart` | Echo Music (idea, no código) | `playback/MusicService.kt`, `MediaLibrarySessionCallback.kt` (sesión multimedia, notificación y botones del sistema) |
 | `lib/features/stream_cache/data/stream_cache.dart` | Echo Music (idea, no código) | `playback/DownloadUtil.kt` (`playerCache`: caché de lo escuchado, separada de las descargas, con límite) |
 | `lib/features/queue/` (`queue_operations.dart`, `queue_screen.dart`, `track_actions.dart`) | Echo Music (idea, no código) | `ui/player/Queue.kt`, `ui/menu/QueueMenu.kt` (reordenar, quitar, reproducir a continuación) |
+| `lib/widgets/nocturne/glass.dart` | Echo Music (idea, no código) | `ui/component/GlassEffect.kt` y carpeta `backdrop/` (superficies de vidrio) |
 
 ## Componentes de terceros usados tal cual
 
@@ -32,6 +33,8 @@ personas que los construyen y mantienen.
 | [yt-dlp/ejs](https://github.com/yt-dlp/ejs) (`yt.solver.core.js`) | Unlicense | Solver de firma y del parámetro `n` del reproductor de YouTube. |
 | [meriyah](https://github.com/meriyah/meriyah) | ISC | Parser de JavaScript que usa el solver. |
 | [astring](https://github.com/davidbonnet/astring) | MIT | Generador de código JavaScript que usa el solver. |
+| [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (Florian Karsten) | SIL OFL 1.1 | Tipografía de títulos, incluida en `assets/fonts/space_grotesk/` (con su `OFL.txt`). |
+| [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains) | SIL OFL 1.1 | Tipografía de tiempos y números, incluida en `assets/fonts/jetbrains_mono/` (con su `OFL.txt`). |
 
 ## Cómo mantener este archivo
 

@@ -44,6 +44,7 @@ class DownloadedTrack {
         source: TrackSource.youtube,
         album: album,
         durationMs: durationMs,
+        sizeBytes: sizeBytes,
       );
 
   DownloadedTrack copyWith({String? artist}) => DownloadedTrack(

@@ -47,7 +47,6 @@ dependencies:
   audio_session: ^0.1.21
   on_audio_query: ^2.9.0
   permission_handler: ^11.3.1
-  google_fonts: ^6.2.1
   path_provider: ^2.1.6
   connectivity_plus: ^7.3.2
   path: ^1.9.1
@@ -80,6 +79,16 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Kiji Nocturne. Tipografías incluidas en la app (licencia OFL, ver los OFL.txt):
+  # no se descargan de Google al usarla, así nada sale del teléfono sin pedirlo.
+  fonts:
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/space_grotesk/SpaceGrotesk-Variable.ttf
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/jetbrains_mono/JetBrainsMono-Variable.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -1,33 +1,68 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'kiji_tokens.dart';
 
 abstract final class AppTheme {
   static ThemeData get dark {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.seed,
+      seedColor: KijiColors.violet,
       brightness: Brightness.dark,
-      surface: AppColors.surface,
+      surface: KijiColors.surface,
+    ).copyWith(
+      primary: KijiColors.violet,
+      secondary: KijiColors.cyan,
     );
 
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
+    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
+    // Títulos en Space Grotesk (§7); el cuerpo queda con la fuente del sistema.
+    final textTheme = base.textTheme.copyWith(
+      displaySmall: KijiText.title(size: 34),
+      headlineMedium: KijiText.title(size: 28),
+      headlineSmall: KijiText.title(size: 24),
+      titleLarge: KijiText.title(size: 22),
+      titleMedium: KijiText.title(size: 16, weight: FontWeight.w600),
+      titleSmall: KijiText.title(size: 14, weight: FontWeight.w600),
+    );
+
+    return base.copyWith(
       colorScheme: colorScheme,
+      textTheme: textTheme,
       scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: const AppBarTheme(
+      canvasColor: KijiColors.background,
+      appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
+        titleTextStyle: KijiText.title(size: 22),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surface,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: AppColors.onSurfaceMuted,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: KijiColors.surfaceHigh,
+        showDragHandle: true,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: KijiColors.surfaceHigh,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(KijiRadii.card),
+          side: const BorderSide(color: KijiColors.glassBorder),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: KijiColors.surfaceHigh,
+        contentTextStyle: const TextStyle(color: Colors.white),
+        actionTextColor: KijiColors.cyan,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(KijiRadii.tile),
+          side: const BorderSide(color: KijiColors.glassBorder),
+        ),
+      ),
+      sliderTheme: const SliderThemeData(
+        activeTrackColor: KijiColors.cyan,
+        thumbColor: Colors.white,
+        inactiveTrackColor: KijiColors.waveRest,
       ),
     );
   }

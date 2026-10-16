@@ -23,7 +23,6 @@ class QueueScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.watch(playbackProvider);
     final queue = playback.queue;
-    final notifier = ref.read(playbackProvider.notifier);
     final upNext = queue.length - playback.currentIndex - 1;
 
     return Scaffold(
@@ -47,7 +46,26 @@ class QueueScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: queue.isEmpty
+      body: const QueueList(),
+    );
+  }
+}
+
+/// La lista de la cola: reordenar arrastrando, quitar (con Deshacer) y
+/// saltar a una canción. La usan la pantalla "Cola" (celular) y el panel
+/// "A continuación" (PC).
+class QueueList extends ConsumerWidget {
+  const QueueList({super.key, this.padding = const EdgeInsets.only(bottom: 32)});
+
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final playback = ref.watch(playbackProvider);
+    final queue = playback.queue;
+    final notifier = ref.read(playbackProvider.notifier);
+
+    return queue.isEmpty
           ? const Center(
               child: Text(
                 'Elegí una canción para empezar.',
@@ -58,7 +76,7 @@ class QueueScreen extends ConsumerWidget {
               // Agarradera propia: funciona igual con el dedo y con el mouse
               //. Mantener apretado en cualquier parte también.
               buildDefaultDragHandles: false,
-              padding: const EdgeInsets.only(bottom: 32),
+              padding: padding,
               itemCount: queue.length,
               // onReorderItem ya da el destino ajustado (sin el elemento movido).
               onReorderItem: notifier.moveInQueue,
@@ -77,8 +95,7 @@ class QueueScreen extends ConsumerWidget {
                   onRemove: () => _remove(context, ref, index),
                 );
               },
-            ),
-    );
+            );
   }
 
   Future<void> _remove(BuildContext context, WidgetRef ref, int index) async {

@@ -24,25 +24,40 @@ class DownloadsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(downloadsProvider.select((d) => d.completed.length));
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Descargadas'),
+        actions: [
+          if (count > 0)
+            IconButton(
+              icon: const Icon(Icons.delete_sweep_outlined),
+              tooltip: 'Borrar todas',
+              onPressed: () => confirmDeleteAllDownloads(context, ref, count),
+            ),
+        ],
+      ),
+      body: const DownloadsView(),
+    );
+  }
+}
+
+/// Contenido de "Descargadas": opciones, descargas en curso y terminadas.
+/// Se usa como pantalla y como pestaña de la Biblioteca.
+class DownloadsView extends ConsumerWidget {
+  const DownloadsView({super.key, this.bottomPadding = 96});
+
+  final double bottomPadding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final downloads = ref.watch(downloadsProvider);
     final completed = downloads.completed.values.toList()
       ..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
     final active = downloads.active.values.toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Descargadas'),
-        actions: [
-          if (completed.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_sweep_outlined),
-              tooltip: 'Borrar todas',
-              onPressed: () => _confirmDeleteAll(context, ref, completed.length),
-            ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 96),
+    return ListView(
+        padding: EdgeInsets.only(bottom: bottomPadding),
         children: [
           _SettingsCard(downloads: downloads),
           if (active.isNotEmpty) ...[
@@ -100,9 +115,17 @@ class DownloadsScreen extends ConsumerWidget {
               onTap: () => _playAll(ref, completed, index),
               onLongPress: () => showTrackActions(context, ref, track.toTrack()),
             ),
+          if (completed.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: OutlinedButton.icon(
+                onPressed: () => confirmDeleteAllDownloads(context, ref, completed.length),
+                icon: const Icon(Icons.delete_sweep_outlined),
+                label: const Text('Borrar todas las descargas'),
+              ),
+            ),
         ],
-      ),
-    );
+      );
   }
 
   void _playAll(WidgetRef ref, List<DownloadedTrack> tracks, int index) {
@@ -112,7 +135,10 @@ class DownloadsScreen extends ConsumerWidget {
         );
   }
 
-  Future<void> _confirmDeleteAll(BuildContext context, WidgetRef ref, int count) async {
+}
+
+/// Pregunta antes de borrar todas las descargas.
+Future<void> confirmDeleteAllDownloads(BuildContext context, WidgetRef ref, int count) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -128,7 +154,6 @@ class DownloadsScreen extends ConsumerWidget {
       ),
     );
     if (confirmed == true) await ref.read(downloadsProvider.notifier).deleteAll();
-  }
 }
 
 class _SettingsCard extends ConsumerWidget {

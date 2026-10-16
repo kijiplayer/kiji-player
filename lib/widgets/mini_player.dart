@@ -3,51 +3,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/playback_provider.dart';
 import '../screens/player/player_screen.dart';
-import '../theme/app_colors.dart';
+import '../theme/kiji_tokens.dart';
 import 'album_cover.dart';
+import 'nocturne/glass.dart';
 
+/// Mini-reproductor de vidrio (§7): radio 20, borde 1 px blanco 12 %, y una
+/// línea de progreso degradada de 2 px abajo. Sin canción elegida, no ocupa
+/// lugar.
 class MiniPlayer extends ConsumerWidget {
   const MiniPlayer({super.key});
-
-  static const _height = 68.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.watch(playbackProvider);
     final track = playback.track;
-    // Sin canción elegida, el mini-player no ocupa lugar.
     if (track == null) return const SizedBox.shrink();
-    final theme = Theme.of(context);
 
-    return Material(
-      color: AppColors.surfaceContainer,
-      child: Container(
-        height: _height,
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: Color(0xFF2A2A32)),
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
+    return Glass(
+      radius: KijiRadii.miniPlayer,
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: InkWell(
-                onTap: () => PlayerScreen.open(context),
+            InkWell(
+              onTap: () => PlayerScreen.open(context),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 6, 8),
                 child: Row(
                   children: [
-                    AlbumCover(color: track.coverColor),
+                    TrackArtwork(track: track, size: 44, radius: 12),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             track.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall?.copyWith(
+                            style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -57,26 +52,37 @@ class MiniPlayer extends ConsumerWidget {
                             track.artist,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.onSurfaceMuted,
-                            ),
+                            style: const TextStyle(color: KijiColors.muted, fontSize: 13),
                           ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),
+                      icon: Icon(
+                        playback.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      ),
+                      iconSize: 32,
+                      color: Colors.white,
+                      tooltip: playback.isPlaying ? 'Pausar' : 'Reproducir',
                     ),
                   ],
                 ),
               ),
             ),
-            IconButton(
-              onPressed: () =>
-                  ref.read(playbackProvider.notifier).togglePlayPause(),
-              icon: Icon(
-                playback.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            // Línea de progreso degradada de 2 px.
+            SizedBox(
+              height: KijiSizes.progressLine,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: playback.progress.clamp(0.0, 1.0),
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(gradient: KijiColors.accentGradient),
+                    child: SizedBox.expand(),
+                  ),
+                ),
               ),
-              iconSize: 32,
-              color: AppColors.seed,
-              tooltip: playback.isPlaying ? 'Pausar' : 'Reproducir',
             ),
           ],
         ),

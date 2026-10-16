@@ -1,37 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/downloads/presentation/downloads_screen.dart';
 import '../../features/local_library/presentation/local_library_screen.dart';
 import '../../features/yt_music/presentation/search_screen.dart';
 import '../../providers/playback_provider.dart';
+import '../../providers/shell_provider.dart';
+import '../../theme/kiji_tokens.dart';
 import '../../widgets/mini_player.dart';
+import '../shell/desktop_shell.dart';
+import '../shell/pill_nav_bar.dart';
+import 'inicio_tab.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+/// Pantalla principal. Adaptable: en pantallas angostas,
+/// píldora flotante abajo con el mini-reproductor encima; desde 1000 px
+/// (PC), barra lateral, panel "A continuación" y barra del reproductor.
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _currentIndex = 0;
-
-  static const _destinations = [
-    _NavDestination(label: 'Inicio', icon: Icons.home_outlined, selectedIcon: Icons.home),
-    _NavDestination(label: 'Buscar', icon: Icons.search_outlined, selectedIcon: Icons.search),
-    _NavDestination(
-      label: 'Biblioteca',
-      icon: Icons.video_library_outlined,
-      selectedIcon: Icons.video_library,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final playback = ref.watch(playbackProvider);
-    final track = playback.track;
-
+  Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<PlaybackNotice?>(playbackNoticeProvider, (previous, notice) {
       if (notice == null) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -51,75 +40,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ref.read(playbackNoticeProvider.notifier).state = null;
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kiji'),
-      ),
-      body: switch (_currentIndex) {
-        1 => const SearchScreen(),
-        2 => const LocalLibraryScreen(),
-        _ => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _emptyMessage,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  track == null
-                      ? 'Elige una canción'
-                      : '${playback.statusLabel}: ${track.title}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                ),
-              ],
-            ),
-          ),
+    return CallbackShortcuts(
+      bindings: {
+        // Ctrl K (o ⌘K): ir al buscador desde cualquier pestaña.
+        const SingleActivator(LogicalKeyboardKey.keyK, control: true): () => _focusSearch(ref),
+        const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () => _focusSearch(ref),
       },
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const MiniPlayer(),
-          BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            items: [
-              for (final destination in _destinations)
-                BottomNavigationBarItem(
-                  icon: Icon(destination.icon),
-                  activeIcon: Icon(destination.selectedIcon),
-                  label: destination.label,
-                ),
-            ],
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) => constraints.maxWidth >= KijiSizes.desktopBreakpoint
+            ? const DesktopShell()
+            : const _MobileShell(),
       ),
     );
   }
 
-  String get _emptyMessage {
-    return switch (_currentIndex) {
-      0 => 'No hay contenido',
-      1 => 'Busca música, videos o podcasts',
-      _ => 'Tu biblioteca está vacía',
+  static void _focusSearch(WidgetRef ref) {
+    ref.read(shellTabProvider.notifier).state = ShellTab.search;
+    // Después del cambio de pestaña, cuando el campo ya existe.
+    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(searchFocusProvider).requestFocus());
+  }
+}
+
+/// Contenido de la pestaña activa (compartido por celular y PC).
+class ShellTabContent extends ConsumerWidget {
+  const ShellTabContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return switch (ref.watch(shellTabProvider)) {
+      ShellTab.home => const InicioTab(),
+      ShellTab.search => const SearchScreen(),
+      ShellTab.library => const LocalLibraryScreen(),
     };
   }
 }
 
-class _NavDestination {
-  const _NavDestination({
-    required this.label,
-    required this.icon,
-    required this.selectedIcon,
-  });
+class _MobileShell extends ConsumerWidget {
+  const _MobileShell();
 
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      extendBody: true,
+      body: const SafeArea(bottom: false, child: ShellTabContent()),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              MiniPlayer(),
+              SizedBox(height: 10),
+              Center(child: PillNavBar()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

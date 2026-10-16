@@ -99,7 +99,12 @@ class YtMusicClient {
 
   /// Busca canciones de forma anónima. Devuelve una lista vacía si no hay
   /// resultados o si la respuesta no se pudo interpretar.
-  Future<List<YtMusicSearchResult>> search(String query) async {
+  /// Filtro "solo canciones" de la búsqueda de YouTube Music (el mismo
+  /// `params` que manda la web al tocar el chip "Canciones").
+  static const songsFilter = 'EgWKAQIIAWoKEAkQBRAKEAMQBA==';
+
+  /// Busca de forma anónima. Con [songsOnly], solo canciones (sin videos).
+  Future<List<YtMusicSearchResult>> search(String query, {bool songsOnly = false}) async {
     if (query.trim().isEmpty) return const [];
 
     debugPrint('=== YTM search: enviando query "$query" ===');
@@ -110,6 +115,7 @@ class YtMusicClient {
       data: {
         ..._context,
         'query': query,
+        if (songsOnly) 'params': songsFilter,
       },
     );
 

@@ -1,18 +1,31 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/downloads/presentation/download_button.dart';
+import '../../features/favorites/favorites.dart';
 import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../models/track.dart';
+import '../../providers/appearance_provider.dart';
+import '../../providers/downloads_provider.dart';
 import '../../providers/playback_provider.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/kiji_tokens.dart';
 import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
+import '../../widgets/nocturne/breathing_play_button.dart';
+import '../../widgets/nocturne/glass.dart';
+import '../../widgets/nocturne/waveform_progress.dart';
 
+/// De dónde sale la canción, para "REPRODUCIENDO DESDE".
+String playingFromLabel(Track track, {required bool downloaded}) {
+  if (track.source == TrackSource.local) return 'TU BIBLIOTECA';
+  if (downloaded) return 'DESCARGADAS';
+  return 'YOUTUBE MUSIC';
+}
+
+/// Reproductor a pantalla completa (Kiji Nocturne, §7).
 class PlayerScreen extends ConsumerWidget {
   const PlayerScreen({super.key});
 
@@ -20,18 +33,14 @@ class PlayerScreen extends ConsumerWidget {
     return Navigator.of(context).push(
       PageRouteBuilder<void>(
         fullscreenDialog: true,
+        transitionDuration: KijiMotion.normal,
+        reverseTransitionDuration: KijiMotion.fast,
         pageBuilder: (context, animation, secondaryAnimation) => const PlayerScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final curve = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          );
-
+          if (MediaQuery.disableAnimationsOf(context)) return child;
+          final curve = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
           return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(curve),
+            position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(curve),
             child: child,
           );
         },
@@ -46,84 +55,45 @@ class PlayerScreen extends ConsumerWidget {
     if (track == null) {
       return const Scaffold(body: Center(child: Text('Elige una canción')));
     }
-    final coverColor = track.coverColor;
+    final downloaded = track.youtubeVideoId != null &&
+        ref.watch(downloadsProvider).completed.containsKey(track.youtubeVideoId);
 
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          _PlayerBackground(coverColor: coverColor),
+          _Halo(color: track.coverColor),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  _PlayerAppBar(track: track, onClose: () => Navigator.of(context).pop()),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final coverSize = min(
-                          constraints.maxWidth * 0.72,
-                          constraints.maxHeight * 0.62,
-                        );
-
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AlbumCover(
-                              color: coverColor,
-                              size: coverSize,
-                              borderRadius: 16,
-                              iconSize: coverSize * 0.28,
-                            ),
-                            const SizedBox(height: 32),
-                            Text(
-                              track.title,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              track.artist,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: AppColors.onSurfaceMuted,
-                                  ),
-                            ),
-                          ],
-                        );
-                      },
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final coverSize = min(
+                  KijiSizes.playerCover,
+                  min(constraints.maxWidth - 48, constraints.maxHeight * 0.38),
+                );
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _TopBar(track: track, downloaded: downloaded),
+                        const SizedBox(height: 16),
+                        _Cover(track: track, size: coverSize),
+                        const SizedBox(height: 24),
+                        _TitleRow(track: track, downloaded: downloaded),
+                        const SizedBox(height: 20),
+                        _Progress(playback: playback, seed: track.id),
+                        const SizedBox(height: 12),
+                        const PlaybackControlsRow(),
+                        const SizedBox(height: 20),
+                        const _BottomActions(),
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
-                  _ProgressSection(
-                    progress: playback.progress,
-                    position: playback.position,
-                    duration: playback.duration,
-                    accentColor: coverColor,
-                    onSeek: ref.read(playbackProvider.notifier).seekToProgress,
-                  ),
-                  const SizedBox(height: 32),
-                  _PlaybackControls(
-                    isPlaying: playback.isPlaying,
-                    shuffleEnabled: playback.shuffleEnabled,
-                    repeatMode: playback.repeatMode,
-                    accentColor: coverColor,
-                    onShuffle: ref.read(playbackProvider.notifier).toggleShuffle,
-                    onPrevious: ref.read(playbackProvider.notifier).previousTrack,
-                    onPlayPause: ref.read(playbackProvider.notifier).togglePlayPause,
-                    onNext: ref.read(playbackProvider.notifier).nextTrack,
-                    onRepeat: ref.read(playbackProvider.notifier).toggleRepeatMode,
-                  ),
-                  const SizedBox(height: 32),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -132,93 +102,74 @@ class PlayerScreen extends ConsumerWidget {
   }
 }
 
-class _PlayerBackground extends StatelessWidget {
-  const _PlayerBackground({required this.coverColor});
+/// Halo del color de la carátula detrás de todo.
+class _Halo extends StatelessWidget {
+  const _Halo({required this.color});
 
-  final Color coverColor;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(0, -0.35),
-              radius: 1.1,
-              colors: [
-                coverColor.withValues(alpha: 0.55),
-                coverColor.withValues(alpha: 0.18),
-                AppColors.background,
-              ],
-              stops: const [0.0, 0.45, 1.0],
-            ),
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: const Alignment(0, -0.35),
+          radius: 0.95,
+          colors: [
+            color.withValues(alpha: 0.45),
+            color.withValues(alpha: 0.12),
+            KijiColors.background,
+          ],
+          stops: const [0, 0.45, 1],
         ),
-        BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 48, sigmaY: 48),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.15),
-                  AppColors.background.withValues(alpha: 0.92),
-                  AppColors.background,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _PlayerAppBar extends StatelessWidget {
-  const _PlayerAppBar({required this.track, required this.onClose});
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.track, required this.downloaded});
 
   final Track track;
-  final VoidCallback onClose;
+  final bool downloaded;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
-          IconButton(
-            onPressed: onClose,
-            icon: const Icon(Icons.keyboard_arrow_down_rounded),
-            iconSize: 32,
-            color: Colors.white,
+          GlassIconButton(
+            icon: Icons.keyboard_arrow_down_rounded,
             tooltip: 'Minimizar',
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          const Spacer(),
-          IconButton(
-            onPressed: () => QueueScreen.open(context),
-            icon: const Icon(Icons.queue_music_rounded),
-            color: AppColors.onSurfaceMuted,
-            tooltip: 'Cola',
+          Expanded(
+            child: Column(
+              children: [
+                Text('REPRODUCIENDO DESDE', style: KijiText.mono(size: 10)),
+                const SizedBox(height: 2),
+                Text(
+                  playingFromLabel(track, downloaded: downloaded),
+                  style: KijiText.title(size: 13, weight: FontWeight.w600),
+                ),
+              ],
+            ),
           ),
-          IconButton(
-            onPressed: () => _showMenu(context),
-            icon: const Icon(Icons.more_horiz_rounded),
-            color: AppColors.onSurfaceMuted,
+          GlassIconButton(
+            icon: Icons.more_horiz_rounded,
             tooltip: 'Más opciones',
+            onPressed: () => _showMenu(context, track),
           ),
         ],
       ),
     );
   }
 
-  void _showMenu(BuildContext context) {
+  void _showMenu(BuildContext context, Track track) {
     final navigator = Navigator.of(context);
     showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -255,197 +206,209 @@ class _PlayerAppBar extends StatelessWidget {
   }
 }
 
-class _ProgressSection extends StatefulWidget {
-  const _ProgressSection({
-    required this.progress,
-    required this.position,
-    required this.duration,
-    required this.accentColor,
-    required this.onSeek,
-  });
+/// Carátula de 320 px, radio 28, borde degradado de 1 px y halo de su color.
+class _Cover extends StatelessWidget {
+  const _Cover({required this.track, required this.size});
 
-  final double progress;
-  final Duration position;
-  final Duration duration;
-  final Color accentColor;
-  final ValueChanged<double> onSeek;
-
-  @override
-  State<_ProgressSection> createState() => _ProgressSectionState();
-}
-
-class _ProgressSectionState extends State<_ProgressSection> {
-  double? _dragProgress;
+  final Track track;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    final progress = (_dragProgress ?? widget.progress).clamp(0.0, 1.0);
-    final displayedPosition = _dragProgress == null
-        ? widget.position
-        : Duration(
-            milliseconds: (widget.duration.inMilliseconds * progress).round(),
-          );
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(KijiRadii.cover),
+        boxShadow: [
+          BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4),
+        ],
+      ),
+      child: GradientBorder(
+        radius: KijiRadii.cover,
+        child: TrackArtwork(track: track, size: size - 2, radius: KijiRadii.cover - 1),
+      ),
+    );
+  }
+}
 
-    return Column(
+class _TitleRow extends ConsumerWidget {
+  const _TitleRow({required this.track, required this.downloaded});
+
+  final Track track;
+  final bool downloaded;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final liked = ref.watch(favoritesProvider).containsKey(track.id);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-            activeTrackColor: widget.accentColor,
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
-            thumbColor: Colors.white,
-            overlayColor: widget.accentColor.withValues(alpha: 0.2),
-          ),
-          child: Slider(
-            value: progress,
-            onChangeStart: widget.duration.inMilliseconds > 0
-                ? (_) => setState(() => _dragProgress = widget.progress)
-                : null,
-            onChanged: widget.duration.inMilliseconds > 0
-                ? (value) => setState(() => _dragProgress = value)
-                : null,
-            onChangeEnd: widget.duration.inMilliseconds > 0
-                ? (value) {
-                    widget.onSeek(value);
-                    setState(() => _dragProgress = null);
-                  }
-                : null,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                formatDuration(displayedPosition),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.onSurfaceMuted,
-                    ),
+                track.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: KijiText.title(size: 26),
               ),
+              const SizedBox(height: 4),
               Text(
-                formatDuration(widget.duration),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.onSurfaceMuted,
-                    ),
+                track.artist,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: KijiColors.muted, fontSize: 16),
               ),
             ],
           ),
         ),
+        if (track.youtubeVideoId != null)
+          downloaded
+              ? const Tooltip(
+                  message: 'Descargada: suena sin conexión',
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
+                  ),
+                )
+              : DownloadButton(track: track),
+        IconButton(
+          tooltip: liked ? 'Quitar de me gusta' : 'Me gusta',
+          onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
+          icon: Icon(
+            liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: liked ? KijiColors.violet : Colors.white,
+          ),
+        ),
       ],
     );
   }
 }
 
-class _PlaybackControls extends StatelessWidget {
-  const _PlaybackControls({
-    required this.isPlaying,
-    required this.shuffleEnabled,
-    required this.repeatMode,
-    required this.accentColor,
-    required this.onShuffle,
-    required this.onPrevious,
-    required this.onPlayPause,
-    required this.onNext,
-    required this.onRepeat,
-  });
+class _Progress extends ConsumerWidget {
+  const _Progress({required this.playback, required this.seed});
 
-  final bool isPlaying;
-  final bool shuffleEnabled;
-  final PlaybackRepeatMode repeatMode;
-  final Color accentColor;
-  final VoidCallback onShuffle;
-  final VoidCallback onPrevious;
-  final VoidCallback onPlayPause;
-  final VoidCallback onNext;
-  final VoidCallback onRepeat;
+  final PlaybackState playback;
+  final String seed;
 
   @override
-  Widget build(BuildContext context) {
-    final repeatActive = repeatMode != PlaybackRepeatMode.off;
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      children: [
+        WaveformProgress(
+          seed: seed,
+          progress: playback.progress,
+          onSeek: ref.read(playbackProvider.notifier).seekToProgress,
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(formatDuration(playback.position), style: KijiText.mono(size: 12)),
+            Text(formatDuration(playback.duration), style: KijiText.mono(size: 12)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Aleatorio / anterior / PLAY / siguiente / repetir. Los activos, en cian.
+/// [compact] para la barra del reproductor de la PC.
+class PlaybackControlsRow extends ConsumerWidget {
+  const PlaybackControlsRow({super.key, this.compact = false});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final playback = ref.watch(playbackProvider);
+    final notifier = ref.read(playbackProvider.notifier);
+    final iconSize = compact ? 24.0 : 30.0;
+
+    final repeatIcon = switch (playback.repeatMode) {
+      PlaybackRepeatMode.one => Icons.repeat_one_rounded,
+      _ => Icons.repeat_rounded,
+    };
+    final repeatTooltip = switch (playback.repeatMode) {
+      PlaybackRepeatMode.off => 'Repetir: apagado',
+      PlaybackRepeatMode.all => 'Repetir: toda la cola',
+      PlaybackRepeatMode.one => 'Repetir: esta canción',
+    };
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: compact ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
+      mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
         IconButton(
-          onPressed: onShuffle,
-          icon: Icon(
-            Icons.shuffle_rounded,
-            color: shuffleEnabled ? accentColor : AppColors.onSurfaceMuted,
-          ),
-          iconSize: 28,
-          tooltip: 'Aleatorio',
+          tooltip: playback.shuffleEnabled ? 'Aleatorio: activado' : 'Aleatorio: apagado',
+          onPressed: notifier.toggleShuffle,
+          icon: const Icon(Icons.shuffle_rounded),
+          iconSize: iconSize * 0.85,
+          color: playback.shuffleEnabled ? KijiColors.cyan : KijiColors.muted,
         ),
         IconButton(
-          onPressed: onPrevious,
-          icon: const Icon(Icons.skip_previous_rounded),
-          iconSize: 36,
-          color: Colors.white,
           tooltip: 'Anterior',
-        ),
-        _PlayPauseButton(
-          isPlaying: isPlaying,
-          accentColor: accentColor,
-          onPressed: onPlayPause,
-        ),
-        IconButton(
-          onPressed: onNext,
-          icon: const Icon(Icons.skip_next_rounded),
-          iconSize: 36,
+          onPressed: notifier.previousTrack,
+          icon: const Icon(Icons.skip_previous_rounded),
+          iconSize: iconSize * 1.2,
           color: Colors.white,
-          tooltip: 'Siguiente',
+        ),
+        BreathingPlayButton(
+          isPlaying: playback.isPlaying,
+          onPressed: notifier.togglePlayPause,
+          reduceMotion: reduceMotion(context, ref),
+          size: compact ? 52 : KijiSizes.playButton,
         ),
         IconButton(
-          onPressed: onRepeat,
-          icon: Icon(
-            repeatMode == PlaybackRepeatMode.one ? Icons.repeat_one_rounded : Icons.repeat_rounded,
-            color: repeatActive ? accentColor : AppColors.onSurfaceMuted,
-          ),
-          iconSize: 28,
-          tooltip: switch (repeatMode) {
-            PlaybackRepeatMode.off => 'Repetir (desactivado)',
-            PlaybackRepeatMode.all => 'Repetir cola',
-            PlaybackRepeatMode.one => 'Repetir una canción',
-          },
+          tooltip: 'Siguiente',
+          onPressed: notifier.nextTrack,
+          icon: const Icon(Icons.skip_next_rounded),
+          iconSize: iconSize * 1.2,
+          color: Colors.white,
+        ),
+        IconButton(
+          tooltip: repeatTooltip,
+          onPressed: notifier.toggleRepeatMode,
+          icon: Icon(repeatIcon),
+          iconSize: iconSize * 0.85,
+          color: playback.repeatMode == PlaybackRepeatMode.off ? KijiColors.muted : KijiColors.cyan,
         ),
       ],
     );
   }
 }
 
-class _PlayPauseButton extends StatelessWidget {
-  const _PlayPauseButton({
-    required this.isPlaying,
-    required this.accentColor,
-    required this.onPressed,
-  });
-
-  final bool isPlaying;
-  final Color accentColor;
-  final VoidCallback onPressed;
+/// Botones de vidrio de abajo: Letra (Tarea I), Cola y Temporizador (Tarea H).
+class _BottomActions extends StatelessWidget {
+  const _BottomActions();
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: accentColor,
-      shape: const CircleBorder(),
-      elevation: 8,
-      shadowColor: accentColor.withValues(alpha: 0.45),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 72,
-          height: 72,
-          child: Icon(
-            isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-            size: 40,
-            color: Colors.white,
-          ),
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        const GlassIconButton(
+          icon: Icons.lyrics_outlined,
+          label: 'Letra',
+          tooltip: 'Letras: llegan en una próxima versión',
+          onPressed: null,
         ),
-      ),
+        GlassIconButton(
+          icon: Icons.queue_music_rounded,
+          label: 'Cola',
+          tooltip: 'Cola',
+          onPressed: () => QueueScreen.open(context),
+        ),
+        const GlassIconButton(
+          icon: Icons.bedtime_outlined,
+          label: 'Temporizador',
+          tooltip: 'Temporizador: llega en una próxima versión',
+          onPressed: null,
+        ),
+      ],
     );
   }
 }

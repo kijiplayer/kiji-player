@@ -1,18 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
-import '../../../providers/playback_provider.dart';
-import '../../../theme/app_colors.dart';
-import '../../../utils/duration_formatter.dart';
-import '../../../utils/byte_formatter.dart';
-import '../../downloads/presentation/downloads_screen.dart';
 import '../../../providers/local_library_provider.dart';
+import '../../../providers/playback_provider.dart';
+import '../../../theme/kiji_tokens.dart';
+import '../../../utils/byte_formatter.dart';
+import '../../../utils/duration_formatter.dart';
+import '../../../widgets/album_cover.dart';
+import '../../../widgets/nocturne/glass.dart';
+import '../../downloads/presentation/downloads_screen.dart';
+import '../../queue/presentation/track_actions.dart';
+import '../../stream_cache/data/stream_cache.dart';
 import '../domain/local_library_source.dart';
 
 enum _LibraryStatus { loading, denied, empty, ready, error }
 
+enum LibraryTab {
+  songs('Canciones'),
+  downloads('Descargadas'),
+  playlists('Playlists'),
+  folders('Carpetas');
+
+  const LibraryTab(this.label);
+  final String label;
+}
+
+/// Biblioteca (§7): pestañas segmentadas, tarjeta de espacio usado/libre con
+/// "Todo", y cada canción con su etiqueta (YT ↓ o LOCAL) y su tamaño.
 class LocalLibraryScreen extends ConsumerStatefulWidget {
   const LocalLibraryScreen({super.key});
 
@@ -24,7 +41,8 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   /// MediaStore en Android, carpetas elegidas en PC.
   LocalLibrarySource get _source => ref.read(localLibrarySourceProvider);
   _LibraryStatus _status = _LibraryStatus.loading;
-  List<Track> _tracks = const [];
+  List<Track> _local = const [];
+  LibraryTab _tab = LibraryTab.songs;
 
   @override
   void initState() {
@@ -48,12 +66,12 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
 
     try {
       final tracks = await _source.loadTracks();
-
       if (!mounted) return;
       setState(() {
-        _tracks = tracks;
+        _local = tracks;
         _status = tracks.isEmpty ? _LibraryStatus.empty : _LibraryStatus.ready;
       });
+      ref.invalidate(localTracksProvider);
     } catch (error) {
       debugPrint('=== BIBLIOTECA: no se pudo leer la música local: $error ===');
       if (mounted) setState(() => _status = _LibraryStatus.error);
@@ -64,151 +82,311 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     if (await _source.requestAccess()) await _load();
   }
 
-  Future<void> _manageFolders() async {
-    final folders = await _source.folders();
-    if (!mounted) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const ListTile(
-              title: Text('Carpetas de música'),
-              subtitle: Text('Quitar una carpeta no borra ningún archivo.'),
-            ),
-            for (final folder in folders)
-              ListTile(
-                leading: const Icon(Icons.folder_outlined),
-                title: Text(folder, maxLines: 2, overflow: TextOverflow.ellipsis),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  tooltip: 'Dejar de leer esta carpeta',
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await _source.removeFolder(folder);
-                    await _load();
-                  },
-                ),
+  /// Canciones descargadas (YT ↓) y locales (LOCAL), en ese orden.
+  List<Track> _allSongs() => [
+        for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack(),
+        ..._local,
+      ];
+
+  @override
+  Widget build(BuildContext context) {
+    final songs = _allSongs();
+
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            sliver: SliverList.list(children: [
+              Text('Biblioteca', style: KijiText.title(size: 28)),
+              const SizedBox(height: 14),
+              _StorageCard(
+                songCount: songs.length,
+                onPlayAll: songs.isEmpty
+                    ? null
+                    : () => ref.read(playbackProvider.notifier).playQueue(songs),
               ),
-            ListTile(
-              leading: const Icon(Icons.create_new_folder_outlined),
-              title: const Text('Agregar carpeta'),
-              onTap: () {
-                Navigator.pop(context);
-                _chooseFolder();
-              },
-            ),
-          ],
-        ),
+              const SizedBox(height: 14),
+              SegmentedButton<LibraryTab>(
+                segments: [
+                  for (final tab in LibraryTab.values)
+                    ButtonSegment(value: tab, label: Text(tab.label, maxLines: 1)),
+                ],
+                selected: {_tab},
+                showSelectedIcon: false,
+                style: SegmentedButton.styleFrom(
+                  selectedBackgroundColor: KijiColors.violet,
+                  selectedForegroundColor: Colors.white,
+                  foregroundColor: KijiColors.muted,
+                  side: const BorderSide(color: KijiColors.glassBorder),
+                  visualDensity: VisualDensity.compact,
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                onSelectionChanged: (selection) => setState(() => _tab = selection.first),
+              ),
+            ]),
+          ),
+          ...switch (_tab) {
+            LibraryTab.songs => _songsSlivers(songs),
+            LibraryTab.downloads => [
+                const SliverFillRemaining(child: DownloadsView(bottomPadding: 180)),
+              ],
+            LibraryTab.playlists => [
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _InfoCard(
+                    icon: Icons.queue_music_rounded,
+                    message: 'Tus playlists van a aparecer acá. '
+                        'Mientras tanto, marcá canciones con ♥ en el reproductor.',
+                  ),
+                ),
+              ],
+            LibraryTab.folders => _foldersSlivers(),
+          },
+          const SliverToBoxAdapter(child: SizedBox(height: 180)),
+        ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Las descargas se ven aunque no haya permiso ni música local.
-        const _DownloadsEntry(),
-        if (_source.usesFolders && _status != _LibraryStatus.denied)
-          ListTile(
-            leading: const Icon(Icons.folder_open_rounded, color: AppColors.seed),
-            title: const Text('Carpetas de música'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: _manageFolders,
-          ),
-        const Divider(height: 1, color: Color(0xFF1F1F26)),
-        Expanded(child: _buildLocal()),
-      ],
-    );
-  }
-
-  Widget _buildLocal() {
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: switch (_status) {
-        _LibraryStatus.loading => const _CenteredMessage(
-            child: CircularProgressIndicator(),
-          ),
-        _LibraryStatus.denied => _CenteredMessage(
-            child: _source.usesFolders
-                ? _InfoCard(
-                    icon: Icons.folder_open_rounded,
-                    message: 'Elegí la carpeta donde guardás tu música. '
-                        'Kiji solo lee las carpetas que vos elijas.',
-                    actionLabel: 'Elegir carpeta',
-                    onAction: _chooseFolder,
-                  )
-                : _InfoCard(
-                    icon: Icons.lock_outline_rounded,
-                    message: 'Kiji necesita permiso para leer tu música local.',
-                    actionLabel: 'Conceder permiso',
-                    onAction: _load,
-                  ),
-          ),
-        _LibraryStatus.error => _CenteredMessage(
-            child: _InfoCard(
-              icon: Icons.error_outline_rounded,
-              message: 'No se pudo leer la biblioteca local.',
-              actionLabel: 'Reintentar',
+  List<Widget> _songsSlivers(List<Track> songs) {
+    final localMessage = switch (_status) {
+      _LibraryStatus.loading => const Padding(
+          padding: EdgeInsets.all(24),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      _LibraryStatus.denied => _source.usesFolders
+          ? _InfoCard(
+              icon: Icons.folder_open_rounded,
+              message: 'Elegí la carpeta donde guardás tu música. '
+                  'Kiji solo lee las carpetas que vos elijas.',
+              actionLabel: 'Elegir carpeta',
+              onAction: _chooseFolder,
+            )
+          : _InfoCard(
+              icon: Icons.lock_outline_rounded,
+              message: 'Kiji necesita permiso para leer tu música local.',
+              actionLabel: 'Conceder permiso',
               onAction: _load,
             ),
+      _LibraryStatus.error => _InfoCard(
+          icon: Icons.error_outline_rounded,
+          message: 'No se pudo leer la biblioteca local.',
+          actionLabel: 'Reintentar',
+          onAction: _load,
+        ),
+      _LibraryStatus.empty => const _InfoCard(
+          icon: Icons.music_off_rounded,
+          message: 'No se encontró música en este dispositivo.',
+        ),
+      _LibraryStatus.ready => null,
+    };
+
+    return [
+      SliverList.builder(
+        itemCount: songs.length,
+        itemBuilder: (context, index) => _SongTile(
+          track: songs[index],
+          onTap: () => ref.read(playbackProvider.notifier).playQueue(songs, startIndex: index),
+        ),
+      ),
+      if (localMessage != null) SliverToBoxAdapter(child: localMessage),
+    ];
+  }
+
+  List<Widget> _foldersSlivers() {
+    if (_source.usesFolders) {
+      return [
+        SliverToBoxAdapter(
+          child: FutureBuilder<List<String>>(
+            future: _source.folders(),
+            builder: (context, snapshot) {
+              final folders = snapshot.data ?? const <String>[];
+              return Column(
+                children: [
+                  const ListTile(
+                    title: Text('Carpetas que lee Kiji'),
+                    subtitle: Text('Quitar una carpeta no borra ningún archivo.'),
+                  ),
+                  for (final folder in folders)
+                    ListTile(
+                      leading: const Icon(Icons.folder_outlined, color: KijiColors.violet),
+                      title: Text(folder, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'Dejar de leer esta carpeta',
+                        onPressed: () async {
+                          await _source.removeFolder(folder);
+                          await _load();
+                        },
+                      ),
+                    ),
+                  ListTile(
+                    leading: const Icon(Icons.create_new_folder_outlined, color: KijiColors.cyan),
+                    title: const Text('Agregar carpeta'),
+                    onTap: _chooseFolder,
+                  ),
+                ],
+              );
+            },
           ),
-        _LibraryStatus.empty => const _CenteredMessage(
-            child: _InfoCard(
-              icon: Icons.music_off_rounded,
-              message: 'No se encontró música en este dispositivo.',
+        ),
+      ];
+    }
+
+    // Android: la música agrupada por la carpeta donde está.
+    final byFolder = groupByFolder(_local);
+    return [
+      SliverList.builder(
+        itemCount: byFolder.length,
+        itemBuilder: (context, index) {
+          final entry = byFolder.entries.elementAt(index);
+          return ListTile(
+            leading: const Icon(Icons.folder_outlined, color: KijiColors.violet),
+            title: Text(p.basename(entry.key), maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Text(
+              '${entry.value.length} ${entry.value.length == 1 ? 'canción' : 'canciones'}',
+              style: const TextStyle(color: KijiColors.muted),
             ),
-          ),
-        _LibraryStatus.ready => _SongList(tracks: _tracks),
-      },
-    );
+            trailing: const Icon(Icons.play_arrow_rounded),
+            onTap: () => ref.read(playbackProvider.notifier).playQueue(entry.value),
+          );
+        },
+      ),
+    ];
   }
 }
 
-class _DownloadsEntry extends ConsumerWidget {
-  const _DownloadsEntry();
+/// Canciones agrupadas por carpeta (ordenadas por nombre de carpeta).
+Map<String, List<Track>> groupByFolder(List<Track> tracks) {
+  final groups = <String, List<Track>>{};
+  for (final track in tracks) {
+    if (track.source != TrackSource.local) continue;
+    groups.putIfAbsent(p.dirname(track.audioUrl), () => []).add(track);
+  }
+  final keys = groups.keys.toList()
+    ..sort((a, b) => p.basename(a).toLowerCase().compareTo(p.basename(b).toLowerCase()));
+  return {for (final key in keys) key: groups[key]!};
+}
+
+/// Espacio que usa Kiji (descargas + caché) y espacio libre, con "Todo".
+class _StorageCard extends ConsumerWidget {
+  const _StorageCard({required this.songCount, required this.onPlayAll});
+
+  final int songCount;
+  final VoidCallback? onPlayAll;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final downloads = ref.watch(downloadsProvider);
-    final count = downloads.completed.length;
-    final active = downloads.active.length;
-
-    return ListTile(
-      leading: const Icon(Icons.download_for_offline_rounded, color: AppColors.seed),
-      title: const Text('Descargadas'),
-      subtitle: Text(
-        count == 0 && active == 0
-            ? 'Para escuchar sin conexión'
-            : '$count ${count == 1 ? 'canción' : 'canciones'} · ${formatBytes(downloads.usedBytes)}'
-                '${active > 0 ? ' · $active descargando' : ''}',
+    return Glass(
+      blur: false,
+      padding: const EdgeInsets.all(16),
+      child: FutureBuilder<(int, int?)>(
+        future: _sizes(ref, downloads),
+        builder: (context, snapshot) {
+          final used = snapshot.data?.$1 ?? downloads.usedBytes;
+          final free = snapshot.data?.$2;
+          return Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('ESPACIO', style: KijiText.mono(size: 10)),
+                    const SizedBox(height: 4),
+                    Text('${formatBytes(used)} usados por Kiji', style: KijiText.title(size: 16)),
+                    Text(
+                      free == null ? '$songCount canciones' : '${formatBytes(free)} libres · $songCount canciones',
+                      style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: onPlayAll,
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: const Text('Todo'),
+              ),
+            ],
+          );
+        },
       ),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () => DownloadsScreen.open(context),
+    );
+  }
+
+  Future<(int, int?)> _sizes(WidgetRef ref, DownloadsState downloads) async {
+    var used = downloads.usedBytes;
+    try {
+      used += await StreamCache().sizeBytes();
+    } catch (error) {
+      debugPrint('=== BIBLIOTECA: no se pudo medir la caché: $error ===');
+    }
+    final dir = downloads.directoryPath;
+    final free = dir == null ? null : await ref.read(storageInfoProvider).freeBytes(dir);
+    return (used, free);
+  }
+}
+
+/// Fila de canción con su etiqueta (YT ↓ cian, LOCAL violeta) y su tamaño.
+class _SongTile extends ConsumerWidget {
+  const _SongTile({required this.track, required this.onTap});
+
+  final Track track;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isYoutube = track.source == TrackSource.youtube;
+    final size = track.sizeBytes;
+    return GestureDetector(
+      onSecondaryTap: () => showTrackActions(context, ref, track),
+      child: ListTile(
+        leading: TrackArtwork(track: track, size: 44, radius: 8),
+        title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Row(
+          children: [
+            SourceTag(youtube: isYoutube),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                [track.artist, if (size != null) formatBytes(size)].join(' · '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        trailing: track.durationMs > 0
+            ? Text(formatDuration(Duration(milliseconds: track.durationMs)), style: KijiText.mono(size: 11))
+            : null,
+        onTap: onTap,
+        onLongPress: () => showTrackActions(context, ref, track),
+      ),
     );
   }
 }
 
-class _CenteredMessage extends StatelessWidget {
-  const _CenteredMessage({required this.child});
+/// Etiqueta "YT ↓" (descargada de YouTube, cian) o "LOCAL" (violeta).
+class SourceTag extends StatelessWidget {
+  const SourceTag({super.key, required this.youtube});
 
-  final Widget child;
+  final bool youtube;
 
   @override
   Widget build(BuildContext context) {
-    // Envuelto en ListView para que RefreshIndicator (pull-to-refresh)
-    // funcione incluso cuando el contenido no llena la pantalla.
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        SizedBox(
-          height: 360,
-          child: Center(child: child),
-        ),
-      ],
+    final color = youtube ? KijiColors.cyan : KijiColors.violet;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.7)),
+        color: color.withValues(alpha: 0.12),
+      ),
+      child: Text(youtube ? 'YT ↓' : 'LOCAL', style: KijiText.mono(size: 9, color: color)),
     );
   }
 }
@@ -229,18 +407,16 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 40, color: AppColors.onSurfaceMuted),
+          Icon(icon, size: 40, color: KijiColors.muted),
           const SizedBox(height: 12),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.onSurfaceMuted,
-                ),
+            style: const TextStyle(color: KijiColors.muted),
           ),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 16),
@@ -248,47 +424,6 @@ class _InfoCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-class _SongList extends ConsumerWidget {
-  const _SongList({required this.tracks});
-
-  final List<Track> tracks;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 96),
-      itemCount: tracks.length,
-      separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFF1F1F26)),
-      itemBuilder: (context, index) {
-        final track = tracks[index];
-        return ListTile(
-          leading: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: track.coverColor,
-            ),
-            child: const Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
-          ),
-          title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
-          trailing: Text(
-            formatDuration(Duration(milliseconds: track.durationMs)),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.onSurfaceMuted,
-                ),
-          ),
-          onTap: () => ref
-              .read(playbackProvider.notifier)
-              .playQueue(tracks, startIndex: index),
-        );
-      },
     );
   }
 }

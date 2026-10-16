@@ -28,6 +28,7 @@ Track localTrackFromSong(SongModel song) {
     source: TrackSource.local,
     album: song.album,
     durationMs: song.duration ?? 0,
+    sizeBytes: song.size,
   );
 }
 

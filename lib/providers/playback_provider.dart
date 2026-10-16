@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../features/history/listening_history.dart';
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
 import '../features/queue/domain/queue_operations.dart';
@@ -349,7 +350,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('=== REPRODUCCION: "${track.title}" cargada en '
           '${_audioPlayer.position.inSeconds} s ===');
       unawaited(_saveState());
-      if (autoPlay) _startPlaying();
+      if (autoPlay) {
+        _startPlaying();
+        // Historial local (Inicio: "Escuchado recientemente", "Para vos").
+        // Restaurar al abrir (autoPlay: false) no cuenta como escuchar.
+        ref.read(listeningHistoryProvider.notifier).record(track);
+      }
       return LoadResult.loaded;
     } catch (error, stackTrace) {
       if (token != _loadToken) return LoadResult.cancelled;

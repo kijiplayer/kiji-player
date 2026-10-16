@@ -15,6 +15,7 @@ class Track {
     this.thumbnailUrl,
     this.album,
     this.durationMs = 0,
+    this.sizeBytes,
   });
 
   /// Identificador único: `local-<mediaStoreId>` o `yt-<videoId>`.
@@ -32,6 +33,9 @@ class Track {
   final String? album;
   final int durationMs;
 
+  /// Tamaño del archivo (locales y descargadas), si se conoce.
+  final int? sizeBytes;
+
   /// `videoId` de YouTube (sale de `id = 'yt-<videoId>'`), o null si la
   /// pista no es de YouTube.
   String? get youtubeVideoId =>
@@ -48,6 +52,7 @@ class Track {
         if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
         if (album != null) 'album': album,
         'durationMs': durationMs,
+        if (sizeBytes != null) 'sizeBytes': sizeBytes,
       };
 
   factory Track.fromJson(Map<String, dynamic> json) {
@@ -61,6 +66,7 @@ class Track {
       thumbnailUrl: json['thumbnailUrl'] as String?,
       album: json['album'] as String?,
       durationMs: json['durationMs'] as int? ?? 0,
+      sizeBytes: json['sizeBytes'] as int?,
     );
   }
 
@@ -74,6 +80,7 @@ class Track {
     String? thumbnailUrl,
     String? album,
     int? durationMs,
+    int? sizeBytes,
   }) {
     return Track(
       id: id ?? this.id,
@@ -85,6 +92,7 @@ class Track {
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
       album: album ?? this.album,
       durationMs: durationMs ?? this.durationMs,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
     );
   }
 }

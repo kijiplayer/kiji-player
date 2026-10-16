@@ -88,6 +88,7 @@ class ScannedSong {
     required this.artist,
     this.album,
     this.durationMs = 0,
+    this.sizeBytes,
   });
 
   final String path;
@@ -95,6 +96,7 @@ class ScannedSong {
   final String artist;
   final String? album;
   final int durationMs;
+  final int? sizeBytes;
 
   Track toTrack() => Track(
         // El id depende de la ruta: si el archivo se mueve, es otra canción.
@@ -106,6 +108,7 @@ class ScannedSong {
         source: TrackSource.local,
         album: album,
         durationMs: durationMs,
+        sizeBytes: sizeBytes,
       );
 }
 
@@ -140,11 +143,17 @@ ScannedSong _readSong(File file) {
       artist: artist == null || artist.isEmpty ? 'Artista desconocido' : artist,
       album: metadata.album,
       durationMs: metadata.duration?.inMilliseconds ?? 0,
+      sizeBytes: file.lengthSync(),
     );
   } catch (error) {
     // Sin etiquetas legibles: la canción se muestra igual, con el nombre del archivo.
     debugPrint('=== BIBLIOTECA: sin etiquetas en ${file.path}: $error ===');
-    return ScannedSong(path: file.path, title: fallbackTitle, artist: 'Artista desconocido');
+    return ScannedSong(
+      path: file.path,
+      title: fallbackTitle,
+      artist: 'Artista desconocido',
+      sizeBytes: file.lengthSync(),
+    );
   }
 }
 

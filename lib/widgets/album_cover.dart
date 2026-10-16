@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../features/system_media/data/cover_art.dart';
+import '../models/track.dart';
+
 class AlbumCover extends StatelessWidget {
   const AlbumCover({
     super.key,
@@ -41,6 +44,44 @@ class AlbumCover extends StatelessWidget {
         Icons.music_note_rounded,
         color: Colors.white70,
         size: iconSize,
+      ),
+    );
+  }
+}
+
+/// Carátula de una canción: la imagen real si hay (YouTube, en tamaño
+/// grande) y, si no hay o no carga (sin red), el degradado de su color.
+class TrackArtwork extends StatelessWidget {
+  const TrackArtwork({
+    super.key,
+    required this.track,
+    this.size = 48,
+    this.radius = 8,
+  });
+
+  final Track track;
+  final double size;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = AlbumCover(
+      color: track.coverColor,
+      size: size,
+      borderRadius: radius,
+      iconSize: size * 0.4,
+    );
+    final url = track.thumbnailUrl;
+    if (url == null || !url.startsWith('http')) return fallback;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: Image.network(
+        largerThumbnailUrl(url),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+        frameBuilder: (context, child, frame, _) => frame == null ? fallback : child,
       ),
     );
   }

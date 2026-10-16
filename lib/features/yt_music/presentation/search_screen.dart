@@ -3,12 +3,42 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../models/track.dart';
+import '../../../providers/downloads_provider.dart';
+import '../../../providers/local_library_provider.dart';
 import '../../../providers/playback_provider.dart';
+import '../../../providers/shell_provider.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/kiji_tokens.dart';
+import '../../../widgets/album_cover.dart';
+import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/presentation/download_button.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../data/ytm_client.dart';
 import '../domain/yt_track_mapper.dart';
+
+/// Qué se busca (chips del mockup, §7).
+enum SearchKind {
+  songs('Canciones'),
+  artists('Artistas'),
+  albums('Álbumes'),
+  myFiles('Mis archivos');
+
+  const SearchKind(this.label);
+  final String label;
+}
+
+/// Filtra [tracks] por título, artista o álbum (sin distinguir mayúsculas).
+List<Track> filterMyFiles(List<Track> tracks, String query) {
+  final q = query.trim().toLowerCase();
+  if (q.isEmpty) return const [];
+  return tracks
+      .where((t) =>
+          t.title.toLowerCase().contains(q) ||
+          t.artist.toLowerCase().contains(q) ||
+          (t.album?.toLowerCase().contains(q) ?? false))
+      .toList();
+}
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -26,6 +56,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   bool _loading = false;
   String? _error;
   String? _resolvingVideoId;
+  SearchKind _kind = SearchKind.songs;
 
   @override
   void dispose() {
@@ -55,8 +86,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       _error = null;
     });
 
+    if (_kind != SearchKind.songs) {
+      // Mis archivos se filtra en pantalla; Artistas y Álbumes, más adelante.
+      setState(() => _loading = false);
+      return;
+    }
+
     try {
-      final results = await _client.search(query);
+      final results = await _client.search(query, songsOnly: true);
       if (!mounted) return;
       setState(() {
         _results = results;
@@ -97,26 +134,107 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: TextField(
-            controller: _controller,
-            onChanged: _onChanged,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Buscar canciones, artistas...',
-              hintStyle: const TextStyle(color: AppColors.onSurfaceMuted),
-              prefixIcon: const Icon(Icons.search_rounded, color: Colors.white70),
-              filled: true,
-              fillColor: AppColors.surfaceContainer,
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+          // Campo con borde degradado (§7). Ctrl K lo enfoca desde cualquier lado.
+          child: GradientBorder(
+            radius: KijiRadii.pill,
+            fill: KijiColors.surface,
+            child: TextField(
+              controller: _controller,
+              focusNode: ref.watch(searchFocusProvider),
+              onChanged: _onChanged,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Buscar canciones, artistas...',
+                hintStyle: TextStyle(color: AppColors.onSurfaceMuted),
+                prefixIcon: Icon(Icons.search_rounded, color: KijiColors.muted),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               ),
             ),
           ),
         ),
-        Expanded(child: _buildBody()),
+        SizedBox(
+          height: 44,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            children: [
+              for (final kind in SearchKind.values)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(kind.label),
+                    selected: _kind == kind,
+                    showCheckmark: false,
+                    selectedColor: KijiColors.violet,
+                    labelStyle: TextStyle(
+                      color: _kind == kind ? Colors.white : KijiColors.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    side: const BorderSide(color: KijiColors.glassBorder),
+                    shape: const StadiumBorder(),
+                    onSelected: (_) {
+                      setState(() => _kind = kind);
+                      _search(_controller.text);
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: switch (_kind) {
+            SearchKind.songs => _buildBody(),
+            SearchKind.myFiles => _buildMyFiles(),
+            SearchKind.artists || SearchKind.albums => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    'Buscar ${_kind.label.toLowerCase()} llega en una próxima versión. '
+                    'Por ahora, probá con Canciones.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.onSurfaceMuted),
+                  ),
+                ),
+              ),
+          },
+        ),
       ],
+    );
+  }
+
+  /// Canciones locales y descargadas que coinciden, sin internet.
+  Widget _buildMyFiles() {
+    final query = _controller.text;
+    final local = ref.watch(localTracksProvider).value ?? const <Track>[];
+    final downloaded = [for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack()];
+    final results = filterMyFiles([...downloaded, ...local], query);
+
+    if (query.trim().isEmpty) {
+      return const Center(
+        child: Text('Buscá entre tu música guardada y tus descargas',
+            style: TextStyle(color: AppColors.onSurfaceMuted)),
+      );
+    }
+    if (results.isEmpty) {
+      return const Center(
+        child: Text('No hay coincidencias en tus archivos',
+            style: TextStyle(color: AppColors.onSurfaceMuted)),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 180),
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final track = results[index];
+        return ListTile(
+          leading: TrackArtwork(track: track, size: 44, radius: 8),
+          title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+          subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+          onTap: () => ref.read(playbackProvider.notifier).playQueue(results, startIndex: index),
+          onLongPress: () => showTrackActions(context, ref, track),
+        );
+      },
     );
   }
 
@@ -144,9 +262,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 96),
+      padding: const EdgeInsets.only(bottom: 180),
       itemCount: _results.length,
-      separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFF1F1F26)),
+      separatorBuilder: (_, _) => const SizedBox.shrink(),
       itemBuilder: (context, index) {
         final result = _results[index];
         final isResolving = _resolvingVideoId == result.videoId;

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../theme/app_colors.dart';
+import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
 
 /// Ícono de descarga con 4 estados: descargar / progreso / lista / error.
@@ -35,7 +36,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     }
     if (downloads.completed.containsKey(videoId)) {
       return IconButton(
-        icon: const Icon(Icons.download_done_rounded, color: AppColors.seed),
+        icon: const Icon(Icons.download_done_rounded, color: KijiColors.cyan),
         tooltip: 'Descargada',
         onPressed: () => confirmDeleteDownload(context, ref, widget.track.title, videoId),
       );
@@ -57,17 +58,24 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     return IconButton(
       tooltip: 'Cancelar descarga',
       onPressed: () => _confirmCancel(videoId),
+      // Anillo con el porcentaje (§7). Tocarlo ofrece cancelar.
       icon: SizedBox(
-        width: 22,
-        height: 22,
+        width: 30,
+        height: 30,
         child: Stack(
           alignment: Alignment.center,
           children: [
             CircularProgressIndicator(
               strokeWidth: 2.5,
+              color: KijiColors.cyan,
+              backgroundColor: KijiColors.waveRest,
               value: active.status == ActiveDownloadStatus.queued ? null : active.progress,
             ),
-            const Icon(Icons.stop_rounded, size: 12, color: Colors.white70),
+            if (active.progress != null)
+              Text(
+                '${(active.progress! * 100).round()}',
+                style: KijiText.mono(size: 9, color: Colors.white),
+              ),
           ],
         ),
       ),
