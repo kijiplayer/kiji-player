@@ -9,6 +9,7 @@ import 'package:just_audio/just_audio.dart';
 import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
 import '../features/yt_music/data/ytm_client.dart';
+import '../features/yt_music/domain/subtitle_parser.dart';
 import '../models/track.dart';
 import 'downloads_provider.dart';
 
@@ -336,7 +337,13 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // Si el usuario ya eligió algo mientras leíamos el disco, no lo pisamos.
     if (state.queue.isNotEmpty) return;
 
-    final queue = snapshot.queue;
+    // Colas guardadas antes del arreglo del artista ("Canción • Daft Punk").
+    final queue = [
+      for (final track in snapshot.queue)
+        track.source == TrackSource.youtube
+            ? track.copyWith(artist: cleanArtistText(track.artist))
+            : track,
+    ];
     var index = snapshot.currentIndex;
     var position = Duration(milliseconds: snapshot.positionMs);
 

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../domain/subtitle_parser.dart';
 import 'yt_cipher_solver.dart';
 
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
@@ -18,6 +19,7 @@ class YtMusicSearchResult {
     required this.artist,
     this.thumbnailUrl,
     this.album,
+    this.durationMs,
   });
 
   final String videoId;
@@ -25,6 +27,7 @@ class YtMusicSearchResult {
   final String artist;
   final String? thumbnailUrl;
   final String? album;
+  final int? durationMs;
 }
 
 /// Cliente para el endpoint interno de YouTube Music (InnerTube), el mismo
@@ -123,27 +126,32 @@ class YtMusicClient {
     final results = <YtMusicSearchResult>[];
     final seenVideoIds = <String>{};
 
-    void walk(dynamic node) {
+    // [cardArtist]: dentro de la tarjeta del resultado principal de un
+    // artista, las canciones no repiten el artista en su subtítulo.
+    void walk(dynamic node, String? cardArtist) {
       if (node is Map) {
         final renderer = node['musicResponsiveListItemRenderer'];
         if (renderer is Map) {
-          final parsed = _parseItem(Map<String, dynamic>.from(renderer));
+          final parsed =
+              _parseItem(Map<String, dynamic>.from(renderer), fallbackArtist: cardArtist);
           if (parsed != null && seenVideoIds.add(parsed.videoId)) {
             results.add(parsed);
           }
         }
+        final card = node['musicCardShelfRenderer'];
+        final artist = card is Map ? _cardArtist(card) ?? cardArtist : cardArtist;
         for (final value in node.values) {
-          walk(value);
+          walk(value, artist);
         }
       } else if (node is List) {
         for (final item in node) {
-          walk(item);
+          walk(item, cardArtist);
         }
       }
     }
 
     try {
-      walk(data['contents']);
+      walk(data['contents'], null);
     } catch (error, stackTrace) {
       debugPrint('=== YTM parse: EXCEPCIÓN: $error ===');
       debugPrint('$stackTrace');
@@ -152,14 +160,25 @@ class YtMusicClient {
     return results;
   }
 
-  YtMusicSearchResult? _parseItem(Map<String, dynamic> renderer) {
+  /// Nombre del artista si [card] es la tarjeta de un artista.
+  String? _cardArtist(Map card) {
+    final runs = (card['title'] as Map?)?['runs'] as List?;
+    final run = runs?.whereType<Map>().firstOrNull;
+    final pageType = (((run?['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?)?[
+            'browseEndpointContextSupportedConfigs'] as Map?)?['browseEndpointContextMusicConfig']
+        ?['pageType'];
+    return pageType == 'MUSIC_PAGE_TYPE_ARTIST' ? run!['text'] as String? : null;
+  }
+
+  YtMusicSearchResult? _parseItem(Map<String, dynamic> renderer, {String? fallbackArtist}) {
     try {
       final videoId = _findVideoId(renderer);
       if (videoId == null) return null;
 
       final flexColumns = renderer['flexColumns'] as List?;
       final title = _extractText(flexColumns, 0);
-      final subtitle = _extractText(flexColumns, 1);
+      final subtitleRuns = _extractRuns(flexColumns, 1);
+      final subtitle = subtitleRuns == null ? null : parseSubtitleRuns(subtitleRuns);
 
       final thumbnails = ((renderer['thumbnail'] as Map?)?['musicThumbnailRenderer']
               as Map?)?['thumbnail']?['thumbnails'] as List?;
@@ -169,7 +188,9 @@ class YtMusicClient {
       return YtMusicSearchResult(
         videoId: videoId,
         title: (title == null || title.isEmpty) ? 'Sin título' : title,
-        artist: (subtitle == null || subtitle.isEmpty) ? 'Artista desconocido' : subtitle,
+        artist: subtitle?.artist ?? fallbackArtist ?? unknownArtist,
+        album: subtitle?.album,
+        durationMs: subtitle?.durationMs,
         thumbnailUrl: thumbnailUrl,
       );
     } catch (error) {
@@ -193,12 +214,16 @@ class YtMusicClient {
   }
 
   String? _extractText(List? flexColumns, int index) {
+    return _extractRuns(flexColumns, index)?.map((run) => (run as Map)['text']).join();
+  }
+
+  List<dynamic>? _extractRuns(List? flexColumns, int index) {
     if (flexColumns == null || index >= flexColumns.length) return null;
     final column = flexColumns[index] as Map?;
     final runs =
         (column?['musicResponsiveListItemFlexColumnRenderer'] as Map?)?['text']?['runs'] as List?;
     if (runs == null || runs.isEmpty) return null;
-    return runs.map((run) => (run as Map)['text']).join();
+    return runs;
   }
 
   // ---------------------------------------------------------------------

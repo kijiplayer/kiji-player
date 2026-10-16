@@ -4,10 +4,12 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/json_file.dart';
+import '../../yt_music/domain/subtitle_parser.dart';
 import '../domain/download_settings.dart';
 import '../domain/downloaded_track.dart';
 
@@ -43,11 +45,19 @@ class DownloadsRepository {
     if (_entries != null) return _entries!;
     await directory();
     final entries = <String, DownloadedTrack>{};
+    var cleaned = false;
     final json = await _index!.read();
     if (json != null) {
       try {
         for (final item in (json as Map<String, dynamic>)['tracks'] as List<dynamic>) {
-          final track = DownloadedTrack.fromJson(item as Map<String, dynamic>);
+          var track = DownloadedTrack.fromJson(item as Map<String, dynamic>);
+          // Descargas viejas guardaron el subtítulo entero como artista
+          // ("Canción • Daft Punk"): se limpia una vez y se guarda.
+          final artist = cleanArtistText(track.artist);
+          if (artist != track.artist) {
+            track = track.copyWith(artist: artist);
+            cleaned = true;
+          }
           if (await File(await pathFor(track.fileName)).exists()) {
             entries[track.videoId] = track;
           }
@@ -56,7 +66,12 @@ class DownloadsRepository {
         await _index!.deleteCorrupt(error);
       }
     }
-    return _entries = entries;
+    _entries = entries;
+    if (cleaned) {
+      debugPrint('=== DESCARGAS: artistas limpiados en el índice ===');
+      await _saveIndex();
+    }
+    return entries;
   }
 
   /// Archivo descargado para [videoId], o null si no está descargado.

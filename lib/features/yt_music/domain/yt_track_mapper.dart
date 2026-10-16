@@ -15,6 +15,7 @@ Track ytTrackFromResult(YtMusicSearchResult result, {required String audioUrl}) 
     source: TrackSource.youtube,
     thumbnailUrl: result.thumbnailUrl,
     album: result.album,
+    durationMs: result.durationMs ?? 0,
   );
 }
 

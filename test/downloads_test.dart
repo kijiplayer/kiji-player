@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -94,6 +95,27 @@ void main() {
 
       final reopened = DownloadsRepository(baseDirectory: () async => dir);
       expect(await reopened.all(), isEmpty);
+    });
+
+    test('Las descargas viejas quedan con el artista limpio', () async {
+      await File(await repository.pathFor('abc.m4a')).writeAsString('audio');
+      final dirty = DownloadedTrack(
+        videoId: 'abc',
+        title: 'One More Time',
+        artist: 'Canción • Daft Punk',
+        coverColor: const Color(0xFF7C5CFF),
+        fileName: 'abc.m4a',
+        sizeBytes: 5,
+        downloadedAt: DateTime(2026, 10, 15),
+      );
+      final indexFile = File(p.join(dir.path, 'downloads', 'index.json'));
+      await indexFile.writeAsString(
+        '{"version":1,"tracks":[${jsonEncode(dirty.toJson())}]}',
+      );
+
+      expect((await repository.all())['abc']!.artist, 'Daft Punk');
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(await indexFile.readAsString(), isNot(contains('Canción')));
     });
 
     test('Índice dañado: se borra y arranca vacío', () async {

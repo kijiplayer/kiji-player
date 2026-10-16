@@ -46,6 +46,19 @@ class DownloadedTrack {
         durationMs: durationMs,
       );
 
+  DownloadedTrack copyWith({String? artist}) => DownloadedTrack(
+        videoId: videoId,
+        title: title,
+        artist: artist ?? this.artist,
+        coverColor: coverColor,
+        fileName: fileName,
+        sizeBytes: sizeBytes,
+        downloadedAt: downloadedAt,
+        album: album,
+        thumbnailFileName: thumbnailFileName,
+        durationMs: durationMs,
+      );
+
   Map<String, dynamic> toJson() => {
         'videoId': videoId,
         'title': title,
