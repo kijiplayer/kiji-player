@@ -53,13 +53,29 @@ class JsonFile {
     });
   }
 
+  /// Renombra [temp] sobre [target]. En Windows el antivirus o el indexador
+  /// pueden retener el archivo un instante ("está siendo utilizado por otro
+  /// proceso"): se reintenta y, como último recurso, se copia encima.
+  static Future<void> _replace(File temp, String target) async {
+    for (var attempt = 0; attempt < 5; attempt++) {
+      try {
+        await temp.rename(target);
+        return;
+      } on FileSystemException {
+        await Future<void>.delayed(Duration(milliseconds: 40 * (attempt + 1)));
+      }
+    }
+    await temp.copy(target);
+    await temp.delete();
+  }
+
   Future<void> write(Object json) {
     return _pendingWrite = _pendingWrite.then((_) async {
       try {
         final temp = File('$path.tmp');
         await temp.parent.create(recursive: true);
         await temp.writeAsString(jsonEncode(json), flush: true);
-        await temp.rename(path);
+        await _replace(temp, path);
       } catch (error) {
         debugPrint('=== $logTag: error al guardar $path: $error ===');
       }

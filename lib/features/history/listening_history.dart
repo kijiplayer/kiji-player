@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -101,6 +100,28 @@ class ListeningHistoryNotifier extends Notifier<List<HistoryEntry>> {
     unawaited(_save());
   }
 
+  /// Importar (Tarea Y): agrega solo canciones que no estaban en el
+  /// historial (nunca cambia lo existente). Devuelve los ids agregados.
+  List<String> importEntries(List<HistoryEntry> entries) {
+    final existing = {for (final e in state) e.track.id};
+    final toAdd = [for (final e in entries) if (existing.add(e.track.id)) e];
+    if (toAdd.isEmpty) return const [];
+    state = [...state, ...toAdd]..sort((a, b) => b.lastPlayed.compareTo(a.lastPlayed));
+    if (state.length > HistoryLogic.maxEntries) {
+      state = state.take(HistoryLogic.maxEntries).toList();
+    }
+    unawaited(_save());
+    final kept = {for (final e in state) e.track.id};
+    return [for (final e in toAdd) if (kept.contains(e.track.id)) e.track.id];
+  }
+
+  /// Deshacer una importación: quita solo estas.
+  void removeIds(Iterable<String> ids) {
+    final remove = ids.toSet();
+    state = [for (final e in state) if (!remove.contains(e.track.id)) e];
+    unawaited(_save());
+  }
+
   /// Borra todo el historial (Configuración → Privacidad).
   Future<void> clear() async {
     state = const [];
@@ -110,7 +131,7 @@ class ListeningHistoryNotifier extends Notifier<List<HistoryEntry>> {
   Future<void> _save() async {
     try {
       await (await _jsonFile()).write([for (final e in state) e.toJson()]);
-    } on FileSystemException catch (error) {
+    } catch (error) {
       debugPrint('=== HISTORIAL: no se pudo guardar: $error ===');
     }
   }

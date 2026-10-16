@@ -13,6 +13,7 @@ import '../../../utils/byte_formatter.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/domain/download_settings.dart';
 import '../../downloads/presentation/downloads_screen.dart';
+import '../../import/presentation/import_screen.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
 import '../data/settings_store.dart';
 import '../domain/app_settings.dart';
@@ -348,13 +349,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Copia de seguridad
       SettingOption(
         section: SettingsSection.backup,
-        title: 'Exportar e importar',
+        title: 'Importar desde otra app',
+        subtitle: 'Echo, Metrolist, InnerTune, OuterTune, .m3u, Exportify y Google Takeout.',
+        keywords: const ['backup', 'respaldo', 'importar', 'exportar', 'spotify', 'csv', 'm3u', 'metrolist', 'echo'],
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.download_rounded),
+          title: const Text('Importar desde otra app'),
+          subtitle: const Text(
+            'Playlists, me gusta e historial de Echo, Metrolist, InnerTune u OuterTune (.backup), '
+            '.m3u, y CSV de Exportify o Google Takeout. También exportar tus playlists.',
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => ImportScreen.open(context),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.backup,
+        title: 'Copia de seguridad de Kiji',
         subtitle: 'Llega en una próxima versión.',
-        keywords: const ['backup', 'respaldo', 'exportar', 'importar'],
+        keywords: const ['backup', 'respaldo', 'copia'],
         builder: (context, ref) => const ListTile(
           enabled: false,
-          leading: Icon(Icons.import_export_rounded),
-          title: Text('Exportar e importar'),
+          leading: Icon(Icons.backup_outlined),
+          title: Text('Copia de seguridad de Kiji'),
           subtitle: Text('Llega en una próxima versión: un archivo tuyo, sin servidores.'),
         ),
       ),

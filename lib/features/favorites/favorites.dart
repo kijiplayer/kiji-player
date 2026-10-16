@@ -47,6 +47,31 @@ class FavoritesNotifier extends Notifier<Map<String, Track>> {
     unawaited(_save());
   }
 
+  /// Importar (Tarea Y): agrega las que no estaban. Nunca quita ni cambia
+  /// nada. Devuelve los ids agregados (para poder deshacerlo).
+  List<String> addAll(List<Track> tracks) {
+    final added = <String>[];
+    final next = {...state};
+    for (final track in tracks) {
+      if (!next.containsKey(track.id)) {
+        next[track.id] = track;
+        added.add(track.id);
+      }
+    }
+    if (added.isNotEmpty) {
+      state = next;
+      unawaited(_save());
+    }
+    return added;
+  }
+
+  /// Deshacer una importación: quita solo estas.
+  void removeIds(Iterable<String> ids) {
+    final remove = ids.toSet();
+    state = {for (final e in state.entries) if (!remove.contains(e.key)) e.key: e.value};
+    unawaited(_save());
+  }
+
   Future<void> _save() async {
     try {
       await (await _jsonFile()).write([for (final t in state.values) t.toJson()]);

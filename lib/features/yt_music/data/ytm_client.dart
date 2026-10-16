@@ -172,6 +172,33 @@ class YtMusicClient {
     return data == null ? null : parseArtistPage(data);
   }
 
+  /// Título, artista y duración de un video (para importar listas que solo
+  /// traen el videoId, como las de Google Takeout). null si no se pudo.
+  Future<YtMusicSearchResult?> videoDetails(String videoId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/player',
+        queryParameters: {'key': _apiKey},
+        data: {..._context, 'videoId': videoId},
+      );
+      final details = response.data?['videoDetails'] as Map?;
+      if (details == null) return null;
+      final seconds = int.tryParse('${details['lengthSeconds'] ?? ''}');
+      final thumbs = (details['thumbnail'] as Map?)?['thumbnails'] as List?;
+      final author = (details['author'] as String? ?? '').replaceAll(RegExp(r'\s*-\s*Topic$'), '');
+      return YtMusicSearchResult(
+        videoId: videoId,
+        title: details['title'] as String? ?? 'Sin título',
+        artist: author.isEmpty ? unknownArtist : author,
+        durationMs: seconds == null ? null : seconds * 1000,
+        thumbnailUrl: thumbs == null || thumbs.isEmpty ? null : (thumbs.last as Map)['url'] as String?,
+      );
+    } catch (error) {
+      debugPrint('=== YTM: sin datos del video $videoId: $error ===');
+      return null;
+    }
+  }
+
   /// Página de un álbum (anónimo): sus pistas.
   Future<AlbumPage?> album(String browseId) async {
     final data = await _browse(browseId);

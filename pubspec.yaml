@@ -57,6 +57,8 @@ dependencies:
   file_picker: ^13.1.0
   audio_metadata_reader: ^1.8.1
   ffi: ^2.2.0
+  sqlite3: ^3.7.1
+  archive: ^4.5.2
 
 dev_dependencies:
   flutter_test:
