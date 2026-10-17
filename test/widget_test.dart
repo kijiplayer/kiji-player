@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kiji_player/app.dart';
 import 'package:kiji_player/features/recommendations/data/home_feed_provider.dart';
 import 'package:kiji_player/features/recommendations/domain/home_feed.dart';
+import 'package:kiji_player/features/updates/update_checker.dart';
 import 'package:kiji_player/features/yt_music/data/ytm_browse_parser.dart';
 import 'package:kiji_player/models/track.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
@@ -19,6 +20,12 @@ const _testTrack = Track(
   audioUrl: '/storage/emulated/0/Music/midnight.mp3',
   source: TrackSource.local,
 );
+
+/// Sin consultas a GitHub en los tests.
+class _NoUpdates extends UpdateNotifier {
+  @override
+  Future<void> checkIfDue() async {}
+}
 
 /// Simula la app recién instalada: nada guardado, nada sonando.
 class EmptyPlaybackNotifier extends PlaybackNotifier {
@@ -97,6 +104,7 @@ Widget _app(Object notifierFactory) => ProviderScope(
         // Sin red en los tests: Inicio sin recomendaciones ni géneros.
         homeFeedProvider.overrideWith((ref) async => const HomeFeed()),
         moodsProvider.overrideWith((ref) async => const <YtMood>[]),
+        updateProvider.overrideWith(_NoUpdates.new),
       ],
       child: const KijiApp(),
     );

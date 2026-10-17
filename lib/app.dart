@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/playback_automation.dart';
+import 'features/updates/update_checker.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
@@ -18,6 +19,13 @@ class KijiApp extends ConsumerStatefulWidget {
 
 class _KijiAppState extends ConsumerState<KijiApp> {
   final _routes = MiniPlayerRouteObserver();
+
+  @override
+  void initState() {
+    super.initState();
+    // Actualizaciones (Tarea W1): como mucho una consulta por día, si está prendido.
+    Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
+  }
 
   @override
   Widget build(BuildContext context) {

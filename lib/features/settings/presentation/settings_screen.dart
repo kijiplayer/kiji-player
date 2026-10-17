@@ -20,6 +20,8 @@ import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../recommendations/data/search_history.dart';
+import '../../updates/update_checker.dart';
+import '../../updates/updates_screen.dart';
 import '../../translation/domain/languages.dart';
 import '../../translation/presentation/lyrics_settings_screens.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
@@ -37,6 +39,7 @@ enum SettingsSection {
   storage('Almacenamiento', Icons.sd_storage_outlined),
   privacy('Privacidad', Icons.shield_outlined),
   backup('Copia de seguridad', Icons.backup_outlined),
+  updates('Actualizaciones', Icons.system_update_alt_rounded),
   about('Acerca de', Icons.info_outline_rounded);
 
   const SettingsSection(this.label, this.icon);
@@ -474,6 +477,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.privacy,
+        title: 'Actualizaciones y GitHub',
+        subtitle: 'Qué ve GitHub cuando Kiji busca una versión nueva.',
+        keywords: const ['github', 'actualizaciones', 'version'],
+        builder: (context, ref) => const ListTile(
+          leading: Icon(Icons.system_update_alt_rounded),
+          title: Text('Actualizaciones y GitHub'),
+          subtitle: Text(
+            'Si "Buscar actualizaciones" está prendido, una vez por día Kiji le pide a GitHub cuál es la '
+            'última versión publicada. GitHub ve esa consulta como una visita a una página (tu IP y que es '
+            'Kiji); no se manda nada tuyo. Se apaga en Configuración → Actualizaciones.',
+          ),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
         title: 'Recomendaciones de Inicio',
         subtitle: 'Qué se le pide a YouTube Music para "Porque escuchaste", "Mezcla" y "Descubrí".',
         keywords: const ['recomendaciones', 'descubri', 'mezcla', 'relacionadas', 'youtube'],
@@ -536,6 +554,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => ExtractorHealthScreen.open(context),
         ),
       ),
+      // Actualizaciones (Tarea W1)
+      SettingOption(
+        section: SettingsSection.updates,
+        title: 'Buscar actualizaciones',
+        subtitle: 'Una vez por día pregunta a GitHub si hay una versión nueva. Nunca baja ni instala nada.',
+        keywords: const ['version', 'nueva', 'github', 'novedades', 'actualizar'],
+        builder: (context, ref) => SwitchListTile(
+          title: const Text('Buscar actualizaciones'),
+          subtitle: const Text(
+            'Una vez por día pregunta a GitHub si hay una versión nueva y te muestra sus novedades. '
+            'Nunca baja ni instala nada por su cuenta.',
+          ),
+          value: ref.watch(settingsProvider).checkUpdates,
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(checkUpdates: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.updates,
+        title: 'Versión de Kiji',
+        subtitle: 'Buscar ahora y ver las novedades.',
+        keywords: const ['version', 'buscar ahora', 'novedades'],
+        builder: (context, ref) => const UpdateStatusTile(),
+      ),
       // Copia de seguridad
       SettingOption(
         section: SettingsSection.backup,
@@ -581,7 +622,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         keywords: const ['version', 'licencia', 'gpl'],
         builder: (context, ref) => const ListTile(
           leading: KijiLogo(size: 40),
-          title: Text('Kiji Player 1.0.0'),
+          title: Text('Kiji Player $kijiVersion'),
           subtitle: Text('Software libre (GPL-3.0). Sin pagos, sin anuncios y sin telemetría.'),
         ),
       ),

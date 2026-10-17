@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/downloads/presentation/downloads_screen.dart';
 import '../../features/local_library/presentation/local_library_screen.dart';
+import '../../features/updates/update_checker.dart';
+import '../../features/updates/updates_screen.dart';
 import '../../features/yt_music/presentation/search_screen.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
@@ -38,6 +40,18 @@ class HomeScreen extends ConsumerWidget {
         },
       ));
       ref.read(playbackNoticeProvider.notifier).state = null;
+    });
+
+    // Versión nueva encontrada al abrir Kiji: un aviso con "Ver" (Tarea W1).
+    ref.listen<UpdateState>(updateProvider, (previous, next) {
+      final latest = next.latest;
+      if (latest == null || previous?.latest?.version == latest.version) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Hay una versión nueva de Kiji (${latest.version}).'),
+        duration: const Duration(seconds: 8),
+        persist: false,
+        action: SnackBarAction(label: 'Ver', onPressed: () => showReleaseSheet(context, latest)),
+      ));
     });
 
     return CallbackShortcuts(

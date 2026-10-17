@@ -22,6 +22,7 @@ class AppSettings {
     this.useGemini = false,
     this.geminiEnabled = false,
     this.geminiModel,
+    this.checkUpdates = true,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -86,6 +87,9 @@ class AppSettings {
   /// Modelo de Gemini elegido (por ejemplo, "models/gemini-2.5-flash-lite").
   final String? geminiModel;
 
+  /// Buscar actualizaciones en GitHub una vez por día (Tarea W1). Se puede apagar.
+  final bool checkUpdates;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -103,6 +107,7 @@ class AppSettings {
     bool? useGemini,
     bool? geminiEnabled,
     String? geminiModel,
+    bool? checkUpdates,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -120,6 +125,7 @@ class AppSettings {
         useGemini: useGemini ?? this.useGemini,
         geminiEnabled: geminiEnabled ?? this.geminiEnabled,
         geminiModel: geminiModel ?? this.geminiModel,
+        checkUpdates: checkUpdates ?? this.checkUpdates,
       );
 
   Map<String, dynamic> toJson() => {
@@ -139,6 +145,7 @@ class AppSettings {
         'useGemini': useGemini,
         'geminiEnabled': geminiEnabled,
         if (geminiModel != null) 'geminiModel': geminiModel,
+        'checkUpdates': checkUpdates,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -169,6 +176,7 @@ class AppSettings {
       useGemini: read('useGemini', d.useGemini),
       geminiEnabled: read('geminiEnabled', d.geminiEnabled),
       geminiModel: json['geminiModel'] is String ? json['geminiModel'] as String : null,
+      checkUpdates: read('checkUpdates', d.checkUpdates),
     );
   }
 
