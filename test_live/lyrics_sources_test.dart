@@ -1,4 +1,5 @@
 // Prueba cada fuente de letras contra el servicio real (Tarea Z4). A mano:
+// (Nunca imprime letras: solo cuántas líneas trajo cada fuente.)
 //   flutter test test_live/lyrics_sources_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/lyrics/data/lyrics_repository.dart';
@@ -19,7 +20,7 @@ void main() {
           parts.add(l == null
               ? 'no está'
               : l.isSynced
-                  ? '${l.synced.length} líneas sinc. («${l.synced.firstWhere((x) => x.text.isNotEmpty).text}»)'
+                  ? '${l.synced.length} líneas sincronizadas'
                   : 'texto (${l.plain!.length} car.)');
         } catch (e) {
           parts.add('ERROR $e');

@@ -11,7 +11,7 @@ import 'package:kiji_player/providers/playback_provider.dart';
 // uno falso, y las pruebas de LRCLIB (test/lyrics_test.dart) usan red local real.
 
 const _lrc = '''
-[01:04.07] Around the world
+[01:04.07] The sun is warm today
 [01:05.5][01:20.123] Repetida
 [00:10.00]
 ''';
@@ -25,14 +25,14 @@ void main() {
     ));
     await tester.pump();
 
-    expect(find.bySemanticsLabel('Ahora: Around the world'), findsOneWidget);
+    expect(find.bySemanticsLabel('Ahora: The sun is warm today'), findsOneWidget);
 
     playback.at(const Duration(minutes: 1, seconds: 6));
     await tester.pump();
     expect(find.bySemanticsLabel('Ahora: Repetida'), findsOneWidget);
-    expect(find.bySemanticsLabel('Ahora: Around the world'), findsNothing);
+    expect(find.bySemanticsLabel('Ahora: The sun is warm today'), findsNothing);
 
-    await tester.tap(find.text('Around the world'));
+    await tester.tap(find.text('The sun is warm today'));
     expect(playback.sought, const Duration(minutes: 1, seconds: 4, milliseconds: 70));
   });
 }

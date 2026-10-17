@@ -44,18 +44,18 @@ void main() {
 
     test('TTML de Better Lyrics', () {
       const ttml = '<tt xmlns:ttm="http://www.w3.org/ns/ttml#metadata"><body><div>'
-          '<p begin="1.5s" end="3s"><span begin="1.5s">Is</span> <span>this</span> the real life?</p>'
-          '<p begin="00:01:02.250">Is this just <span ttm:role="x-bg">(coro)</span>fantasy &amp; more?</p>'
+          '<p begin="1.5s" end="3s"><span begin="1.5s">The</span> <span>sun</span> is warm today</p>'
+          '<p begin="00:01:02.250">We walk <span ttm:role="x-bg">(coro)</span>along the river &amp; sing</p>'
           '</div></body></tt>';
       final lines = parseTtml(ttml);
-      expect(lines.map((l) => l.text), ['Is this the real life?', 'Is this just fantasy & more?']);
+      expect(lines.map((l) => l.text), ['The sun is warm today', 'We walk along the river & sing']);
       expect(lines[1].time, const Duration(minutes: 1, seconds: 2, milliseconds: 250));
     });
 
     test('KuGou: se sacan los créditos del principio y del final', () {
-      const raw = '[00:00.00]Queen - Bohemian Rhapsody\n[00:01.00]作词：Freddie Mercury\n'
-          '[00:05.00]Is this the real life\n[00:07.00]Is this just fantasy\n[03:00.00]制作：EMI';
-      expect(KuGouFetcher.normalizeKuGou(raw), '[00:05.00]Is this the real life\n[00:07.00]Is this just fantasy');
+      const raw = '[00:00.00]Autor - Canción de prueba\n[00:01.00]作词：Autor Inventado\n'
+          '[00:05.00]The sun is warm today\n[00:07.00]We walk along the river\n[03:00.00]制作：Estudio';
+      expect(KuGouFetcher.normalizeKuGou(raw), '[00:05.00]The sun is warm today\n[00:07.00]We walk along the river');
     });
 
     test('subtítulos de YouTube: la pista en el idioma del canto, a LRC', () {
@@ -72,13 +72,13 @@ void main() {
           {
             'tStartMs': 27000,
             'segs': [
-              {'utf8': '♪ A full '},
-              {'utf8': 'commitment ♪'},
+              {'utf8': '♪ We walk '},
+              {'utf8': 'along the river ♪'},
             ],
           },
         ],
       });
-      expect(YouTubeSubtitlesFetcher.captionsToLrc(json3), '[00:27.000]A full commitment');
+      expect(YouTubeSubtitlesFetcher.captionsToLrc(json3), '[00:27.000]We walk along the river');
     });
   });
 

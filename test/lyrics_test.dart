@@ -12,7 +12,7 @@ import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
 const _lrc = '''
 [ar:Daft Punk]
 [ti:Around the World]
-[01:04.07] Around the world
+[01:04.07] The sun is warm today
 [01:05.5][01:20.123] Repetida
 [00:10.00]
 ''';
@@ -76,7 +76,7 @@ void main() {
       final lines = parseLrc(_lrc);
       expect(lines, [
         const LyricLine(Duration(seconds: 10), ''),
-        const LyricLine(Duration(minutes: 1, seconds: 4, milliseconds: 70), 'Around the world'),
+        const LyricLine(Duration(minutes: 1, seconds: 4, milliseconds: 70), 'The sun is warm today'),
         const LyricLine(Duration(minutes: 1, seconds: 5, milliseconds: 500), 'Repetida'),
         const LyricLine(Duration(minutes: 1, seconds: 20, milliseconds: 123), 'Repetida'),
       ]);
