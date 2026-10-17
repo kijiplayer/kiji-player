@@ -64,6 +64,7 @@ dependencies:
   image: ^4.12.0
   crypto: ^3.0.7
   url_launcher: ^6.3.3
+  flutter_svg: ^2.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -76,6 +77,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -97,6 +99,8 @@ flutter:
     - assets/solver/
     # Traducción en el teléfono (Tarea Z4): pegamento JS de Bergamot, de Firefox (MPL-2.0).
     - assets/translation/
+    # Logo (Opción B · K de onda); los PNG de esta carpeta son solo para generar íconos.
+    - assets/branding/kiji_logo.svg
 
   fonts:
     - family: SpaceGrotesk
@@ -136,3 +140,16 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Ícono de la app, generado desde assets/branding/kiji_logo.svg (ver tool/render_logo.dart).
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/branding/kiji_logo_1024.png"
+  adaptive_icon_background: "#0B0B14"
+  adaptive_icon_foreground: "assets/branding/kiji_logo_foreground.png"
+  min_sdk_android: 21
+  windows:
+    generate: true
+    image_path: "assets/branding/kiji_logo_1024.png"
+    icon_size: 256

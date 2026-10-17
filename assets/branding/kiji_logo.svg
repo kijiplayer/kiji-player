@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <!-- Logo de Kiji Player, "Opción B · K de onda" (el elegido). Fuente única: de acá
+       salen el ícono de Android, el .ico de Windows y el logo dentro de la app
+       (tool/render_logo.dart). -->
+  <defs>
+    <linearGradient id="onda" gradientUnits="userSpaceOnUse" x1="80" y1="0" x2="166" y2="0">
+      <stop offset="0" stop-color="#7C5CFF"/>
+      <stop offset="1" stop-color="#3DF5FF"/>
+    </linearGradient>
+  </defs>
+  <rect id="fondo" x="0" y="0" width="200" height="200" rx="46" fill="#0B0B14"/>
+  <rect x="50" y="46" width="16" height="108" rx="8" fill="#7C5CFF"/>
+  <rect x="80" y="88" width="14" height="24" rx="7" fill="url(#onda)"/>
+  <rect x="104" y="76" width="14" height="48" rx="7" fill="url(#onda)"/>
+  <rect x="128" y="62" width="14" height="76" rx="7" fill="url(#onda)"/>
+  <rect x="152" y="48" width="14" height="104" rx="7" fill="#3DF5FF"/>
+</svg>

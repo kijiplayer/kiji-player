@@ -14,6 +14,7 @@ import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
+import '../../widgets/kiji_logo.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 
@@ -139,7 +140,13 @@ class _GreetingState extends State<_Greeting> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(time, style: KijiText.mono(size: 13, color: KijiColors.cyan)),
+              Row(
+                children: [
+                  const KijiLogo(size: 22),
+                  const SizedBox(width: 8),
+                  Text(time, style: KijiText.mono(size: 13, color: KijiColors.cyan)),
+                ],
+              ),
               const SizedBox(height: 4),
               Text(greetingFor(_now), style: KijiText.title(size: 30)),
             ],

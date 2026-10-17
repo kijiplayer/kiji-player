@@ -67,6 +67,8 @@ personas que los construyen y mantienen.
 | `bergamot-translator.js` de [Firefox](https://searchfox.org/mozilla-central/source/toolkit/components/translations/bergamot-translator) | MPL-2.0 | Pegamento JavaScript del motor, sin cambios, en `assets/translation/`. |
 | [Modelos de Firefox Translations](https://github.com/mozilla/firefox-translations-models) (Mozilla) | MPL-2.0 | Un modelo por par de idiomas; se bajan solo cuando el usuario elige traducir y se pueden borrar. |
 | [url_launcher](https://pub.dev/packages/url_launcher) | BSD-3-Clause | Abrir páginas en el navegador (guía de Gemini). |
+| [flutter_svg](https://pub.dev/packages/flutter_svg) | MIT | Mostrar el logo (`assets/branding/kiji_logo.svg`) dentro de la app. |
+| [flutter_launcher_icons](https://pub.dev/packages/flutter_launcher_icons) (solo para desarrollo) | MIT | Generar el ícono adaptable de Android y el `.ico` de Windows desde el logo. |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains) | SIL OFL 1.1 | Tipografía de tiempos y números, incluida en `assets/fonts/jetbrains_mono/` (con su `OFL.txt`). |
 
 ## Cómo mantener este archivo

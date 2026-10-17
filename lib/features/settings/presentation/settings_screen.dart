@@ -10,6 +10,7 @@ import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
+import '../../../widgets/kiji_logo.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../backup/data/backup_notifier.dart';
 import '../../backup/presentation/backup_screen.dart';
@@ -535,7 +536,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: 'Software libre (GPL-3.0).',
         keywords: const ['version', 'licencia', 'gpl'],
         builder: (context, ref) => const ListTile(
-          leading: Icon(Icons.music_note_rounded, color: KijiColors.violet),
+          leading: KijiLogo(size: 40),
           title: Text('Kiji Player 1.0.0'),
           subtitle: Text('Software libre (GPL-3.0). Sin pagos, sin anuncios y sin telemetría.'),
         ),
