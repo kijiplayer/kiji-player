@@ -439,10 +439,13 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           final source = switch (mode) {
             // Con ahorro de datos no se guarda en la caché: así, con WiFi,
             // la canción vuelve a sonar en la mejor calidad.
-            _SourceMode.cached => lowQuality ? null : await _cache.sourceFor(videoId, stream),
-            _SourceMode.withHeaders =>
-              AudioSource.uri(Uri.parse(stream.url), headers: {'User-Agent': stream.userAgent}),
-            _SourceMode.plain => AudioSource.uri(Uri.parse(stream.url)),
+            // Una lista HLS (segmentos) no pasa por la caché ni por el proxy.
+            _SourceMode.cached => lowQuality || stream.isHls ? null : await _cache.sourceFor(videoId, stream),
+            _SourceMode.withHeaders => stream.isHls
+                ? HlsAudioSource(Uri.parse(stream.url))
+                : AudioSource.uri(Uri.parse(stream.url), headers: {'User-Agent': stream.userAgent}),
+            _SourceMode.plain =>
+              stream.isHls ? HlsAudioSource(Uri.parse(stream.url)) : AudioSource.uri(Uri.parse(stream.url)),
           };
           if (source == null) continue; // ya se está guardando: probar sin caché
           await _audioPlayer.setAudioSource(source, initialPosition: initialPosition);

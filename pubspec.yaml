@@ -43,7 +43,6 @@ dependencies:
   # --- Paso 2 (continuación): descifrado de firmas de YouTube ---
   # Ejecuta el JavaScript real del reproductor de YouTube (no reinventamos
   # el algoritmo a mano, lo corremos tal cual lo manda YouTube).
-  flutter_js: ^0.8.6
   audio_session: ^0.1.21
   on_audio_query: ^2.9.0
   permission_handler: ^11.3.1
@@ -60,9 +59,12 @@ dependencies:
   sqlite3: ^3.7.1
   archive: ^4.5.2
   share_plus: ^13.3.1
+  flutter_inappwebview: ^6.2.0-beta.3
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -88,6 +90,8 @@ flutter:
   # Créditos que se muestran en Configuración → Acerca de (Tarea G).
   assets:
     - CREDITS.md
+    # Solver de yt-dlp/ejs para descifrar el audio de YouTube (Tarea Z1).
+    - assets/solver/
 
   fonts:
     - family: SpaceGrotesk

@@ -18,7 +18,9 @@ personas que los construyen y mantienen.
 
 | Archivo de Kiji | Proyecto | Archivo original |
 |---|---|---|
-| `lib/features/yt_music/data/ytm_client.dart` | Echo Music | `innertube/.../models/YouTubeClient.kt`, `app/src/main/kotlin/.../utils/YTPlayerUtils.kt` |
+| `lib/features/yt_music/data/ytm_client.dart`, `yt_clients.dart` | Echo Music | `innertube/.../models/YouTubeClient.kt`, `app/src/main/kotlin/.../utils/YTPlayerUtils.kt` |
+| `lib/features/yt_music/data/webview_ejs_solver.dart`, `player_script.dart` | Echo Music | `utils/sabr/EjsNTransformSolver.kt`, `utils/cipher/CipherWebView.kt`, `PlayerJsFetcher.kt`, `PlayerConfigStore.kt` |
+| `lib/features/yt_music/data/po_token.dart` | Echo Music, que lo toma de NewPipe (GPL-3.0) y BgUtils (LuanRT, MIT) | `utils/potoken/PoTokenWebView.kt`, `PoTokenGenerator.kt`, `JavaScriptUtil.kt`, `assets/po_token.html` |
 | `lib/features/playback_memory/data/playback_memory_store.dart` | Echo Music (idea, no código) | `core/.../models/PersistQueue.kt`, `PersistPlayerState.kt`, `MusicService.kt` (qué guardar, cuándo y borrar el guardado dañado) |
 | `lib/features/downloads/data/download_service.dart`, `downloads_repository.dart` | Echo Music (idea, no código) | `playback/DownloadUtil.kt`, `ExoDownloadService.kt` (descargas dentro de la app, separadas de la caché, reanudables, opción solo WiFi) |
 | `lib/features/system_media/data/audio_service_controls.dart` | Echo Music (idea, no código) | `playback/MusicService.kt`, `MediaLibrarySessionCallback.kt` (sesión multimedia, notificación y botones del sistema) |
@@ -44,9 +46,10 @@ personas que los construyen y mantienen.
 
 | Componente | Licencia | Uso |
 |---|---|---|
-| [yt-dlp/ejs](https://github.com/yt-dlp/ejs) (`yt.solver.core.js`) | Unlicense | Solver de firma y del parámetro `n` del reproductor de YouTube. |
-| [meriyah](https://github.com/meriyah/meriyah) | ISC | Parser de JavaScript que usa el solver. |
-| [astring](https://github.com/davidbonnet/astring) | MIT | Generador de código JavaScript que usa el solver. |
+| [yt-dlp/ejs](https://github.com/yt-dlp/ejs) 0.8.0 (`yt.solver.core.js`, `yt.solver.lib.js`) | Unlicense | Solver de firma y del parámetro `n` del reproductor de YouTube (en `assets/solver/`, con `LICENSES.md`). |
+| [meriyah](https://github.com/meriyah/meriyah) 6.1.4 (dentro de `yt.solver.lib.js`) | ISC | Parser de JavaScript que usa el solver. |
+| [astring](https://github.com/davidbonnet/astring) 1.9.0 (dentro de `yt.solver.lib.js`) | MIT | Generador de código JavaScript que usa el solver. |
+| `player_configs.json` de Echo Music | GPL-3.0 | Tabla de reproductores verificados por hash (Kiji usa el `sts`). |
 | [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (Florian Karsten) | SIL OFL 1.1 | Tipografía de títulos, incluida en `assets/fonts/space_grotesk/` (con su `OFL.txt`). |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains) | SIL OFL 1.1 | Tipografía de tiempos y números, incluida en `assets/fonts/jetbrains_mono/` (con su `OFL.txt`). |
 

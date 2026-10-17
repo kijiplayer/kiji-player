@@ -1,6 +1,7 @@
 // Adaptado de Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
-// Archivos originales: innertube/.../models/YouTubeClient.kt (clientes VISIONOS y ANDROID_VR)
-// y app/src/main/kotlin/.../utils/YTPlayerUtils.kt (orden de clientes y visitorData).
+// Archivos originales: innertube/.../models/YouTubeClient.kt (clientes, ver yt_clients.dart)
+// y app/src/main/kotlin/.../utils/YTPlayerUtils.kt (orden de respaldo, visitorData y la
+// verificación de que el audio baje entero).
 
 import 'dart:convert';
 import 'dart:io';
@@ -8,10 +9,14 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../domain/js_challenge_solver.dart';
 import '../domain/subtitle_parser.dart';
 import 'extractor_health.dart';
+import 'player_script.dart';
+import 'po_token.dart';
+import 'webview_ejs_solver.dart';
 import 'ytm_browse_parser.dart';
-import 'yt_cipher_solver.dart';
+import 'yt_clients.dart';
 
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
 /// a nuestro modelo de dominio [Track].
@@ -37,11 +42,15 @@ class YtMusicSearchResult {
 /// entregó. El reproductor manda el mismo `User-Agent`
 /// y, si falla a mitad de canción, reintenta excluyendo ese cliente.
 class YtStream {
-  const YtStream({required this.url, required this.client, required this.userAgent});
+  const YtStream({required this.url, required this.client, required this.userAgent, this.isHls = false});
 
   final String url;
   final String client;
   final String userAgent;
+
+  /// Lista HLS (segmentos): se reproduce sin la caché de lo escuchado y no
+  /// sirve para descargar.
+  final bool isHls;
 }
 
 /// Cliente para el endpoint interno de YouTube Music (InnerTube), el mismo
@@ -52,8 +61,11 @@ class YtStream {
 /// NewPipe, etc.), no una API oficial ni documentada por Google. Puede
 /// requerir ajustes si YouTube cambia la forma de su respuesta.
 class YtMusicClient {
-  YtMusicClient()
-      : _dio = Dio(
+  YtMusicClient({JsChallengeSolver? solver, PlayerScriptSource? playerScripts, PoTokenProvider? poTokens})
+      : _solver = solver ?? sharedSolver,
+        _poTokens = poTokens ?? sharedPoTokens,
+        _playerScripts = playerScripts ?? sharedPlayerScripts,
+        _dio = Dio(
           BaseOptions(
             baseUrl: 'https://music.youtube.com/youtubei/v1',
             headers: {
@@ -66,10 +78,16 @@ class YtMusicClient {
             connectTimeout: const Duration(seconds: 15),
             receiveTimeout: const Duration(seconds: 15),
           ),
-        ),
-        _cipherSolver = YtCipherSolver(Dio());
+        );
 
-  final YtCipherSolver _cipherSolver;
+  /// Una sola WebView y un solo reproductor para toda la app.
+  static final JsChallengeSolver sharedSolver = WebViewEjsSolver();
+  static final PlayerScriptSource sharedPlayerScripts = PlayerScriptSource();
+  static final PoTokenProvider sharedPoTokens = WebViewPoTokens();
+
+  final JsChallengeSolver _solver;
+  final PlayerScriptSource _playerScripts;
+  final PoTokenProvider _poTokens;
 
   /// Dio limpio para pedir el audio: sin headers heredados del cliente de
   /// búsqueda (cada "cliente" de YouTube manda los suyos propios).
@@ -316,43 +334,11 @@ class YtMusicClient {
   }
 
   // ---------------------------------------------------------------------
-  // Reproducción: la receta que usa Echo Music / Metrolist (probada en
-  // producción). Los clientes "VISIONOS" y "ANDROID_VR 1.65.10" devuelven
-  // URLs de audio DIRECTAS (sin firma cifrada, sin tocar JavaScript), pero
-  // exigen mandar un `visitorData` válido. El descifrado con JS queda solo
-  // como último respaldo.
+  // Reproducción (Tarea Z1): varias "formas" de pedir el audio, en el orden
+  // de `ytPlayerClients` (el de respaldo de Echo, más las que descifran con
+  // el solver de yt-dlp en una WebView). Cada URL se verifica pidiendo el
+  // final del archivo: algunas formas solo dejan bajar el primer minuto.
   // ---------------------------------------------------------------------
-
-  static const _webUserAgent =
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 '
-      '(KHTML, like Gecko) Version/18.0 Safari/605.1.15';
-
-  static const _playerClients = <_PlayerClient>[
-    _PlayerClient(
-      label: 'VISIONOS',
-      name: 'VISIONOS',
-      id: '101',
-      version: '0.1',
-      userAgent: _webUserAgent,
-      osName: 'visionOS',
-      osVersion: '1.3.21O771',
-      deviceMake: 'Apple',
-      deviceModel: 'RealityDevice14,1',
-    ),
-    _PlayerClient(
-      label: 'ANDROID_VR',
-      name: 'ANDROID_VR',
-      id: '28',
-      version: '1.65.10',
-      userAgent: 'com.google.android.apps.youtube.vr.oculus/1.65.10 '
-          '(Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
-      osName: 'Android',
-      osVersion: '12L',
-      deviceMake: 'Oculus',
-      deviceModel: 'Quest 3',
-      androidSdkVersion: 32,
-    ),
-  ];
 
   String? _visitorData;
 
@@ -368,7 +354,7 @@ class YtMusicClient {
         'https://music.youtube.com/sw.js_data',
         options: Options(
           responseType: ResponseType.plain,
-          headers: {'User-Agent': _webUserAgent},
+          headers: {'User-Agent': safariUserAgent},
         ),
       );
 
@@ -404,229 +390,320 @@ class YtMusicClient {
     }
   }
 
-  /// Resuelve una URL de audio reproducible para [videoId].
-  Future<String?> getAudioStreamUrl(String videoId) async =>
-      (await resolveStream(videoId))?.url;
-
-  /// Motivo del último intento fallido, en palabras simples.
-  String? _failure;
+  /// Resuelve una URL del archivo de audio entero para [videoId] (para
+  /// descargar: sin las formas HLS, que son segmentos).
+  Future<String?> getAudioStreamUrl(String videoId) async => (await resolveStream(
+        videoId,
+        skipClients: {for (final client in ytPlayerClients) if (client.useHls) client.label},
+      ))
+          ?.url;
 
   /// true si el último [resolveStream] falló por falta de conexión (y no
-  /// porque YouTube rechazara a los clientes).
+  /// porque YouTube rechazara a todas las formas).
   bool lastResolveWasOffline = false;
 
-  /// Orden: VISIONOS -> ANDROID_VR -> (último respaldo) WEB + descifrado JS.
-  /// [skipClients] excluye clientes que ya fallaron con esta canción.
-  /// Cada resultado queda registrado en la Salud del Extractor; los cortes de
-  /// conexión no cuentan como falla del cliente.
-  /// Con [lowQuality] (ahorro de datos) se elige el formato de menor bitrate.
+  /// Formas que fallaron hace poco: se saltean un rato (salvo que no quede
+  /// ninguna otra). Compartido entre todos los clientes de la app.
+  static final Map<String, DateTime> _benchedUntil = {};
+  static const _benchTime = Duration(minutes: 30);
+
+  /// Prueba las formas en orden hasta que una entregue el audio completo.
+  /// [skipClients] excluye formas que ya fallaron con esta canción. Cada
+  /// resultado queda en la Salud del Extractor; los cortes de conexión no
+  /// cuentan como falla. Con [lowQuality] (ahorro de datos) se elige el
+  /// formato de menor bitrate.
   Future<YtStream?> resolveStream(
     String videoId, {
     Set<String> skipClients = const {},
     bool lowQuality = false,
   }) async {
-    _lowQuality = lowQuality;
     final health = ExtractorHealth.instance;
     lastResolveWasOffline = false;
     final visitorData = await _getVisitorData();
+    final now = DateTime.now();
+    final candidates = [
+      for (final client in ytPlayerClients)
+        if (!skipClients.contains(client.label)) client,
+    ];
+    final rested = [
+      for (final client in candidates)
+        if (!(_benchedUntil[client.label]?.isAfter(now) ?? false)) client,
+    ];
 
-    void failed(String client) {
-      final reason = _failure ?? 'YouTube no entregó el audio';
-      if (reason == _offline) {
-        lastResolveWasOffline = true;
-      } else {
-        health.recordFailure(client, reason);
+    var offline = visitorData == null;
+    for (final client in rested.isEmpty ? candidates : rested) {
+      final attempt = await tryClient(videoId, client, lowQuality: lowQuality);
+      if (attempt.ok) {
+        _benchedUntil.remove(client.label);
+        health.recordSuccess(client.label);
+        return YtStream(
+          url: attempt.url!,
+          client: client.label,
+          userAgent: client.userAgent,
+          isHls: attempt.isHls,
+        );
       }
+      if (attempt.offline) continue;
+      offline = false;
+      health.recordFailure(client.label, attempt.reason!);
+      _benchedUntil[client.label] = DateTime.now().add(_benchTime);
     }
-
-    if (visitorData != null) {
-      for (final client in _playerClients) {
-        if (skipClients.contains(client.label)) continue;
-        _failure = null;
-        final url = await _tryDirectClient(videoId, client, visitorData);
-        if (url != null) {
-          health.recordSuccess(client.label);
-          return YtStream(url: url, client: client.label, userAgent: client.userAgent);
-        }
-        failed(client.label);
-      }
-    }
-
-    if (skipClients.contains('WEB_REMIX')) return null;
-    debugPrint('=== YTM stream: clientes directos sin resultado, probando WEB + descifrado ===');
-    _failure = null;
-    final url = await _tryWebWithCipher(videoId, visitorData);
-    if (url != null) {
-      health.recordSuccess('WEB_REMIX');
-      return YtStream(url: url, client: 'WEB_REMIX', userAgent: _webUserAgent);
-    }
-    failed('WEB_REMIX');
-    if (visitorData == null && _failure == null) lastResolveWasOffline = true;
+    lastResolveWasOffline = offline;
     return null;
   }
 
-  static const _offline = 'sin conexión';
-
-  /// Motivo simple para un pedido que falló.
-  static String _requestFailure(Object error) {
-    if (error is DioException &&
-        (error.type == DioExceptionType.connectionError ||
-            error.type == DioExceptionType.connectionTimeout ||
-            error.type == DioExceptionType.receiveTimeout ||
-            error.error is SocketException)) {
-      return _offline;
-    }
-    return 'YouTube rechazó el pedido';
-  }
-
-  Future<String?> _tryDirectClient(
+  /// Prueba una sola forma, sin registrar nada (la usa también "Probar todas
+  /// las formas ahora" de la Salud del Extractor).
+  Future<StreamAttempt> tryClient(
     String videoId,
-    _PlayerClient client,
-    String visitorData,
-  ) async {
+    YtPlayerClient client, {
+    String? visitorData,
+    bool lowQuality = false,
+    bool retried = false,
+  }) async {
+    final watch = Stopwatch()..start();
+    StreamAttempt fail(String reason) {
+      debugPrint('=== YTM stream [${client.label}]: $reason ===');
+      return StreamAttempt(client.label, reason: reason, elapsed: watch.elapsed);
+    }
+
+    // En la PC, el reproductor (mpv vía just_audio_media_kit) toma la lista
+    // HLS de YouTube como una lista de archivos sueltos y falla.
+    if (client.useHls && !kIsWeb && !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+      return fail('En la PC todavía no se pueden reproducir listas HLS');
+    }
+    visitorData ??= await _getVisitorData();
+    PlayerScript? player;
+    if (client.needsPlayerScript) {
+      if (!_solver.isSupported) return fail('En este dispositivo no se puede descifrar (no hay WebView)');
+      player = await _playerScripts.current();
+      if (player == null) return fail('No se pudo ubicar el reproductor de YouTube');
+    }
+
+    String? poToken;
+    if (client.usesPoToken && visitorData != null && _poTokens.isSupported) {
+      // El token se liga al visitorData "en crudo" (sin el %3D de la URL).
+      poToken = await _poTokens.tokenFor(Uri.decodeComponent(visitorData));
+    }
+
     final Map<String, dynamic>? data;
     try {
       final response = await _playerDio.post<Map<String, dynamic>>(
-        'https://music.youtube.com/youtubei/v1/player',
+        'https://${client.host}/youtubei/v1/player',
         queryParameters: {'prettyPrint': 'false'},
         options: Options(headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Format-Version': '1',
           'X-YouTube-Client-Name': client.id,
           'X-YouTube-Client-Version': client.version,
-          'X-Origin': 'https://music.youtube.com',
-          'Referer': 'https://music.youtube.com/',
-          'X-Goog-Visitor-Id': visitorData,
+          'X-Origin': 'https://${client.host}',
+          'Referer': 'https://${client.host}/',
+          'X-Goog-Visitor-Id': ?visitorData,
           'User-Agent': client.userAgent,
         }),
         data: {
-          'context': {
-            'client': {
-              'clientName': client.name,
-              'clientVersion': client.version,
-              'osName': client.osName,
-              'osVersion': client.osVersion,
-              'deviceMake': client.deviceMake,
-              'deviceModel': client.deviceModel,
-              if (client.androidSdkVersion != null)
-                'androidSdkVersion': client.androidSdkVersion,
-              'hl': 'es',
-              'gl': 'US',
-              'visitorData': visitorData,
-            },
-          },
+          'context': {'client': client.context(visitorData)},
           'videoId': videoId,
           'contentCheckOk': true,
           'racyCheckOk': true,
-        },
-      );
-      data = response.data;
-    } catch (error) {
-      String detail = '$error';
-      if (error is DioException && error.response?.data != null) {
-        detail = '$detail\n>>> Respuesta del servidor: ${error.response?.data}';
-      }
-      debugPrint('=== YTM stream [${client.label}]: falló el pedido: $detail ===');
-      _failure = _requestFailure(error);
-      return null;
-    }
-
-    if (data == null) return null;
-
-    final playability = data['playabilityStatus'] as Map?;
-    debugPrint(
-      '=== YTM stream [${client.label}]: playabilityStatus = '
-      '${playability?['status']} (${playability?['reason']}) ===',
-    );
-
-    final audio = _audioFormats(data);
-    debugPrint('=== YTM stream [${client.label}]: ${audio.length} formatos de audio ===');
-
-    for (final format in audio) {
-      final url = format['url'] as String?;
-      if (url != null) {
-        debugPrint('=== YTM stream [${client.label}]: URL directa lista ===');
-        return url;
-      }
-    }
-    _failure = playability?['status'] == 'OK'
-        ? 'YouTube no entregó audio directo'
-        : 'YouTube no permitió reproducir con este cliente';
-    return null;
-  }
-
-  /// Último recurso: cliente WEB_REMIX + descifrado de firma con JS real.
-  Future<String?> _tryWebWithCipher(String videoId, String? visitorData) async {
-    final signatureTimestamp = await _cipherSolver.getSignatureTimestamp(videoId);
-
-    final Map<String, dynamic>? data;
-    try {
-      final response = await _playerDio.post<Map<String, dynamic>>(
-        'https://music.youtube.com/youtubei/v1/player',
-        queryParameters: {'prettyPrint': 'false'},
-        options: Options(headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Format-Version': '1',
-          'X-YouTube-Client-Name': '67',
-          'X-YouTube-Client-Version': '1.20260213.01.00',
-          'X-Origin': 'https://music.youtube.com',
-          'Referer': 'https://music.youtube.com/',
-          'X-Goog-Visitor-Id': ?visitorData,
-          'User-Agent': _webUserAgent,
-        }),
-        data: {
-          'context': {
-            'client': {
-              'clientName': 'WEB_REMIX',
-              'clientVersion': '1.20260213.01.00',
-              'hl': 'es',
-              'gl': 'US',
-              'visitorData': ?visitorData,
-            },
-          },
-          'videoId': videoId,
-          if (signatureTimestamp != null)
+          if (player != null)
             'playbackContext': {
-              'contentPlaybackContext': {'signatureTimestamp': signatureTimestamp},
+              'contentPlaybackContext': {'signatureTimestamp': player.signatureTimestamp},
+            },
+          if (poToken != null)
+            'serviceIntegrityDimensions': {
+              'poToken': client.playerTokenForVideo ? (await _poTokens.tokenFor(videoId) ?? poToken) : poToken,
             },
         },
       );
       data = response.data;
     } catch (error) {
-      debugPrint('=== YTM stream [WEB_REMIX]: falló el pedido: $error ===');
-      _failure = _requestFailure(error);
-      return null;
+      final offline = _isOffline(error);
+      debugPrint('=== YTM stream [${client.label}]: falló el pedido: $error ===');
+      // Algunos visitorData vienen fallados: YouTube responde 400
+      // "Precondition check failed" a todo. Se pide uno nuevo y se reintenta.
+      if (!retried && error is DioException && error.response?.statusCode == 400) {
+        debugPrint('=== YTM stream: visitorData rechazado, pidiendo uno nuevo ===');
+        _visitorData = null;
+        return tryClient(videoId, client, lowQuality: lowQuality, retried: true);
+      }
+      return StreamAttempt(
+        client.label,
+        reason: offline ? 'Sin conexión' : 'YouTube rechazó el pedido (${_status(error)})',
+        offline: offline,
+        elapsed: watch.elapsed,
+      );
     }
-
-    if (data == null) return null;
+    if (data == null) return fail('YouTube respondió vacío');
 
     final playability = data['playabilityStatus'] as Map?;
-    debugPrint(
-      '=== YTM stream [WEB_REMIX]: playabilityStatus = '
-      '${playability?['status']} (${playability?['reason']}) ===',
+    final formats = sortAudioFormats(
+      (data['streamingData']?['adaptiveFormats'] as List?) ?? const [],
+      lowQuality: lowQuality,
     );
-
-    for (final format in _audioFormats(data)) {
-      final directUrl = format['url'] as String?;
-      if (directUrl != null) return _applyNFix(videoId, directUrl);
-
-      final cipher = format['signatureCipher'] as String? ?? format['cipher'] as String?;
-      if (cipher != null) {
-        final resolved = await _resolveCipheredUrl(videoId, cipher);
-        if (resolved != null) return resolved;
-      }
+    if (formats.isEmpty) {
+      return fail('${playability?['status'] ?? 'Sin estado'}: ${playability?['reason'] ?? 'sin formatos de audio'}');
     }
-    _failure = 'No se pudo descifrar el audio';
-    return null;
+    if (client.useHls) return _tryHls(data, client, lowQuality, watch, fail);
+    final format = formats.first;
+
+    var url = format['url'] as String?;
+    String? signature;
+    var signatureParam = 'signature';
+    if (url == null) {
+      final cipher = (format['signatureCipher'] ?? format['cipher']) as String?;
+      if (cipher == null) return fail('El formato no trae URL ni firma');
+      final params = Uri.splitQueryString(cipher);
+      url = params['url'];
+      signature = params['s'];
+      signatureParam = params['sp'] ?? 'signature';
+      if (url == null || signature == null) return fail('La firma cifrada vino incompleta');
+      if (player == null) return fail('Formato cifrado en una forma que no descifra');
+    }
+
+    if (player != null) {
+      final uri = Uri.parse(url);
+      final n = uri.queryParameters['n'];
+      final answers = await _solver.solve(
+        playerHash: player.hash,
+        playerJs: player.load,
+        n: [?n],
+        sig: [?signature],
+      );
+      if (signature != null && answers.sig[signature] == null) {
+        return fail('No se pudo descifrar la firma: ${answers.error ?? 'sin respuesta'}');
+      }
+      if (n != null && answers.n[n] == null) {
+        return fail('No se pudo transformar el parámetro "n": ${answers.error ?? 'sin respuesta'}');
+      }
+      url = uri.replace(queryParameters: {
+        ...uri.queryParameters,
+        if (n != null) 'n': answers.n[n]!,
+        if (signature != null) signatureParam: answers.sig[signature]!,
+      }).toString();
+    }
+
+    if (poToken != null) {
+      final uri = Uri.parse(url);
+      url = uri.replace(queryParameters: {...uri.queryParameters, 'pot': poToken}).toString();
+    }
+
+    final check = await _checkWholeFile(url, client.userAgent, int.tryParse('${format['contentLength']}'));
+    if (check != null) return fail(check);
+    debugPrint('=== YTM stream [${client.label}]: audio completo listo (${watch.elapsedMilliseconds} ms) ===');
+    return StreamAttempt(client.label, url: url, elapsed: watch.elapsed);
   }
 
-  /// Ahorro de datos del pedido en curso (ver [resolveStream]).
-  bool _lowQuality = false;
+  /// Forma HLS: la lista de solo audio, verificando el primer y el último
+  /// segmento.
+  Future<StreamAttempt> _tryHls(
+    Map<String, dynamic> data,
+    YtPlayerClient client,
+    bool lowQuality,
+    Stopwatch watch,
+    StreamAttempt Function(String) fail,
+  ) async {
+    final manifest = data['streamingData']?['hlsManifestUrl'] as String?;
+    if (manifest == null) return fail('YouTube no entregó la lista HLS');
+    Future<Response<String>> text(String url) => _playerDio.get<String>(
+          url,
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {'User-Agent': client.userAgent},
+            validateStatus: (_) => true,
+          ),
+        );
+    try {
+      final master = await text(manifest);
+      if (master.statusCode != 200) return fail('La lista HLS no responde (HTTP ${master.statusCode})');
+      final audio = pickHlsAudio(master.data ?? '', lowQuality: lowQuality);
+      if (audio == null) return fail('La lista HLS no trae audio solo');
+      final playlist = await text(audio);
+      final segments = (playlist.data ?? '').split('\n').where((l) => l.startsWith('http')).toList();
+      if (playlist.statusCode != 200 || segments.isEmpty) return fail('La lista de audio HLS vino vacía');
+      for (final segment in [segments.first, segments.last]) {
+        final response = await _playerDio.get<List<int>>(
+          segment,
+          options: Options(
+            responseType: ResponseType.bytes,
+            headers: {'User-Agent': client.userAgent},
+            validateStatus: (_) => true,
+          ),
+        );
+        if (response.statusCode != 200) return fail('Un segmento HLS no baja (HTTP ${response.statusCode})');
+      }
+      final duration = hlsDuration(playlist.data ?? '');
+      debugPrint('=== YTM stream [${client.label}]: lista HLS lista, ${segments.length} segmentos, '
+          '${duration.inSeconds} s (${watch.elapsedMilliseconds} ms) ===');
+      return StreamAttempt(client.label, url: audio, isHls: true, duration: duration, elapsed: watch.elapsed);
+    } catch (error) {
+      return _isOffline(error) ? fail('Sin conexión') : fail('La lista HLS falló: ${'$error'.split('\n').first}');
+    }
+  }
 
-  List<Map> _audioFormats(Map<String, dynamic> data) => sortAudioFormats(
-        (data['streamingData']?['adaptiveFormats'] as List?) ?? const [],
-        lowQuality: _lowQuality,
+  /// Duración de una lista HLS: la suma de sus `#EXTINF` (en la PC, mpv no
+  /// la informa).
+  @visibleForTesting
+  static Duration hlsDuration(String playlist) {
+    var seconds = 0.0;
+    for (final match in RegExp(r'#EXTINF:([\d.]+)').allMatches(playlist)) {
+      seconds += double.tryParse(match.group(1)!) ?? 0;
+    }
+    return Duration(milliseconds: (seconds * 1000).round());
+  }
+
+  /// URL de la lista de solo audio dentro de una lista HLS maestra: la de más
+  /// calidad (o la más liviana, con [lowQuality]).
+  @visibleForTesting
+  static String? pickHlsAudio(String master, {bool lowQuality = false}) {
+    final options = <(int, String)>[];
+    for (final line in master.split('\n')) {
+      if (!line.startsWith('#EXT-X-MEDIA') || !line.contains('TYPE=AUDIO')) continue;
+      final uri = RegExp(r'URI="([^"]+)"').firstMatch(line)?.group(1);
+      if (uri == null) continue;
+      // El GROUP-ID es el itag: 233 ≈ 48 kbps, 234 ≈ 128 kbps.
+      final itag = int.tryParse(RegExp(r'GROUP-ID="(\d+)"').firstMatch(line)?.group(1) ?? '') ?? 0;
+      options.add((itag, uri));
+    }
+    if (options.isEmpty) return null;
+    options.sort((a, b) => lowQuality ? a.$1.compareTo(b.$1) : b.$1.compareTo(a.$1));
+    return options.first.$2;
+  }
+
+  /// Verifica que se pueda bajar el FINAL del archivo (no solo el comienzo).
+  /// Devuelve el motivo si no se puede, o null si está todo bien.
+  Future<String?> _checkWholeFile(String url, String userAgent, int? length) async {
+    final range = length != null && length > 4096 ? 'bytes=${length - 2048}-${length - 1}' : 'bytes=0-1023';
+    try {
+      final response = await _playerDio.get<List<int>>(
+        url,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'User-Agent': userAgent, 'Range': range},
+          validateStatus: (_) => true,
+          receiveTimeout: const Duration(seconds: 10),
+        ),
       );
+      final status = response.statusCode ?? 0;
+      if (status == 200 || status == 206) return null;
+      if (status == 403 && length != null && length > 4096) {
+        return 'YouTube solo deja bajar el primer minuto (HTTP 403 al final del archivo)';
+      }
+      return 'El audio no responde (HTTP $status)';
+    } catch (error) {
+      return _isOffline(error) ? 'Sin conexión' : 'El audio no responde ($error)';
+    }
+  }
+
+  static bool _isOffline(Object error) =>
+      error is DioException &&
+      (error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout ||
+          error.error is SocketException);
+
+  static String _status(Object error) =>
+      error is DioException && error.response != null ? 'HTTP ${error.response!.statusCode}' : '$error'.split('\n').first;
 
   /// Formatos de audio de `streamingData`, de mayor a menor bitrate (con
   /// [lowQuality], de menor a mayor: el primero es el más liviano).
@@ -640,76 +717,34 @@ class YtMusicClient {
       ..sort((a, b) => lowQuality ? bitrate(a).compareTo(bitrate(b)) : bitrate(b).compareTo(bitrate(a)));
   }
 
-  /// Parsea un `signatureCipher` (algo como `s=XXX&sp=sig&url=YYY`),
-  /// descifra la firma, y arma la URL final reproducible.
-  Future<String?> _resolveCipheredUrl(String videoId, String cipher) async {
-    final params = Uri.splitQueryString(cipher);
-    final baseUrl = params['url'];
-    final signature = params['s'];
-    final signatureParamName = params['sp'] ?? 'signature';
-
-    if (baseUrl == null || signature == null) {
-      debugPrint('=== YTM stream: signatureCipher sin url o sin "s" ===');
-      return null;
-    }
-
-    final deciphered = await _cipherSolver.decipherSignature(videoId, signature);
-    if (deciphered == null) {
-      debugPrint('=== YTM stream: no se pudo descifrar la firma ===');
-      return null;
-    }
-
-    final uri = Uri.parse(baseUrl).replace(
-      queryParameters: {
-        ...Uri.parse(baseUrl).queryParameters,
-        signatureParamName: deciphered,
-      },
-    );
-
-    return _applyNFix(videoId, uri.toString());
-  }
-
-  /// Reemplaza el parámetro "n" de la URL por su versión transformada
-  /// (evita que YouTube limite la velocidad de la descarga a casi cero).
-  Future<String> _applyNFix(String videoId, String url) async {
-    final uri = Uri.parse(url);
-    final n = uri.queryParameters['n'];
-    if (n == null) return url;
-
-    final transformed = await _cipherSolver.transformN(videoId, n);
-    final newUri = uri.replace(
-      queryParameters: {
-        ...uri.queryParameters,
-        'n': transformed,
-      },
-    );
-    return newUri.toString();
-  }
+  @visibleForTesting
+  static void resetBenchForTest() => _benchedUntil.clear();
 }
 
-/// Datos de un "cliente" de YouTube (quién dice ser la app que pide el audio).
-class _PlayerClient {
-  const _PlayerClient({
-    required this.label,
-    required this.name,
-    required this.id,
-    required this.version,
-    required this.userAgent,
-    required this.osName,
-    required this.osVersion,
-    required this.deviceMake,
-    required this.deviceModel,
-    this.androidSdkVersion,
+/// Resultado de probar una forma.
+class StreamAttempt {
+  const StreamAttempt(
+    this.client, {
+    this.url,
+    this.reason,
+    this.offline = false,
+    this.isHls = false,
+    this.duration,
+    this.elapsed = Duration.zero,
   });
 
-  final String label;
-  final String name;
-  final String id;
-  final String version;
-  final String userAgent;
-  final String osName;
-  final String osVersion;
-  final String deviceMake;
-  final String deviceModel;
-  final int? androidSdkVersion;
+  final bool isHls;
+
+  /// Duración que dice la lista HLS (null en las demás formas).
+  final Duration? duration;
+
+  final String client;
+  final String? url;
+
+  /// Motivo exacto de la falla (null si anduvo).
+  final String? reason;
+  final bool offline;
+  final Duration elapsed;
+
+  bool get ok => url != null;
 }

@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/json_file.dart';
+import 'yt_clients.dart';
 
 /// Cómo le fue a un "cliente" de YouTube (VISIONOS, ANDROID_VR, WEB_REMIX)
 /// la última vez que se usó.
@@ -48,8 +49,8 @@ class ExtractorHealth extends ChangeNotifier {
 
   static final instance = ExtractorHealth._();
 
-  /// Orden en que se prueban los clientes.
-  static const clients = ['VISIONOS', 'ANDROID_VR', 'WEB_REMIX'];
+  /// Orden en que se prueban las formas (Tarea Z1).
+  static final clients = [for (final client in ytPlayerClients) client.label];
 
   final Map<String, ClientHealth> _health = {};
   JsonFile? _file;
