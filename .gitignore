@@ -46,3 +46,24 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Kiji (Tarea W1): nada de compilaciones, secretos ni datos personales en el repo.
+/android/build/
+**/build/reports/
+*.jks
+*.keystore
+*.p12
+*.pem
+key.properties
+local.properties
+google-services.json
+GoogleService-Info.plist
+.env
+.env.*
+*.tar
+*.apk
+*.aab
+*.msix
+# Datos de la app que pudieran copiarse acá al probar (copias, cookies, claves cifradas).
+secrets/
+*.kijibackup
