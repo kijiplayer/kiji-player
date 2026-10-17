@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/track.dart';
 import '../providers/playback_provider.dart';
 import '../screens/player/player_screen.dart';
 import '../theme/kiji_tokens.dart';
@@ -13,6 +14,9 @@ import '../features/playlists/presentation/playlist_screens.dart';
 /// Mini-reproductor de vidrio (§7): radio 20, borde 1 px blanco 12 %, y una
 /// línea de progreso degradada de 2 px abajo. Sin canción elegida, no ocupa
 /// lugar.
+/// Etiqueta de la carátula que se expande del mini-reproductor al reproductor.
+String coverHeroTag(Track track) => 'kiji-cover-${track.id}';
+
 /// Alto del mini-reproductor (botones de 48 + márgenes 18 + línea 2).
 const miniPlayerHeight = 68.0;
 
@@ -42,7 +46,11 @@ class MiniPlayer extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(10, 10, 6, 8),
                 child: Row(
                   children: [
-                    TrackArtwork(track: track, size: 44, radius: 12),
+                    // Solo el de Inicio (adentro del Navigator) puede volar al reproductor.
+                    if (useAppNavigator)
+                      TrackArtwork(track: track, size: 44, radius: 12)
+                    else
+                      Hero(tag: coverHeroTag(track), child: TrackArtwork(track: track, size: 44, radius: 12)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

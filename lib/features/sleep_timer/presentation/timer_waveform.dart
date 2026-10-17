@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../providers/appearance_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/nocturne/waveform_progress.dart';
@@ -38,6 +39,9 @@ class TimerWaveform extends ConsumerWidget {
       height: height,
       barWidth: barWidth,
       marker: sleepMarkerFraction(timer, playback),
+      // Tarea Z6: se dibuja de izquierda a derecha y se mueve mientras suena.
+      animateIn: !reduceMotion(context, ref),
+      alive: playback.isPlaying && !reduceMotion(context, ref),
       onSeek: marking
           ? (fraction) {
               final target = Duration(milliseconds: (playback.duration.inMilliseconds * fraction).round());

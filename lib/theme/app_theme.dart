@@ -3,8 +3,39 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'kiji_tokens.dart';
 
+/// Transición entre pantallas de Kiji (Tarea Z6): fundido + escala 0,96 → 1
+/// al entrar; la de abajo se aleja un poco. Con "Reducir animaciones", sin
+/// movimiento.
+class KijiPageTransitionsBuilder extends PageTransitionsBuilder {
+  const KijiPageTransitionsBuilder({this.still = false});
+
+  final bool still;
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (still || MediaQuery.disableAnimationsOf(context)) return child;
+    final enter = CurvedAnimation(parent: animation, curve: KijiMotion.emphasizedCurve);
+    final leave = CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOutCubic);
+    return FadeTransition(
+      opacity: enter,
+      child: ScaleTransition(
+        scale: Tween(begin: 0.96, end: 1.0).animate(enter),
+        child: ScaleTransition(scale: Tween(begin: 1.0, end: 0.98).animate(leave), child: child),
+      ),
+    );
+  }
+}
+
 abstract final class AppTheme {
-  static ThemeData get dark {
+  static ThemeData get dark => darkWith();
+
+  static ThemeData darkWith({bool reduceMotion = false}) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: KijiColors.violet,
       brightness: Brightness.dark,
@@ -25,7 +56,11 @@ abstract final class AppTheme {
       titleSmall: KijiText.title(size: 14, weight: FontWeight.w600),
     );
 
+    final transitions = KijiPageTransitionsBuilder(still: reduceMotion);
     return base.copyWith(
+      pageTransitionsTheme: PageTransitionsTheme(builders: {
+        for (final platform in TargetPlatform.values) platform: transitions,
+      }),
       colorScheme: colorScheme,
       textTheme: textTheme,
       scaffoldBackgroundColor: AppColors.background,

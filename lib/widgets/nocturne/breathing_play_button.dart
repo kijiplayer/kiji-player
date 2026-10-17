@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../theme/kiji_tokens.dart';
 
@@ -23,9 +24,25 @@ class BreathingPlayButton extends StatefulWidget {
 }
 
 class _BreathingPlayButtonState extends State<BreathingPlayButton>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _breath =
       AnimationController(vsync: this, duration: KijiMotion.breath);
+
+  /// Play que se transforma en pausa (Tarea Z6).
+  late final AnimationController _morph =
+      AnimationController(vsync: this, duration: KijiMotion.normal, value: widget.isPlaying ? 1 : 0);
+
+  /// Rebote al tocar.
+  late final AnimationController _bounce =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 380), value: 1);
+
+  void _tap() {
+    if (!widget.reduceMotion) {
+      HapticFeedback.lightImpact();
+      _bounce.forward(from: 0);
+    }
+    widget.onPressed();
+  }
 
   bool get _animate =>
       breathingShouldAnimate(isPlaying: widget.isPlaying, reduceMotion: widget.reduceMotion);
@@ -39,6 +56,10 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
   @override
   void didUpdateWidget(BreathingPlayButton oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isPlaying != widget.isPlaying) {
+      final target = widget.isPlaying ? 1.0 : 0.0;
+      widget.reduceMotion ? _morph.value = target : _morph.animateTo(target, curve: Curves.easeInOut);
+    }
     if (_animate && !_breath.isAnimating) {
       _breath.repeat(reverse: true);
     } else if (!_animate && _breath.isAnimating) {
@@ -50,6 +71,8 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
   @override
   void dispose() {
     _breath.dispose();
+    _morph.dispose();
+    _bounce.dispose();
     super.dispose();
   }
 
@@ -111,11 +134,24 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
                   gradient: KijiColors.accentGradientDiagonal,
                 ),
                 child: InkWell(
-                  onTap: widget.onPressed,
-                  child: Icon(
-                    widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: KijiColors.onAccent,
-                    size: size * 0.48,
+                  onTap: _tap,
+                  child: ScaleTransition(
+                    // Se achica un poco y vuelve con rebote.
+                    scale: _bounce.drive(TweenSequence([
+                      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.82), weight: 30),
+                      TweenSequenceItem(
+                        tween: Tween(begin: 0.82, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
+                        weight: 70,
+                      ),
+                    ])),
+                    child: Center(
+                      child: AnimatedIcon(
+                        icon: AnimatedIcons.play_pause,
+                        progress: _morph,
+                        color: KijiColors.onAccent,
+                        size: size * 0.48,
+                      ),
+                    ),
                   ),
                 ),
               ),

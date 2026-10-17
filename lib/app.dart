@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/playback_automation.dart';
+import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/global_mini_player.dart';
@@ -28,8 +29,8 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     return MaterialApp(
       title: 'Kiji Player',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
-      darkTheme: AppTheme.dark,
+      theme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
+      darkTheme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       themeMode: ThemeMode.dark,
       // Atajos de teclado en todas las pantallas (PC y teclados físicos, §9).
       // El mini-reproductor se ve en todas las pantallas (Tarea Z7).

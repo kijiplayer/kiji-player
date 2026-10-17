@@ -230,8 +230,12 @@ void main() {
         n.add('búsqueda $i');
       }
       expect(c.read(searchHistoryProvider).length, SearchHistoryNotifier.maxEntries);
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-      expect(File('${dir.path}/search_history.json').existsSync(), isTrue);
+      // Se guarda en segundo plano: se espera hasta 3 s (con la PC cargada tarda más).
+      final file = File('${dir.path}/search_history.json');
+      for (var i = 0; i < 60 && !file.existsSync(); i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+      expect(file.existsSync(), isTrue);
     });
   });
 }

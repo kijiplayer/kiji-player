@@ -67,6 +67,16 @@ abstract final class KijiMotion {
 
   /// Un ciclo del anillo que "respira" alrededor del botón play.
   static const breath = Duration(milliseconds: 2400);
+
+  /// Movimientos con protagonismo (carátula que se expande, Tarea Z6).
+  static const emphasized = Duration(milliseconds: 350);
+  static const emphasizedCurve = Curves.easeInOutCubicEmphasized;
+
+  /// Demora entre ítems de una lista que entra escalonada.
+  static const stagger = Duration(milliseconds: 40);
+
+  /// La onda que se dibuja de izquierda a derecha.
+  static const waveReveal = Duration(milliseconds: 600);
 }
 
 /// Tipografía: Space Grotesk para títulos y JetBrains Mono para tiempos y

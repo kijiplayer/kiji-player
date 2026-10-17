@@ -36,6 +36,8 @@ class WaveformProgress extends StatefulWidget {
     this.barWidth = 3,
     this.gap = 2,
     this.marker,
+    this.alive = false,
+    this.animateIn = false,
   });
 
   final String seed;
@@ -48,12 +50,46 @@ class WaveformProgress extends StatefulWidget {
   /// Fracción (0..1) donde va la luna, o null.
   final double? marker;
 
+  /// Las barras se mueven suave (mientras suena, sin "Reducir animaciones").
+  final bool alive;
+
+  /// Se dibuja de izquierda a derecha al aparecer (Tarea Z6).
+  final bool animateIn;
+
   @override
   State<WaveformProgress> createState() => _WaveformProgressState();
 }
 
-class _WaveformProgressState extends State<WaveformProgress> {
+class _WaveformProgressState extends State<WaveformProgress> with TickerProviderStateMixin {
   double? _drag;
+  late final AnimationController _reveal =
+      AnimationController(vsync: this, duration: KijiMotion.waveReveal, value: widget.animateIn ? 0 : 1);
+  late final AnimationController _live = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animateIn) _reveal.forward();
+    if (widget.alive) _live.repeat();
+  }
+
+  @override
+  void didUpdateWidget(WaveformProgress old) {
+    super.didUpdateWidget(old);
+    if (old.seed != widget.seed && widget.animateIn) _reveal.forward(from: 0);
+    if (widget.alive && !_live.isAnimating) {
+      _live.repeat();
+    } else if (!widget.alive && _live.isAnimating) {
+      _live.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _reveal.dispose();
+    _live.dispose();
+    super.dispose();
+  }
 
   double _fraction(Offset local, double width) => (local.dx / width).clamp(0.0, 1.0);
 
@@ -89,13 +125,18 @@ class _WaveformProgressState extends State<WaveformProgress> {
                 clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(
-                    child: CustomPaint(
-                      painter: _WaveformPainter(
-                        bars: bars,
-                        progress: progress,
-                        barWidth: widget.barWidth,
-                        gap: widget.gap,
-                        marker: widget.marker,
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([_reveal, _live]),
+                      builder: (context, _) => CustomPaint(
+                        painter: _WaveformPainter(
+                          bars: bars,
+                          progress: progress,
+                          barWidth: widget.barWidth,
+                          gap: widget.gap,
+                          marker: widget.marker,
+                          reveal: Curves.easeOutCubic.transform(_reveal.value),
+                          phase: widget.alive ? _live.value : null,
+                        ),
                       ),
                     ),
                   ),
@@ -128,9 +169,17 @@ class _WaveformPainter extends CustomPainter {
     required this.barWidth,
     required this.gap,
     this.marker,
+    this.reveal = 1,
+    this.phase,
   });
 
   final List<double> bars;
+
+  /// Cuánto de la onda ya se dibujó (0..1, de izquierda a derecha).
+  final double reveal;
+
+  /// Fase (0..1) del movimiento suave de las barras, o null si están quietas.
+  final double? phase;
   final double? marker;
   final double progress;
   final double barWidth;
@@ -144,8 +193,10 @@ class _WaveformPainter extends CustomPainter {
     final step = size.width / bars.length;
     final radius = Radius.circular(barWidth / 2);
 
-    for (var i = 0; i < bars.length; i++) {
-      final h = max(barWidth, bars[i] * size.height);
+    final visible = (bars.length * reveal).ceil();
+    for (var i = 0; i < visible; i++) {
+      final wobble = phase == null ? 1.0 : 0.88 + 0.12 * sin(2 * pi * (phase! + i / 14));
+      final h = max(barWidth, bars[i] * wobble * size.height);
       final x = i * step + (step - barWidth) / 2;
       final rect = RRect.fromRectAndRadius(
         Rect.fromLTWH(x, (size.height - h) / 2, barWidth, h),
@@ -169,5 +220,10 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_WaveformPainter old) =>
-      old.progress != progress || old.bars != bars || old.barWidth != barWidth || old.marker != marker;
+      old.progress != progress ||
+      old.bars != bars ||
+      old.barWidth != barWidth ||
+      old.marker != marker ||
+      old.reveal != reveal ||
+      old.phase != phase;
 }

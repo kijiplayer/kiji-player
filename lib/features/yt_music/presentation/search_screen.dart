@@ -12,6 +12,7 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
+import '../../../widgets/nocturne/staggered.dart';
 import '../../downloads/presentation/download_button.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../data/ytm_browse_parser.dart';
@@ -348,7 +349,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       );
     }
 
-    return ListView.separated(
+    // Los resultados entran escalonados; otra búsqueda vuelve a escalonar (Tarea Z6).
+    return StaggerScope(
+      generation: _results,
+      child: ListView.separated(
       padding: const EdgeInsets.only(bottom: 180),
       itemCount: _results.length,
       separatorBuilder: (_, _) => const SizedBox.shrink(),
@@ -360,7 +364,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
         // Mantener apretado (celular) o clic derecho (PC): "Reproducir a
         // continuación" / "Agregar a la cola".
-        return GestureDetector(
+        return StaggeredEntrance(
+          index: index,
+          child: GestureDetector(
           onSecondaryTap: () => showTrackActions(context, ref, track),
           child: ListTile(
             leading: _Thumbnail(url: result.thumbnailUrl),
@@ -376,8 +382,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             onTap: isResolving ? null : () => _play(result),
             onLongPress: () => showTrackActions(context, ref, track),
           ),
+          ),
         );
       },
+      ),
     );
   }
 }

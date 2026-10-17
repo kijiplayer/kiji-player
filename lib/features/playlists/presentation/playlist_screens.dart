@@ -16,6 +16,8 @@ import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../favorites/favorites.dart';
 import '../../history/listening_history.dart';
+import '../../moments/data/moments_store.dart';
+import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../domain/smart_lists.dart';
 import '../playlists_provider.dart';
@@ -177,6 +179,16 @@ class PlaylistsView extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => PlaylistScreen.open(context, playlist.id),
           ),
+        ListTile(
+          leading: const Icon(Icons.bookmarks_outlined, color: KijiColors.cyan),
+          title: const Text('Momentos'),
+          subtitle: Text(
+            '${ref.watch(momentsProvider).length} segundos guardados de tus canciones',
+            style: const TextStyle(color: KijiColors.muted),
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => MomentsScreen.open(context),
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
           child: Text('LISTAS INTELIGENTES · CALCULADAS EN TU TELÉFONO', style: KijiText.mono(size: 11)),

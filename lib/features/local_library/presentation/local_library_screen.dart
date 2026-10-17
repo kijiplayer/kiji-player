@@ -9,6 +9,7 @@ import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
 import '../../../utils/duration_formatter.dart';
+import '../../../widgets/nocturne/staggered.dart';
 import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/presentation/downloads_screen.dart';
@@ -103,7 +104,10 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
 
     return RefreshIndicator(
       onRefresh: _load,
-      child: CustomScrollView(
+      // Las canciones que se ven al abrir entran escalonadas (Tarea Z6).
+      child: StaggerScope(
+        generation: _source,
+        child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverPadding(
@@ -148,6 +152,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 180)),
         ],
       ),
+      ),
     );
   }
 
@@ -187,9 +192,12 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     return [
       SliverList.builder(
         itemCount: songs.length,
-        itemBuilder: (context, index) => _SongTile(
-          track: songs[index],
-          onTap: () => ref.read(playbackProvider.notifier).playQueue(songs, startIndex: index),
+        itemBuilder: (context, index) => StaggeredEntrance(
+          index: index,
+          child: _SongTile(
+            track: songs[index],
+            onTap: () => ref.read(playbackProvider.notifier).playQueue(songs, startIndex: index),
+          ),
         ),
       ),
       if (localMessage != null) SliverToBoxAdapter(child: localMessage),

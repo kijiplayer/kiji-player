@@ -627,11 +627,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   }
 
   /// Reproduce una única pista suelta, convirtiéndola en una cola de un
-  /// solo elemento.
-  Future<void> playTrack(Track track) async {
+  /// solo elemento. [startAt]: desde qué segundo (un "Momento", Tarea Z6).
+  Future<void> playTrack(Track track, {Duration startAt = Duration.zero}) async {
     _requestedNext.clear();
     state = state.copyWith(queue: [track], currentIndex: 0);
-    await _loadOrRecover(track, 0);
+    await _loadOrRecover(track, 0, initialPosition: startAt);
   }
 
   /// Reproduce [tracks] como cola completa, empezando en [startIndex].

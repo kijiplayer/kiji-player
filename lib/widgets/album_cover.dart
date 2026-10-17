@@ -79,38 +79,42 @@ class TrackArtwork extends ConsumerWidget {
       borderRadius: radius,
       iconSize: size * 0.4,
     );
-    Widget clip(Widget child) => ClipRRect(borderRadius: BorderRadius.circular(radius), child: child);
-    Widget file(File f) => clip(Image.file(
-          f,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        ));
-
-    final custom = ref.watch(trackOverridesProvider.select((all) => all[track.id]?.coverFile));
-    final covers = ref.watch(coversFolderProvider).valueOrNull;
-    if (custom != null && covers != null) return file(File(p.join(covers.path, custom)));
-
-    final cache = ref.watch(artworkFolderProvider).valueOrNull;
-    // Carátula incluida en el archivo, guardada al importar (Tarea Z3).
-    if (track.source == TrackSource.local && cache != null) {
-      final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
-      if (embedded.existsSync()) return file(embedded);
-    }
-    final url = track.thumbnailUrl;
-    if (url == null || !url.startsWith('http')) return fallback;
-    if (cache != null) {
-      final cached = File(p.join(cache.path, artworkCacheName(url)));
-      if (cached.existsSync()) return file(cached);
-    }
-    return clip(Image.network(
-      largerThumbnailUrl(url),
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => fallback,
-      frameBuilder: (context, child, frame, _) => frame == null ? fallback : child,
-    ));
+    final image = trackImageProvider(ref, track);
+    if (image == null) return fallback;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: Image(
+        image: image,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+        frameBuilder: image is NetworkImage ? (context, child, frame, _) => frame == null ? fallback : child : null,
+      ),
+    );
   }
+}
+
+/// La imagen de la carátula de [track], en este orden: la foto elegida por el
+/// usuario, la incluida en el archivo, la guardada en caché y la de internet.
+/// null si no tiene (se usa el degradado de su color). También la usa el
+/// reproductor para sacar el color real del halo (Tarea Z6).
+ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
+  final custom = ref.watch(trackOverridesProvider.select((all) => all[track.id]?.coverFile));
+  final covers = ref.watch(coversFolderProvider).valueOrNull;
+  if (custom != null && covers != null) return FileImage(File(p.join(covers.path, custom)));
+
+  final cache = ref.watch(artworkFolderProvider).valueOrNull;
+  // Carátula incluida en el archivo, guardada al importar (Tarea Z3).
+  if (track.source == TrackSource.local && cache != null) {
+    final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
+    if (embedded.existsSync()) return FileImage(embedded);
+  }
+  final url = track.thumbnailUrl;
+  if (url == null || !url.startsWith('http')) return null;
+  if (cache != null) {
+    final cached = File(p.join(cache.path, artworkCacheName(url)));
+    if (cached.existsSync()) return FileImage(cached);
+  }
+  return NetworkImage(largerThumbnailUrl(url));
 }

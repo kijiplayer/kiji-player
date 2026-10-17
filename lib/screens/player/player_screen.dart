@@ -19,6 +19,9 @@ import '../../theme/kiji_tokens.dart';
 import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/global_mini_player.dart';
+import '../../widgets/mini_player.dart' show coverHeroTag;
+import '../../features/moments/presentation/moments_screen.dart';
+import 'player_motion.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
@@ -40,12 +43,13 @@ class PlayerScreen extends ConsumerWidget {
       PageRouteBuilder<void>(
         settings: const RouteSettings(name: KijiRoutes.player),
         fullscreenDialog: true,
-        transitionDuration: KijiMotion.normal,
-        reverseTransitionDuration: KijiMotion.fast,
+        // La carátula del mini-reproductor se expande hasta la del reproductor (Tarea Z6).
+        transitionDuration: KijiMotion.emphasized,
+        reverseTransitionDuration: KijiMotion.normal,
         pageBuilder: (context, animation, secondaryAnimation) => const PlayerScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           if (MediaQuery.disableAnimationsOf(context)) return child;
-          final curve = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+          final curve = CurvedAnimation(parent: animation, curve: KijiMotion.emphasizedCurve);
           return SlideTransition(
             position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(curve),
             child: child,
@@ -69,7 +73,7 @@ class PlayerScreen extends ConsumerWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          _Halo(color: track.coverColor),
+          PlayerHalo(track: track, playing: playback.isPlaying),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -104,31 +108,6 @@ class PlayerScreen extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Halo del color de la carátula detrás de todo.
-class _Halo extends StatelessWidget {
-  const _Halo({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(0, -0.35),
-          radius: 0.95,
-          colors: [
-            color.withValues(alpha: 0.45),
-            color.withValues(alpha: 0.12),
-            KijiColors.background,
-          ],
-          stops: const [0, 0.45, 1],
-        ),
       ),
     );
   }
@@ -222,16 +201,22 @@ class _Cover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(KijiRadii.cover),
-        boxShadow: [
-          BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4),
-        ],
-      ),
-      child: GradientBorder(
-        radius: KijiRadii.cover,
-        child: TrackArtwork(track: track, size: size - 2, radius: KijiRadii.cover - 1),
+    return CoverMotion(
+      trackId: track.id,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(KijiRadii.cover),
+          boxShadow: [
+            BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4),
+          ],
+        ),
+        child: GradientBorder(
+          radius: KijiRadii.cover,
+          child: Hero(
+            tag: coverHeroTag(track),
+            child: TrackArtwork(track: track, size: size - 2, radius: KijiRadii.cover - 1),
+          ),
+        ),
       ),
     );
   }
@@ -420,6 +405,14 @@ class _BottomActions extends ConsumerWidget {
           tooltip: timer == null ? 'Temporizador' : 'Temporizador activo: ${timer.mode.label}',
           active: timer != null,
           onPressed: () => showSleepTimerSheet(context),
+        ),
+        // Momentos (Tarea Z6): guardar este segundo. La lista se abre desde el
+        // aviso ("Ver") o desde Biblioteca → Playlists → Momentos.
+        GlassIconButton(
+          icon: Icons.bookmark_add_outlined,
+          label: 'Momento',
+          tooltip: 'Guardar este momento',
+          onPressed: () => saveCurrentMoment(context, ref),
         ),
       ],
     );

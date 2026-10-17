@@ -461,8 +461,10 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // La línea activa crece con un fundido (Tarea Z6).
                       AnimatedDefaultTextStyle(
-                        duration: calm ? Duration.zero : KijiMotion.fast,
+                        duration: calm ? Duration.zero : KijiMotion.normal,
+                        curve: Curves.easeOutCubic,
                         style: KijiText.title(
                           size: isCurrent ? 26 : 22,
                           weight: isCurrent ? FontWeight.w700 : FontWeight.w600,

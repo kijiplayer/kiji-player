@@ -19,6 +19,7 @@ import '../../providers/shell_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/kiji_logo.dart';
+import '../../widgets/nocturne/staggered.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 
@@ -41,8 +42,9 @@ class InicioTab extends ConsumerWidget {
     final recent = HistoryLogic.recent(history);
     final top = HistoryLogic.forYou(history, excludeId: playback.track?.id, limit: 6);
     final downloaded = [
-      for (final d in [...ref.watch(downloadsProvider).completed.values]
-        ..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt)))
+      for (final d in [
+        ...ref.watch(downloadsProvider).completed.values,
+      ]..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt)))
         d.toTrack(),
     ].take(15).toList();
     final isNew = history.isEmpty;
@@ -54,48 +56,51 @@ class InicioTab extends ConsumerWidget {
         if (isNew) ref.invalidate(moodsProvider);
         await ref.read(homeFeedProvider.future).catchError((Object _) => const HomeFeed());
       },
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
-        children: [
-          const _Greeting(),
-          const SizedBox(height: 20),
-          if (playback.track != null) ...[
-            _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
-            const SizedBox(height: 28),
-          ],
-          // Tarea Z3: las playlists a la vista, arriba.
-          const _PlaylistsRow(),
-          const SizedBox(height: 28),
-          if (isNew) ...[
-            if (playback.track == null) ...[
-              _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
+      child: StaggerScope(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
+          // Las secciones entran escalonadas (Tarea Z6).
+          children: staggered([
+            const _Greeting(),
+            const SizedBox(height: 20),
+            if (playback.track != null) ...[
+              _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
               const SizedBox(height: 28),
             ],
-            const StartHereSection(),
-          ] else
-            const RecommendationSections(),
-          TrackShelf(title: 'Escuchado recientemente', tracks: recent),
-          if (top.isNotEmpty) ...[
-            const SectionTitle('Tus más escuchadas', note: 'calculado en tu teléfono'),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 2.6,
-              children: [
-                for (final (index, track) in top.indexed)
-                  _ForYouTile(
-                    track: track,
-                    onTap: () => ref.read(playbackProvider.notifier).playQueue(top, startIndex: index),
-                  ),
-              ],
-            ),
+            // Tarea Z3: las playlists a la vista, arriba.
+            const _PlaylistsRow(),
             const SizedBox(height: 28),
-          ],
-          TrackShelf(title: 'Descargadas', note: 'sin internet', tracks: downloaded),
-        ],
+            if (isNew) ...[
+              if (playback.track == null) ...[
+                _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
+                const SizedBox(height: 28),
+              ],
+              const StartHereSection(),
+            ] else
+              const RecommendationSections(),
+            TrackShelf(title: 'Escuchado recientemente', tracks: recent),
+            if (top.isNotEmpty) ...[
+              const SectionTitle('Tus más escuchadas', note: 'calculado en tu teléfono'),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 2.6,
+                children: [
+                  for (final (index, track) in top.indexed)
+                    _ForYouTile(
+                      track: track,
+                      onTap: () => ref.read(playbackProvider.notifier).playQueue(top, startIndex: index),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 28),
+            ],
+            TrackShelf(title: 'Descargadas', note: 'sin internet', tracks: downloaded),
+          ]),
+        ),
       ),
     );
   }
@@ -180,12 +185,7 @@ class _ContinueCard extends ConsumerWidget {
                 children: [
                   Text('SEGUÍ DONDE QUEDASTE', style: KijiText.mono(size: 10)),
                   const SizedBox(height: 6),
-                  TrackTitleText(
-                    track,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: KijiText.title(size: 17),
-                  ),
+                  TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 17)),
                   TrackArtistText(
                     track,
                     maxLines: 1,
@@ -203,18 +203,12 @@ class _ContinueCard extends ConsumerWidget {
               child: Ink(
                 width: 48,
                 height: 48,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: KijiColors.accentGradientDiagonal,
-                ),
+                decoration: const BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
                 child: InkWell(
                   onTap: () => ref.read(playbackProvider.notifier).togglePlayPause(),
                   child: Tooltip(
                     message: isPlaying ? 'Pausar' : 'Reproducir',
-                    child: Icon(
-                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      color: KijiColors.onAccent,
-                    ),
+                    child: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: KijiColors.onAccent),
                   ),
                 ),
               ),
@@ -334,13 +328,22 @@ class _PlaylistsRow extends ConsumerWidget {
                             const Positioned(
                               top: 8,
                               right: 8,
-                              child: Icon(Icons.push_pin_rounded, size: 18, color: KijiColors.cyan, semanticLabel: 'Fijada'),
+                              child: Icon(
+                                Icons.push_pin_rounded,
+                                size: 18,
+                                color: KijiColors.cyan,
+                                semanticLabel: 'Fijada',
+                              ),
                             ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                        playlist.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       Text(
                         '${playlist.tracks.length} ${playlist.tracks.length == 1 ? 'canción' : 'canciones'}',
                         style: KijiText.mono(size: 11),
