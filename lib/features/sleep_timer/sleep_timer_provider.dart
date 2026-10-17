@@ -16,6 +16,7 @@ class SleepTimerState {
     this.targetTitle,
     this.targetPosition,
     this.fadeWindow,
+    this.waitingForTarget = false,
   });
 
   final SleepTimerMode mode;
@@ -38,7 +39,13 @@ class SleepTimerState {
   /// primera vez que se sabe cuánto falta.
   final Duration? fadeWindow;
 
-  SleepTimerState copyWith({Duration? remaining, Duration? fadeWindow}) => SleepTimerState(
+  /// "Momento exacto" elegido en un punto que ya pasó (Tarea Z2): espera a
+  /// que la canción vuelva antes de ese punto (si se vuelve atrás o se
+  /// repite) y recién ahí cuenta. Así nunca pausa de golpe.
+  final bool waitingForTarget;
+
+  SleepTimerState copyWith({Duration? remaining, Duration? fadeWindow, bool? waitingForTarget}) =>
+      SleepTimerState(
         mode: mode,
         endsAt: endsAt,
         remaining: remaining,
@@ -46,6 +53,7 @@ class SleepTimerState {
         targetTitle: targetTitle,
         targetPosition: targetPosition,
         fadeWindow: fadeWindow ?? this.fadeWindow,
+        waitingForTarget: waitingForTarget ?? this.waitingForTarget,
       );
 }
 
@@ -80,14 +88,19 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
       ));
 
   /// "En un momento exacto" de la canción que suena (Tarea H2).
+  /// Cualquier punto de 0:00 al final (Tarea Z2); si ya pasó, espera a que
+  /// la canción vuelva a ese punto.
   void startAtPosition(Duration position) {
-    final track = ref.read(playbackProvider).track;
+    final playback = ref.read(playbackProvider);
+    final track = playback.track;
     if (track == null) return;
+    ref.read(sleepTimerMarkingProvider.notifier).state = false;
     _begin(SleepTimerState(
       mode: SleepTimerMode.atPosition,
       targetTrackId: track.id,
       targetTitle: track.title,
       targetPosition: position,
+      waitingForTarget: SleepTimerLogic.alreadyPassed(position, playback.position),
     ));
   }
 
@@ -125,7 +138,14 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
       return;
     }
 
-    final remaining = SleepTimerLogic.remaining(
+    // Momento ya pasado: se arma cuando la canción vuelve antes de ese punto.
+    var waiting = timer.waitingForTarget;
+    if (waiting && timer.targetPosition != null && playback.position < timer.targetPosition!) {
+      waiting = false;
+    }
+    final remaining = waiting
+        ? null
+        : SleepTimerLogic.remaining(
       mode: timer.mode,
       now: clock(),
       endsAt: timer.endsAt,
@@ -138,7 +158,7 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     );
     final window = timer.fadeWindow ??
         (remaining == null ? null : SleepTimerLogic.fadeWindowFor(remaining));
-    state = timer.copyWith(remaining: remaining, fadeWindow: window);
+    state = timer.copyWith(remaining: remaining, fadeWindow: window, waitingForTarget: waiting);
 
     if (SleepTimerLogic.shouldStop(timer.mode, remaining)) {
       _ticker?.cancel();
@@ -163,3 +183,7 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
 
 final sleepTimerProvider =
     NotifierProvider<SleepTimerNotifier, SleepTimerState?>(SleepTimerNotifier.new);
+
+/// "Marcar en la onda" (Tarea Z2): mientras es true, tocar la onda del
+/// reproductor elige el momento de la pausa en vez de saltar a ese punto.
+final sleepTimerMarkingProvider = StateProvider<bool>((ref) => false);

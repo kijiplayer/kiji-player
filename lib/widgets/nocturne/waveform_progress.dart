@@ -24,7 +24,8 @@ List<double> waveformBars(String seed, int count) {
 
 /// Barra de progreso como **forma de onda** (§7): barras finas; lo
 /// reproducido en violeta → cian y lo que falta en blanco 16 %. Se toca o se
-/// arrastra para buscar.
+/// arrastra para buscar. Con [marker], una luna sobre la onda marca dónde se
+/// va a pausar (temporizador "momento exacto", Tarea Z2).
 class WaveformProgress extends StatefulWidget {
   const WaveformProgress({
     super.key,
@@ -34,6 +35,7 @@ class WaveformProgress extends StatefulWidget {
     this.height = 44,
     this.barWidth = 3,
     this.gap = 2,
+    this.marker,
   });
 
   final String seed;
@@ -42,6 +44,9 @@ class WaveformProgress extends StatefulWidget {
   final double height;
   final double barWidth;
   final double gap;
+
+  /// Fracción (0..1) donde va la luna, o null.
+  final double? marker;
 
   @override
   State<WaveformProgress> createState() => _WaveformProgressState();
@@ -80,13 +85,33 @@ class _WaveformProgressState extends State<WaveformProgress> {
             child: SizedBox(
               height: widget.height,
               width: width,
-              child: CustomPaint(
-                painter: _WaveformPainter(
-                  bars: bars,
-                  progress: progress,
-                  barWidth: widget.barWidth,
-                  gap: widget.gap,
-                ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _WaveformPainter(
+                        bars: bars,
+                        progress: progress,
+                        barWidth: widget.barWidth,
+                        gap: widget.gap,
+                        marker: widget.marker,
+                      ),
+                    ),
+                  ),
+                  if (widget.marker != null)
+                    Positioned(
+                      left: (widget.marker!.clamp(0.0, 1.0) * width) - 9,
+                      top: -16,
+                      child: const Icon(
+                        Icons.bedtime_rounded,
+                        key: Key('waveform-moon'),
+                        size: 18,
+                        color: KijiColors.cyan,
+                        semanticLabel: 'Pausa del temporizador',
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -102,9 +127,11 @@ class _WaveformPainter extends CustomPainter {
     required this.progress,
     required this.barWidth,
     required this.gap,
+    this.marker,
   });
 
   final List<double> bars;
+  final double? marker;
   final double progress;
   final double barWidth;
   final double gap;
@@ -126,9 +153,21 @@ class _WaveformPainter extends CustomPainter {
       );
       canvas.drawRRect(rect, (i + 0.5) / bars.length <= progress ? played : rest);
     }
+    final mark = marker;
+    if (mark != null) {
+      // Línea fina debajo de la luna.
+      final x = mark.clamp(0.0, 1.0) * size.width;
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x, size.height),
+        Paint()
+          ..color = KijiColors.cyan
+          ..strokeWidth = 1.5,
+      );
+    }
   }
 
   @override
   bool shouldRepaint(_WaveformPainter old) =>
-      old.progress != progress || old.bars != bars || old.barWidth != barWidth;
+      old.progress != progress || old.bars != bars || old.barWidth != barWidth || old.marker != marker;
 }

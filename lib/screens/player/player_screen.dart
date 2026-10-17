@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/sleep_timer/presentation/timer_waveform.dart';
 import '../../features/downloads/presentation/download_button.dart';
 import '../../features/favorites/favorites.dart';
 import '../../features/lyrics/presentation/lyrics_screen.dart';
@@ -19,7 +20,6 @@ import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/glass.dart';
-import '../../widgets/nocturne/waveform_progress.dart';
 
 /// De dónde sale la canción, para "REPRODUCIENDO DESDE".
 String playingFromLabel(Track track, {required bool downloaded}) {
@@ -298,11 +298,8 @@ class _Progress extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        WaveformProgress(
-          seed: seed,
-          progress: playback.progress,
-          onSeek: ref.read(playbackProvider.notifier).seekToProgress,
-        ),
+        // Con la luna del temporizador y "Marcar en la onda" (Tarea Z2).
+        const TimerWaveform(),
         const SizedBox(height: 6),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/sleep_timer/presentation/timer_waveform.dart';
 import '../../features/lyrics/presentation/lyrics_screen.dart';
 import '../../features/playlists/playlists_provider.dart';
 import '../../features/playlists/presentation/playlist_screens.dart';
@@ -16,7 +17,6 @@ import '../../theme/kiji_tokens.dart';
 import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/nocturne/glass.dart';
-import '../../widgets/nocturne/waveform_progress.dart';
 import '../home/home_screen.dart';
 import '../player/player_screen.dart';
 import 'pill_nav_bar.dart';
@@ -342,13 +342,7 @@ class _PlayerBar extends ConsumerWidget {
                     Text(formatDuration(playback.position), style: KijiText.mono(size: 11)),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: WaveformProgress(
-                        seed: track.id,
-                        progress: playback.progress,
-                        onSeek: notifier.seekToProgress,
-                        height: 28,
-                        barWidth: 2,
-                      ),
+                      child: const TimerWaveform(height: 28, barWidth: 2),
                     ),
                     const SizedBox(width: 10),
                     Text(formatDuration(playback.duration), style: KijiText.mono(size: 11)),

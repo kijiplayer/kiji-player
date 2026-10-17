@@ -87,9 +87,11 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       Text(detail, style: KijiText.title(size: 16, weight: FontWeight.w600)),
       const SizedBox(height: 8),
       Text(
-        timer.remaining == null
-            ? 'Esperando esa canción'
-            : 'Faltan ${SleepTimerLogic.format(timer.remaining!)}',
+        timer.waitingForTarget
+            ? 'Ya pasó: pausa cuando vuelva ahí'
+            : timer.remaining == null
+                ? 'Esperando esa canción'
+                : 'Faltan ${SleepTimerLogic.format(timer.remaining!)}',
         style: KijiText.mono(size: 28, color: KijiColors.cyan, weight: FontWeight.w600),
       ),
       const SizedBox(height: 16),
@@ -185,22 +187,33 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           if (mounted) Navigator.pop(context);
         },
       ),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.bedtime_outlined, color: KijiColors.cyan),
+        title: const Text('Marcar en la onda'),
+        subtitle: const Text('Tocá la onda del reproductor donde querés que se pause'),
+        enabled: playback.track != null && playback.duration > Duration.zero,
+        onTap: () {
+          ref.read(sleepTimerMarkingProvider.notifier).state = true;
+          Navigator.pop(context);
+        },
+      ),
     ];
   }
 }
 
-/// Selector simple de mm:ss dentro de la canción (Tarea H2). Por defecto, 1
-/// minuto antes del final.
+/// Selector simple de mm:ss dentro de la canción (Tareas H2 y Z2): cualquier
+/// punto de 0:00 al final. Por defecto, 1 minuto antes del final (o un poco
+/// después de donde va, si eso ya pasó).
 Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration, Duration position) {
-  var selected = SleepTimerLogic.defaultTargetPosition(duration);
-  if (selected < position) selected = position;
+  var selected = SleepTimerLogic.defaultDialogPosition(duration, position);
   return showDialog<Duration>(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
         void move(int seconds) => setState(() {
               final next = selected + Duration(seconds: seconds);
-              selected = next < position ? position : (next > duration ? duration : next);
+              selected = next < Duration.zero ? Duration.zero : (next > duration ? duration : next);
             });
         return AlertDialog(
           title: const Text('Pausar en este momento'),
@@ -214,12 +227,22 @@ Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration,
               Text('de ${SleepTimerLogic.format(duration)}', style: KijiText.mono(size: 12)),
               Slider(
                 value: selected.inSeconds.toDouble(),
-                min: position.inSeconds.toDouble(),
+                min: 0,
                 max: duration.inSeconds.toDouble(),
                 onChanged: (value) => setState(() => selected = Duration(seconds: value.round())),
                 semanticFormatterCallback: (value) =>
                     SleepTimerLogic.format(Duration(seconds: value.round())),
               ),
+              if (SleepTimerLogic.alreadyPassed(selected, position))
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Ese momento ya pasó: la música se pausa cuando vuelva ahí (si volvés atrás o la '
+                    'canción se repite).',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: KijiColors.muted, fontSize: 12),
+                  ),
+                ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

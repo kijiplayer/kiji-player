@@ -125,11 +125,25 @@ abstract final class SleepTimerLogic {
     return remaining <= margin;
   }
 
+  /// El momento elegido ya pasó en la canción (con 1 s de margen: elegir
+  /// "ahora mismo" no cuenta como pasado).
+  static bool alreadyPassed(Duration target, Duration position) =>
+      target + const Duration(seconds: 1) < position;
+
   /// Momento por defecto de "en un momento exacto": 1 minuto antes del final
   /// (o el principio, si la canción dura menos de un minuto).
   static Duration defaultTargetPosition(Duration duration) {
     final target = duration - const Duration(minutes: 1);
     return target.isNegative ? Duration.zero : target;
+  }
+
+  /// Valor inicial del selector: 1 minuto antes del final; si eso ya pasó,
+  /// 5 segundos después de donde va (sin pasarse del final).
+  static Duration defaultDialogPosition(Duration duration, Duration position) {
+    final target = defaultTargetPosition(duration);
+    if (!alreadyPassed(target, position)) return target;
+    final soon = position + const Duration(seconds: 5);
+    return soon > duration ? duration : soon;
   }
 
   /// "12:05" o "1:02:05" para mostrar cuánto falta.
