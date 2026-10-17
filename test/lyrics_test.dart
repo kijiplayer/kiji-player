@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:kiji_player/features/lyrics/data/lrclib_client.dart';
+import 'package:kiji_player/features/lyrics/data/lyrics_sources.dart';
 import 'package:kiji_player/features/lyrics/data/lyrics_repository.dart';
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
 
@@ -158,7 +159,7 @@ void main() {
       final (server, calls) = await _fakeLrcLib(exact: {'syncedLyrics': _lrc});
       addTearDown(server.close);
       final repo = LyricsRepository(
-        client: LrcLibClient(baseUrl: 'http://127.0.0.1:${server.port}'),
+        fetchers: [LrcLibFetcher(LrcLibClient(baseUrl: 'http://127.0.0.1:${server.port}'))],
         baseDirectory: () async => dir,
       );
       await repo.get(_req());
@@ -173,7 +174,7 @@ void main() {
       addTearDown(server.close);
       var now = DateTime(2026, 10, 16);
       final repo = LyricsRepository(
-        client: LrcLibClient(baseUrl: 'http://127.0.0.1:${server.port}'),
+        fetchers: [LrcLibFetcher(LrcLibClient(baseUrl: 'http://127.0.0.1:${server.port}'))],
         baseDirectory: () async => dir,
         clock: () => now,
       );
@@ -193,7 +194,7 @@ void main() {
       final (server, calls) = await _fakeLrcLib(exact: {'syncedLyrics': _lrc});
       addTearDown(server.close);
       final repo = LyricsRepository(
-        client: LrcLibClient(baseUrl: 'http://127.0.0.1:${server.port}'),
+        fetchers: [LrcLibFetcher(LrcLibClient(baseUrl: 'http://127.0.0.1:${server.port}'))],
         baseDirectory: () async => dir,
       );
       final lyrics = await repo.get(_req(id: 'local-1', localPath: song.path));

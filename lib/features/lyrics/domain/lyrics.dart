@@ -19,13 +19,36 @@ class LyricLine {
   String toString() => '[$time] $text';
 }
 
-/// De dónde salió la letra (se muestra como crédito).
+/// De dónde salió la letra (se muestra como crédito). El orden es el orden
+/// en que se buscan (Tarea Z4): primero la del archivo, después LRCLIB y
+/// después las fuentes de Echo, en su orden (`LyricsProviderRegistry.kt`), menos SimpMusic
+/// (su API es solo para su app).
 enum LyricsSource {
   embedded('Incluida en el archivo'),
-  lrclib('LRCLIB');
+  imported('Importada por vos'),
+  lrclib('LRCLIB'),
+  youlyplus('YouLyPlus'),
+  paxsenix('PaxSenix'),
+  unison('Unison'),
+  betterlyrics('Better Lyrics'),
+  kugou('KuGou'),
+  youtubeSubtitles('Subtítulos de YouTube'),
+  youtubeMusic('YouTube Music');
 
   const LyricsSource(this.label);
   final String label;
+
+  /// Las que se buscan por internet (se pueden apagar en Configuración).
+  static const online = [
+    lrclib,
+    youlyplus,
+    paxsenix,
+    unison,
+    betterlyrics,
+    kugou,
+    youtubeSubtitles,
+    youtubeMusic,
+  ];
 }
 
 /// Letra de una canción: sincronizada, en texto simple, instrumental, o
@@ -69,6 +92,10 @@ class Lyrics {
 }
 
 final _timeTag = RegExp(r'\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]');
+
+/// Marcas por palabra (`<00:12.34>`) y de coro de fondo (`{bg}`) que traen
+/// algunas fuentes: se sacan, Kiji sincroniza por línea.
+final _wordTag = RegExp(r'<\d{1,3}:\d{1,2}(?:[.:]\d{1,3})?>');
 final _offsetTag = RegExp(r'^\[offset:\s*([+-]?\d+)\]', caseSensitive: false);
 
 /// Lee una letra en formato LRC (`[01:04.07] Around the world`).
@@ -88,7 +115,12 @@ List<LyricLine> parseLrc(String lrc) {
     }
     final tags = _timeTag.allMatches(line).toList();
     if (tags.isEmpty) continue;
-    final text = line.substring(tags.last.end).trim();
+    final text = line
+        .substring(tags.last.end)
+        .replaceAll(_wordTag, '')
+        .replaceAll('{bg}', '')
+        .replaceAll(RegExp(r'\s{2,}'), ' ')
+        .trim();
     for (final tag in tags) {
       final minutes = int.parse(tag[1]!);
       final seconds = int.parse(tag[2]!);
@@ -119,4 +151,55 @@ int currentLineIndex(List<LyricLine> lines, Duration position) {
     }
   }
   return found;
+}
+
+/// Una letra a partir de texto: sincronizada si tiene marcas LRC, si no,
+/// texto simple. Vacía o sin palabras = null.
+Lyrics? lyricsFromText(String? text, LyricsSource source) {
+  final clean = text?.trim();
+  if (clean == null || clean.isEmpty) return null;
+  final synced = parseLrc(clean);
+  if (synced.where((l) => l.text.isNotEmpty).isNotEmpty) return Lyrics(synced: synced, source: source);
+  if (_timeTag.hasMatch(clean)) return null; // solo marcas, sin texto
+  return Lyrics(plain: clean, source: source);
+}
+
+/// Tiempo de TTML: "12.345s", "1:02.5", "00:01:02.500".
+Duration? _ttmlTime(String? value) {
+  if (value == null || value.isEmpty) return null;
+  final v = value.trim();
+  if (v.endsWith('s')) {
+    final seconds = double.tryParse(v.substring(0, v.length - 1));
+    return seconds == null ? null : Duration(milliseconds: (seconds * 1000).round());
+  }
+  final parts = v.split(':');
+  var seconds = 0.0;
+  for (final part in parts) {
+    final n = double.tryParse(part);
+    if (n == null) return null;
+    seconds = seconds * 60 + n;
+  }
+  return Duration(milliseconds: (seconds * 1000).round());
+}
+
+/// Lee una letra TTML (Better Lyrics): una línea por cada `<p begin="…">`,
+/// con el texto sin etiquetas.
+List<LyricLine> parseTtml(String ttml) {
+  final lines = <LyricLine>[];
+  for (final match in RegExp(r'<p\b([^>]*)>(.*?)</p>', dotAll: true).allMatches(ttml)) {
+    final begin = RegExp(r'begin="([^"]+)"').firstMatch(match[1]!)?.group(1);
+    final time = _ttmlTime(begin);
+    if (time == null) continue;
+    final text = match[2]!
+        .replaceAll(RegExp(r'<span[^>]*ttm:role="x-bg"[^>]*>.*?</span>', dotAll: true), '')
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&apos;', "'")
+        .replaceAll('&quot;', '"')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    lines.add(LyricLine(time, text));
+  }
+  lines.sort((a, b) => a.time.compareTo(b.time));
+  return lines;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/track.dart';
+import '../settings/data/settings_store.dart';
 import 'data/lyrics_repository.dart';
 import 'domain/lyrics.dart';
 
@@ -19,5 +20,13 @@ LyricsRequest lyricsRequestFor(Track track) => (
 /// Letra de una canción. Se pide solo cuando se abre la pantalla de letras
 /// (nada sale del teléfono sin que el usuario lo pida).
 final lyricsProvider = FutureProvider.autoDispose.family<Lyrics, LyricsRequest>(
-  (ref, request) => ref.watch(lyricsRepositoryProvider).get(request),
+  (ref, request) => ref.watch(lyricsRepositoryProvider).get(
+        request,
+        disabled: ref.watch(settingsProvider.select((s) => s.disabledLyricsSources)),
+      ),
+);
+
+/// Desfase de la letra de una canción, guardado por canción (Tarea Z4).
+final lyricsOffsetProvider = FutureProvider.autoDispose.family<Duration, String>(
+  (ref, id) => ref.watch(lyricsRepositoryProvider).offset(id),
 );

@@ -1,3 +1,5 @@
+import '../../lyrics/domain/lyrics.dart';
+
 /// Preferencias de Kiji (Tarea G). Se guardan solo en el teléfono.
 ///
 /// Las de descargas ("solo con WiFi", límite de espacio) siguen en
@@ -15,6 +17,7 @@ class AppSettings {
     this.dataSaver = false,
     this.autoBackup = true,
     this.backupFolder,
+    this.disabledLyricsSources = const {},
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -63,6 +66,9 @@ class AppSettings {
   /// Carpeta elegida para las copias; null = la de fábrica (Documentos/Kiji).
   final String? backupFolder;
 
+  /// Letras (Tarea Z4): fuentes por internet apagadas por el usuario.
+  final Set<LyricsSource> disabledLyricsSources;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -75,6 +81,7 @@ class AppSettings {
     bool? autoBackup,
     String? backupFolder,
     bool defaultBackupFolder = false,
+    Set<LyricsSource>? disabledLyricsSources,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -87,6 +94,7 @@ class AppSettings {
         dataSaver: dataSaver ?? this.dataSaver,
         autoBackup: autoBackup ?? this.autoBackup,
         backupFolder: defaultBackupFolder ? null : (backupFolder ?? this.backupFolder),
+        disabledLyricsSources: disabledLyricsSources ?? this.disabledLyricsSources,
       );
 
   Map<String, dynamic> toJson() => {
@@ -101,6 +109,7 @@ class AppSettings {
         'dataSaver': dataSaver,
         'autoBackup': autoBackup,
         if (backupFolder != null) 'backupFolder': backupFolder,
+        'disabledLyricsSources': [for (final s in disabledLyricsSources) s.name],
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -123,6 +132,10 @@ class AppSettings {
       backupFolder: json['backupFolder'] is String && (json['backupFolder'] as String).isNotEmpty
           ? json['backupFolder'] as String
           : null,
+      disabledLyricsSources: {
+        if (json['disabledLyricsSources'] is List)
+          for (final name in json['disabledLyricsSources'] as List) ?LyricsSource.values.asNameMap()['$name'],
+      },
     );
   }
 

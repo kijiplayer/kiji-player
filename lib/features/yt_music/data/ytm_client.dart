@@ -390,6 +390,39 @@ class YtMusicClient {
     }
   }
 
+  /// `visitorData` anónimo (lo usan también otras partes, como los
+  /// subtítulos de las letras).
+  Future<String?> visitorData() => _getVisitorData();
+
+  /// Respuesta cruda de `/player` con [client], sin descifrar ni verificar
+  /// nada (por ejemplo, para leer los subtítulos). null si falló.
+  Future<Map<String, dynamic>?> rawPlayer(String videoId, YtPlayerClient client) async {
+    final visitor = await _getVisitorData();
+    try {
+      final response = await _playerDio.post<Map<String, dynamic>>(
+        'https://${client.host}/youtubei/v1/player',
+        queryParameters: {'prettyPrint': 'false'},
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+          'X-YouTube-Client-Name': client.id,
+          'X-YouTube-Client-Version': client.version,
+          'X-Goog-Visitor-Id': ?visitor,
+          'User-Agent': client.userAgent,
+        }),
+        data: {
+          'context': {'client': client.context(visitor)},
+          'videoId': videoId,
+          'contentCheckOk': true,
+          'racyCheckOk': true,
+        },
+      );
+      return response.data;
+    } catch (error) {
+      debugPrint('=== YTM: /player crudo [${client.label}] falló: $error ===');
+      return null;
+    }
+  }
+
   /// Resuelve una URL del archivo de audio entero para [videoId] (para
   /// descargar: sin las formas HLS, que son segmentos).
   Future<String?> getAudioStreamUrl(String videoId) async => (await resolveStream(
