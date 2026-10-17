@@ -11,6 +11,8 @@ import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
 import '../../../widgets/nocturne/glass.dart';
+import '../../backup/data/backup_notifier.dart';
+import '../../backup/presentation/backup_screen.dart';
 import '../../downloads/domain/download_settings.dart';
 import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
@@ -460,14 +462,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       SettingOption(
         section: SettingsSection.backup,
         title: 'Copia de seguridad de Kiji',
-        subtitle: 'Llega en una próxima versión.',
-        keywords: const ['backup', 'respaldo', 'copia'],
-        builder: (context, ref) => const ListTile(
-          enabled: false,
-          leading: Icon(Icons.backup_outlined),
-          title: Text('Copia de seguridad de Kiji'),
-          subtitle: Text('Llega en una próxima versión: un archivo tuyo, sin servidores.'),
-        ),
+        subtitle: 'Copia diaria automática en Documentos/Kiji; restaurar con vista previa.',
+        keywords: const ['backup', 'respaldo', 'copia', 'restaurar', 'recuperar'],
+        builder: (context, ref) {
+          final last = ref.watch(backupProvider.select((b) => b.lastBackup));
+          final auto = ref.watch(settingsProvider.select((s) => s.autoBackup));
+          return ListTile(
+            leading: const Icon(Icons.backup_outlined),
+            title: const Text('Copia de seguridad de Kiji'),
+            subtitle: Text([
+              auto ? 'Copia automática diaria' : 'Copia automática apagada',
+              last == null ? 'todavía sin copias' : 'última: ${describeDate(last, DateTime.now())}',
+            ].join(' · ')),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => BackupScreen.open(context),
+          );
+        },
       ),
       // Acerca de
       SettingOption(

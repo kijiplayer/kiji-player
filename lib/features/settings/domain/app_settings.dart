@@ -13,6 +13,8 @@ class AppSettings {
     this.resumeOnBluetooth = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
+    this.autoBackup = true,
+    this.backupFolder,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -55,6 +57,12 @@ class AppSettings {
   /// baja. Con WiFi, siempre la mejor.
   final bool dataSaver;
 
+  /// Copia de seguridad (Tarea U): una copia por día, automática.
+  final bool autoBackup;
+
+  /// Carpeta elegida para las copias; null = la de fábrica (Documentos/Kiji).
+  final String? backupFolder;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -64,6 +72,9 @@ class AppSettings {
     bool? resumeOnBluetooth,
     int? crossfadeSeconds,
     bool? dataSaver,
+    bool? autoBackup,
+    String? backupFolder,
+    bool defaultBackupFolder = false,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -74,6 +85,8 @@ class AppSettings {
         resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
+        autoBackup: autoBackup ?? this.autoBackup,
+        backupFolder: defaultBackupFolder ? null : (backupFolder ?? this.backupFolder),
       );
 
   Map<String, dynamic> toJson() => {
@@ -86,6 +99,8 @@ class AppSettings {
         'resumeOnBluetooth': resumeOnBluetooth,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
+        'autoBackup': autoBackup,
+        if (backupFolder != null) 'backupFolder': backupFolder,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -104,6 +119,10 @@ class AppSettings {
       resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),
       crossfadeSeconds: crossfadeOptions.contains(crossfade) ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
+      autoBackup: read('autoBackup', d.autoBackup),
+      backupFolder: json['backupFolder'] is String && (json['backupFolder'] as String).isNotEmpty
+          ? json['backupFolder'] as String
+          : null,
     );
   }
 

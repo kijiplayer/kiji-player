@@ -16,7 +16,10 @@
         android:label="kiji_player"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:networkSecurityConfig="@xml/network_security_config">
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/full_backup_content"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

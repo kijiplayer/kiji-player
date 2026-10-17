@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copia de seguridad de Android (Tarea U), Android 12 en adelante: entran los datos de Kiji
+     (playlists, me gusta, historial, ajustes). Quedan afuera el audio descargado y las cachés,
+     que se pueden volver a bajar y superarían el límite de la copia. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="downloads/" />
+        <exclude domain="file" path="player_js/" />
+        <exclude domain="file" path="lyrics/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="downloads/" />
+        <exclude domain="file" path="player_js/" />
+        <exclude domain="file" path="lyrics/" />
+    </device-transfer>
+</data-extraction-rules>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copia de seguridad de Android (Tarea U), hasta Android 11. Mismas reglas que
+     data_extraction_rules.xml. -->
+<full-backup-content>
+    <exclude domain="file" path="downloads/" />
+    <exclude domain="file" path="player_js/" />
+    <exclude domain="file" path="lyrics/" />
+</full-backup-content>

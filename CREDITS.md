@@ -32,6 +32,7 @@ personas que los construyen y mantienen.
 | `lib/features/lyrics/` (`lyrics.dart`, `lrclib_client.dart`, `lyrics_repository.dart`, `lyrics_screen.dart`) | Echo Music (idea, no código) | `lyrics/LrcLibLyricsProvider.kt`, `LyricsHelper.kt`, `LyricsUtils.kt`, `ui/component/LyricsV2.kt` |
 | `lib/features/playlists/` (`playlist.dart`, `smart_lists.dart`, `playlist_screens.dart`) | Echo Music (idea, no código) | `ui/screens/playlist/LocalPlaylistScreen.kt`, `AutoPlaylistScreen.kt` |
 | `lib/features/import/data/import_parsers.dart` | Echo Music (estructura del formato, no código) | `viewmodels/BackupRestoreViewModel.kt`, `ui/screens/settings/BackupAndRestore.kt`, `core/.../db/entities/` (tablas song, artist, playlist, event) |
+| `lib/features/backup/` (`backup_manifest.dart`, `backup_screen.dart`) | Echo Music (idea, no código) | `ui/screens/settings/BackupAndRestore.kt`, `viewmodels/BackupRestoreViewModel.kt` (copia en un archivo y restaurar) |
 | `lib/features/equalizer/` (`equalizer_model.dart`, `equalizer_screen.dart`) | Echo Music (idea, no código) | `ui/screens/equalizer/EqScreen.kt`, `EQViewModel.kt`, `dsp-core/.../models/SavedEQProfile.kt` (perfiles guardados y uno activo) |
 | `lib/features/playback_extras/` (`playback_rules.dart`) | Echo Music (idea, no código) | `playback/crossfade/EqualPowerCurve.kt` (curva de potencia constante), `playback/MusicService.kt` (PauseOnMute, ResumeOnBluetoothConnect) |
 

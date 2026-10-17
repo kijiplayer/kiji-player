@@ -3,6 +3,7 @@ package com.example.kiji_player
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.StatFs
@@ -34,6 +35,10 @@ class MainActivity : AudioServiceActivity() {
                             }
                         }
                     }
+                    // Carpeta pública Documentos, para la copia de seguridad (Tarea U).
+                    "documentsDir" -> result.success(
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
+                    )
                     else -> result.notImplemented()
                 }
             }
