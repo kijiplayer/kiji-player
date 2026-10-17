@@ -127,9 +127,16 @@ void main() {
           {'name': 'models/gemini-embedding-001', 'supportedGenerationMethods': ['embedContent']},
           {'name': 'models/gemini-2.5-flash-image', 'supportedGenerationMethods': ['generateContent']},
           {'name': 'models/imagen-4', 'supportedGenerationMethods': ['predict']},
+          {'name': 'models/gemini-3.1-flash-lite-preview', 'supportedGenerationMethods': ['generateContent']},
+          {'name': 'models/gemini-3.5-transcribe', 'supportedGenerationMethods': ['generateContent']},
+          {'name': 'models/gemini-3.1-pro-preview-customtools', 'supportedGenerationMethods': ['generateContent']},
         ],
       });
-      expect([for (final m in models) m.name], ['models/gemini-2.5-flash-lite', 'models/gemini-2.5-flash']);
+      expect([for (final m in models) m.name], [
+        'models/gemini-2.5-flash-lite',
+        'models/gemini-3.1-flash-lite-preview',
+        'models/gemini-2.5-flash',
+      ]);
       expect(models.first.isLite, isTrue);
       expect(textModels(null), isEmpty);
     });

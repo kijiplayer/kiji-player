@@ -30,17 +30,22 @@ class GeminiModel {
 List<GeminiModel> textModels(Object? json) {
   final models = json is Map ? json['models'] : null;
   if (models is! List) return const [];
-  const skip = ['embedding', 'image', 'tts', 'audio', 'live', 'aqa', 'veo', 'imagen', 'learnlm', 'robotics', 'computer-use'];
+  const skip = [
+    'embedding', 'image', 'tts', 'audio', 'live', 'aqa', 'veo', 'imagen', 'learnlm', 'robotics', //
+    'computer-use', 'transcribe', 'customtools', 'custom-tools',
+  ];
   final list = [
     for (final m in models.whereType<Map>())
       if ((m['supportedGenerationMethods'] as List?)?.contains('generateContent') == true &&
           '${m['name']}'.startsWith('models/gemini') &&
-          !skip.any('${m['name']}'.contains))
+          !skip.any('${m['name']}'.toLowerCase().contains))
         GeminiModel('${m['name']}', '${m['displayName'] ?? m['name']}'),
   ];
+  bool preview(GeminiModel m) => RegExp(r'preview|exp').hasMatch(m.name);
   list.sort((a, b) {
     if (a.isLite != b.isLite) return a.isLite ? -1 : 1;
-    return b.name.compareTo(a.name); // los más nuevos primero
+    if (preview(a) != preview(b)) return preview(a) ? 1 : -1; // las estables primero
+    return b.name.compareTo(a.name); // "latest" y los más nuevos primero
   });
   return list;
 }
