@@ -5,6 +5,7 @@ import '../providers/playback_provider.dart';
 import '../screens/player/player_screen.dart';
 import '../theme/kiji_tokens.dart';
 import 'album_cover.dart';
+import 'global_mini_player.dart';
 import 'nocturne/glass.dart';
 import '../features/customize/presentation/track_text.dart';
 import '../features/playlists/presentation/playlist_screens.dart';
@@ -12,14 +13,21 @@ import '../features/playlists/presentation/playlist_screens.dart';
 /// Mini-reproductor de vidrio (§7): radio 20, borde 1 px blanco 12 %, y una
 /// línea de progreso degradada de 2 px abajo. Sin canción elegida, no ocupa
 /// lugar.
+/// Alto del mini-reproductor (botones de 48 + márgenes 18 + línea 2).
+const miniPlayerHeight = 68.0;
+
 class MiniPlayer extends ConsumerWidget {
-  const MiniPlayer({super.key});
+  const MiniPlayer({super.key, this.useAppNavigator = false});
+
+  /// true en el mini-reproductor global, que vive afuera del Navigator.
+  final bool useAppNavigator;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.watch(playbackProvider);
     final track = playback.track;
     if (track == null) return const SizedBox.shrink();
+    BuildContext nav() => useAppNavigator ? (kijiNavigatorKey.currentContext ?? context) : context;
 
     return Glass(
       radius: KijiRadii.miniPlayer,
@@ -29,7 +37,7 @@ class MiniPlayer extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             InkWell(
-              onTap: () => PlayerScreen.open(context),
+              onTap: () => PlayerScreen.open(nav()),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 6, 8),
                 child: Row(
@@ -61,7 +69,7 @@ class MiniPlayer extends ConsumerWidget {
                     ),
                     // "Agregar a playlist" a un toque (Tarea Z3).
                     IconButton(
-                      onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
+                      onPressed: () => showAddToPlaylistSheet(nav(), ref, [track]),
                       icon: const Icon(Icons.playlist_add_rounded),
                       color: Colors.white,
                       tooltip: 'Agregar a playlist',

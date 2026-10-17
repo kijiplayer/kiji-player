@@ -123,7 +123,8 @@ void main() {
       final imported = await repo.importText('yt-abcdefghijk', '[ar:Yo]\n[00:03.50]Mía');
       expect(imported.source, LyricsSource.imported);
       expect(await repo.offset('yt-abcdefghijk'), Duration.zero, reason: 'letra nueva, desfase en 0');
-      expect(() => repo.importText('x', 'nada de nada [sin] marcas'), returnsNormally);
+      // Texto sin marcas de tiempo: se guarda como letra simple (esperando a que termine).
+      await repo.importText('x', 'nada de nada [sin] marcas');
       await expectLater(repo.importText('x', '   '), throwsA(isA<FormatException>()));
     });
   });

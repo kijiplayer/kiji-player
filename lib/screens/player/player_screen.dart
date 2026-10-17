@@ -18,6 +18,7 @@ import '../../providers/playback_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
+import '../../widgets/global_mini_player.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
@@ -37,6 +38,7 @@ class PlayerScreen extends ConsumerWidget {
   static Future<void> open(BuildContext context) {
     return Navigator.of(context).push(
       PageRouteBuilder<void>(
+        settings: const RouteSettings(name: KijiRoutes.player),
         fullscreenDialog: true,
         transitionDuration: KijiMotion.normal,
         reverseTransitionDuration: KijiMotion.fast,

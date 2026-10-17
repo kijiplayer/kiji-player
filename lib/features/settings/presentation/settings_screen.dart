@@ -209,20 +209,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             subtitle: Text(seconds == 0
                 ? 'Apagada'
                 : '$seconds s: la canción baja al final y la siguiente sube al empezar.'),
-            trailing: PopupMenuButton<int>(
-              initialValue: seconds,
-              tooltip: 'Duración',
-              onSelected: (value) =>
-                  ref.read(settingsProvider.notifier).update((s) => s.copyWith(crossfadeSeconds: value)),
-              itemBuilder: (context) => [
-                for (final option in AppSettings.crossfadeOptions)
-                  PopupMenuItem(value: option, child: Text(option == 0 ? 'Apagada' : '$option segundos')),
-              ],
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(seconds == 0 ? 'No' : '$seconds s', style: KijiText.mono(size: 13)),
-              ),
-            ),
+            trailing: Text(seconds == 0 ? 'No' : '$seconds s', style: KijiText.mono(size: 13)),
+            // Toda la fila abre la lista (antes solo respondía el texto chico de la derecha).
+            onTap: () async {
+              final value = await showDialog<int>(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  title: const Text('Transición suave'),
+                  children: [
+                    RadioGroup<int>(
+                      groupValue: seconds,
+                      onChanged: (value) => Navigator.pop(context, value),
+                      child: Column(
+                        children: [
+                          for (final option in AppSettings.crossfadeOptions)
+                            RadioListTile<int>(
+                              value: option,
+                              title: Text(option == 0 ? 'Apagada' : '$option segundos'),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (value != null) {
+                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(crossfadeSeconds: value));
+              }
+            },
           );
         },
       ),

@@ -13,6 +13,7 @@ import '../../../models/track.dart';
 import '../../../providers/appearance_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
+import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../customize/presentation/track_text.dart';
 import '../../settings/data/settings_store.dart';
@@ -31,7 +32,10 @@ class LyricsScreen extends ConsumerWidget {
   const LyricsScreen({super.key});
 
   static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const LyricsScreen()),
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: KijiRoutes.lyrics),
+          builder: (_) => const LyricsScreen(),
+        ),
       );
 
   @override

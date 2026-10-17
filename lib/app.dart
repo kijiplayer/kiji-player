@@ -5,13 +5,21 @@ import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/playback_automation.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/global_mini_player.dart';
 import 'widgets/playback_shortcuts.dart';
 
-class KijiApp extends ConsumerWidget {
+class KijiApp extends ConsumerStatefulWidget {
   const KijiApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KijiApp> createState() => _KijiAppState();
+}
+
+class _KijiAppState extends ConsumerState<KijiApp> {
+  final _routes = MiniPlayerRouteObserver();
+
+  @override
+  Widget build(BuildContext context) {
     // Pausar al silenciar y retomar con el Bluetooth (Tarea K). Vive acá y no
     // en el reproductor porque escucha al reproductor.
     ref.watch(playbackAutomationProvider);
@@ -24,7 +32,12 @@ class KijiApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.dark,
       // Atajos de teclado en todas las pantallas (PC y teclados físicos, §9).
-      builder: (context, child) => PlaybackShortcuts(child: child ?? const SizedBox.shrink()),
+      // El mini-reproductor se ve en todas las pantallas (Tarea Z7).
+      navigatorKey: kijiNavigatorKey,
+      navigatorObservers: [_routes],
+      builder: (context, child) => PlaybackShortcuts(
+        child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+      ),
       home: const HomeScreen(),
     );
   }

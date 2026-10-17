@@ -949,6 +949,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       fadeIn: _fadeInToken == _loadToken,
     );
     if ((gain - _transition).abs() < 0.01 && !(gain == 1 && _transition != 1)) return;
+    if (_transition == 1 && gain < 1) {
+      debugPrint('=== TRANSICION: empieza a ${position.inMilliseconds < 1000 ? 'subir' : 'bajar'} ($seconds s) ===');
+    } else if (gain == 1 && _transition < 1) {
+      debugPrint('=== TRANSICION: volumen completo otra vez ===');
+    }
     _transition = gain;
     unawaited(_applyVolume());
   }
