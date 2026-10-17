@@ -19,6 +19,10 @@ import '../data/ytm_client.dart';
 import 'collection_screens.dart';
 import '../domain/yt_track_mapper.dart';
 import '../../customize/presentation/track_text.dart';
+import '../../history/listening_history.dart';
+import '../../recommendations/data/home_feed_provider.dart';
+import '../../recommendations/data/search_history.dart';
+import '../../recommendations/presentation/home_sections.dart';
 
 /// Qué se busca (chips del mockup, §7).
 enum SearchKind {
@@ -132,7 +136,61 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
   }
 
+  /// Guarda la búsqueda en "Recientes" (solo al confirmarla: Enter o tocar
+  /// un resultado; no cada letra).
+  void _remember(String query) => ref.read(searchHistoryProvider.notifier).add(query);
+
+  void _searchFor(String query) {
+    _controller.text = query;
+    _controller.selection = TextSelection.collapsed(offset: query.length);
+    _remember(query);
+    _search(query);
+  }
+
+  /// Antes de escribir: búsquedas recientes y sugerencias (Tarea Z5).
+  Widget _buildBeforeTyping() {
+    final recent = ref.watch(searchHistoryProvider);
+    final isNew = ref.watch(listeningHistoryProvider).isEmpty;
+    final feed = isNew ? null : ref.watch(homeFeedProvider).value;
+    final suggestions = feed == null ? const <Track>[] : (feed.discover.isNotEmpty ? feed.discover : feed.mix);
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 180),
+      children: [
+        if (recent.isNotEmpty) ...[
+          Row(
+            children: [
+              Expanded(child: Text('RECIENTES', style: KijiText.mono(size: 11))),
+              TextButton(
+                onPressed: () => ref.read(searchHistoryProvider.notifier).clear(),
+                child: const Text('Borrar'),
+              ),
+            ],
+          ),
+          for (final query in recent.take(8))
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.history_rounded, color: KijiColors.muted),
+              title: Text(query, maxLines: 1, overflow: TextOverflow.ellipsis),
+              trailing: IconButton(
+                tooltip: 'Quitar',
+                icon: const Icon(Icons.close_rounded, size: 18),
+                onPressed: () => ref.read(searchHistoryProvider.notifier).remove(query),
+              ),
+              onTap: () => _searchFor(query),
+            ),
+          const SizedBox(height: 16),
+        ],
+        if (suggestions.isNotEmpty)
+          TrackShelf(title: 'Te puede gustar', note: 'según lo que escuchás', tracks: suggestions),
+        isNew
+            ? const StartHereSection()
+            : const StartHereSection(title: 'Explorá por estilo', note: 'géneros y ánimos de YouTube Music'),
+      ],
+    );
+  }
+
   Future<void> _play(YtMusicSearchResult result) async {
+    _remember(_controller.text);
     setState(() => _resolvingVideoId = result.videoId);
 
     try {
@@ -165,6 +223,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               controller: _controller,
               focusNode: ref.watch(searchFocusProvider),
               onChanged: _onChanged,
+              onSubmitted: (query) {
+                _remember(query);
+                _debounce?.cancel();
+                _search(query);
+              },
+              textInputAction: TextInputAction.search,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 hintText: 'Buscar canciones, artistas...',
@@ -222,11 +286,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (_error != null) {
       return Center(child: Text(_error!, style: const TextStyle(color: AppColors.onSurfaceMuted)));
     }
-    if (_controller.text.trim().isEmpty) {
-      return Center(
-        child: Text('Buscá ${_kind.label.toLowerCase()}', style: const TextStyle(color: AppColors.onSurfaceMuted)),
-      );
-    }
+    if (_controller.text.trim().isEmpty) return _buildBeforeTyping();
     if (_collections.isEmpty) {
       return const Center(child: Text('Sin resultados', style: TextStyle(color: AppColors.onSurfaceMuted)));
     }
@@ -281,14 +341,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         child: Text(_error!, style: const TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
-    if (_controller.text.trim().isEmpty) {
-      return const Center(
-        child: Text(
-          'Busca música, videos o podcasts',
-          style: TextStyle(color: AppColors.onSurfaceMuted),
-        ),
-      );
-    }
+    if (_controller.text.trim().isEmpty) return _buildBeforeTyping();
     if (_results.isEmpty) {
       return const Center(
         child: Text('Sin resultados', style: TextStyle(color: AppColors.onSurfaceMuted)),

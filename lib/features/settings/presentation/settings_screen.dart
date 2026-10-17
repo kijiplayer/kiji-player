@@ -19,6 +19,7 @@ import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
+import '../../recommendations/data/search_history.dart';
 import '../../translation/domain/languages.dart';
 import '../../translation/presentation/lyrics_settings_screens.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
@@ -469,6 +470,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             'Gemini es opcional y está apagado: si lo activás, las líneas de la letra van a Google con tu '
             'clave, que queda cifrada solo en este dispositivo.',
           ),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
+        title: 'Recomendaciones de Inicio',
+        subtitle: 'Qué se le pide a YouTube Music para "Porque escuchaste", "Mezcla" y "Descubrí".',
+        keywords: const ['recomendaciones', 'descubri', 'mezcla', 'relacionadas', 'youtube'],
+        builder: (context, ref) => const ListTile(
+          leading: Icon(Icons.auto_awesome_outlined),
+          title: Text('Recomendaciones de Inicio'),
+          subtitle: Text(
+            'Tu gusto se calcula en este teléfono. A YouTube Music solo se le piden, sin cuenta, las '
+            'canciones relacionadas con hasta 5 que escuchaste (solo su id). Tu historial no sale de acá.',
+          ),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
+        title: 'Borrar las búsquedas recientes',
+        subtitle: 'Las que aparecen en Buscar antes de escribir.',
+        keywords: const ['busquedas', 'recientes', 'borrar', 'buscar'],
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.manage_search_rounded),
+          title: const Text('Borrar las búsquedas recientes'),
+          subtitle: Text('${ref.watch(searchHistoryProvider).length} guardadas en este dispositivo'),
+          onTap: () {
+            ref.read(searchHistoryProvider.notifier).clear();
+            _done(context, 'Búsquedas borradas');
+          },
         ),
       ),
       SettingOption(

@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kiji_player/app.dart';
+import 'package:kiji_player/features/recommendations/data/home_feed_provider.dart';
+import 'package:kiji_player/features/recommendations/domain/home_feed.dart';
+import 'package:kiji_player/features/yt_music/data/ytm_browse_parser.dart';
 import 'package:kiji_player/models/track.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
 import 'package:kiji_player/screens/shell/pill_nav_bar.dart';
@@ -91,6 +94,9 @@ Future<void> _settle(WidgetTester tester) async {
 Widget _app(Object notifierFactory) => ProviderScope(
       overrides: [
         playbackProvider.overrideWith(notifierFactory as PlaybackNotifier Function()),
+        // Sin red en los tests: Inicio sin recomendaciones ni géneros.
+        homeFeedProvider.overrideWith((ref) async => const HomeFeed()),
+        moodsProvider.overrideWith((ref) async => const <YtMood>[]),
       ],
       child: const KijiApp(),
     );

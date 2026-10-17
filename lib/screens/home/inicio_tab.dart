@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/customize/presentation/customize_sheets.dart';
+import '../../features/recommendations/data/home_feed_provider.dart';
+import '../../features/recommendations/domain/home_feed.dart';
+import '../../features/recommendations/presentation/home_sections.dart';
 import '../../features/history/listening_history.dart';
 import '../../features/playlists/domain/playlist.dart';
 import '../../features/playlists/playlists_provider.dart';
 import '../../features/playlists/presentation/playlist_screens.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../models/track.dart';
+import '../../providers/downloads_provider.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
 import '../../theme/kiji_tokens.dart';
@@ -35,73 +39,64 @@ class InicioTab extends ConsumerWidget {
     final playback = ref.watch(playbackProvider);
     final history = ref.watch(listeningHistoryProvider);
     final recent = HistoryLogic.recent(history);
-    final forYou = HistoryLogic.forYou(history, excludeId: playback.track?.id);
+    final top = HistoryLogic.forYou(history, excludeId: playback.track?.id, limit: 6);
+    final downloaded = [
+      for (final d in [...ref.watch(downloadsProvider).completed.values]
+        ..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt)))
+        d.toTrack(),
+    ].take(15).toList();
+    final isNew = history.isEmpty;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
-      children: [
-        const _Greeting(),
-        const SizedBox(height: 20),
-        if (playback.track != null) ...[
-          _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
+    // Orden de Inicio (Tarea Z5): nunca se ve vacío.
+    return RefreshIndicator(
+      onRefresh: () async {
+        refreshHomeFeed(ref);
+        if (isNew) ref.invalidate(moodsProvider);
+        await ref.read(homeFeedProvider.future).catchError((Object _) => const HomeFeed());
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
+        children: [
+          const _Greeting(),
+          const SizedBox(height: 20),
+          if (playback.track != null) ...[
+            _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
+            const SizedBox(height: 28),
+          ],
+          // Tarea Z3: las playlists a la vista, arriba.
+          const _PlaylistsRow(),
           const SizedBox(height: 28),
-        ],
-        // Tarea Z3: las playlists a la vista, arriba.
-        const _PlaylistsRow(),
-        const SizedBox(height: 28),
-        if (recent.isEmpty && playback.track == null)
-          _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
-        if (recent.isNotEmpty) ...[
-          Text('Escuchado recientemente', style: KijiText.title(size: 18)),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 196,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: recent.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 14),
-              itemBuilder: (context, index) => _RecentCard(
-                track: recent[index],
-                onTap: () => ref.read(playbackProvider.notifier).playQueue(recent, startIndex: index),
-              ),
+          if (isNew) ...[
+            if (playback.track == null) ...[
+              _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
+              const SizedBox(height: 28),
+            ],
+            const StartHereSection(),
+          ] else
+            const RecommendationSections(),
+          TrackShelf(title: 'Escuchado recientemente', tracks: recent),
+          if (top.isNotEmpty) ...[
+            const SectionTitle('Tus más escuchadas', note: 'calculado en tu teléfono'),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 2.6,
+              children: [
+                for (final (index, track) in top.indexed)
+                  _ForYouTile(
+                    track: track,
+                    onTap: () => ref.read(playbackProvider.notifier).playQueue(top, startIndex: index),
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(height: 28),
+            const SizedBox(height: 28),
+          ],
+          TrackShelf(title: 'Descargadas', note: 'sin internet', tracks: downloaded),
         ],
-        if (forYou.isNotEmpty) ...[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text('Para vos', style: KijiText.title(size: 18)),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  '· calculado en tu teléfono',
-                  style: KijiText.mono(size: 11),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 2.6,
-            children: [
-              for (final (index, track) in forYou.indexed)
-                _ForYouTile(
-                  track: track,
-                  onTap: () => ref.read(playbackProvider.notifier).playQueue(forYou, startIndex: index),
-                ),
-            ],
-          ),
-        ],
-      ],
+      ),
     );
   }
 }
@@ -224,35 +219,6 @@ class _ContinueCard extends ConsumerWidget {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentCard extends StatelessWidget {
-  const _RecentCard({required this.track, required this.onTap});
-
-  final Track track;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 140,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(KijiRadii.tile),
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TrackArtwork(track: track, size: 140, radius: 16),
-            const SizedBox(height: 8),
-            TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-            TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
           ],
         ),
       ),

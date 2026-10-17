@@ -261,3 +261,152 @@ AlbumPage parseAlbumPage(Map<String, dynamic> json) {
     tracks: _songRows(json['contents'], fallbackArtist: artist, album: title, thumbnail: thumbnail),
   );
 }
+
+// ---------------------------------------------------------------------------
+// Recomendaciones (Tarea Z5): radio de un tema, playlists y "Para empezar".
+// ---------------------------------------------------------------------------
+
+/// Canciones de la cola de `/next` (`playlistPanelVideoRenderer`): el radio de
+/// un tema ("relacionadas") o las pistas de una playlist de YouTube Music.
+List<YtMusicSearchResult> parseNextTracks(Map<String, dynamic> json) {
+  final tracks = <YtMusicSearchResult>[];
+  final seen = <String>{};
+  void walk(Object? n) {
+    if (n is Map) {
+      final r = n['playlistPanelVideoRenderer'];
+      if (r is Map) {
+        final id = r['videoId'] as String?;
+        if (id != null && seen.add(id)) {
+          final runs = ((r['longBylineText'] as Map?)?['runs'] as List? ?? const []).whereType<Map>().toList();
+          String? linked(String type) {
+            final names = [
+              for (final run in runs)
+                if (_pageType((run['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?) == type)
+                  '${run['text']}',
+            ];
+            return names.isEmpty ? null : names.join(', ');
+          }
+
+          final first = runs.isEmpty ? '' : '${runs.first['text']}'.trim();
+          tracks.add(YtMusicSearchResult(
+            videoId: id,
+            title: _runsText(r['title']).isEmpty ? 'Sin título' : _runsText(r['title']),
+            artist: linked('MUSIC_PAGE_TYPE_ARTIST') ?? (first.isEmpty ? unknownArtist : first),
+            album: linked('MUSIC_PAGE_TYPE_ALBUM'),
+            durationMs: _durationMs(_runsText(r['lengthText'])),
+            thumbnailUrl: _lastThumbnail(r['thumbnail']),
+          ));
+        }
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json);
+  return tracks;
+}
+
+/// Un género o un estado de ánimo de YouTube Music ("Para empezar").
+class YtMood {
+  const YtMood({required this.title, required this.params, required this.isGenre, this.color});
+
+  final String title;
+
+  /// `params` para `browse` con `FEmusic_moods_and_genres_category`.
+  final String params;
+  final bool isGenre;
+
+  /// Color de la franja (ARGB), si YouTube lo manda.
+  final int? color;
+}
+
+/// Una playlist de YouTube Music (tarjeta de un carrusel).
+class YtPlaylistCard {
+  const YtPlaylistCard({required this.playlistId, required this.title, this.subtitle = '', this.thumbnailUrl});
+
+  /// Sin el prefijo `VL` (sirve para `/next`).
+  final String playlistId;
+  final String title;
+  final String subtitle;
+  final String? thumbnailUrl;
+}
+
+/// Un carrusel con título ("Mezclas de cafetería") y sus playlists.
+class YtShelf {
+  const YtShelf({required this.title, required this.playlists});
+  final String title;
+  final List<YtPlaylistCard> playlists;
+}
+
+/// Página "Estados de ánimo y géneros": primero los ánimos, después los géneros.
+List<YtMood> parseMoods(Map<String, dynamic> json) {
+  final moods = <YtMood>[];
+  var gridIndex = 0;
+  void walk(Object? n) {
+    if (n is Map) {
+      final grid = n['gridRenderer'];
+      if (grid is Map) {
+        final isGenre = gridIndex++ > 0;
+        for (final item in (grid['items'] as List? ?? const []).whereType<Map>()) {
+          final b = item['musicNavigationButtonRenderer'];
+          if (b is! Map) continue;
+          final endpoint = (b['clickCommand'] as Map?)?['browseEndpoint'] as Map?;
+          final params = endpoint?['params'] as String?;
+          final title = _runsText(b['buttonText']);
+          if (params == null || title.isEmpty) continue;
+          moods.add(YtMood(
+            title: title,
+            params: params,
+            isGenre: isGenre,
+            color: ((b['solid'] as Map?)?['leftStripeColor'] as num?)?.toInt(),
+          ));
+        }
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json);
+  return moods;
+}
+
+/// Página de un ánimo o género: carruseles de playlists.
+List<YtShelf> parseMoodCategory(Map<String, dynamic> json) {
+  final shelves = <YtShelf>[];
+  void walk(Object? n) {
+    if (n is Map) {
+      final shelf = n['musicCarouselShelfRenderer'];
+      if (shelf is Map) {
+        final title = _runsText(((shelf['header'] as Map?)?['musicCarouselShelfBasicHeaderRenderer'] as Map?)?['title']);
+        final cards = <YtPlaylistCard>[];
+        for (final item in (shelf['contents'] as List? ?? const []).whereType<Map>()) {
+          final r = item['musicTwoRowItemRenderer'];
+          if (r is! Map) continue;
+          final endpoint = (r['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?;
+          final browseId = endpoint?['browseId'] as String?;
+          if (browseId == null || _pageType(endpoint) != 'MUSIC_PAGE_TYPE_PLAYLIST') continue;
+          cards.add(YtPlaylistCard(
+            playlistId: browseId.startsWith('VL') ? browseId.substring(2) : browseId,
+            title: _runsText(r['title']),
+            subtitle: _runsText(r['subtitle']),
+            thumbnailUrl: _lastThumbnail(r['thumbnailRenderer']),
+          ));
+        }
+        if (cards.isNotEmpty) shelves.add(YtShelf(title: title, playlists: cards));
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json);
+  return shelves;
+}

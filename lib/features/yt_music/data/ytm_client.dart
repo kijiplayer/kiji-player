@@ -217,6 +217,45 @@ class YtMusicClient {
     }
   }
 
+  /// Cola de `/next` (anónimo): sirve para el radio de un tema y para las
+  /// pistas de una playlist de YouTube Music.
+  Future<List<YtMusicSearchResult>> _next(Map<String, dynamic> body) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/next',
+      queryParameters: {'key': _apiKey},
+      data: {..._context, ...body},
+    );
+    final data = response.data;
+    return data == null ? const [] : parseNextTracks(data);
+  }
+
+  /// Canciones relacionadas con [videoId] (su "radio", Tarea Z5). Lo único
+  /// que se le dice a YouTube es ese videoId: el historial no sale del teléfono.
+  Future<List<YtMusicSearchResult>> related(String videoId) async {
+    final tracks = await _next({'videoId': videoId, 'playlistId': 'RDAMVM$videoId'});
+    return [for (final t in tracks) if (t.videoId != videoId) t];
+  }
+
+  /// Pistas de una playlist de YouTube Music (sin el prefijo `VL`).
+  Future<List<YtMusicSearchResult>> playlistTracks(String playlistId) => _next({'playlistId': playlistId});
+
+  /// Géneros y estados de ánimo ("Para empezar", anónimo).
+  Future<List<YtMood>> moods() async {
+    final data = await _browse('FEmusic_moods_and_genres');
+    return data == null ? const [] : parseMoods(data);
+  }
+
+  /// Carruseles de playlists de un género o estado de ánimo.
+  Future<List<YtShelf>> moodCategory(String params) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/browse',
+      queryParameters: {'key': _apiKey},
+      data: {..._context, 'browseId': 'FEmusic_moods_and_genres_category', 'params': params},
+    );
+    final data = response.data;
+    return data == null ? const [] : parseMoodCategory(data);
+  }
+
   /// Página de un álbum (anónimo): sus pistas.
   Future<AlbumPage?> album(String browseId) async {
     final data = await _browse(browseId);
