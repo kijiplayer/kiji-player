@@ -18,6 +18,10 @@ class AppSettings {
     this.autoBackup = true,
     this.backupFolder,
     this.disabledLyricsSources = const {},
+    this.translationTarget = 'es',
+    this.useGemini = false,
+    this.geminiEnabled = false,
+    this.geminiModel,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -69,6 +73,19 @@ class AppSettings {
   /// Letras (Tarea Z4): fuentes por internet apagadas por el usuario.
   final Set<LyricsSource> disabledLyricsSources;
 
+  /// Traducción de letras (Tarea Z4): idioma al que se traduce.
+  final String translationTarget;
+
+  /// Traducir con Gemini en vez de en el teléfono (solo si está activado).
+  final bool useGemini;
+
+  /// Apartado "Con IA (Gemini)": apagado de fábrica; se activa después de
+  /// leer los avisos.
+  final bool geminiEnabled;
+
+  /// Modelo de Gemini elegido (por ejemplo, "models/gemini-2.5-flash-lite").
+  final String? geminiModel;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -82,6 +99,10 @@ class AppSettings {
     String? backupFolder,
     bool defaultBackupFolder = false,
     Set<LyricsSource>? disabledLyricsSources,
+    String? translationTarget,
+    bool? useGemini,
+    bool? geminiEnabled,
+    String? geminiModel,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -95,6 +116,10 @@ class AppSettings {
         autoBackup: autoBackup ?? this.autoBackup,
         backupFolder: defaultBackupFolder ? null : (backupFolder ?? this.backupFolder),
         disabledLyricsSources: disabledLyricsSources ?? this.disabledLyricsSources,
+        translationTarget: translationTarget ?? this.translationTarget,
+        useGemini: useGemini ?? this.useGemini,
+        geminiEnabled: geminiEnabled ?? this.geminiEnabled,
+        geminiModel: geminiModel ?? this.geminiModel,
       );
 
   Map<String, dynamic> toJson() => {
@@ -110,6 +135,10 @@ class AppSettings {
         'autoBackup': autoBackup,
         if (backupFolder != null) 'backupFolder': backupFolder,
         'disabledLyricsSources': [for (final s in disabledLyricsSources) s.name],
+        'translationTarget': translationTarget,
+        'useGemini': useGemini,
+        'geminiEnabled': geminiEnabled,
+        if (geminiModel != null) 'geminiModel': geminiModel,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -136,6 +165,10 @@ class AppSettings {
         if (json['disabledLyricsSources'] is List)
           for (final name in json['disabledLyricsSources'] as List) ?LyricsSource.values.asNameMap()['$name'],
       },
+      translationTarget: read('translationTarget', d.translationTarget),
+      useGemini: read('useGemini', d.useGemini),
+      geminiEnabled: read('geminiEnabled', d.geminiEnabled),
+      geminiModel: json['geminiModel'] is String ? json['geminiModel'] as String : null,
     );
   }
 

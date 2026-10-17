@@ -41,6 +41,15 @@ personas que los construyen y mantienen.
 | Servicio | Para qué | Qué se envía |
 |---|---|---|
 | [LRCLIB](https://lrclib.net) | Letras sincronizadas (libres, sin cuenta) | Título, artista, álbum y duración, al tocar "Letra". |
+| [YouLyPlus / LyricsPlus](https://github.com/ibratabian17/YouLyPlus) (servidores comunitarios `lyricsplus.*`, `lyrics-plus-backend.vercel.app`) | Letras palabra por palabra | Título, artista, álbum, duración e id del video, solo si las anteriores no la tienen. |
+| [PaxSenix](https://lyrics.paxsenix.org) | Letras sincronizadas | Título y artista. |
+| [Unison](https://unison.boidu.dev) (de Better Lyrics) | Letras sincronizadas aportadas por la comunidad | Id del video, o título, artista y duración. |
+| [Better Lyrics](https://better-lyrics.boidu.dev) (`lyrics-api.boidu.dev`) | Letras sincronizadas | Título, artista, álbum y duración. |
+| [KuGou](https://www.kugou.com) | Letras sincronizadas (catálogo grande en asiático) | Título, artista y duración. |
+| YouTube (subtítulos) | Letra desde los subtítulos del video | Id del video. |
+| [YouTube Music](https://music.youtube.com) | Letra sin sincronizar de la pestaña "Letra" | Id del video. |
+| [Mozilla Remote Settings](https://firefox.settings.services.mozilla.com) | Bajar una sola vez el motor y el modelo de un idioma para traducir en el teléfono | Nada de la canción: solo qué archivos de idioma se bajan. |
+| [Google Gemini API](https://ai.google.dev) (opcional, apagado de fábrica) | Traducir letras con IA, con la clave del propio usuario | Solo las líneas de la letra y el idioma de destino, con la clave del usuario (cifrada en el dispositivo). |
 | [song.link / Odesli](https://odesli.co) | Enlace universal al compartir una canción | Nada desde Kiji: solo se arma el enlace con el id del video; lo abre quien lo recibe. |
 
 ## Componentes de terceros usados tal cual
@@ -54,6 +63,10 @@ personas que los construyen y mantienen.
 | [crop_your_image](https://pub.dev/packages/crop_your_image) | Apache 2.0 | Recorte de fotos personalizadas (Tarea Z3). |
 | [image](https://pub.dev/packages/image) | MIT | Achicar las fotos personalizadas a 800 px (Tarea Z3). |
 | [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (Florian Karsten) | SIL OFL 1.1 | Tipografía de títulos, incluida en `assets/fonts/space_grotesk/` (con su `OFL.txt`). |
+| [bergamot-translator](https://github.com/mozilla/bergamot-translator) (motor WebAssembly, versión 3.0 de Firefox) | MPL-2.0 | Traducción en el teléfono (Tarea Z4). Se baja de los servidores de Mozilla; no viene en la app. |
+| `bergamot-translator.js` de [Firefox](https://searchfox.org/mozilla-central/source/toolkit/components/translations/bergamot-translator) | MPL-2.0 | Pegamento JavaScript del motor, sin cambios, en `assets/translation/`. |
+| [Modelos de Firefox Translations](https://github.com/mozilla/firefox-translations-models) (Mozilla) | MPL-2.0 | Un modelo por par de idiomas; se bajan solo cuando el usuario elige traducir y se pueden borrar. |
+| [url_launcher](https://pub.dev/packages/url_launcher) | BSD-3-Clause | Abrir páginas en el navegador (guía de Gemini). |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains) | SIL OFL 1.1 | Tipografía de tiempos y números, incluida en `assets/fonts/jetbrains_mono/` (con su `OFL.txt`). |
 
 ## Cómo mantener este archivo

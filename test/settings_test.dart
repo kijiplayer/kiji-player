@@ -149,7 +149,7 @@ void main() {
     ));
     await tester.pump();
 
-    for (final section in ['REPRODUCTOR Y AUDIO', 'CONTENIDO', 'APARIENCIA', 'ALMACENAMIENTO']) {
+    for (final section in ['REPRODUCTOR Y AUDIO', 'CONTENIDO', 'LETRAS']) {
       expect(find.text(section), findsOneWidget, reason: section);
     }
 

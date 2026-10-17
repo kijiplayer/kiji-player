@@ -18,6 +18,8 @@ import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
+import '../../translation/domain/languages.dart';
+import '../../translation/presentation/lyrics_settings_screens.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
 import '../data/settings_store.dart';
 import '../domain/app_settings.dart';
@@ -28,6 +30,7 @@ import 'credits_screen.dart';
 enum SettingsSection {
   player('Reproductor y audio', Icons.play_circle_outline_rounded),
   content('Contenido', Icons.library_music_outlined),
+  lyrics('Letras', Icons.lyrics_outlined),
   appearance('Apariencia', Icons.palette_outlined),
   storage('Almacenamiento', Icons.sd_storage_outlined),
   privacy('Privacidad', Icons.shield_outlined),
@@ -270,6 +273,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ref.read(settingsProvider.notifier).update((s) => s.copyWith(hideShortAudios: value)),
         ),
       ),
+      // Letras
+      SettingOption(
+        section: SettingsSection.lyrics,
+        title: 'Fuentes de letras',
+        subtitle: 'Dónde busca Kiji las letras; cada fuente se puede apagar.',
+        keywords: const ['letra', 'lrclib', 'kugou', 'karaoke', 'sincronizada'],
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.travel_explore_rounded),
+          title: const Text('Fuentes de letras'),
+          subtitle: Text(ref.watch(settingsProvider).disabledLyricsSources.isEmpty
+              ? 'Todas prendidas.'
+              : '${ref.watch(settingsProvider).disabledLyricsSources.length} apagadas.'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => LyricsSourcesScreen.open(context),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.lyrics,
+        title: 'Traducción de letras',
+        subtitle: 'En tu teléfono (anónima) o con Gemini (opcional).',
+        keywords: const ['traducir', 'idioma', 'gemini', 'ia', 'ingles'],
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.translate_rounded),
+          title: const Text('Traducción de letras'),
+          subtitle: Text('Al ${languageName(ref.watch(settingsProvider).translationTarget).toLowerCase()} · '
+              '${ref.watch(settingsProvider).useGemini && ref.watch(settingsProvider).geminiEnabled ? 'con Gemini' : 'en tu teléfono'}'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => TranslationSettingsScreen.open(context),
+        ),
+      ),
       // Apariencia
       SettingOption(
         section: SettingsSection.appearance,
@@ -404,6 +437,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: Text(
             'Sin cuentas, sin anuncios y sin telemetría. Tu cola, tus descargas, tu historial y tus '
             'me gusta se guardan solo en este dispositivo.',
+          ),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
+        title: 'Letras y traducción',
+        subtitle: 'Qué se envía al buscar o traducir una letra.',
+        keywords: const ['letras', 'traduccion', 'gemini', 'clave'],
+        builder: (context, ref) => const ListTile(
+          leading: Icon(Icons.lyrics_outlined),
+          title: Text('Letras y traducción'),
+          subtitle: Text(
+            'Al abrir una letra, cada fuente recibe solo título, artista, álbum, duración o el id del video. '
+            'La traducción en el teléfono no envía nada (solo se baja el modelo del idioma, una vez). '
+            'Gemini es opcional y está apagado: si lo activás, las líneas de la letra van a Google con tu '
+            'clave, que queda cifrada solo en este dispositivo.',
           ),
         ),
       ),

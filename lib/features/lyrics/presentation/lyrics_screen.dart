@@ -20,6 +20,7 @@ import '../data/lrclib_client.dart';
 import '../data/lyrics_repository.dart';
 import '../domain/lyrics.dart';
 import '../lyrics_provider.dart';
+import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_share.dart';
 
 /// Desfase que se está ajustando ahora (null = no se está ajustando).
@@ -27,10 +28,7 @@ final _adjustingOffsetProvider = StateProvider.autoDispose<bool>((ref) => false)
 
 /// Letra de la canción que suena (Tareas I y Z4).
 class LyricsScreen extends ConsumerWidget {
-  const LyricsScreen({super.key, this.translator});
-
-  /// Traducción línea por línea (Tarea Z4, parte de traducción); null = sin.
-  final Widget Function(Lyrics lyrics, Widget Function(List<String?>? translations) build)? translator;
+  const LyricsScreen({super.key});
 
   static Future<void> open(BuildContext context) => Navigator.of(context).push(
         MaterialPageRoute<void>(builder: (_) => const LyricsScreen()),
@@ -92,11 +90,22 @@ class LyricsScreen extends ConsumerWidget {
                               trackId: request.id,
                               translations: translations,
                             )
-                          : PlainLyricsView(text: value.plain!, track: track);
+                          : PlainLyricsView(text: value.plain!, track: track, translations: translations);
+                      final translating = ref.watch(lyricsTranslationOnProvider);
                       return Column(
                         children: [
                           const _OffsetBar(),
-                          Expanded(child: translator == null ? body(null) : translator!(value, body)),
+                          Expanded(
+                            child: translating
+                                ? TranslatedLyrics(
+                                    trackId: request.id,
+                                    lines: value.isSynced
+                                        ? [for (final l in value.synced) l.text]
+                                        : value.plain!.split('\n'),
+                                    builder: body,
+                                  )
+                                : body(null),
+                          ),
                           Padding(
                             padding: const EdgeInsets.all(12),
                             child: Text(
@@ -235,9 +244,17 @@ class _Header extends ConsumerWidget {
                   ref.read(_adjustingOffsetProvider.notifier).state = true;
                 case 'share':
                   ref.read(lyricsSelectionModeProvider.notifier).state = true;
+                case 'translate':
+                  final on = ref.read(lyricsTranslationOnProvider);
+                  ref.read(lyricsTranslationOnProvider.notifier).state = !on;
               }
             },
             itemBuilder: (context) => [
+              if (!(lyrics?.isEmpty ?? true))
+                PopupMenuItem(
+                  value: 'translate',
+                  child: Text(ref.watch(lyricsTranslationOnProvider) ? 'Quitar la traducción' : 'Traducir la letra'),
+                ),
               const PopupMenuItem(value: 'search', child: Text('Buscar a mano')),
               const PopupMenuItem(value: 'import', child: Text('Importar un .lrc')),
               if (lyrics?.isSynced ?? false) const PopupMenuItem(value: 'offset', child: Text('Ajustar el desfase')),
@@ -553,10 +570,13 @@ class _SelectionBar extends StatelessWidget {
 
 /// Letra sin tiempos. Mantener apretada una línea permite compartir.
 class PlainLyricsView extends ConsumerStatefulWidget {
-  const PlainLyricsView({super.key, required this.text, required this.track});
+  const PlainLyricsView({super.key, required this.text, required this.track, this.translations});
 
   final String text;
   final Track track;
+
+  /// Traducción de cada línea (mismo orden), o null.
+  final List<String?>? translations;
 
   @override
   ConsumerState<PlainLyricsView> createState() => _PlainLyricsViewState();
@@ -595,7 +615,16 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
                   : null,
               child: Container(
                 color: selected ? KijiColors.violet.withValues(alpha: 0.18) : null,
-                child: Text(lines[i], style: KijiText.title(size: 20, weight: FontWeight.w500)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(lines[i], style: KijiText.title(size: 20, weight: FontWeight.w500)),
+                    if (widget.translations != null &&
+                        i < widget.translations!.length &&
+                        (widget.translations![i]?.isNotEmpty ?? false))
+                      Text(widget.translations![i]!, style: const TextStyle(color: KijiColors.cyan, fontSize: 15)),
+                  ],
+                ),
               ),
             );
           },

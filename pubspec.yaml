@@ -62,7 +62,8 @@ dependencies:
   flutter_inappwebview: ^6.2.0-beta.3
   crop_your_image: ^2.0.1
   image: ^4.12.0
-
+  crypto: ^3.0.7
+  url_launcher: ^6.3.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -94,6 +95,8 @@ flutter:
     - CREDITS.md
     # Solver de yt-dlp/ejs para descifrar el audio de YouTube (Tarea Z1).
     - assets/solver/
+    # Traducción en el teléfono (Tarea Z4): pegamento JS de Bergamot, de Firefox (MPL-2.0).
+    - assets/translation/
 
   fonts:
     - family: SpaceGrotesk
