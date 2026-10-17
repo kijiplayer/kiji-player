@@ -13,7 +13,14 @@ class Playlist {
     required this.createdAt,
     required this.updatedAt,
     this.importedFrom,
+    this.description,
+    this.colorValue,
+    this.coverFile,
+    this.pinned = false,
+    this.originalName,
   });
+
+  static const _keep = Object();
 
   final String id;
   final String name;
@@ -25,13 +32,45 @@ class Playlist {
   /// "deshacer la importación".
   final String? importedFrom;
 
-  Playlist copyWith({String? name, List<Track>? tracks, DateTime? updatedAt}) => Playlist(
+  /// Personalización (Tarea Z3), solo dentro de Kiji.
+  final String? description;
+
+  /// Color elegido (ARGB), o null para el de fábrica.
+  final int? colorValue;
+
+  /// Foto propia: nombre del archivo en `<datos>/covers/`.
+  final String? coverFile;
+
+  /// Fijada arriba en Inicio y en la Biblioteca.
+  final bool pinned;
+
+  /// Nombre con el que se creó o importó, para "Restaurar original".
+  final String? originalName;
+
+  bool get isCustomized =>
+      description != null || colorValue != null || coverFile != null || (originalName != null && originalName != name);
+
+  Playlist copyWith({
+    String? name,
+    List<Track>? tracks,
+    DateTime? updatedAt,
+    Object? description = _keep,
+    Object? colorValue = _keep,
+    Object? coverFile = _keep,
+    bool? pinned,
+  }) =>
+      Playlist(
         id: id,
         name: name ?? this.name,
         tracks: tracks ?? this.tracks,
         createdAt: createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         importedFrom: importedFrom,
+        description: identical(description, _keep) ? this.description : description as String?,
+        colorValue: identical(colorValue, _keep) ? this.colorValue : colorValue as int?,
+        coverFile: identical(coverFile, _keep) ? this.coverFile : coverFile as String?,
+        pinned: pinned ?? this.pinned,
+        originalName: originalName,
       );
 
   Map<String, dynamic> toJson() => {
@@ -41,6 +80,11 @@ class Playlist {
         'createdAt': createdAt.millisecondsSinceEpoch,
         'updatedAt': updatedAt.millisecondsSinceEpoch,
         if (importedFrom != null) 'importedFrom': importedFrom,
+        if (description != null) 'description': description,
+        if (colorValue != null) 'color': colorValue,
+        if (coverFile != null) 'coverFile': coverFile,
+        if (pinned) 'pinned': true,
+        if (originalName != null) 'originalName': originalName,
       };
 
   factory Playlist.fromJson(Map<String, dynamic> json) => Playlist(
@@ -53,11 +97,23 @@ class Playlist {
         createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(json['updatedAt'] as int),
         importedFrom: json['importedFrom'] as String?,
+        description: json['description'] as String?,
+        colorValue: json['color'] is int ? json['color'] as int : null,
+        coverFile: json['coverFile'] as String?,
+        pinned: json['pinned'] == true,
+        originalName: json['originalName'] as String?,
       );
 }
 
 /// Operaciones puras sobre playlists (testeables sin disco).
 abstract final class PlaylistOps {
+  /// Orden para mostrar: primero las fijadas; dentro de cada grupo, como
+  /// estaban.
+  static List<Playlist> pinnedFirst(List<Playlist> playlists) => [
+        ...playlists.where((pl) => pl.pinned),
+        ...playlists.where((pl) => !pl.pinned),
+      ];
+
   /// Nombre libre: si [wanted] ya existe, agrega [suffix] (y un número si
   /// hace falta). Nunca se pisa una playlist existente (Cero Sorpresas).
   static String uniqueName(String wanted, Iterable<String> existing, {String suffix = ''}) {

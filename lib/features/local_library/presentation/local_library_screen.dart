@@ -17,6 +17,7 @@ import '../../queue/presentation/track_actions.dart';
 import '../../settings/data/settings_store.dart';
 import '../../stream_cache/data/stream_cache.dart';
 import '../domain/local_library_source.dart';
+import '../../customize/presentation/track_text.dart';
 
 enum _LibraryStatus { loading, denied, empty, ready, error }
 
@@ -44,7 +45,8 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   LocalLibrarySource get _source => ref.read(localLibrarySourceProvider);
   _LibraryStatus _status = _LibraryStatus.loading;
   List<Track> _local = const [];
-  LibraryTab _tab = LibraryTab.songs;
+  // Abre en Playlists (Tarea Z3).
+  LibraryTab _tab = LibraryTab.playlists;
 
   @override
   void initState() {
@@ -347,7 +349,7 @@ class _SongTile extends ConsumerWidget {
       onSecondaryTap: () => showTrackActions(context, ref, track),
       child: ListTile(
         leading: TrackArtwork(track: track, size: 44, radius: 8),
-        title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Row(
           children: [
             SourceTag(youtube: isYoutube),

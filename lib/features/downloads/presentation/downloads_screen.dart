@@ -12,6 +12,7 @@ import '../domain/download_settings.dart';
 import '../domain/downloaded_track.dart';
 import '../../queue/presentation/track_actions.dart';
 import 'download_button.dart';
+import '../../customize/presentation/track_text.dart';
 
 /// Sección "Descargadas" de la Biblioteca: lo que se puede escuchar sin
 /// conexión, cuánto ocupa, y las opciones de descarga.
@@ -65,7 +66,7 @@ class DownloadsView extends ConsumerWidget {
             for (final download in active)
               ListTile(
                 leading: _Cover(color: download.track.coverColor),
-                title: Text(download.track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                title: TrackTitleText(download.track, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text(
                   download.status == ActiveDownloadStatus.failed
                       ? download.errorMessage ?? 'Falló la descarga'
@@ -100,7 +101,7 @@ class DownloadsView extends ConsumerWidget {
                     ? null
                     : p.join(downloads.directoryPath!, track.thumbnailFileName!),
               ),
-              title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: TrackTitleText(track.toTrack(), maxLines: 1, overflow: TextOverflow.ellipsis),
               subtitle: Text(
                 '${track.artist} · ${formatBytes(track.sizeBytes)}',
                 maxLines: 1,

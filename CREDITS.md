@@ -51,6 +51,8 @@ personas que los construyen y mantienen.
 | [meriyah](https://github.com/meriyah/meriyah) 6.1.4 (dentro de `yt.solver.lib.js`) | ISC | Parser de JavaScript que usa el solver. |
 | [astring](https://github.com/davidbonnet/astring) 1.9.0 (dentro de `yt.solver.lib.js`) | MIT | Generador de código JavaScript que usa el solver. |
 | `player_configs.json` de Echo Music | GPL-3.0 | Tabla de reproductores verificados por hash (Kiji usa el `sts`). |
+| [crop_your_image](https://pub.dev/packages/crop_your_image) | Apache 2.0 | Recorte de fotos personalizadas (Tarea Z3). |
+| [image](https://pub.dev/packages/image) | MIT | Achicar las fotos personalizadas a 800 px (Tarea Z3). |
 | [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (Florian Karsten) | SIL OFL 1.1 | Tipografía de títulos, incluida en `assets/fonts/space_grotesk/` (con su `OFL.txt`). |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains) | SIL OFL 1.1 | Tipografía de tiempos y números, incluida en `assets/fonts/jetbrains_mono/` (con su `OFL.txt`). |
 

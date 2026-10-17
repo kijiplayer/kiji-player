@@ -12,6 +12,7 @@ import '../../system_media/data/cover_art.dart';
 import '../data/ytm_browse_parser.dart';
 import '../data/ytm_client.dart';
 import '../domain/yt_track_mapper.dart';
+import '../../customize/presentation/track_text.dart';
 
 /// Cliente compartido para las páginas de artista y álbum.
 final ytMusicClientProvider = Provider<YtMusicClient>((ref) => YtMusicClient());
@@ -80,8 +81,8 @@ class _SongsList extends ConsumerWidget {
             onSecondaryTap: () => showTrackActions(context, ref, track),
             child: ListTile(
               leading: _Art(track: track),
-              title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-              subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: DownloadButton(track: track),
               onTap: () => ref.read(playbackProvider.notifier).playQueue(tracks, startIndex: index),
               onLongPress: () => showTrackActions(context, ref, track),

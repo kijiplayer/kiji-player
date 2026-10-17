@@ -141,19 +141,32 @@ ImportBundle readEchoDatabase(Database db) {
       artist: artists == null || artists.isEmpty ? null : artists.join(', '),
       album: songColumns.contains('albumName') ? r['albumName'] as String? : null,
       durationMs: duration == null || duration <= 0 ? null : duration * 1000,
+      thumbnailUrl: songColumns.contains('thumbnailUrl') ? r['thumbnailUrl'] as String? : null,
     );
     if ((r['liked'] as int? ?? 0) == 1) likedIds.add(id);
   }
 
   final playlists = <ImportedPlaylist>[];
   if (tables.contains('playlist') && tables.contains('playlist_song_map')) {
-    for (final pl in db.select('SELECT id, name FROM playlist ORDER BY createdAt')) {
+    final playlistColumns = {for (final r in db.select('PRAGMA table_info(playlist)')) r['name'] as String};
+    final extra = [
+      if (playlistColumns.contains('thumbnailUrl')) 'thumbnailUrl',
+      if (playlistColumns.contains('isPinned')) 'isPinned',
+    ];
+    for (final pl in db.select('SELECT ${['id', 'name', ...extra].join(', ')} FROM playlist ORDER BY createdAt')) {
       final rows = db.select(
         'SELECT songId FROM playlist_song_map WHERE playlistId = ? ORDER BY position',
         [pl['id']],
       );
       final list = [for (final r in rows) ?songs[r['songId']]];
-      if (list.isNotEmpty) playlists.add(ImportedPlaylist(pl['name'] as String, list));
+      if (list.isNotEmpty) {
+        playlists.add(ImportedPlaylist(
+          pl['name'] as String,
+          list,
+          thumbnailUrl: extra.contains('thumbnailUrl') ? pl['thumbnailUrl'] as String? : null,
+          pinned: extra.contains('isPinned') && (pl['isPinned'] as int? ?? 0) == 1,
+        ));
+      }
     }
   }
 
@@ -188,7 +201,14 @@ ImportBundle parseM3u(String text, {required String name, String? baseDir}) {
   final songs = <ImportedSong>[];
   int? pendingSeconds;
   String? pendingInfo;
+  String? pendingImage;
   var playlistName = name;
+  // Imagen indicada en la lista (#EXTIMG o tvg-logo), relativa a la lista.
+  String resolve(String path) {
+    if (path.startsWith('http')) return path;
+    final local = path.startsWith('file://') ? Uri.parse(path).toFilePath() : path;
+    return p.isAbsolute(local) || baseDir == null ? local : p.normalize(p.join(baseDir, local));
+  }
   for (final raw in text.split(RegExp(r'\r?\n'))) {
     final line = raw.trim();
     if (line.isEmpty) continue;
@@ -196,8 +216,14 @@ ImportBundle parseM3u(String text, {required String name, String? baseDir}) {
       playlistName = line.substring('#PLAYLIST:'.length).trim();
       continue;
     }
+    if (line.startsWith('#EXTIMG:')) {
+      pendingImage = resolve(line.substring('#EXTIMG:'.length).trim());
+      continue;
+    }
     if (line.startsWith('#EXTINF:')) {
       final body = line.substring('#EXTINF:'.length);
+      final logo = RegExp(r'tvg-logo="([^"]+)"').firstMatch(body)?.group(1);
+      if (logo != null) pendingImage = resolve(logo);
       final comma = body.indexOf(',');
       pendingSeconds = int.tryParse((comma == -1 ? body : body.substring(0, comma)).trim().split(' ').first);
       pendingInfo = comma == -1 ? null : body.substring(comma + 1).trim();
@@ -215,7 +241,13 @@ ImportBundle parseM3u(String text, {required String name, String? baseDir}) {
     final duration = pendingSeconds != null && pendingSeconds > 0 ? pendingSeconds * 1000 : null;
     final yt = _ytUrl.firstMatch(line);
     if (yt != null) {
-      songs.add(ImportedSong(videoId: yt[1], title: title, artist: artist, durationMs: duration));
+      songs.add(ImportedSong(
+        videoId: yt[1],
+        title: title,
+        artist: artist,
+        durationMs: duration,
+        thumbnailUrl: pendingImage,
+      ));
     } else {
       final path = line.startsWith('file://') ? Uri.parse(line).toFilePath() : line;
       final absolute = p.isAbsolute(path) || baseDir == null ? path : p.normalize(p.join(baseDir, path));
@@ -224,10 +256,12 @@ ImportBundle parseM3u(String text, {required String name, String? baseDir}) {
         title: title ?? p.basenameWithoutExtension(absolute),
         artist: artist,
         durationMs: duration,
+        thumbnailUrl: pendingImage,
       ));
     }
     pendingSeconds = null;
     pendingInfo = null;
+    pendingImage = null;
   }
   if (songs.isEmpty) throw ImportFormatException('La lista «$name» no tiene canciones.');
   return ImportBundle(source: '$name (.m3u)', playlists: [ImportedPlaylist(playlistName, songs)]);

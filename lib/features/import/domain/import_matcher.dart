@@ -85,7 +85,16 @@ class ImportMatcher {
   /// Puntaje mínimo para aceptar una coincidencia por título.
   static const threshold = 0.6;
 
+  /// La canción que corresponde a [song], con su carátula si la traía
+  /// (Tarea Z3).
   Future<Track?> resolve(ImportedSong song) async {
+    final track = await _resolve(song);
+    final thumb = song.thumbnailUrl;
+    if (track == null || thumb == null || !thumb.startsWith('http') || track.thumbnailUrl != null) return track;
+    return track.copyWith(thumbnailUrl: thumb);
+  }
+
+  Future<Track?> _resolve(ImportedSong song) async {
     final videoId = song.videoId;
     if (videoId != null && videoId.isNotEmpty) {
       if (song.title != null && song.title!.trim().isNotEmpty) {
@@ -96,6 +105,7 @@ class ImportMatcher {
             artist: song.artist ?? 'Artista desconocido',
             album: song.album,
             durationMs: song.durationMs,
+            thumbnailUrl: song.thumbnailUrl != null && song.thumbnailUrl!.startsWith('http') ? song.thumbnailUrl : null,
           ),
           audioUrl: '',
         );

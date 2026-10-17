@@ -7,9 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
 import '../../../providers/playback_provider.dart';
+import '../../customize/presentation/customize_sheets.dart';
 import '../../playback_extras/data/share_track.dart';
 import '../../playlists/presentation/playlist_screens.dart';
 import '../../sleep_timer/sleep_timer_provider.dart';
+import '../../customize/presentation/track_text.dart';
 
 /// Menú de una canción (mantener apretado en el celular, clic derecho en la
 /// PC): "Reproducir a continuación" y "Agregar a la cola".
@@ -31,8 +33,8 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+            title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
           const Divider(height: 1),
           ListTile(
@@ -59,6 +61,15 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
             onTap: () {
               Navigator.pop(context);
               showAddToPlaylistSheet(context, ref, [track]);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text('Personalizar'),
+            subtitle: const Text('Foto, título y artista (solo en Kiji)'),
+            onTap: () {
+              Navigator.pop(context);
+              showCustomizeTrackSheet(context, ref, track);
             },
           ),
           ListTile(

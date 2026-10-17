@@ -83,9 +83,11 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
   /// nunca se pisa nada.
   Playlist create(String name, {List<Track> tracks = const [], String suffix = '', String? importedFrom}) {
     final now = _clock();
+    final unique = PlaylistOps.uniqueName(name, state.map((pl) => pl.name), suffix: suffix);
     final playlist = Playlist(
       id: _newId(),
-      name: PlaylistOps.uniqueName(name, state.map((pl) => pl.name), suffix: suffix),
+      name: unique,
+      originalName: unique,
       tracks: PlaylistOps.addTracks(
         Playlist(id: '', name: '', tracks: const [], createdAt: now, updatedAt: now),
         tracks,
@@ -105,6 +107,62 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     if (playlist == null || name.trim().isEmpty) return;
     final others = state.where((pl) => pl.id != id).map((pl) => pl.name);
     _replace(playlist.copyWith(name: PlaylistOps.uniqueName(name, others), updatedAt: _clock()));
+  }
+
+  /// Personaliza la playlist (Tarea Z3): nombre, descripción, color y foto
+  /// (el nombre de un archivo ya guardado en covers/). Lo que no se pasa,
+  /// queda igual.
+  void customize(
+    String id, {
+    String? name,
+    String? description,
+    int? colorValue,
+    String? coverFile,
+    bool clearDescription = false,
+  }) {
+    final playlist = byId(id);
+    if (playlist == null) return;
+    final others = state.where((pl) => pl.id != id).map((pl) => pl.name);
+    final String? newDescription;
+    if (clearDescription) {
+      newDescription = null;
+    } else if (description == null) {
+      newDescription = playlist.description;
+    } else {
+      newDescription = description.trim().isEmpty ? null : description.trim();
+    }
+    _replace(playlist.copyWith(
+      name: name == null || name.trim().isEmpty || name.trim() == playlist.name
+          ? null
+          : PlaylistOps.uniqueName(name, others),
+      description: newDescription,
+      colorValue: colorValue ?? playlist.colorValue,
+      coverFile: coverFile ?? playlist.coverFile,
+      updatedAt: _clock(),
+    ));
+  }
+
+  /// "Restaurar original": nombre con el que se creó, sin foto, descripción
+  /// ni color. Devuelve la foto que tenía (para borrar el archivo).
+  String? restoreOriginal(String id) {
+    final playlist = byId(id);
+    if (playlist == null) return null;
+    final others = state.where((pl) => pl.id != id).map((pl) => pl.name);
+    final original = playlist.originalName;
+    _replace(playlist.copyWith(
+      name: original == null ? null : PlaylistOps.uniqueName(original, others),
+      description: null,
+      colorValue: null,
+      coverFile: null,
+      updatedAt: _clock(),
+    ));
+    return playlist.coverFile;
+  }
+
+  void setPinned(String id, bool pinned) {
+    final playlist = byId(id);
+    if (playlist == null || playlist.pinned == pinned) return;
+    _replace(playlist.copyWith(pinned: pinned));
   }
 
   /// Borra la playlist. Devuelve lo necesario para deshacerlo.

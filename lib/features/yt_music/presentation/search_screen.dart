@@ -18,6 +18,7 @@ import '../data/ytm_browse_parser.dart';
 import '../data/ytm_client.dart';
 import 'collection_screens.dart';
 import '../domain/yt_track_mapper.dart';
+import '../../customize/presentation/track_text.dart';
 
 /// Qué se busca (chips del mockup, §7).
 enum SearchKind {
@@ -262,8 +263,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         final track = results[index];
         return ListTile(
           leading: TrackArtwork(track: track, size: 44, radius: 8),
-          title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+          title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+          subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
           onTap: () => ref.read(playbackProvider.notifier).playQueue(results, startIndex: index),
           onLongPress: () => showTrackActions(context, ref, track),
         );

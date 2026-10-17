@@ -3,7 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/customize/presentation/customize_sheets.dart';
 import '../../features/history/listening_history.dart';
+import '../../features/playlists/domain/playlist.dart';
+import '../../features/playlists/playlists_provider.dart';
+import '../../features/playlists/presentation/playlist_screens.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../models/track.dart';
 import '../../providers/playback_provider.dart';
@@ -11,6 +15,7 @@ import '../../providers/shell_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/nocturne/glass.dart';
+import '../../features/customize/presentation/track_text.dart';
 
 /// Saludo según la hora (5–12 mañana, 12–20 tarde, resto noche).
 String greetingFor(DateTime now) {
@@ -19,8 +24,8 @@ String greetingFor(DateTime now) {
   return 'Buenas noches';
 }
 
-/// Pestaña Inicio (§7): saludo, "Seguí donde quedaste", escuchado
-/// recientemente y "Para vos", todo calculado en el teléfono.
+/// Pestaña Inicio (§7): saludo, "Seguí donde quedaste", tus playlists,
+/// escuchado recientemente y "Para vos", todo calculado en el teléfono.
 class InicioTab extends ConsumerWidget {
   const InicioTab({super.key});
 
@@ -40,6 +45,9 @@ class InicioTab extends ConsumerWidget {
           _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
           const SizedBox(height: 28),
         ],
+        // Tarea Z3: las playlists a la vista, arriba.
+        const _PlaylistsRow(),
+        const SizedBox(height: 28),
         if (recent.isEmpty && playback.track == null)
           _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
         if (recent.isNotEmpty) ...[
@@ -170,14 +178,14 @@ class _ContinueCard extends ConsumerWidget {
                 children: [
                   Text('SEGUÍ DONDE QUEDASTE', style: KijiText.mono(size: 10)),
                   const SizedBox(height: 6),
-                  Text(
-                    track.title,
+                  TrackTitleText(
+                    track,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: KijiText.title(size: 17),
                   ),
-                  Text(
-                    track.artist,
+                  TrackArtistText(
+                    track,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: KijiColors.muted),
@@ -234,9 +242,9 @@ class _RecentCard extends StatelessWidget {
           children: [
             TrackArtwork(track: track, size: 140, radius: 16),
             const SizedBox(height: 8),
-            Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+            TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w600)),
-            Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis,
+            TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
           ],
         ),
@@ -265,8 +273,8 @@ class _ForYouTile extends StatelessWidget {
               TrackArtwork(track: track, size: 56, radius: KijiRadii.tile),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  track.title,
+                child: TrackTitleText(
+                  track,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
@@ -307,6 +315,108 @@ class _EmptyHome extends StatelessWidget {
             label: const Text('Buscar música'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Tus playlists" (Tarea Z3): carátulas grandes, las fijadas primero y
+/// después las tocadas hace menos; al final, "+ Nueva".
+class _PlaylistsRow extends ConsumerWidget {
+  const _PlaylistsRow();
+
+  static const _cover = 132.0;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final all = ref.watch(playlistsProvider);
+    final playlists = PlaylistOps.pinnedFirst([...all]..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Tus playlists', style: KijiText.title(size: 18)),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: _cover + 44,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: playlists.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(width: 14),
+            itemBuilder: (context, index) {
+              if (index == playlists.length) {
+                return _NewPlaylistCard(size: _cover);
+              }
+              final playlist = playlists[index];
+              return GestureDetector(
+                onTap: () => PlaylistScreen.open(context, playlist.id),
+                child: SizedBox(
+                  width: _cover,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        children: [
+                          PlaylistCover(playlist: playlist, size: _cover, radius: KijiRadii.card),
+                          if (playlist.pinned)
+                            const Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Icon(Icons.push_pin_rounded, size: 18, color: KijiColors.cyan, semanticLabel: 'Fijada'),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                        '${playlist.tracks.length} ${playlist.tracks.length == 1 ? 'canción' : 'canciones'}',
+                        style: KijiText.mono(size: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NewPlaylistCard extends ConsumerWidget {
+  const _NewPlaylistCard({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () async {
+        final name = await promptPlaylistName(context);
+        if (name == null) return;
+        final playlist = ref.read(playlistsProvider.notifier).create(name);
+        if (context.mounted) await PlaylistScreen.open(context, playlist.id);
+      },
+      child: SizedBox(
+        width: size,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(KijiRadii.card),
+                border: Border.all(color: KijiColors.glassBorder),
+                color: KijiColors.glassFill,
+              ),
+              child: const Icon(Icons.add_rounded, size: 44, color: KijiColors.cyan),
+            ),
+            const SizedBox(height: 8),
+            const Text('+ Nueva', style: TextStyle(fontWeight: FontWeight.w600)),
+          ],
+        ),
       ),
     );
   }

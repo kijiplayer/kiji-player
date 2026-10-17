@@ -6,6 +6,8 @@ import '../screens/player/player_screen.dart';
 import '../theme/kiji_tokens.dart';
 import 'album_cover.dart';
 import 'nocturne/glass.dart';
+import '../features/customize/presentation/track_text.dart';
+import '../features/playlists/presentation/playlist_screens.dart';
 
 /// Mini-reproductor de vidrio (§7): radio 20, borde 1 px blanco 12 %, y una
 /// línea de progreso degradada de 2 px abajo. Sin canción elegida, no ocupa
@@ -38,8 +40,8 @@ class MiniPlayer extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            track.title,
+                          TrackTitleText(
+                            track,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -48,14 +50,21 @@ class MiniPlayer extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            track.artist,
+                          TrackArtistText(
+                            track,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: KijiColors.muted, fontSize: 13),
                           ),
                         ],
                       ),
+                    ),
+                    // "Agregar a playlist" a un toque (Tarea Z3).
+                    IconButton(
+                      onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
+                      icon: const Icon(Icons.playlist_add_rounded),
+                      color: Colors.white,
+                      tooltip: 'Agregar a playlist',
                     ),
                     IconButton(
                       onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),

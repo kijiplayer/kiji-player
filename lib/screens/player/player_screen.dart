@@ -20,6 +20,8 @@ import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/glass.dart';
+import '../../features/customize/presentation/track_text.dart';
+import '../../features/playlists/presentation/playlist_screens.dart';
 
 /// De dónde sale la canción, para "REPRODUCIENDO DESDE".
 String playingFromLabel(Track track, {required bool downloaded}) {
@@ -249,15 +251,15 @@ class _TitleRow extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                track.title,
+              TrackTitleText(
+                track,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: KijiText.title(size: 26),
               ),
               const SizedBox(height: 4),
-              Text(
-                track.artist,
+              TrackArtistText(
+                track,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: KijiColors.muted, fontSize: 16),
@@ -275,6 +277,12 @@ class _TitleRow extends ConsumerWidget {
                   ),
                 )
               : DownloadButton(track: track),
+        // "Agregar a playlist" a un toque (Tarea Z3).
+        IconButton(
+          tooltip: 'Agregar a playlist',
+          onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
+          icon: const Icon(Icons.playlist_add_rounded, color: Colors.white),
+        ),
         IconButton(
           tooltip: liked ? 'Quitar de me gusta' : 'Me gusta',
           onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),

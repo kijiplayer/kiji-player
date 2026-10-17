@@ -13,6 +13,7 @@ import '../../../widgets/nocturne/glass.dart';
 import '../data/lrclib_client.dart';
 import '../domain/lyrics.dart';
 import '../lyrics_provider.dart';
+import '../../customize/presentation/track_text.dart';
 
 /// Letra de la canción que suena (Tarea I).
 class LyricsScreen extends ConsumerWidget {
@@ -122,9 +123,9 @@ class _Header extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: KijiText.title(size: 18)),
-                Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis,
+                TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: KijiColors.muted)),
               ],
             ),

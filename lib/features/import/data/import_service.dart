@@ -13,6 +13,10 @@ import '../../history/listening_history.dart';
 import '../../playlists/playlists_provider.dart';
 import '../domain/import_matcher.dart';
 import '../domain/imported.dart';
+import 'package:audio_metadata_reader/audio_metadata_reader.dart';
+import 'package:dio/dio.dart';
+import '../../customize/data/artwork_cache.dart';
+import '../../customize/data/track_overrides.dart';
 
 /// Resultado de buscar todas las canciones de un archivo, antes de importar.
 class ImportPlan {
@@ -202,13 +206,19 @@ class ImportsNotifier extends Notifier<List<ImportRecord>> {
   ImportRecord apply(ImportPlan plan) {
     final playlists = ref.read(playlistsProvider.notifier);
     final playlistIds = <String>[];
+    final playlistCovers = <String, String>{};
     for (final pl in plan.bundle.playlists) {
       final tracks = [for (final s in pl.songs) ?plan.resolved[s.key]];
       if (tracks.isEmpty) continue;
-      playlistIds.add(playlists
-          .create(pl.name, tracks: tracks, suffix: '(importada)', importedFrom: plan.bundle.source)
-          .id);
+      final created =
+          playlists.create(pl.name, tracks: tracks, suffix: '(importada)', importedFrom: plan.bundle.source);
+      playlistIds.add(created.id);
+      if (pl.pinned) playlists.setPinned(created.id, true);
+      final thumb = pl.thumbnailUrl;
+      if (thumb != null && thumb.isNotEmpty) playlistCovers[created.id] = thumb;
     }
+    // Las carátulas se bajan después, sin hacer esperar (Tarea Z3).
+    unawaited(_importArtwork(plan, playlistCovers));
     final likedIds = ref.read(favoritesProvider.notifier).addAll([
       for (final s in plan.bundle.liked) ?plan.resolved[s.key],
     ]);
@@ -231,9 +241,82 @@ class ImportsNotifier extends Notifier<List<ImportRecord>> {
     return record;
   }
 
+  /// Carátulas de lo importado (Tarea Z3): miniaturas de YouTube a la caché
+  /// local, la imagen incluida en cada archivo local (o la que indica el
+  /// m3u) y la foto de cada playlist. Si algo falla, queda la de siempre.
+  Future<void> _importArtwork(ImportPlan plan, Map<String, String> playlistCovers) async {
+    final cache = ref.read(artworkCacheProvider);
+    try {
+      final urls = [
+        for (final track in plan.resolved.values)
+          if (track.thumbnailUrl != null && track.thumbnailUrl!.startsWith('http')) track.thumbnailUrl!,
+      ];
+      await cache.download(urls);
+
+      var embedded = 0;
+      final songsByKey = {for (final s in plan.bundle.allSongs) s.key: s};
+      for (final entry in plan.resolved.entries) {
+        final track = entry.value;
+        if (track.source != TrackSource.local) continue;
+        final bytes = await _localArtwork(track.audioUrl, songsByKey[entry.key]?.thumbnailUrl);
+        if (bytes != null) {
+          await cache.saveBytes(ArtworkCache.fileKey(track.audioUrl), bytes);
+          embedded++;
+        }
+      }
+      if (embedded > 0) debugPrint('=== IMPORTAR: $embedded carátulas de archivos locales ===');
+
+      final covers = ref.read(trackOverridesProvider.notifier).covers;
+      for (final entry in playlistCovers.entries) {
+        try {
+          final source = entry.value;
+          final bytes = source.startsWith('http')
+              ? Uint8List.fromList((await Dio().get<List<int>>(source,
+                      options: Options(responseType: ResponseType.bytes)))
+                  .data!)
+              : await File(source).readAsBytes();
+          final name = await covers.save('playlist-${entry.key}', bytes);
+          ref.read(playlistsProvider.notifier).customize(entry.key, coverFile: name);
+        } catch (error) {
+          debugPrint('=== IMPORTAR: no se pudo traer la foto de una playlist: $error ===');
+        }
+      }
+      // Las carátulas recién guardadas se ven sin tener que reabrir.
+      ref.invalidate(artworkFolderProvider);
+    } catch (error) {
+      debugPrint('=== IMPORTAR: no se pudieron traer las carátulas: $error ===');
+    }
+  }
+
+  /// Imagen incluida en el archivo de música, o la que indica la lista.
+  static Future<List<int>?> _localArtwork(String path, String? listImage) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        final pictures = readMetadata(file, getImage: true).pictures;
+        if (pictures.isNotEmpty) return pictures.first.bytes;
+      }
+    } catch (error) {
+      debugPrint('=== IMPORTAR: no se pudo leer la carátula de $path: $error ===');
+    }
+    if (listImage != null && !listImage.startsWith('http')) {
+      try {
+        final image = File(listImage);
+        if (await image.exists()) return await image.readAsBytes();
+      } catch (error) {
+        debugPrint('=== IMPORTAR: no se pudo leer la imagen $listImage: $error ===');
+      }
+    }
+    return null;
+  }
+
   /// Deshace la importación entera: quita exactamente lo que agregó.
   void undo(ImportRecord record) {
-    ref.read(playlistsProvider.notifier).deleteMany(record.playlistIds.toSet());
+    final removed = ref.read(playlistsProvider.notifier).deleteMany(record.playlistIds.toSet());
+    final covers = ref.read(trackOverridesProvider.notifier).covers;
+    for (final (playlist, _) in removed) {
+      unawaited(covers.delete(playlist.coverFile));
+    }
     ref.read(favoritesProvider.notifier).removeIds(record.likedIds);
     ref.read(listeningHistoryProvider.notifier).removeIds(record.historyIds);
     state = [for (final r in state) if (r.id != record.id) r];

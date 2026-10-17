@@ -17,6 +17,8 @@ const backedUpFiles = [
   'history.json',
   'imports.json',
   'library_folders.json',
+  // Título, artista y foto personalizados de cada canción (Tarea Z3).
+  'track_overrides.json',
 ];
 
 /// La lista de descargas va aparte: al restaurar no se pisa el índice (los

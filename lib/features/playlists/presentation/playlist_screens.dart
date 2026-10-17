@@ -19,6 +19,9 @@ import '../../history/listening_history.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../domain/smart_lists.dart';
 import '../playlists_provider.dart';
+import '../../customize/presentation/track_text.dart';
+import '../../customize/presentation/customize_sheets.dart';
+import '../domain/playlist.dart';
 
 /// Datos de las listas inteligentes, calculados en el teléfono.
 final smartListInputsProvider = Provider<SmartListInputs>((ref) => SmartListInputs(
@@ -157,10 +160,18 @@ class PlaylistsView extends ConsumerWidget {
               style: TextStyle(color: KijiColors.muted),
             ),
           ),
-        for (final playlist in playlists)
+        for (final playlist in PlaylistOps.pinnedFirst(playlists))
           ListTile(
-            leading: _PlaylistCover(tracks: playlist.tracks),
-            title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            leading: PlaylistCover(playlist: playlist),
+            title: Row(
+              children: [
+                if (playlist.pinned) ...[
+                  const Icon(Icons.push_pin_rounded, size: 14, color: KijiColors.cyan, semanticLabel: 'Fijada'),
+                  const SizedBox(width: 4),
+                ],
+                Expanded(child: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+              ],
+            ),
             subtitle: Text(_count(playlist.tracks.length), style: const TextStyle(color: KijiColors.muted)),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => PlaylistScreen.open(context, playlist.id),
@@ -184,24 +195,23 @@ class PlaylistsView extends ConsumerWidget {
   }
 }
 
-class _PlaylistCover extends StatelessWidget {
-  const _PlaylistCover({required this.tracks});
-
-  final List<Track> tracks;
-
-  @override
-  Widget build(BuildContext context) => tracks.isEmpty
-      ? const AlbumCover(color: KijiColors.violet, size: 48, iconSize: 22)
-      : TrackArtwork(track: tracks.first, size: 48, radius: 8);
-}
-
 /// Cabecera de una lista: nombre, cantidad, Reproducir y Aleatorio.
 class _ListHeader extends ConsumerWidget {
-  const _ListHeader({required this.title, required this.subtitle, required this.tracks});
+  const _ListHeader({
+    required this.title,
+    required this.subtitle,
+    required this.tracks,
+    this.cover,
+    this.description,
+  });
 
   final String title;
   final String subtitle;
   final List<Track> tracks;
+
+  /// Foto de la playlist (Tarea Z3).
+  final Widget? cover;
+  final String? description;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -214,9 +224,25 @@ class _ListHeader extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: KijiText.title(size: 24)),
-              const SizedBox(height: 4),
-              Text(subtitle, style: const TextStyle(color: KijiColors.muted)),
+              Row(
+                children: [
+                  if (cover != null) ...[cover!, const SizedBox(width: 14)],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: KijiText.title(size: 24)),
+                        const SizedBox(height: 4),
+                        Text(subtitle, style: const TextStyle(color: KijiColors.muted)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (description != null) ...[
+                const SizedBox(height: 10),
+                Text(description!),
+              ],
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -265,7 +291,11 @@ class PlaylistScreen extends ConsumerWidget {
           PopupMenuButton<String>(
             tooltip: 'Más opciones',
             onSelected: (action) async {
-              if (action == 'rename') {
+              if (action == 'customize') {
+                await showCustomizePlaylistSheet(context, ref, playlist);
+              } else if (action == 'pin') {
+                notifier.setPinned(playlist.id, !playlist.pinned);
+              } else if (action == 'rename') {
                 final name = await promptPlaylistName(context, initial: playlist.name, title: 'Renombrar');
                 if (name != null) notifier.rename(playlist.id, name);
               } else if (action == 'delete') {
@@ -285,9 +315,11 @@ class PlaylistScreen extends ConsumerWidget {
                 }
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'rename', child: Text('Renombrar')),
-              PopupMenuItem(value: 'delete', child: Text('Borrar la playlist')),
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'customize', child: Text('Personalizar (foto, color, descripción)')),
+              PopupMenuItem(value: 'pin', child: Text(playlist.pinned ? 'Desfijar' : 'Fijar arriba')),
+              const PopupMenuItem(value: 'rename', child: Text('Renombrar')),
+              const PopupMenuItem(value: 'delete', child: Text('Borrar la playlist')),
             ],
           ),
         ],
@@ -295,6 +327,8 @@ class PlaylistScreen extends ConsumerWidget {
       body: Column(
         children: [
           _ListHeader(
+            cover: PlaylistCover(playlist: playlist, size: 84, radius: 14),
+            description: playlist.description,
             title: playlist.name,
             subtitle: playlist.importedFrom == null
                 ? _count(playlist.tracks.length)
@@ -312,8 +346,8 @@ class PlaylistScreen extends ConsumerWidget {
                 return ListTile(
                   key: ValueKey('${track.id}#$index'),
                   leading: TrackArtwork(track: track, size: 44, radius: 8),
-                  title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
                   onTap: () => ref.read(playbackProvider.notifier).playQueue(playlist.tracks, startIndex: index),
                   onLongPress: () => showTrackActions(context, ref, track),
                   trailing: Row(
@@ -388,8 +422,8 @@ class SmartListScreen extends ConsumerWidget {
           for (final (index, track) in tracks.indexed)
             ListTile(
               leading: TrackArtwork(track: track, size: 44, radius: 8),
-              title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-              subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
               onTap: () => ref.read(playbackProvider.notifier).playQueue(tracks, startIndex: index),
               onLongPress: () => showTrackActions(context, ref, track),
             ),

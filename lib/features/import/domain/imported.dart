@@ -1,6 +1,14 @@
 /// Una canción tal como viene de otra app, antes de buscarla en Kiji.
 class ImportedSong {
-  const ImportedSong({this.videoId, this.localPath, this.title, this.artist, this.album, this.durationMs});
+  const ImportedSong({
+    this.videoId,
+    this.localPath,
+    this.title,
+    this.artist,
+    this.album,
+    this.durationMs,
+    this.thumbnailUrl,
+  });
 
   /// Si la trae, se usa directo (YouTube Music).
   final String? videoId;
@@ -12,6 +20,9 @@ class ImportedSong {
   final String? artist;
   final String? album;
   final int? durationMs;
+
+  /// Carátula (Tarea Z3): URL de Echo/Metrolist o imagen indicada en el m3u.
+  final String? thumbnailUrl;
 
   /// Algo con qué buscarla.
   bool get isUsable =>
@@ -29,10 +40,16 @@ class ImportedSong {
 }
 
 class ImportedPlaylist {
-  const ImportedPlaylist(this.name, this.songs);
+  const ImportedPlaylist(this.name, this.songs, {this.thumbnailUrl, this.pinned = false});
 
   final String name;
   final List<ImportedSong> songs;
+
+  /// Miniatura de la playlist (Echo/Metrolist), Tarea Z3.
+  final String? thumbnailUrl;
+
+  /// Estaba fijada en la otra app.
+  final bool pinned;
 }
 
 class ImportedPlay {
@@ -65,6 +82,13 @@ class ImportBundle {
       }.length;
 
   bool get isEmpty => playlists.isEmpty && liked.isEmpty && history.isEmpty;
+
+  /// Todas las canciones (con repetidas).
+  Iterable<ImportedSong> get allSongs => [
+        for (final pl in playlists) ...pl.songs,
+        ...liked,
+        for (final h in history) h.song,
+      ];
 }
 
 /// El archivo no es de ningún formato conocido, o está dañado. El mensaje

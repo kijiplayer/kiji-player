@@ -12,6 +12,7 @@ import '../../../theme/kiji_tokens.dart';
 import '../../sleep_timer/domain/sleep_timer_logic.dart';
 import '../../sleep_timer/sleep_timer_provider.dart';
 import '../../../widgets/album_cover.dart';
+import '../../customize/presentation/track_text.dart';
 
 /// "Qué suena después": reordenar arrastrando, quitar (con Deshacer) y
 /// saltar a una canción. El orden se guarda solo (memoria de la Tarea A).
@@ -181,8 +182,8 @@ class _QueueTile extends StatelessWidget {
                   ),
               ],
             ),
-            title: Text(
-              track.title,
+            title: TrackTitleText(
+              track,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -196,7 +197,7 @@ class _QueueTile extends StatelessWidget {
                   const Icon(Icons.bedtime_rounded, size: 14, color: KijiColors.cyan),
                   const SizedBox(width: 4),
                 ],
-                Expanded(child: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                Expanded(child: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis)),
               ],
             ),
             trailing: Row(

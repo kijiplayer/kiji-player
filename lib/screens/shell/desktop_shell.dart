@@ -20,6 +20,7 @@ import '../../widgets/nocturne/glass.dart';
 import '../home/home_screen.dart';
 import '../player/player_screen.dart';
 import 'pill_nav_bar.dart';
+import '../../features/customize/presentation/track_text.dart';
 
 /// "A continuación" visible en la PC (el botón Cola de la barra lo oculta).
 final queuePanelVisibleProvider = StateProvider<bool>((ref) => true);
@@ -320,9 +321,9 @@ class _PlayerBar extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontWeight: FontWeight.w600)),
-                        Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
                       ],
                     ),
