@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,6 +9,7 @@ import '../../../widgets/nocturne/glass.dart';
 import '../../playlists/playlists_provider.dart';
 import '../data/import_parsers.dart';
 import '../data/import_service.dart';
+import '../../../utils/save_text_file.dart';
 import '../data/playlist_export.dart';
 import '../domain/import_matcher.dart';
 import '../domain/imported.dart';
@@ -310,11 +308,11 @@ class _ExportSection extends ConsumerWidget {
               spacing: 4,
               children: [
                 TextButton(
-                  onPressed: () => _save(context, exportFileName(playlist.name, 'm3u8'), exportM3u8(playlist)),
+                  onPressed: () => saveTextFile(context, exportFileName(playlist.name, 'm3u8'), exportM3u8(playlist)),
                   child: const Text('.m3u8'),
                 ),
                 TextButton(
-                  onPressed: () => _save(context, exportFileName(playlist.name, 'csv'), exportCsv(playlist)),
+                  onPressed: () => saveTextFile(context, exportFileName(playlist.name, 'csv'), exportCsv(playlist)),
                   child: const Text('.csv'),
                 ),
               ],
@@ -324,18 +322,4 @@ class _ExportSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _save(BuildContext context, String fileName, String content) async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final uri = await FilePicker.saveFile(
-        dialogTitle: 'Guardar playlist',
-        fileName: fileName,
-        bytes: Uint8List.fromList(utf8.encode(content)),
-      );
-      if (uri != null) messenger.showSnackBar(SnackBar(content: Text('Se guardó «$fileName»')));
-    } catch (error) {
-      debugPrint('=== EXPORTAR: no se pudo guardar $fileName: $error ===');
-      messenger.showSnackBar(const SnackBar(content: Text('No se pudo guardar el archivo.')));
-    }
-  }
 }

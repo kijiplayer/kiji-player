@@ -22,6 +22,7 @@ import '../playlists_provider.dart';
 import '../../customize/presentation/track_text.dart';
 import '../../customize/presentation/customize_sheets.dart';
 import '../domain/playlist.dart';
+import 'playlist_actions.dart';
 
 /// Datos de las listas inteligentes, calculados en el teléfono.
 final smartListInputsProvider = Provider<SmartListInputs>((ref) => SmartListInputs(
@@ -203,6 +204,7 @@ class _ListHeader extends ConsumerWidget {
     required this.tracks,
     this.cover,
     this.description,
+    this.onMore,
   });
 
   final String title;
@@ -212,6 +214,9 @@ class _ListHeader extends ConsumerWidget {
   /// Foto de la playlist (Tarea Z3).
   final Widget? cover;
   final String? description;
+
+  /// El ⋯ grande con todas las opciones (Tarea Z7); null = sin botón.
+  final VoidCallback? onMore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -257,6 +262,15 @@ class _ListHeader extends ConsumerWidget {
                     icon: const Icon(Icons.shuffle_rounded),
                     label: const Text('Aleatorio'),
                   ),
+                  if (onMore != null) ...[
+                    const Spacer(),
+                    IconButton.filledTonal(
+                      tooltip: 'Más opciones',
+                      iconSize: 28,
+                      onPressed: onMore,
+                      icon: const Icon(Icons.more_horiz_rounded),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -285,45 +299,25 @@ class PlaylistScreen extends ConsumerWidget {
       return Scaffold(appBar: AppBar(), body: const Center(child: Text('Esta playlist ya no existe.')));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          PopupMenuButton<String>(
-            tooltip: 'Más opciones',
-            onSelected: (action) async {
-              if (action == 'customize') {
-                await showCustomizePlaylistSheet(context, ref, playlist);
-              } else if (action == 'pin') {
-                notifier.setPinned(playlist.id, !playlist.pinned);
-              } else if (action == 'rename') {
-                final name = await promptPlaylistName(context, initial: playlist.name, title: 'Renombrar');
-                if (name != null) notifier.rename(playlist.id, name);
-              } else if (action == 'delete') {
-                final messenger = ScaffoldMessenger.of(context);
-                final removed = notifier.delete(playlist.id);
-                Navigator.of(context).pop();
-                if (removed != null) {
-                  messenger.showSnackBar(SnackBar(
-                    content: Text('Se borró «${playlist.name}»'),
-                    duration: const Duration(seconds: 10),
-                    persist: false,
-                    action: SnackBarAction(
-                      label: 'Deshacer',
-                      onPressed: () => notifier.restore(removed.$1, removed.$2),
-                    ),
-                  ));
-                }
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'customize', child: Text('Personalizar (foto, color, descripción)')),
-              PopupMenuItem(value: 'pin', child: Text(playlist.pinned ? 'Desfijar' : 'Fijar arriba')),
-              const PopupMenuItem(value: 'rename', child: Text('Renombrar')),
-              const PopupMenuItem(value: 'delete', child: Text('Borrar la playlist')),
-            ],
+    void delete() {
+      final messenger = ScaffoldMessenger.of(context);
+      final removed = notifier.delete(playlist.id);
+      Navigator.of(context).pop();
+      if (removed != null) {
+        messenger.showSnackBar(SnackBar(
+          content: Text('Se borró «${playlist.name}»'),
+          duration: const Duration(seconds: 10),
+          persist: false,
+          action: SnackBarAction(
+            label: 'Deshacer',
+            onPressed: () => notifier.restore(removed.$1, removed.$2),
           ),
-        ],
-      ),
+        ));
+      }
+    }
+
+    return Scaffold(
+      appBar: AppBar(),
       body: Column(
         children: [
           _ListHeader(
@@ -334,7 +328,16 @@ class PlaylistScreen extends ConsumerWidget {
                 ? _count(playlist.tracks.length)
                 : '${_count(playlist.tracks.length)} · importada de ${playlist.importedFrom}',
             tracks: playlist.tracks,
+            onMore: () => showPlaylistOptions(
+              context,
+              ref,
+              playlist,
+              onPlay: () => _play(ref, playlist.tracks),
+              onShuffle: () => _play(ref, playlist.tracks, shuffle: true),
+              onDelete: delete,
+            ),
           ),
+          PlaylistDownloadCard(playlistId: playlist.id),
           Expanded(
             child: ReorderableListView.builder(
               buildDefaultDragHandles: false,

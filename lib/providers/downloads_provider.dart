@@ -107,6 +107,7 @@ class DownloadCheck {
     this.estimate,
     this.freeBytes,
     this.blockedReason,
+    this.waitingForWifi = false,
   });
 
   final DownloadEstimate? estimate;
@@ -116,6 +117,9 @@ class DownloadCheck {
 
   /// Si no, por qué no se puede descargar (texto para el usuario).
   final String? blockedReason;
+
+  /// Bloqueada solo porque no hay WiFi y el usuario eligió "solo con WiFi".
+  final bool waitingForWifi;
 
   bool get canDownload => blockedReason == null && estimate != null;
 }
@@ -175,6 +179,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       return const DownloadCheck(
         blockedReason: 'Estás sin WiFi y elegiste descargar solo con WiFi. '
             'Podés cambiarlo en Biblioteca → Descargadas.',
+        waitingForWifi: true,
       );
     }
 
@@ -336,6 +341,14 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     final download = state.active[videoId];
     state = state.copyWith(active: Map.of(state.active)..remove(videoId));
     if (download != null) await _deletePartials(videoId);
+    _pump();
+  }
+
+  /// Frena una descarga sin borrar lo bajado: al volver a empezarla sigue
+  /// desde el `.part` (Tarea Z7, pausar la descarga de una playlist).
+  void pause(String videoId) {
+    _cancelTokens.remove(videoId)?.cancel();
+    state = state.copyWith(active: Map.of(state.active)..remove(videoId));
     _pump();
   }
 

@@ -24,6 +24,31 @@ const playlistColors = <Color>[
   Color(0xFFFF6B4D),
 ];
 
+/// Elegir, recortar y guardar la foto de una playlist (también desde el ⋯ de
+/// la playlist, Tarea Z7).
+Future<void> changePlaylistPhoto(
+  BuildContext context,
+  WidgetRef ref,
+  Playlist playlist, {
+  ScaffoldMessengerState? messenger,
+}) async {
+  final say = messenger ?? ScaffoldMessenger.of(context);
+  final covers = ref.read(trackOverridesProvider.notifier).covers;
+  final notifier = ref.read(playlistsProvider.notifier);
+  final bytes = await pickAndCropImage(context);
+  if (bytes == null) return;
+  try {
+    final file = await covers.save('playlist-${playlist.id}', bytes);
+    final current = ref.read(playlistsProvider).where((pl) => pl.id == playlist.id).firstOrNull ?? playlist;
+    final old = current.coverFile;
+    notifier.customize(playlist.id, coverFile: file);
+    await covers.delete(old);
+  } catch (error) {
+    debugPrint('=== PERSONALIZAR: no se pudo usar la foto: $error ===');
+    say.showSnackBar(const SnackBar(content: Text('No se pudo usar esa imagen.')));
+  }
+}
+
 void _say(BuildContext context, String message) => ScaffoldMessenger.of(context)
   ..hideCurrentSnackBar()
   ..showSnackBar(SnackBar(content: Text(message)));
@@ -178,18 +203,7 @@ Future<void> showCustomizePlaylistSheet(BuildContext context, WidgetRef ref, Pla
                       const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final bytes = await pickAndCropImage(context);
-                            if (bytes == null) return;
-                            try {
-                              final file = await covers.save('playlist-${playlist.id}', bytes);
-                              final old = current.coverFile;
-                              notifier.customize(playlist.id, coverFile: file);
-                              await covers.delete(old);
-                            } catch (error) {
-                              messenger.showSnackBar(const SnackBar(content: Text('No se pudo usar esa imagen.')));
-                            }
-                          },
+                          onPressed: () => changePlaylistPhoto(context, ref, current, messenger: messenger),
                           icon: const Icon(Icons.photo_outlined),
                           label: const Text('Cambiar foto'),
                         ),
