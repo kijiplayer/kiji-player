@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/playback_automation.dart';
+import 'features/extractor/data/auto_tests.dart';
 import 'features/updates/update_checker.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
@@ -25,6 +26,8 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     super.initState();
     // Actualizaciones (Tarea W1): como mucho una consulta por día, si está prendido.
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
+    // Salud del Extractor (Tarea Z8): pruebas automáticas con canciones de control.
+    Future.microtask(() => ref.read(extractorAutoTestsProvider).start());
   }
 
   @override

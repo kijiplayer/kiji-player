@@ -15,6 +15,7 @@ import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
 import '../features/queue/domain/queue_operations.dart';
 import '../features/settings/data/settings_store.dart';
+import '../features/extractor/data/alternatives.dart';
 import '../features/extractor/data/engines.dart';
 import '../features/extractor/data/path_health.dart';
 import '../features/extractor/data/stream_resolver.dart';
@@ -22,7 +23,6 @@ import '../features/extractor/domain/extraction_failure.dart';
 import '../features/stream_cache/data/chunked_source.dart';
 import '../features/stream_cache/data/stream_cache.dart';
 import '../features/system_media/domain/system_media_controls.dart';
-import '../features/yt_music/data/extractor_health.dart';
 import '../features/yt_music/data/ytm_client.dart';
 import '../features/yt_music/domain/subtitle_parser.dart';
 import '../models/track.dart';
@@ -199,7 +199,6 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       ));
 
     _listenToPlayer();
-    unawaited(ExtractorHealth.instance.load());
     unawaited(PathHealth.instance.load());
     // Paga los costos en frío del motor A (config, solver, BotGuard) fuera del primer play.
     unawaited(Future<void>.delayed(const Duration(seconds: 2), _resolver.prewarm));
@@ -436,15 +435,38 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // tiempo de conexión): el Modo de Gracia responde en el acto.
     if (!await _isOnline()) return LoadResult.offline;
 
+    // Canción con restricción de edad o bloqueada (Tarea Z8): se usa su versión "Canción" si ya se
+    // encontró antes; si se sabe que no tiene, se salta enseguida.
+    final alternatives = AlternativeFinder.of(_ytClient);
+    final known = await alternatives.known(videoId);
+    if (known.blocked != null && known.swap == null) {
+      _lastContentProblem = known.blocked;
+      return LoadResult.contentBlocked;
+    }
+    var sourceId = known.swap ?? videoId;
+    var searchedAlternative = known.swap != null;
+
     final tried = {...skipClients};
     while (true) {
       final lowQuality = await _useLowQuality();
-      final outcome = await _resolver.resolve(videoId, lowQuality: lowQuality, skipPaths: tried);
+      final outcome = await _resolver.resolve(sourceId, lowQuality: lowQuality, skipPaths: tried);
       if (token != _loadToken) return LoadResult.cancelled;
       final stream = outcome.stream;
       if (stream == null) {
         if (outcome.problem != null) {
+          if (!searchedAlternative) {
+            searchedAlternative = true;
+            final alternative = await alternatives.find(track);
+            if (token != _loadToken) return LoadResult.cancelled;
+            if (alternative != null && alternative != sourceId) {
+              debugPrint('=== REPRODUCCION: $videoId tiene un problema propio; se prueba la versión Canción $alternative ===');
+              sourceId = alternative;
+              tried.clear();
+              continue;
+            }
+          }
           _lastContentProblem = outcome.problem;
+          alternatives.markBlocked(videoId, outcome.problem!);
           debugPrint('=== REPRODUCCION: $videoId tiene un problema propio: ${outcome.problem!.name} ===');
           return LoadResult.contentBlocked;
         }
@@ -469,7 +491,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
               refresh: (refused) async {
                 await _resolver.refused(refused);
                 tried.add(refused.path);
-                final again = await _resolver.resolve(videoId, lowQuality: lowQuality, skipPaths: tried);
+                final again = await _resolver.resolve(sourceId, lowQuality: lowQuality, skipPaths: tried);
                 if (again.stream != null) _currentClient = again.stream!.path;
                 return again.stream;
               },
@@ -482,6 +504,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           await _audioPlayer.setAudioSource(source, initialPosition: initialPosition);
           if (token != _loadToken) return LoadResult.cancelled;
           _currentClient = stream.path;
+          if (sourceId != videoId && known.swap == null) {
+            alternatives.remember(videoId, sourceId);
+            _notify(PlaybackNotice('«${track.title}»: el video tiene restricción o está bloqueado; suena su versión «Canción».'));
+          }
           if (mode != _SourceMode.cached) {
             debugPrint('=== REPRODUCCION: "${track.title}" sin la fuente por pedazos (${mode.name}) ===');
           }

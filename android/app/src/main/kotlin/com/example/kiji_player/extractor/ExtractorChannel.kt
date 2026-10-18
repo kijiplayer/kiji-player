@@ -34,11 +34,16 @@ object ExtractorChannel {
               val videoId = call.argument<String>("videoId") ?: return@launch result.error("args", "sin videoId", null)
               val quality = call.argument<String>("quality") ?: "auto"
               val skip = call.argument<List<String>>("skip")?.toSet() ?: emptySet()
-              result.success(withContext(Dispatchers.IO) { engine.extract(videoId, quality, skip) })
+              val only = call.argument<String>("only")
+              result.success(withContext(Dispatchers.IO) { engine.extract(videoId, quality, skip, only) })
             }
             "onRefused" -> {
               val url = call.argument<String>("url") ?: return@launch result.success(null)
               withContext(Dispatchers.IO) { engine.onRefused(url) }
+              result.success(null)
+            }
+            "scheduleDailyTests" -> {
+              ExtractorTestWorker.schedule(context, call.argument<Boolean>("enabled") ?: true)
               result.success(null)
             }
             "prewarm" -> {

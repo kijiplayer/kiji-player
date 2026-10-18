@@ -28,9 +28,8 @@ class PoTokenGenerator(private val context: Context) {
   class Tokens(val playerRequestPoToken: String, val streamingDataPoToken: String)
 
   /**
-   * Tokens para [videoId] con la sesión [visitorData]. El token de streaming (el `pot=` de la URL
-   * de googlevideo) va **ligado a la sesión**, no al video: si no, YouTube corta el audio (ver la
-   * explicación en el archivo original de Echo y en yt-dlp `get_webpo_content_binding`).
+   * Tokens para [videoId] con la sesión [visitorData]: el del pedido `/player` ligado a la sesión y
+   * el de streaming (el `pot=` de la URL de googlevideo) ligado al video.
    */
   suspend fun tokensFor(videoId: String, visitorData: String): Tokens? {
     if (!webViewSupported || webViewBroken) return null
@@ -68,16 +67,18 @@ class PoTokenGenerator(private val context: Context) {
         }
         Triple(webView!!, sessionPot!!, recreate)
       }
-    try {
-      // Calienta el minter para el video (lo pide BotGuard), aunque se use el de la sesión.
-      generator.generatePoToken(videoId)
-    } catch (t: Throwable) {
-      if (recreated) throw t
-      Log.w(TAG, "Falló el PO token; se recrea la WebView: ${t.message}")
-      return mint(videoId, visitorData, forceRecreate = true)
-    }
-    // WEB_REMIX usa el token de la sesión también en el pedido /player (como yt-dlp).
-    return Tokens(playerRequestPoToken = pot, streamingDataPoToken = pot)
+    val videoPot =
+      try {
+        generator.generatePoToken(videoId)
+      } catch (t: Throwable) {
+        if (recreated) throw t
+        Log.w(TAG, "Falló el PO token; se recrea la WebView: ${t.message}")
+        return mint(videoId, visitorData, forceRecreate = true)
+      }
+    // Reglas de InnerTubeX 0.10.0 (medido en Kiji el 18/10/2026): el token de la URL de googlevideo
+    // ("GVS") va ligado al VIDEO; el del pedido /player, a la sesión. Echo 1.4.3 usaba el de la
+    // sesión para los dos y YouTube cortaba el audio al minuto.
+    return Tokens(playerRequestPoToken = pot, streamingDataPoToken = videoPot)
   }
 
   private companion object {

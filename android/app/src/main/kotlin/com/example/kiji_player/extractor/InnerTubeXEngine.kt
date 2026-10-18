@@ -137,13 +137,15 @@ class InnerTubeXEngine(context: Context) {
    * `mime`, `kbps`, `client`, `profileId`, `expiresAtMs`, `contentLength`, `chunkSize` y `isHls`;
    * si no, `error` con `kind` = `content` (la canción) o `form` (la forma) y `reason`.
    */
-  suspend fun extract(videoId: String, quality: String, skip: Set<String>): Map<String, Any?> {
+  suspend fun extract(videoId: String, quality: String, skip: Set<String>, onlyProfile: String? = null): Map<String, Any?> {
     return try {
       val stream =
         extractor.extract(
           videoId = videoId,
           // SABR todavía no (just_audio no lo entiende); HLS sí; rangos acotados sí (la fuente de Kiji pide por pedazos).
-          hints = ContentHints().withStreamCapabilities(allowHls = true, allowSabr = false, allowBoundedRange = true),
+          // [onlyProfile]: para la Salud del Extractor, probar una forma sola (sin las demás).
+          hints = ContentHints(playbackClientOverrideId = onlyProfile)
+            .withStreamCapabilities(allowHls = true, allowSabr = false, allowBoundedRange = true),
           excludedClients = excludedFor(videoId) + skip,
           audioQuality = if (quality == "low") AudioQuality.LOW else AudioQuality.AUTO,
           clientPlaybackNonce = generateClientPlaybackNonce(),

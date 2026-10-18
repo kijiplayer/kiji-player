@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kiji_player/features/yt_music/data/extractor_health.dart';
+import 'dart:io';
+
+import 'package:kiji_player/features/extractor/data/path_health.dart';
 import 'package:kiji_player/features/yt_music/data/player_script.dart';
 import 'package:kiji_player/features/yt_music/data/po_token.dart';
 import 'package:kiji_player/features/yt_music/data/yt_clients.dart';
@@ -24,7 +26,10 @@ void main() {
       const echo = ['VISIONOS', 'ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS'];
       expect(labels.where(echo.contains), echo);
       expect(labels.any((l) => l.contains('CREATOR')), isFalse, reason: 'WEB_CREATOR exige iniciar sesión');
-      expect(ExtractorHealth.clients, labels);
+      // Tarea Z8: las rotas según InnerTubeX quedan retiradas de la cadena automática.
+      expect([for (final c in ytPlayerClients) if (c.isRetired) c.label],
+          ['ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS', 'MWEB']);
+      expect(clientByLabel('WEB_EMBEDDED_PLAYER')!.embedded, isTrue);
     });
 
     test('solo las web y de TV mandan PO token; solo las cifradas piden el reproductor', () {
@@ -98,35 +103,30 @@ void main() {
     });
   });
 
-  testWidgets('"Probar todas las formas ahora" muestra cada resultado', (tester) async {
+  testWidgets('Salud 2.0: resumen simple, motores y formas retiradas aparte', (tester) async {
     tester.view.physicalSize = const Size(500, 4000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final health = ExtractorHealth.instance..resetForTest();
-    final played = <String>[];
-
+    final dir = Directory.systemTemp.createTempSync('kiji_salud');
+    final health = PathHealth(directory: () async => dir.path)
+      ..recordSuccess('B/VISIONOS')
+      ..recordFormFailure('B/WEB_REMIX', 'HTTP 403');
     await tester.pumpWidget(ProviderScope(
-      child: MaterialApp(
-        home: ExtractorHealthScreen(
-          health: health,
-          tester: (id, client) async => client.label.startsWith('TVHTML5_SIMPLY')
-              ? StreamAttempt(client.label, url: 'https://audio/$id')
-              : StreamAttempt(client.label, reason: 'LOGIN_REQUIRED: falso'),
-          playChecker: (attempt, client) async {
-            played.add(client.label);
-            return client.label == 'TVHTML5_SIMPLY_MUSIC' ? 'Resolvió, pero no suena: falso' : null;
-          },
-        ),
-      ),
+      child: MaterialApp(home: ExtractorHealthScreen(health: health)),
     ));
-    await tester.tap(find.text('Probar todas las formas ahora'));
-    await tester.pumpAndSettle();
-
-    // Se escucha una sola vez por forma que resolvió.
-    expect(played, ['TVHTML5_SIMPLY', 'TVHTML5_SIMPLY_MUSIC']);
-    expect(find.textContaining('3 de 3 canciones bien y suena entera'), findsOneWidget);
-    expect(find.textContaining('resolvió pero no suena'), findsOneWidget);
-    expect(find.textContaining('falló — LOGIN_REQUIRED: falso'), findsNWidgets(ytPlayerClients.length - 2));
-    expect(find.textContaining('En la prueba funcionan 1 de ${ytPlayerClients.length} formas'), findsOneWidget);
+    await tester.pump();
+    expect(find.text('Canciones normales: ✓ 1 forma funcionando'), findsOneWidget);
+    expect(find.textContaining('necesitan cuenta'), findsOneWidget);
+    expect(find.textContaining('Formas retiradas (YouTube ya no las permite)'), findsOneWidget);
+    expect(find.textContaining('nunca con tu historial'), findsOneWidget);
+    expect(find.text('ANDROID_VR'), findsNothing, reason: 'las retiradas van ocultas');
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windows puede tener el archivo abierto un instante; queda en la carpeta temporal.
+      }
+    });
   });
 }

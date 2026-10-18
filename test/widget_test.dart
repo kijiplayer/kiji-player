@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kiji_player/app.dart';
+import 'package:kiji_player/features/extractor/data/auto_tests.dart';
 import 'package:kiji_player/features/recommendations/data/home_feed_provider.dart';
 import 'package:kiji_player/features/recommendations/domain/home_feed.dart';
 import 'package:kiji_player/features/updates/update_checker.dart';
@@ -20,6 +21,13 @@ const _testTrack = Track(
   audioUrl: '/storage/emulated/0/Music/midnight.mp3',
   source: TrackSource.local,
 );
+
+/// Sin pruebas del extractor en los tests (salen a internet).
+class _NoAutoTests extends ExtractorAutoTests {
+  _NoAutoTests(super.ref);
+  @override
+  Future<void> start() async {}
+}
 
 /// Sin consultas a GitHub en los tests.
 class _NoUpdates extends UpdateNotifier {
@@ -105,6 +113,7 @@ Widget _app(Object notifierFactory) => ProviderScope(
         homeFeedProvider.overrideWith((ref) async => const HomeFeed()),
         moodsProvider.overrideWith((ref) async => const <YtMood>[]),
         updateProvider.overrideWith(_NoUpdates.new),
+        extractorAutoTestsProvider.overrideWith(_NoAutoTests.new),
       ],
       child: const KijiApp(),
     );

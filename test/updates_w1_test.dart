@@ -69,8 +69,15 @@ void main() {
     });
     tearDown(() async {
       // Que terminen las escrituras en segundo plano antes de borrar (Windows no deja).
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      dir.deleteSync(recursive: true);
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        try {
+          dir.deleteSync(recursive: true);
+          return;
+        } on FileSystemException {
+          continue;
+        }
+      }
     });
 
     ProviderContainer container({bool enabled = true}) {

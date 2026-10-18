@@ -4,54 +4,33 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:kiji_player/features/stream_cache/data/stream_cache.dart';
-import 'package:kiji_player/features/yt_music/data/extractor_health.dart';
+import 'package:kiji_player/features/extractor/data/path_health.dart';
 import 'package:kiji_player/features/yt_music/presentation/extractor_health_screen.dart';
 
 void main() {
-  group('Salud del Extractor', () {
-    setUp(() => ExtractorHealth.instance.resetForTest());
-
-    test('Un cliente funciona si su último resultado fue un éxito', () {
-      final health = ExtractorHealth.instance;
-      expect(health.all['VISIONOS']!.neverUsed, isTrue);
-
-      health.recordFailure('VISIONOS', 'YouTube rechazó el pedido');
-      expect(health.all['VISIONOS']!.working, isFalse);
-
-      health.recordSuccess('VISIONOS');
-      expect(health.all['VISIONOS']!.working, isTrue);
-      // Conserva el motivo de la falla anterior para mostrarlo si vuelve a fallar.
-      expect(health.all['VISIONOS']!.lastFailureReason, 'YouTube rechazó el pedido');
+  group('Salud del Extractor 2.0', () {
+    test('Un camino funciona si su último resultado fue un éxito, y guarda el último problema', () {
+      final health = PathHealth(directory: () async => Directory.systemTemp.path);
+      expect(health['B/VISIONOS'], isNull);
+      health.recordFormFailure('B/VISIONOS', 'YouTube rechazó el pedido');
+      expect(health['B/VISIONOS']!.working, isFalse);
+      health.recordSuccess('B/VISIONOS');
+      expect(health['B/VISIONOS']!.working, isTrue);
+      expect(health['B/VISIONOS']!.lastReason, 'YouTube rechazó el pedido');
     });
 
-    test('Se describe en palabras simples', () {
+    test('"Hace…" en palabras simples', () {
       final now = DateTime(2026, 10, 15, 20);
-      expect(describeHealth(const ClientHealth(), now), 'Sin usar todavía');
-      expect(
-        describeHealth(ClientHealth(lastSuccess: now.subtract(const Duration(minutes: 5))), now),
-        'Funcionando (hace 5 min)',
-      );
-      expect(
-        describeHealth(
-          ClientHealth(
-            lastFailure: now.subtract(const Duration(hours: 2)),
-            lastFailureReason: 'Se cortó durante la reproducción',
-          ),
-          now,
-        ),
-        'Falló hace 2 h: Se cortó durante la reproducción',
-      );
+      expect(agoShort(null, now), 'nunca');
+      expect(agoShort(now.subtract(const Duration(minutes: 5)), now), 'hace 5 min');
+      expect(agoShort(now.subtract(const Duration(hours: 2)), now), 'hace 2 h');
     });
 
-    test('ClientHealth sobrevive a guardarse y leerse', () {
-      final original = ClientHealth(
-        lastSuccess: DateTime(2026, 10, 15, 10),
-        lastFailure: DateTime(2026, 10, 15, 9),
-        lastFailureReason: 'sin audio',
-      );
-      final restored = ClientHealth.fromJson(original.toJson());
-      expect(restored.lastSuccess, original.lastSuccess);
-      expect(restored.lastFailureReason, 'sin audio');
+    test('Sobrevive a guardarse y leerse', () {
+      final original = PathRecord(ok: 3, fail: 1, lastOk: DateTime(2026, 10, 15, 10), lastReason: 'sin audio', recent: [false, true]);
+      final restored = PathRecord.fromJson(original.toJson());
+      expect(restored.ok, 3);
+      expect(restored.lastReason, 'sin audio');
       expect(restored.working, isTrue);
     });
   });

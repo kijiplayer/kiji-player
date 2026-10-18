@@ -51,18 +51,95 @@ int? stsFromConfigTable(Map<String, dynamic> table, String hash) {
   return null;
 }
 
+/// `player_configs.json` remoto de ZemerTeam/zemer-cipher (el que usan Echo y Metrolist), con
+/// caché de 6 h y ETag (Tarea Z8). YouTube rota su reproductor cada pocos días y la tabla de la
+/// app queda vieja; si aparece un reproductor desconocido se fuerza otra consulta (como mucho cada
+/// 10 min). GitHub ve esa consulta (lo explica Configuración → Privacidad). Si no hay red, se usa
+/// la tabla incluida en la app.
+class RemotePlayerConfigs {
+  RemotePlayerConfigs({Dio? dio, Future<Directory> Function()? directory, DateTime Function()? now})
+      : _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 20))),
+        _directory = directory ?? getApplicationSupportDirectory,
+        _now = now ?? DateTime.now;
+
+  static const url =
+      'https://raw.githubusercontent.com/ZemerTeam/zemer-cipher/master/library/src/main/assets/player_configs.json';
+  static const ttl = Duration(hours: 6);
+  static const forcedCooldown = Duration(minutes: 10);
+
+  final Dio _dio;
+  final Future<Directory> Function() _directory;
+  final DateTime Function() _now;
+  DateTime? _lastForced;
+
+  Future<File> _file(String name) async => File(p.join((await _directory()).path, name));
+
+  /// La tabla remota (de la caché si tiene menos de 6 h, salvo [force]); null si no hay.
+  Future<String?> load({bool force = false}) async {
+    final body = await _file('player_configs_remote.json');
+    final meta = await _file('player_configs_remote.meta');
+    String? etag;
+    DateTime? fetchedAt;
+    try {
+      if (await meta.exists()) {
+        final m = jsonDecode(await meta.readAsString()) as Map;
+        etag = m['etag'] as String?;
+        fetchedAt = DateTime.tryParse('${m['at']}');
+      }
+    } catch (error) {
+      debugPrint('=== YTM config remota: meta dañada: $error ===');
+    }
+    final cached = await body.exists() ? await body.readAsString() : null;
+    final fresh = fetchedAt != null && _now().difference(fetchedAt) < ttl;
+    if (cached != null && fresh && !force) return cached;
+    if (force) {
+      final last = _lastForced;
+      if (last != null && _now().difference(last) < forcedCooldown) return cached;
+      _lastForced = _now();
+    }
+    try {
+      final response = await _dio.get<String>(
+        url,
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {if (etag != null && cached != null) 'If-None-Match': etag},
+          validateStatus: (s) => s == 200 || s == 304,
+        ),
+      );
+      if (response.statusCode == 304 && cached != null) {
+        await meta.writeAsString(jsonEncode({'etag': etag, 'at': _now().toIso8601String()}));
+        return cached;
+      }
+      final text = response.data ?? '';
+      if (jsonDecode(text) is! Map) return cached;
+      await body.parent.create(recursive: true);
+      await body.writeAsString(text);
+      await meta.writeAsString(jsonEncode({'etag': response.headers.value('etag'), 'at': _now().toIso8601String()}));
+      debugPrint('=== YTM config remota: actualizada ===');
+      return text;
+    } catch (error) {
+      debugPrint('=== YTM config remota: sin conexión o error (${error.runtimeType}); se usa la guardada ===');
+      return cached;
+    }
+  }
+}
+
 class PlayerScriptSource {
   PlayerScriptSource({
     Dio? dio,
     Future<Directory> Function()? directory,
     Future<String> Function()? configTable,
+    RemotePlayerConfigs? remote,
   })  : _dio = dio ?? Dio(BaseOptions(receiveTimeout: const Duration(seconds: 30))),
         _directory = directory ?? getApplicationSupportDirectory,
-        _configTable = configTable ?? (() => rootBundle.loadString('assets/solver/player_configs.json'));
+        _configTable = configTable ?? (() => rootBundle.loadString('assets/solver/player_configs.json')),
+        // Con una tabla inyectada (tests) no se consulta la remota.
+        _remote = configTable != null ? null : (remote ?? RemotePlayerConfigs(directory: directory));
 
   final Dio _dio;
   final Future<Directory> Function() _directory;
   final Future<String> Function() _configTable;
+  final RemotePlayerConfigs? _remote;
 
   PlayerScript? _current;
   DateTime? _checkedAt;
@@ -89,6 +166,14 @@ class PlayerScriptSource {
         return _current;
       }
       var sts = stsFromConfigTable(await _loadTable(), hash);
+      if (sts == null && _remote != null) {
+        // Reproductor desconocido: la tabla remota puede estar vieja; se pide de nuevo.
+        final forced = await _remote.load(force: true);
+        if (forced != null) {
+          _table = null;
+          sts = stsFromConfigTable(await _loadTable(remoteText: forced), hash);
+        }
+      }
       String? js;
       if (sts == null) {
         js = await _script(hash);
@@ -113,12 +198,19 @@ class PlayerScriptSource {
     }
   }
 
-  Future<Map<String, dynamic>> _loadTable() async {
+  Future<Map<String, dynamic>> _loadTable({String? remoteText}) async {
     final cached = _table;
     if (cached != null) return cached;
     try {
-      final decoded = jsonDecode(await _configTable());
-      return _table = decoded is Map<String, dynamic> ? decoded : const {};
+      // La remota primero (más nueva); la de la app, de respaldo. Se unen: la remota manda.
+      final bundled = jsonDecode(await _configTable());
+      final remote = remoteText ?? await _remote?.load();
+      final decodedRemote = remote == null ? null : jsonDecode(remote);
+      final merged = <String, dynamic>{
+        if (bundled is Map<String, dynamic>) ...bundled,
+        if (decodedRemote is Map<String, dynamic>) ...decodedRemote,
+      };
+      return _table = merged;
     } catch (error) {
       debugPrint('=== YTM reproductor: no se pudo leer player_configs.json: $error ===');
       return _table = const {};

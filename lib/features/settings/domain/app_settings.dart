@@ -23,6 +23,7 @@ class AppSettings {
     this.geminiEnabled = false,
     this.geminiModel,
     this.checkUpdates = true,
+    this.autoExtractorTests = true,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -90,6 +91,9 @@ class AppSettings {
   /// Buscar actualizaciones en GitHub una vez por día (Tarea W1). Se puede apagar.
   final bool checkUpdates;
 
+  /// Pruebas automáticas del extractor con canciones de control (Tarea Z8). Se puede apagar.
+  final bool autoExtractorTests;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -108,6 +112,7 @@ class AppSettings {
     bool? geminiEnabled,
     String? geminiModel,
     bool? checkUpdates,
+    bool? autoExtractorTests,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -126,6 +131,7 @@ class AppSettings {
         geminiEnabled: geminiEnabled ?? this.geminiEnabled,
         geminiModel: geminiModel ?? this.geminiModel,
         checkUpdates: checkUpdates ?? this.checkUpdates,
+        autoExtractorTests: autoExtractorTests ?? this.autoExtractorTests,
       );
 
   Map<String, dynamic> toJson() => {
@@ -146,6 +152,7 @@ class AppSettings {
         'geminiEnabled': geminiEnabled,
         if (geminiModel != null) 'geminiModel': geminiModel,
         'checkUpdates': checkUpdates,
+        'autoExtractorTests': autoExtractorTests,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -177,6 +184,7 @@ class AppSettings {
       geminiEnabled: read('geminiEnabled', d.geminiEnabled),
       geminiModel: json['geminiModel'] is String ? json['geminiModel'] as String : null,
       checkUpdates: read('checkUpdates', d.checkUpdates),
+      autoExtractorTests: read('autoExtractorTests', d.autoExtractorTests),
     );
   }
 

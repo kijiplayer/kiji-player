@@ -25,6 +25,22 @@ android {
         versionName = flutter.versionName
     }
 
+    // "prod" es la Kiji de siempre; "dev" (Kiji Dev) se instala al lado, con otro id y sus
+    // propios datos: ahí se hacen TODAS las pruebas en el celular (Tarea T2).
+    flavorDimensions += "canal"
+    productFlavors {
+        create("prod") {
+            dimension = "canal"
+            manifestPlaceholders["appName"] = "Kiji Player"
+        }
+        create("dev") {
+            dimension = "canal"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            manifestPlaceholders["appName"] = "Kiji Dev"
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
@@ -52,4 +68,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("androidx.collection:collection-ktx:1.5.0")
+    // Prueba diaria del extractor (Tarea Z8): solo con WiFi y batería no baja.
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
 }

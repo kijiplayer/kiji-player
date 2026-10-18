@@ -543,6 +543,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.privacy,
+        title: 'Datos del reproductor de YouTube (GitHub)',
+        subtitle: 'Qué se consulta para poder descifrar el audio.',
+        keywords: const ['github', 'zemer', 'cipher', 'reproductor', 'extractor'],
+        builder: (context, ref) => const ListTile(
+          leading: Icon(Icons.memory_rounded),
+          title: Text('Datos del reproductor de YouTube (GitHub)'),
+          subtitle: Text(
+            'YouTube cambia su reproductor cada pocos días. Para seguir descifrando el audio, Kiji baja '
+            'como mucho cada 6 horas una tabla pública (player_configs.json del proyecto libre '
+            'zemer-cipher, en GitHub), igual que Echo y Metrolist. GitHub ve esa consulta como una visita '
+            'a una página; no se manda nada tuyo.',
+          ),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
+        title: 'Pruebas automáticas del extractor',
+        subtitle: 'Cada 12 h prueba las formas con canciones de control; solo avisa si fallan todas.',
+        keywords: const ['extractor', 'salud', 'pruebas', 'youtube', 'automatico'],
+        builder: (context, ref) => SwitchListTile(
+          title: const Text('Pruebas automáticas del extractor'),
+          subtitle: const Text(
+            'Al abrir Kiji (si pasaron 12 h), cada 12 h en la PC y una vez por día en Android (solo con '
+            'WiFi y batería no baja). Usa 3 canciones de control, nunca tus datos. Solo avisa si no '
+            'funciona ninguna forma.',
+          ),
+          value: ref.watch(settingsProvider).autoExtractorTests,
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(autoExtractorTests: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
         title: 'Salud del Extractor',
         subtitle: 'Cómo está funcionando YouTube hoy.',
         keywords: const ['youtube', 'extractor', 'diagnostico'],

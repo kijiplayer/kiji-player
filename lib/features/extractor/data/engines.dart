@@ -37,13 +37,18 @@ class InnerTubeXEngine extends ExtractionEngine {
   bool get isSupported => !kIsWeb && Platform.isAndroid;
 
   @override
-  Future<EngineResult> resolve(String videoId, {bool lowQuality = false, Set<String> skip = const {}, List<String>? order}) async {
+  Future<EngineResult> resolve(String videoId, {bool lowQuality = false, Set<String> skip = const {}, List<String>? order}) =>
+      resolveWith(videoId, lowQuality: lowQuality, skip: skip);
+
+  /// Con [only], prueba una sola forma de InnerTubeX (para la Salud del Extractor).
+  Future<EngineResult> resolveWith(String videoId, {bool lowQuality = false, Set<String> skip = const {}, String? only}) async {
     if (!isSupported) return const EngineResult.failed([]);
     try {
       final map = await _channel.invokeMapMethod<String, Object?>('extract', {
         'videoId': videoId,
         'quality': lowQuality ? 'low' : 'auto',
         'skip': skip.toList(),
+        'only': ?only,
       });
       return innerTubeXResult(videoId, map);
     } on PlatformException catch (error) {

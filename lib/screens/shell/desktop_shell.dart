@@ -9,7 +9,7 @@ import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import '../../features/sleep_timer/sleep_timer_provider.dart';
-import '../../features/yt_music/data/extractor_health.dart';
+import '../../features/extractor/data/path_health.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
@@ -181,14 +181,14 @@ class _HealthBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final health = ExtractorHealth.instance;
+    final health = PathHealth.instance;
     return ListenableBuilder(
       listenable: health,
       builder: (context, _) {
         final working = health.all.entries.where((e) => e.value.working).map((e) => e.key);
-        final anyUsed = health.all.values.any((h) => !h.neverUsed);
+        final anyUsed = health.all.isNotEmpty;
         final summary = working.isNotEmpty
-            ? 'YouTube funciona (${working.first})'
+            ? 'YouTube funciona (${working.length} ${working.length == 1 ? 'forma' : 'formas'})'
             : anyUsed
                 ? 'YouTube con problemas'
                 : 'Sin usar todavía';

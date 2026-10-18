@@ -3,12 +3,18 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:flutter/material.dart' show Color;
+import 'package:kiji_player/features/extractor/data/alternatives.dart';
+import 'package:kiji_player/features/extractor/data/auto_tests.dart';
 import 'package:kiji_player/features/extractor/data/engines.dart';
 import 'package:kiji_player/features/extractor/data/path_health.dart';
 import 'package:kiji_player/features/extractor/data/stream_resolver.dart';
 import 'package:kiji_player/features/extractor/domain/extraction_failure.dart';
 import 'package:kiji_player/features/extractor/domain/resolved_stream.dart';
 import 'package:kiji_player/features/stream_cache/data/chunked_source.dart';
+import 'package:kiji_player/features/yt_music/data/player_script.dart';
+import 'package:kiji_player/features/yt_music/data/ytm_client.dart';
+import 'package:kiji_player/models/track.dart';
 
 class _FakeEngine extends ExtractionEngine {
   _FakeEngine(this.id, this.answer);
@@ -248,5 +254,101 @@ void main() {
       }
       expect(file.lengthSync(), size);
     });
+  });
+
+  group('Restricción de edad: versión "Canción"', () {
+    const video = Track(
+      id: 'yt-OMVvideo001',
+      title: 'Tema Inventado (Official Music Video) [4K]',
+      artist: 'Banda de Prueba, Otro Artista',
+      coverColor: Color(0xFF7C5CFF),
+      audioUrl: '',
+      source: TrackSource.youtube,
+      durationMs: 240000,
+    );
+
+    test('Limpia el título del video', () {
+      expect(cleanSongTitle(video.title), 'Tema Inventado');
+      expect(cleanSongTitle('Otra canción (Letra)'), 'Otra canción');
+      expect(cleanSongTitle('Sin agregados'), 'Sin agregados');
+    });
+
+    test('Elige otra subida del mismo tema con la duración más parecida', () {
+      final pick = pickAlternative(video, const [
+        YtMusicSearchResult(videoId: 'OMVvideo001', title: 'Tema Inventado', artist: 'Banda de Prueba', durationMs: 240000),
+        YtMusicSearchResult(videoId: 'versionLarga', title: 'Tema Inventado (En vivo)', artist: 'Banda de Prueba', durationMs: 300000),
+        YtMusicSearchResult(videoId: 'ATVcancion1', title: 'Tema Inventado', artist: 'Banda de Prueba', durationMs: 238000),
+        YtMusicSearchResult(videoId: 'otroArtista', title: 'Tema Inventado', artist: 'Cover Band', durationMs: 240000),
+      ]);
+      expect(pick?.videoId, 'ATVcancion1', reason: 'no la misma, no otro artista y no la de 1 minuto más');
+    });
+
+    test('Sin coincidencias: no inventa', () {
+      expect(pickAlternative(video, const [
+        YtMusicSearchResult(videoId: 'nada', title: 'Otra Cosa', artist: 'Banda de Prueba', durationMs: 240000),
+      ]), isNull);
+    });
+  });
+
+  test('La prueba diaria de WorkManager se suma a la Salud', () async {
+    final dir = Directory.systemTemp.createTempSync('kiji_bg');
+    addTearDown(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windows puede retener el archivo un instante.
+      }
+    });
+    File('${dir.path}/extractor_bg.json').writeAsStringSync(
+        '{"at": 1760000000000, "results": [{"path": "A/VISIONOS_0_1", "ok": true}, {"path": "A/WEB_REMIX", "ok": false, "reason": "HTTP 403"}]}');
+    final health = PathHealth(directory: () async => dir.path);
+    final n = await ExtractorAutoTests.importBackgroundResults(health, directory: () async => dir);
+    expect(n, 2);
+    expect(health['A/VISIONOS_0_1']!.working, isTrue);
+    expect(health['A/WEB_REMIX']!.lastReason, 'HTTP 403');
+    expect(health.lastTestAt, DateTime.fromMillisecondsSinceEpoch(1760000000000));
+    expect(File('${dir.path}/extractor_bg.json').existsSync(), isFalse, reason: 'se lee una sola vez');
+  });
+
+  test('player_configs.json remoto: caché 6 h, ETag y consulta forzada con espera', () async {
+    final dir = Directory.systemTemp.createTempSync('kiji_cfg');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    var calls = 0;
+    var offline = false;
+    final dio = Dio()
+      ..interceptors.add(InterceptorsWrapper(onRequest: (o, h) {
+        calls++;
+        if (offline) {
+          h.reject(DioException(requestOptions: o, type: DioExceptionType.connectionError));
+          return;
+        }
+        if (o.headers['If-None-Match'] == '"v1"') {
+          h.resolve(Response(requestOptions: o, statusCode: 304, data: ''));
+          return;
+        }
+        h.resolve(Response(
+          requestOptions: o,
+          statusCode: 200,
+          data: '{"abc123": {"sts": 20000}}',
+          headers: Headers.fromMap({'etag': ['"v1"']}),
+        ));
+      }));
+    var now = DateTime(2026, 10, 18, 10);
+    final remote = RemotePlayerConfigs(dio: dio, directory: () async => dir, now: () => now);
+    expect(await remote.load(), contains('abc123'));
+    expect(calls, 1);
+    now = now.add(const Duration(hours: 2));
+    await remote.load();
+    expect(calls, 1, reason: 'menos de 6 h: de la caché');
+    now = now.add(const Duration(hours: 5));
+    expect(await remote.load(), contains('abc123'), reason: '304: sigue la guardada');
+    expect(calls, 2);
+    await remote.load(force: true);
+    await remote.load(force: true);
+    expect(calls, 3, reason: 'la forzada espera 10 min entre consultas');
+    offline = true;
+    now = now.add(const Duration(days: 1));
+    expect(await remote.load(), contains('abc123'), reason: 'sin red, la guardada');
   });
 }

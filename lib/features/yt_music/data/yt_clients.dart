@@ -19,7 +19,7 @@ class YtPlayerClient {
     this.host = 'music.youtube.com',
     this.needsPlayerScript = false,
     this.usesPoToken = false,
-    this.playerTokenForVideo = false,
+    this.playerSessionToken = false,
     this.useHls = false,
     this.embedded = false,
     this.retired,
@@ -48,9 +48,9 @@ class YtPlayerClient {
   /// Manda un PO token (BotGuard) en el pedido y en la URL del audio.
   final bool usesPoToken;
 
-  /// El token del pedido `/player` va ligado al video (y el de la URL, a la
-  /// sesión), como pide YouTube a algunos clientes web.
-  final bool playerTokenForVideo;
+  /// Manda también un PO token ligado a la sesión en el pedido `/player` (TVHTML5_SIMPLY lo
+  /// exige; WEB_REMIX no). El de la URL siempre va ligado al video (Tarea Z8).
+  final bool playerSessionToken;
 
   /// Usa la lista HLS (segmentos chicos) en vez del archivo entero.
   final bool useHls;
@@ -133,6 +133,7 @@ const ytPlayerClients = <YtPlayerClient>[
     host: 'www.youtube.com',
     needsPlayerScript: true,
     usesPoToken: true,
+    playerSessionToken: true,
     note: 'Televisor simple; descifra con el solver y manda un PO token.',
   ),
   YtPlayerClient(
@@ -143,6 +144,7 @@ const ytPlayerClients = <YtPlayerClient>[
     userAgent: _cobaltUserAgent,
     needsPlayerScript: true,
     usesPoToken: true,
+    playerSessionToken: true,
     note: 'Como TVHTML5_SIMPLY, pero pidiendo a music.youtube.com.',
   ),
   YtPlayerClient(
@@ -170,6 +172,7 @@ const ytPlayerClients = <YtPlayerClient>[
     host: 'www.youtube.com',
     needsPlayerScript: true,
     usesPoToken: true,
+    retired: 'YouTube responde "volver a cargar la página" (InnerTubeX: solo de prueba).',
     note: 'Televisor; descifra con el solver.',
   ),
   YtPlayerClient(
@@ -241,6 +244,7 @@ const ytPlayerClients = <YtPlayerClient>[
     host: 'www.youtube.com',
     needsPlayerScript: true,
     usesPoToken: true,
+    retired: 'Necesita un PO token ligado a la página, que Kiji no genera (medido el 18/10/2026).',
     note: 'La web para celulares; descifra con el solver y manda un PO token.',
   ),
 ];

@@ -581,10 +581,16 @@ class YtMusicClient {
       if (player == null) return fail('No se pudo ubicar el reproductor de YouTube');
     }
 
-    String? poToken;
-    if (client.usesPoToken && visitorData != null && _poTokens.isSupported) {
-      // El token se liga al visitorData "en crudo" (sin el %3D de la URL).
-      poToken = await _poTokens.tokenFor(Uri.decodeComponent(visitorData));
+    // PO tokens (Tarea Z8, reglas de InnerTubeX 0.10.0): el de la URL de googlevideo ("GVS")
+    // va ligado al VIDEO; el del pedido /player, cuando hace falta, a la sesión (visitorData).
+    // Antes Kiji ligaba el de la URL a la sesión y YouTube cortaba el audio al minuto.
+    String? gvsToken;
+    String? playerToken;
+    if (client.usesPoToken && _poTokens.isSupported) {
+      gvsToken = await _poTokens.tokenFor(videoId);
+      if (client.playerSessionToken && visitorData != null) {
+        playerToken = await _poTokens.tokenFor(Uri.decodeComponent(visitorData));
+      }
     }
 
     final Map<String, dynamic>? data;
@@ -616,10 +622,7 @@ class YtMusicClient {
               },
             },
           if (client.embedded) 'thirdParty': {'embedUrl': 'https://www.youtube.com/embed/$videoId'},
-          if (poToken != null)
-            'serviceIntegrityDimensions': {
-              'poToken': client.playerTokenForVideo ? (await _poTokens.tokenFor(videoId) ?? poToken) : poToken,
-            },
+          if (playerToken != null) 'serviceIntegrityDimensions': {'poToken': playerToken},
         },
       );
       data = response.data;
@@ -689,9 +692,9 @@ class YtMusicClient {
       }).toString();
     }
 
-    if (poToken != null) {
+    if (gvsToken != null) {
       final uri = Uri.parse(url);
-      url = uri.replace(queryParameters: {...uri.queryParameters, 'pot': poToken}).toString();
+      url = uri.replace(queryParameters: {...uri.queryParameters, 'pot': gvsToken}).toString();
     }
 
     final check = await _checkWholeFile(url, client.userAgent, int.tryParse('${format['contentLength']}'));
