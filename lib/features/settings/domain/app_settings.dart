@@ -24,6 +24,7 @@ class AppSettings {
     this.geminiModel,
     this.checkUpdates = true,
     this.autoExtractorTests = true,
+    this.ytDlpAccepted = false,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -94,6 +95,9 @@ class AppSettings {
   /// Pruebas automáticas del extractor con canciones de control (Tarea Z8). Se puede apagar.
   final bool autoExtractorTests;
 
+  /// Motor C (solo PC): el usuario aceptó bajar y usar yt-dlp (Tarea Z8). Apagado de fábrica.
+  final bool ytDlpAccepted;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -113,6 +117,7 @@ class AppSettings {
     String? geminiModel,
     bool? checkUpdates,
     bool? autoExtractorTests,
+    bool? ytDlpAccepted,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -132,6 +137,7 @@ class AppSettings {
         geminiModel: geminiModel ?? this.geminiModel,
         checkUpdates: checkUpdates ?? this.checkUpdates,
         autoExtractorTests: autoExtractorTests ?? this.autoExtractorTests,
+        ytDlpAccepted: ytDlpAccepted ?? this.ytDlpAccepted,
       );
 
   Map<String, dynamic> toJson() => {
@@ -153,6 +159,7 @@ class AppSettings {
         if (geminiModel != null) 'geminiModel': geminiModel,
         'checkUpdates': checkUpdates,
         'autoExtractorTests': autoExtractorTests,
+        'ytDlpAccepted': ytDlpAccepted,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -185,6 +192,7 @@ class AppSettings {
       geminiModel: json['geminiModel'] is String ? json['geminiModel'] as String : null,
       checkUpdates: read('checkUpdates', d.checkUpdates),
       autoExtractorTests: read('autoExtractorTests', d.autoExtractorTests),
+      ytDlpAccepted: read('ytDlpAccepted', d.ytDlpAccepted),
     );
   }
 

@@ -19,6 +19,7 @@ import '../features/extractor/data/alternatives.dart';
 import '../features/extractor/data/engines.dart';
 import '../features/extractor/data/path_health.dart';
 import '../features/extractor/data/stream_resolver.dart';
+import '../features/extractor/data/ytdlp_engine.dart';
 import '../features/extractor/domain/extraction_failure.dart';
 import '../features/stream_cache/data/chunked_source.dart';
 import '../features/stream_cache/data/stream_cache.dart';
@@ -144,7 +145,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   late final _ytClient = YtMusicClient();
 
   /// Motores de extracción (Tarea Z8): en Android A (InnerTubeX) → B (Kiji); en PC, B.
-  late final StreamResolver _resolver = StreamResolver(engines: [InnerTubeXEngine(), KijiEngine(_ytClient)]);
+  late final StreamResolver _resolver =
+      StreamResolver(engines: [InnerTubeXEngine(), KijiEngine(_ytClient), ref.read(ytDlpEngineProvider)]);
 
   /// Problema de contenido de la última canción que no se pudo cargar (para el aviso).
   ContentProblem? _lastContentProblem;
@@ -650,8 +652,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       _consecutiveFailures = 0;
       await _audioPlayer.pause();
       state = state.copyWith(position: position, isInitialized: false);
-      _notify(const PlaybackNotice(
-        'YouTube no está dejando reproducir ahora. Probá en un rato o escuchá tu música guardada.',
+      final suggestC = YtDlpEngine.platformSupported && !ref.read(settingsProvider).ytDlpAccepted;
+      _notify(PlaybackNotice(
+        suggestC
+            ? 'YouTube no está dejando reproducir ahora. Puedes probar el motor C (yt-dlp) en Configuración → Salud del Extractor.'
+            : 'YouTube no está dejando reproducir ahora. Prueba en un rato o escucha tu música guardada.',
         action: NoticeAction.openDownloads,
       ));
       return;

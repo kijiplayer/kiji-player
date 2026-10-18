@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../extractor/data/extractor_tester.dart';
 import '../../extractor/data/path_health.dart';
+import '../../extractor/data/ytdlp_engine.dart';
+import '../../settings/data/settings_store.dart';
 import '../../extractor/domain/resolved_stream.dart';
 import '../data/yt_clients.dart';
 import 'collection_screens.dart';
@@ -113,6 +115,7 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
                   note: clientByLabel(form)?.note,
                   now: now,
                 ),
+              if (YtDlpEngine.platformSupported) const _YtDlpCard(),
               const SizedBox(height: 8),
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
@@ -185,6 +188,93 @@ class _PathTile extends StatelessWidget {
       leading: Icon(Icons.circle, size: 12, color: color),
       title: Text(path.substring(2)),
       subtitle: Text(lines.join('\n')),
+    );
+  }
+}
+
+/// Motor C en la PC: yt-dlp, opcional y solo si se acepta (Tarea Z8).
+class _YtDlpCard extends ConsumerStatefulWidget {
+  const _YtDlpCard();
+
+  @override
+  ConsumerState<_YtDlpCard> createState() => _YtDlpCardState();
+}
+
+class _YtDlpCardState extends ConsumerState<_YtDlpCard> {
+  bool? _installed;
+  double? _progress;
+  String? _message;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(ytDlpEngineProvider).installed().then((v) {
+      if (mounted) setState(() => _installed = v);
+    });
+  }
+
+  Future<void> _install() async {
+    final engine = ref.read(ytDlpEngineProvider);
+    setState(() {
+      _progress = 0;
+      _message = null;
+    });
+    try {
+      await engine.install(onProgress: (done, total) {
+        if (mounted && total > 0) setState(() => _progress = done / total);
+      });
+      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytDlpAccepted: true));
+      setState(() {
+        _installed = true;
+        _message = 'yt-dlp listo y verificado. Se usa solo si los motores A y B fallan.';
+      });
+    } catch (error) {
+      setState(() => _message = 'No se pudo instalar: $error');
+    } finally {
+      if (mounted) setState(() => _progress = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accepted = ref.watch(settingsProvider).ytDlpAccepted;
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(EngineId.c.label.toUpperCase(), style: KijiText.mono(size: 11)),
+          const SizedBox(height: 6),
+          const Text(
+            'Opcional y solo en la PC. Si los motores A y B no pueden con una canción, Kiji puede usar '
+            'yt-dlp, un programa libre muy conocido. Se baja de su página oficial en GitHub (unos 18 MB), '
+            'se verifica su huella y se actualiza solo una vez por semana. Nada se baja si no lo pides.',
+            style: TextStyle(color: KijiColors.muted, fontSize: 13),
+          ),
+          const SizedBox(height: 8),
+          if (_progress != null)
+            LinearProgressIndicator(value: _progress)
+          else if (_installed == true && accepted)
+            Wrap(spacing: 8, children: [
+              const Chip(label: Text('Instalado')),
+              TextButton(
+                onPressed: () async {
+                  await ref.read(ytDlpEngineProvider).remove();
+                  await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytDlpAccepted: false));
+                  setState(() => _installed = false);
+                },
+                child: const Text('Quitar yt-dlp'),
+              ),
+            ])
+          else
+            OutlinedButton.icon(
+              onPressed: _install,
+              icon: const Icon(Icons.download_rounded),
+              label: const Text('Bajar y usar yt-dlp (≈18 MB)'),
+            ),
+          if (_message != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_message!)),
+        ],
+      ),
     );
   }
 }

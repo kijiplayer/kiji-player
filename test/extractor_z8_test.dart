@@ -9,6 +9,7 @@ import 'package:kiji_player/features/extractor/data/auto_tests.dart';
 import 'package:kiji_player/features/extractor/data/engines.dart';
 import 'package:kiji_player/features/extractor/data/path_health.dart';
 import 'package:kiji_player/features/extractor/data/stream_resolver.dart';
+import 'package:kiji_player/features/extractor/data/ytdlp_engine.dart';
 import 'package:kiji_player/features/extractor/domain/extraction_failure.dart';
 import 'package:kiji_player/features/extractor/domain/resolved_stream.dart';
 import 'package:kiji_player/features/stream_cache/data/chunked_source.dart';
@@ -350,5 +351,34 @@ void main() {
     offline = true;
     now = now.add(const Duration(days: 1));
     expect(await remote.load(), contains('abc123'), reason: 'sin red, la guardada');
+  });
+
+  group('Motor C (yt-dlp)', () {
+    test('Huella del ejecutable en SHA2-256SUMS', () {
+      const sums = 'aaa111  yt-dlp\nBBB222  yt-dlp.exe\nccc333  yt-dlp_macos\n';
+      expect(expectedChecksum(sums, 'yt-dlp.exe'), 'bbb222');
+      expect(expectedChecksum(sums, 'yt-dlp_linux'), isNull);
+    });
+
+    test('Lee la salida -J: URL, encabezados, tamaño y códec', () {
+      final r = ytDlpResult('abcdefghijk', {
+        'url': 'https://rr1---sn.googlevideo.com/videoplayback?x',
+        'ext': 'webm',
+        'acodec': 'opus',
+        'abr': 133.7,
+        'filesize': 4321000,
+        'protocol': 'https',
+        'http_headers': {'User-Agent': 'UA'},
+      });
+      expect(r.stream!.path, 'C/YTDLP');
+      expect(r.stream!.headers['User-Agent'], 'UA');
+      expect(r.stream!.contentLength, 4321000);
+      expect(r.stream!.extension, 'webm');
+      expect(ytDlpResult('x', 'nada').ok, isFalse);
+    });
+
+    test('Sin aceptar, el motor C no se usa', () {
+      expect(YtDlpEngine(accepted: () => false).isSupported, isFalse);
+    });
   });
 }
