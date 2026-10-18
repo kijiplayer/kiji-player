@@ -12,7 +12,7 @@ class AppSettings {
     this.streamCacheLimitBytes = defaultCacheLimit,
     this.hideShortAudios = false,
     this.pauseOnMute = false,
-    this.resumeOnBluetooth = false,
+    this.resumeOnBluetooth = true,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.autoBackup = true,

@@ -26,6 +26,8 @@ Track _track(String id, {String artist = 'Soda Stereo'}) => Track(
 class _FakeControl implements PlaybackControl {
   @override
   bool isPlaying = false;
+  @override
+  bool hasTrack = true;
   final calls = <String>[];
   @override
   Future<void> play() async {
@@ -101,23 +103,11 @@ void main() {
     expect(rule.onVolume(0.4, isPlaying: false), MuteAction.none);
   });
 
-  test('Retomar con el Bluetooth: solo si sonaba y vuelve dentro de 10 minutos', () {
+  test('Retomar con el Bluetooth (Tarea K2): siempre que haya una canción en pausa', () {
     final rule = BluetoothResumeRule();
-    final t0 = DateTime(2026, 10, 16, 12);
-    rule.onDisconnected(wasPlaying: true, now: t0);
-    expect(rule.onConnected(isPlaying: false, now: t0.add(const Duration(minutes: 2))), isTrue);
-    // Una sola vez.
-    expect(rule.onConnected(isPlaying: false, now: t0.add(const Duration(minutes: 3))), isFalse);
-
-    rule.onDisconnected(wasPlaying: true, now: t0);
-    expect(rule.onConnected(isPlaying: false, now: t0.add(const Duration(minutes: 11))), isFalse);
-
-    rule.onDisconnected(wasPlaying: false, now: t0);
-    expect(rule.onConnected(isPlaying: false, now: t0), isFalse, reason: 'estaba en pausa');
-
-    rule.onDisconnected(wasPlaying: true, now: t0);
-    rule.userTookControl();
-    expect(rule.onConnected(isPlaying: false, now: t0), isFalse);
+    expect(rule.onConnected(isPlaying: false, hasTrack: true), isTrue);
+    expect(rule.onConnected(isPlaying: true, hasTrack: true), isFalse, reason: 'ya suena');
+    expect(rule.onConnected(isPlaying: false, hasTrack: false), isFalse, reason: 'no hay nada para seguir');
   });
 
   test('compartir: enlace de song.link para YouTube, solo texto para archivos', () {
@@ -147,10 +137,11 @@ void main() {
 
   test('los ajustes nuevos se guardan, vienen apagados y un valor raro vuelve al de fábrica', () {
     const d = AppSettings();
-    expect([d.pauseOnMute, d.resumeOnBluetooth, d.dataSaver, d.crossfadeSeconds], [false, false, false, 0]);
-    final s = d.copyWith(pauseOnMute: true, resumeOnBluetooth: true, crossfadeSeconds: 5, dataSaver: true);
+    // "Retomar con el Bluetooth" viene prendido de fábrica (decisión del proyecto, Tarea K2).
+    expect([d.pauseOnMute, d.resumeOnBluetooth, d.dataSaver, d.crossfadeSeconds], [false, true, false, 0]);
+    final s = d.copyWith(pauseOnMute: true, resumeOnBluetooth: false, crossfadeSeconds: 5, dataSaver: true);
     final back = AppSettings.fromJson(s.toJson());
-    expect([back.pauseOnMute, back.resumeOnBluetooth, back.dataSaver, back.crossfadeSeconds], [true, true, true, 5]);
+    expect([back.pauseOnMute, back.resumeOnBluetooth, back.dataSaver, back.crossfadeSeconds], [true, false, true, 5]);
     expect(AppSettings.fromJson({'crossfadeSeconds': 7}).crossfadeSeconds, 0);
   });
 
@@ -166,8 +157,9 @@ void main() {
       final control = _FakeControl()..isPlaying = true;
       final volume = _FakeVolume();
       final outputs = _FakeOutputs();
-      var now = DateTime(2026, 10, 16, 12);
-      final automationProvider = Provider((ref) => PlaybackAutomation(ref, clock: () => now)..start());
+      // Las dos apagadas a mano ("Retomar con el Bluetooth" viene prendida de fábrica, Tarea K2).
+      File('${dir.path}/settings.json').writeAsStringSync('{"pauseOnMute": false, "resumeOnBluetooth": false}');
+      final automationProvider = Provider((ref) => PlaybackAutomation(ref)..start());
       final c = ProviderContainer(overrides: [
         settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => dir)),
         playbackControlProvider.overrideWithValue(control),
@@ -195,12 +187,11 @@ void main() {
       automation.onPlayingChanged(true);
       expect(control.calls, ['pause', 'play']);
 
-      // Se desconecta el Bluetooth mientras suena: el sistema pausa.
+      // Se desconecta el Bluetooth: el sistema pausa. Al volver a conectarlo, sigue.
       outputs.controller.add(AudioOutputKind.speaker);
       await _settle();
       await control.pause();
       automation.onPlayingChanged(false);
-      now = now.add(const Duration(minutes: 1));
       outputs.controller.add(AudioOutputKind.bluetooth);
       await _settle();
       expect(control.calls, ['pause', 'play', 'pause', 'play']);

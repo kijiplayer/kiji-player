@@ -61,25 +61,12 @@ class MuteRule {
 
 enum MuteAction { none, pause, resume }
 
-/// "Retomar al reconectar el Bluetooth": solo si la música sonaba cuando se
-/// desconectaron y vuelven dentro de [window].
+/// "Retomar al conectar el Bluetooth" (decisión del proyecto, Tarea K2): como en
+/// Echo, **siempre** que se conectan auriculares o un parlante Bluetooth y hay
+/// una canción en pausa, sigue sonando. Se apaga en Configuración.
 class BluetoothResumeRule {
-  BluetoothResumeRule({this.window = const Duration(minutes: 10)});
-  final Duration window;
-  DateTime? _cutAt;
-
-  void onDisconnected({required bool wasPlaying, required DateTime now}) {
-    _cutAt = wasPlaying ? now : null;
-  }
-
   /// true si hay que seguir sonando.
-  bool onConnected({required bool isPlaying, required DateTime now}) {
-    final cutAt = _cutAt;
-    _cutAt = null;
-    return cutAt != null && !isPlaying && now.difference(cutAt) <= window;
-  }
-
-  void userTookControl() => _cutAt = null;
+  bool onConnected({required bool isPlaying, required bool hasTrack}) => hasTrack && !isPlaying;
 }
 
 /// Texto para compartir una canción. Las de YouTube llevan un enlace de
