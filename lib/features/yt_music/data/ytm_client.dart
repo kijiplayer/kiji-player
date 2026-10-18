@@ -11,7 +11,6 @@ import 'package:flutter/foundation.dart';
 
 import '../domain/js_challenge_solver.dart';
 import '../domain/subtitle_parser.dart';
-import 'extractor_health.dart';
 import 'player_script.dart';
 import 'po_token.dart';
 import 'webview_ejs_solver.dart';
@@ -42,7 +41,16 @@ class YtMusicSearchResult {
 /// entregó. El reproductor manda el mismo `User-Agent`
 /// y, si falla a mitad de canción, reintenta excluyendo ese cliente.
 class YtStream {
-  const YtStream({required this.url, required this.client, required this.userAgent, this.isHls = false});
+  const YtStream({
+    required this.url,
+    required this.client,
+    required this.userAgent,
+    this.isHls = false,
+    this.contentLength,
+  });
+
+  /// Tamaño del archivo de audio, si se sabe.
+  final int? contentLength;
 
   final String url;
   final String client;
@@ -480,23 +488,33 @@ class YtMusicClient {
   static const _benchTime = Duration(minutes: 30);
 
   /// Prueba las formas en orden hasta que una entregue el audio completo.
-  /// [skipClients] excluye formas que ya fallaron con esta canción. Cada
-  /// resultado queda en la Salud del Extractor; los cortes de conexión no
-  /// cuentan como falla. Con [lowQuality] (ahorro de datos) se elige el
-  /// formato de menor bitrate.
+  /// [skipClients] excluye formas que ya fallaron con esta canción. Con
+  /// [lowQuality] (ahorro de datos) se elige el formato de menor bitrate.
+  /// Cada intento queda en [attempts] (si se pasa): quien llama clasifica si
+  /// fue culpa de la canción o de la forma y lo anota en la Salud del
+  /// Extractor (Tarea Z8). Solo las fallas de la forma la dejan "en el banco".
+  /// [order] reordena las formas (por éxitos recientes); las que no estén van al final.
   Future<YtStream?> resolveStream(
     String videoId, {
     Set<String> skipClients = const {},
     bool lowQuality = false,
+    List<StreamAttempt>? attempts,
+    List<String>? order,
+    bool Function(String reason)? isContentProblem,
   }) async {
-    final health = ExtractorHealth.instance;
     lastResolveWasOffline = false;
     final visitorData = await _getVisitorData();
     final now = DateTime.now();
+    int rank(YtPlayerClient c) {
+      final i = order?.indexOf(c.label) ?? -1;
+      return i < 0 ? 1 << 20 : i;
+    }
+
+    // Las formas retiradas (rotas según InnerTubeX) no entran en la cadena automática.
     final candidates = [
       for (final client in ytPlayerClients)
-        if (!skipClients.contains(client.label)) client,
-    ];
+        if (!client.isRetired && !skipClients.contains(client.label)) client,
+    ]..sort((a, b) => rank(a).compareTo(rank(b)));
     final rested = [
       for (final client in candidates)
         if (!(_benchedUntil[client.label]?.isAfter(now) ?? false)) client,
@@ -505,20 +523,23 @@ class YtMusicClient {
     var offline = visitorData == null;
     for (final client in rested.isEmpty ? candidates : rested) {
       final attempt = await tryClient(videoId, client, lowQuality: lowQuality);
+      attempts?.add(attempt);
       if (attempt.ok) {
         _benchedUntil.remove(client.label);
-        health.recordSuccess(client.label);
         return YtStream(
           url: attempt.url!,
           client: client.label,
           userAgent: client.userAgent,
           isHls: attempt.isHls,
+          contentLength: attempt.contentLength,
         );
       }
       if (attempt.offline) continue;
       offline = false;
-      health.recordFailure(client.label, attempt.reason!);
-      _benchedUntil[client.label] = DateTime.now().add(_benchTime);
+      // Una canción con restricción de edad o no disponible no "rompe" la forma.
+      if (!(isContentProblem?.call(attempt.reason!) ?? false)) {
+        _benchedUntil[client.label] = DateTime.now().add(_benchTime);
+      }
     }
     lastResolveWasOffline = offline;
     return null;
@@ -545,6 +566,14 @@ class YtMusicClient {
       return fail('En la PC todavía no se pueden reproducir listas HLS');
     }
     visitorData ??= await _getVisitorData();
+    // Reproductor incrustado: su visitorData y sus encryptedHostFlags salen de la página embed.
+    String? hostFlags;
+    if (client.embedded) {
+      final embed = await _embedConfig(videoId);
+      if (embed == null) return fail('No se pudo leer la página del reproductor incrustado');
+      visitorData = embed.visitorData;
+      hostFlags = embed.hostFlags;
+    }
     PlayerScript? player;
     if (client.needsPlayerScript) {
       if (!_solver.isSupported) return fail('En este dispositivo no se puede descifrar (no hay WebView)');
@@ -580,8 +609,13 @@ class YtMusicClient {
           'racyCheckOk': true,
           if (player != null)
             'playbackContext': {
-              'contentPlaybackContext': {'signatureTimestamp': player.signatureTimestamp},
+              'contentPlaybackContext': {
+                'signatureTimestamp': player.signatureTimestamp,
+                if (client.embedded) 'html5Preference': 'HTML5_PREF_WANTS',
+                'encryptedHostFlags': ?hostFlags,
+              },
             },
+          if (client.embedded) 'thirdParty': {'embedUrl': 'https://www.youtube.com/embed/$videoId'},
           if (poToken != null)
             'serviceIntegrityDimensions': {
               'poToken': client.playerTokenForVideo ? (await _poTokens.tokenFor(videoId) ?? poToken) : poToken,
@@ -663,7 +697,34 @@ class YtMusicClient {
     final check = await _checkWholeFile(url, client.userAgent, int.tryParse('${format['contentLength']}'));
     if (check != null) return fail(check);
     debugPrint('=== YTM stream [${client.label}]: audio completo listo (${watch.elapsedMilliseconds} ms) ===');
-    return StreamAttempt(client.label, url: url, elapsed: watch.elapsed);
+    return StreamAttempt(
+      client.label,
+      url: url,
+      elapsed: watch.elapsed,
+      contentLength: int.tryParse('${format['contentLength']}'),
+    );
+  }
+
+  /// visitorData y encryptedHostFlags de la página `embed` (como si el video estuviera en otra
+  /// página). Con el visitor propio de Kiji, YouTube responde "no disponible" a todo.
+  Future<({String visitorData, String? hostFlags})?> _embedConfig(String videoId) async {
+    try {
+      final response = await _playerDio.get<String>(
+        'https://www.youtube.com/embed/$videoId?html5=1',
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'User-Agent': chromeUserAgent, 'Referer': 'https://www.reddit.com/', 'Accept-Language': 'en-US,en;q=0.9'},
+        ),
+      );
+      final html = response.data ?? '';
+      final visitor = RegExp(r'"visitorData"\s*:\s*"([^"]+)"').firstMatch(html)?.group(1);
+      if (visitor == null) return null;
+      final flags = RegExp(r'"encryptedHostFlags"\s*:\s*"([^"]+)"').firstMatch(html)?.group(1);
+      return (visitorData: visitor, hostFlags: flags);
+    } catch (error) {
+      debugPrint('=== YTM stream [WEB_EMBEDDED_PLAYER]: no se pudo leer la página embed: ${error.runtimeType} ===');
+      return null;
+    }
   }
 
   /// Forma HLS: la lista de solo audio, verificando el primer y el último
@@ -803,9 +864,13 @@ class StreamAttempt {
     this.isHls = false,
     this.duration,
     this.elapsed = Duration.zero,
+    this.contentLength,
   });
 
   final bool isHls;
+
+  /// Tamaño del archivo de audio, si YouTube lo dijo.
+  final int? contentLength;
 
   /// Duración que dice la lista HLS (null en las demás formas).
   final Duration? duration;

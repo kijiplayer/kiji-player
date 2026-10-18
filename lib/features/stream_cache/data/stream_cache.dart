@@ -46,6 +46,11 @@ class StreamCache {
     return null;
   }
 
+  /// Archivo donde se guarda [videoId] cuando suena entero (Tarea Z8: lo escribe la fuente por
+  /// pedazos, que primero usa `<archivo>.part`).
+  Future<File> targetFor(String videoId, String extension) async =>
+      File(p.join((await directory()).path, '$videoId.$extension'));
+
   /// Canciones que se están guardando ahora mismo. Dos fuentes con caché
   /// escribiendo el mismo archivo a la vez lo corrompen (pasaba al tocar la
   /// misma canción que se había restaurado al abrir).

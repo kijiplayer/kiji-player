@@ -2,6 +2,10 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Solo InnerTubeX (Tarea Z8) sale de JitPack; nada más se baja de ahí.
+        maven("https://jitpack.io") {
+            content { includeGroup("com.github.MetrolistGroup.innertubex") }
+        }
     }
 }
 

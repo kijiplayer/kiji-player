@@ -15,6 +15,11 @@ import '../features/playback_memory/data/playback_memory_store.dart';
 import '../features/playback_memory/domain/playback_snapshot.dart';
 import '../features/queue/domain/queue_operations.dart';
 import '../features/settings/data/settings_store.dart';
+import '../features/extractor/data/engines.dart';
+import '../features/extractor/data/path_health.dart';
+import '../features/extractor/data/stream_resolver.dart';
+import '../features/extractor/domain/extraction_failure.dart';
+import '../features/stream_cache/data/chunked_source.dart';
 import '../features/stream_cache/data/stream_cache.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/extractor_health.dart';
@@ -127,7 +132,9 @@ class PlaybackNotice {
 enum _SourceMode { cached, withHeaders, plain }
 
 /// Cómo terminó un intento de cargar una canción.
-enum LoadResult { loaded, cancelled, offline, unplayable }
+/// [contentBlocked]: la canción tiene un problema propio (edad, no disponible…); se salta sin
+/// contar como falla del extractor (Tarea Z8).
+enum LoadResult { loaded, cancelled, offline, unplayable, contentBlocked }
 
 class PlaybackNotifier extends Notifier<PlaybackState> {
   AudioPlayer? _player;
@@ -135,6 +142,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   final _random = Random();
   late final _memory = PlaybackMemoryStore();
   late final _ytClient = YtMusicClient();
+
+  /// Motores de extracción (Tarea Z8): en Android A (InnerTubeX) → B (Kiji); en PC, B.
+  late final StreamResolver _resolver = StreamResolver(engines: [InnerTubeXEngine(), KijiEngine(_ytClient)]);
+
+  /// Problema de contenido de la última canción que no se pudo cargar (para el aviso).
+  ContentProblem? _lastContentProblem;
   Timer? _saveTimer;
   AppLifecycleListener? _lifecycleListener;
 
@@ -187,6 +200,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
     _listenToPlayer();
     unawaited(ExtractorHealth.instance.load());
+    unawaited(PathHealth.instance.load());
+    // Paga los costos en frío del motor A (config, solver, BotGuard) fuera del primer play.
+    unawaited(Future<void>.delayed(const Duration(seconds: 2), _resolver.prewarm));
 
     // Guardado periódico mientras suena y al pasar a segundo plano.
     _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) {
@@ -423,36 +439,51 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final tried = {...skipClients};
     while (true) {
       final lowQuality = await _useLowQuality();
-      final stream = await _ytClient.resolveStream(videoId, skipClients: tried, lowQuality: lowQuality);
+      final outcome = await _resolver.resolve(videoId, lowQuality: lowQuality, skipPaths: tried);
       if (token != _loadToken) return LoadResult.cancelled;
+      final stream = outcome.stream;
       if (stream == null) {
-        final offline = _ytClient.lastResolveWasOffline || !await _isOnline();
+        if (outcome.problem != null) {
+          _lastContentProblem = outcome.problem;
+          debugPrint('=== REPRODUCCION: $videoId tiene un problema propio: ${outcome.problem!.name} ===');
+          return LoadResult.contentBlocked;
+        }
+        final offline = outcome.offline || !await _isOnline();
         debugPrint('=== REPRODUCCION: sin audio para $videoId '
-            '(${offline ? "sin conexión" : "clientes agotados"}) ===');
+            '(${offline ? "sin conexión" : "caminos agotados"}) ===');
         return offline ? LoadResult.offline : LoadResult.unplayable;
       }
 
-      // Primero con caché; si la caché falla, la misma URL sin caché; y por
-      // último sin headers (sin el proxy interno de just_audio).
+      // Primero con la fuente por pedazos (renueva la URL si la rechazan y guarda la caché);
+      // si no abre, la URL directa con sus encabezados.
       for (final mode in _SourceMode.values) {
         try {
-          final source = switch (mode) {
-            // Con ahorro de datos no se guarda en la caché: así, con WiFi,
-            // la canción vuelve a sonar en la mejor calidad.
-            // Una lista HLS (segmentos) no pasa por la caché ni por el proxy.
-            _SourceMode.cached => lowQuality || stream.isHls ? null : await _cache.sourceFor(videoId, stream),
-            _SourceMode.withHeaders => stream.isHls
-                ? HlsAudioSource(Uri.parse(stream.url))
-                : AudioSource.uri(Uri.parse(stream.url), headers: {'User-Agent': stream.userAgent}),
-            _SourceMode.plain =>
-              stream.isHls ? HlsAudioSource(Uri.parse(stream.url)) : AudioSource.uri(Uri.parse(stream.url)),
-          };
-          if (source == null) continue; // ya se está guardando: probar sin caché
+          final AudioSource source;
+          if (stream.isHls) {
+            if (mode != _SourceMode.cached) continue;
+            source = HlsAudioSource(Uri.parse(stream.url), headers: stream.headers);
+          } else if (mode == _SourceMode.cached) {
+            source = ChunkedYtSource(
+              stream: stream,
+              cacheFile: await _cache.targetFor(videoId, stream.extension),
+              refresh: (refused) async {
+                await _resolver.refused(refused);
+                tried.add(refused.path);
+                final again = await _resolver.resolve(videoId, lowQuality: lowQuality, skipPaths: tried);
+                if (again.stream != null) _currentClient = again.stream!.path;
+                return again.stream;
+              },
+            );
+          } else if (mode == _SourceMode.withHeaders) {
+            source = AudioSource.uri(Uri.parse(stream.url), headers: stream.headers);
+          } else {
+            continue;
+          }
           await _audioPlayer.setAudioSource(source, initialPosition: initialPosition);
           if (token != _loadToken) return LoadResult.cancelled;
-          _currentClient = stream.client;
+          _currentClient = stream.path;
           if (mode != _SourceMode.cached) {
-            debugPrint('=== REPRODUCCION: "${track.title}" sin caché (${mode.name}) ===');
+            debugPrint('=== REPRODUCCION: "${track.title}" sin la fuente por pedazos (${mode.name}) ===');
           }
           unawaited(_cache.evict(
             limitBytes: ref.read(settingsProvider).streamCacheLimitBytes,
@@ -462,12 +493,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         } on PlayerInterruptedException {
           return LoadResult.cancelled;
         } on PlayerException catch (error) {
-          debugPrint('=== REPRODUCCION: [${stream.client}] modo ${mode.name} '
+          debugPrint('=== REPRODUCCION: [${stream.path}] modo ${mode.name} '
               'falló: ${error.code} ${error.message} ===');
         }
       }
-      ExtractorHealth.instance.recordFailure(stream.client, 'El audio no se pudo abrir');
-      tried.add(stream.client);
+      PathHealth.instance.recordFormFailure(stream.path, 'El audio no se pudo abrir');
+      tried.add(stream.path);
     }
   }
 
@@ -570,6 +601,21 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       return;
     }
 
+    if (result == LoadResult.contentBlocked) {
+      // No es culpa del extractor: se salta sin contar como falla.
+      final problem = _lastContentProblem;
+      final next = index + 1 < queue.length ? index + 1 : (state.repeatMode == PlaybackRepeatMode.off ? null : 0);
+      _notify(PlaybackNotice('«${track.title}»: ${problem == null ? 'no se puede reproducir' : contentProblemText(problem)}. '
+          '${next == null || next == index ? '' : 'Pasamos a la siguiente.'}'));
+      if (next == null || next == index) {
+        await _audioPlayer.pause();
+        state = state.copyWith(position: position, isInitialized: false);
+        return;
+      }
+      await _loadOrRecover(queue[next], next);
+      return;
+    }
+
     _consecutiveFailures++;
     final next = index + 1 < queue.length
         ? index + 1
@@ -607,8 +653,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
       final client = _currentClient;
       if (client != null && await _isOnline()) {
-        // Reintentar con el siguiente cliente.
-        ExtractorHealth.instance.recordFailure(client, 'Se cortó durante la reproducción');
+        // Reintentar con el siguiente camino.
+        PathHealth.instance.recordFormFailure(client, 'Se cortó durante la reproducción');
         final result = await _loadTrack(
           track,
           index,

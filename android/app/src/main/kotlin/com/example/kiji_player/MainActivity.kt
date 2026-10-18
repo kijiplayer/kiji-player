@@ -15,6 +15,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import com.example.kiji_player.extractor.ExtractorChannel
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -87,6 +88,9 @@ class MainActivity : AudioServiceActivity() {
                     result.error("secretos", e.javaClass.simpleName, null)
                 }
             }
+
+        // Motor A de extracción: InnerTubeX (Tarea Z8, solo Android).
+        ExtractorChannel.register(this, flutterEngine.dartExecutor.binaryMessenger)
 
         // Volumen de la música del sistema (0 a 1), para "Pausar al silenciar" (Tarea K).
         // Solo se escucha mientras Dart está suscrito.

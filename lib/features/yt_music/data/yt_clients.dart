@@ -21,6 +21,8 @@ class YtPlayerClient {
     this.usesPoToken = false,
     this.playerTokenForVideo = false,
     this.useHls = false,
+    this.embedded = false,
+    this.retired,
     this.note,
   });
 
@@ -53,6 +55,16 @@ class YtPlayerClient {
   /// Usa la lista HLS (segmentos chicos) en vez del archivo entero.
   final bool useHls;
 
+  /// Reproductor "incrustado" (como en otra página): pide primero la página
+  /// `embed` para usar SU visitorData y sus `encryptedHostFlags` (Tarea Z8).
+  final bool embedded;
+
+  /// Si no es null, la forma está retirada de la cadena automática y dice por
+  /// qué (Tarea Z8, medido con InnerTubeX). Se ve en "Formas retiradas".
+  final String? retired;
+
+  bool get isRetired => retired != null;
+
   /// Para qué está en la lista (se muestra en la Salud del Extractor).
   final String? note;
 
@@ -73,6 +85,8 @@ class YtPlayerClient {
 const safariUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 '
     '(KHTML, like Gecko) Version/18.0 Safari/605.1.15';
 const _cobaltUserAgent = 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version';
+const chromeUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+    '(KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36';
 const firefoxUserAgent =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0';
 
@@ -143,6 +157,7 @@ const ytPlayerClients = <YtPlayerClient>[
     deviceMake: 'Oculus',
     deviceModel: 'Quest 3',
     androidSdkVersion: 32,
+    retired: 'Entrega solo el primer MiB (medido con InnerTubeX, 18/10/2026).',
     note: 'Audio directo, sin descifrar.',
   ),
   YtPlayerClient(
@@ -169,6 +184,7 @@ const ytPlayerClients = <YtPlayerClient>[
     deviceMake: 'Oculus',
     deviceModel: 'Quest 3',
     androidSdkVersion: 32,
+    retired: 'YouTube ya no le da formatos de audio (InnerTubeX: NO_PLAYABLE_STREAM).',
     note: 'Versión vieja de ANDROID_VR, de control.',
   ),
   YtPlayerClient(
@@ -181,6 +197,7 @@ const ytPlayerClients = <YtPlayerClient>[
     osVersion: '17.7.10.21H450',
     deviceMake: 'Apple',
     deviceModel: 'iPad7,6',
+    retired: 'YouTube ya no le da formatos de audio (InnerTubeX: rota).',
     note: 'Suele dar solo el primer minuto.',
   ),
   YtPlayerClient(
@@ -190,6 +207,7 @@ const ytPlayerClients = <YtPlayerClient>[
     version: '21.03.1',
     userAgent: 'com.google.ios.youtube/21.03.1 (iPhone16,2; U; CPU iOS 18_2 like Mac OS X;)',
     osVersion: '18.2.22C152',
+    retired: 'YouTube ya no le da formatos de audio (InnerTubeX: rota).',
     note: 'Suele dar solo el primer minuto.',
   ),
   YtPlayerClient(
@@ -201,6 +219,17 @@ const ytPlayerClients = <YtPlayerClient>[
     needsPlayerScript: true,
     usesPoToken: true,
     note: 'La web de YouTube Music; descifra con el solver y manda un PO token.',
+  ),
+  YtPlayerClient(
+    label: 'WEB_EMBEDDED_PLAYER',
+    name: 'WEB_EMBEDDED_PLAYER',
+    id: '56',
+    version: '2.20260708.00.00',
+    userAgent: chromeUserAgent,
+    host: 'www.youtube.com',
+    needsPlayerScript: true,
+    embedded: true,
+    note: 'El reproductor incrustado; usa el visitor de la página embed (Tarea Z8, como InnerTubeX 0.8.4).',
   ),
   YtPlayerClient(
     label: 'MWEB',
