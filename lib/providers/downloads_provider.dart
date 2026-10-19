@@ -235,7 +235,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     if (state.settings.wifiOnly && !await _onWifiOrEthernet()) {
       return const DownloadCheck(
         blockedReason: 'Estás sin WiFi y elegiste descargar solo con WiFi. '
-            'Podés cambiarlo en Biblioteca → Descargadas.',
+            'Puedes cambiarlo en Biblioteca → Descargadas.',
         waitingForWifi: true,
       );
     }
@@ -266,7 +266,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     final limit = state.settings.limitBytes;
     if (size != null && limit != null && state.usedBytes + size > limit) {
       blocked = 'Superaría el límite de espacio para descargas que elegiste. '
-          'Podés cambiarlo o borrar descargas en Biblioteca → Descargadas.';
+          'Puedes cambiarlo o borrar descargas en Biblioteca → Descargadas.';
     }
     return DownloadCheck(estimate: estimate, freeBytes: freeBytes, blockedReason: blocked);
   }
@@ -490,7 +490,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     }
     _updateActive(videoId, (d) => d.copyWith(searching: false));
     if (alternative == null || alternative == videoId || alternative == download.sourceId) {
-      _fail(videoId, DownloadFailure.noAlternative);
+      _fail(videoId, (download.failure ?? DownloadFailure.unknown).withoutAlternative());
       return false;
     }
     debugPrint('=== DESCARGAS: $videoId se baja con otra versión ($alternative) ===');

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,14 +46,26 @@ class MiniPlayerRouteObserver extends NavigatorObserver {
         break;
       }
     }
-    final next = RouteStackInfo(topPageName: page, popupOpen: top is PopupRoute);
-    // El Navigator avisa a veces en medio de un build: se aplica al final del cuadro.
-    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
-      SchedulerBinding.instance.addPostFrameCallback((_) => info.value = next);
+    // El Navigator avisa en medio de un build (también en el primero, el de runApp, que pasa
+    // fuera de un cuadro): se aplica después, siempre el último estado. Cambiarlo en el acto
+    // era el "setState() during build" que mostró el aviso de errores (Tarea T3).
+    final pending = _pending == null;
+    _pending = RouteStackInfo(topPageName: page, popupOpen: top is PopupRoute);
+    if (!pending) return;
+    void apply() {
+      final next = _pending;
+      _pending = null;
+      if (next != null) info.value = next;
+    }
+
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.idle) {
+      scheduleMicrotask(apply);
     } else {
-      info.value = next;
+      SchedulerBinding.instance.addPostFrameCallback((_) => apply());
     }
   }
+
+  RouteStackInfo? _pending;
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {

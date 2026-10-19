@@ -100,7 +100,7 @@ void main() {
       expect(HistoryLogic.recent(entries).map((t) => t.title), ['a', 'b']);
     });
 
-    test('"Para vos": las más escuchadas, sin la que suena', () {
+    test('"Para ti": las más escuchadas, sin la que suena', () {
       var entries = <HistoryEntry>[];
       for (final (i, id) in ['a', 'b', 'b', 'c', 'c', 'c'].indexed) {
         entries = HistoryLogic.record(entries, _t(id), t0.add(Duration(minutes: i)));

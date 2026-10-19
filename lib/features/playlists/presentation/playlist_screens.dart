@@ -160,7 +160,7 @@ class PlaylistsView extends ConsumerWidget {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'Todavía no creaste ninguna. Mantené apretada una canción → "Agregar a playlist".',
+              'Todavía no creaste ninguna. Mantén presionada una canción → "Agregar a playlist".',
               style: TextStyle(color: KijiColors.muted),
             ),
           ),

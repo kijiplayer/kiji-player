@@ -30,8 +30,8 @@ String greetingFor(DateTime now) {
   return 'Buenas noches';
 }
 
-/// Pestaña Inicio (§7): saludo, "Seguí donde quedaste", tus playlists,
-/// escuchado recientemente y "Para vos", todo calculado en el teléfono.
+/// Pestaña Inicio (§7): saludo, "Sigue donde quedaste", tus playlists,
+/// escuchado recientemente y "Para ti", todo calculado en el teléfono.
 class InicioTab extends ConsumerWidget {
   const InicioTab({super.key});
 
@@ -183,7 +183,7 @@ class _ContinueCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('SEGUÍ DONDE QUEDASTE', style: KijiText.mono(size: 10)),
+                  Text('SIGUE DONDE QUEDASTE', style: KijiText.mono(size: 10)),
                   const SizedBox(height: 6),
                   TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 17)),
                   TrackArtistText(
@@ -272,7 +272,7 @@ class _EmptyHome extends StatelessWidget {
           Text('Elige una canción', style: KijiText.title(size: 20)),
           const SizedBox(height: 6),
           const Text(
-            'Lo que escuches aparece acá. Todo se calcula en tu teléfono; nada sale de él.',
+            'Lo que escuches aparece aquí. Todo se calcula en tu teléfono; nada sale de él.',
             style: TextStyle(color: KijiColors.muted),
           ),
           const SizedBox(height: 14),

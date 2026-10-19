@@ -48,7 +48,7 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
               padding: EdgeInsets.only(bottom: 12),
               child: Text(
                 'En la PC todavía no hay ecualizador: por ahora funciona solo en Android. '
-                'Lo que elijas acá se guarda igual.',
+                'Lo que elijas aquí se guarda igual.',
                 style: TextStyle(color: KijiColors.muted),
               ),
             ),

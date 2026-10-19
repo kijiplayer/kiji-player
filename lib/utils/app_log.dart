@@ -21,7 +21,7 @@ class LogLine {
 
 /// Registro de Kiji en memoria (Tarea T2): se queda con las últimas [capacity] líneas de
 /// `debugPrint` para verlas en vivo en las herramientas de Kiji Dev. Todo lo que Kiji anota
-/// pasa por acá.
+/// pasa por aquí.
 abstract final class AppLog {
   static const capacity = 2000;
 

@@ -8,7 +8,7 @@ import '../../../theme/kiji_tokens.dart';
 /// Elegir una imagen (galería o archivo) y recortarla cuadrada (Tarea Z3).
 /// Devuelve los bytes recortados, o null si el usuario cancela.
 Future<Uint8List?> pickAndCropImage(BuildContext context) async {
-  final picked = await FilePicker.pickFiles(type: FileType.image, dialogTitle: 'Elegí una foto');
+  final picked = await FilePicker.pickFiles(type: FileType.image, dialogTitle: 'Elige una foto');
   if (picked.isEmpty || !context.mounted) return null;
   final Uint8List bytes;
   try {

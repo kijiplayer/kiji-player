@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "navHome": "Home",
+  "navSearch": "Search",
+  "navLibrary": "Library",
+  "settingsTitle": "Settings",
+  "settingsSearchHint": "Search a setting…",
+  "errorReportTitle": "Something went wrong in Kiji",
+  "errorReportBody": "{summary}.\n\nWould you like to let the developer know? GitHub opens with a report already written, without your name, your files or your accounts. You can read it before sending it.",
+  "errorReportSend": "Send to the developer",
+  "errorReportDownload": "Download report (.txt)",
+  "errorReportNoThanks": "No, thanks"
+}

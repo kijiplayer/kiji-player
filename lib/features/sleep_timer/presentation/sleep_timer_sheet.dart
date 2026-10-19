@@ -168,7 +168,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.queue_music_rounded, color: KijiColors.cyan),
         title: Text(SleepTimerMode.endOfQueue.label),
-        subtitle: const Text('Para "hasta una canción", elegila en la Cola (menú ⋮ → luna).'),
+        subtitle: const Text('Para "hasta una canción", elígela en la Cola (menú ⋮ → luna).'),
         onTap: () {
           notifier.start(SleepTimerMode.endOfQueue);
           Navigator.pop(context);
@@ -178,7 +178,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.timer_outlined, color: KijiColors.cyan),
         title: Text(SleepTimerMode.atPosition.label),
-        subtitle: const Text('Elegí el segundo de la canción que suena'),
+        subtitle: const Text('Elige el segundo de la canción que suena'),
         enabled: playback.track != null && playback.duration > Duration.zero,
         onTap: () async {
           final position = await showExactMomentDialog(context, playback.duration, playback.position);
@@ -191,7 +191,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.bedtime_outlined, color: KijiColors.cyan),
         title: const Text('Marcar en la onda'),
-        subtitle: const Text('Tocá la onda del reproductor donde querés que se pause'),
+        subtitle: const Text('Toca la onda del reproductor donde quieres que se pause'),
         enabled: playback.track != null && playback.duration > Duration.zero,
         onTap: () {
           ref.read(sleepTimerMarkingProvider.notifier).state = true;
@@ -237,7 +237,7 @@ Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration,
                 const Padding(
                   padding: EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Ese momento ya pasó: la música se pausa cuando vuelva ahí (si volvés atrás o la '
+                    'Ese momento ya pasó: la música se pausa cuando vuelva ahí (si vuelves atrás o la '
                     'canción se repite).',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: KijiColors.muted, fontSize: 12),

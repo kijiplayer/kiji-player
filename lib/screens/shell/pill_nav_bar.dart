@@ -5,18 +5,26 @@ import '../../providers/appearance_provider.dart';
 import '../../providers/shell_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/nocturne/glass.dart';
+import '../../l10n/l10n.dart';
+
+String _home(AppLocalizations t) => t.navHome;
+String _search(AppLocalizations t) => t.navSearch;
+String _library(AppLocalizations t) => t.navLibrary;
 
 class ShellDestination {
-  const ShellDestination(this.tab, this.label, this.icon);
+  const ShellDestination(this.tab, this._label, this.icon);
 
   final ShellTab tab;
-  final String label;
+  final String Function(AppLocalizations t) _label;
+
+  /// El nombre de la pestaña en el idioma de la app (Tarea T5).
+  String labelOf(BuildContext context) => _label(tr(context));
   final IconData icon;
 
   static const all = [
-    ShellDestination(ShellTab.home, 'Inicio', Icons.home_rounded),
-    ShellDestination(ShellTab.search, 'Buscar', Icons.search_rounded),
-    ShellDestination(ShellTab.library, 'Biblioteca', Icons.library_music_rounded),
+    ShellDestination(ShellTab.home, _home, Icons.home_rounded),
+    ShellDestination(ShellTab.search, _search, Icons.search_rounded),
+    ShellDestination(ShellTab.library, _library, Icons.library_music_rounded),
   ];
 }
 
@@ -33,7 +41,7 @@ class PillNavBar extends ConsumerWidget {
   static double widthOf(BuildContext context, ShellDestination d, {required bool selected}) {
     if (!selected) return _iconOnly;
     final painter = TextPainter(
-      text: TextSpan(text: d.label, style: _labelStyle),
+      text: TextSpan(text: d.labelOf(context), style: _labelStyle),
       textDirection: TextDirection.ltr,
       textScaler: MediaQuery.textScalerOf(context),
     )..layout();
@@ -111,7 +119,7 @@ class _PillItem extends StatelessWidget {
     return Semantics(
       selected: selected,
       button: true,
-      label: destination.label,
+      label: destination.labelOf(context),
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -134,7 +142,7 @@ class _PillItem extends StatelessWidget {
                 ),
                 if (selected) ...[
                   const SizedBox(width: 8),
-                  Text(destination.label, style: PillNavBar._labelStyle),
+                  Text(destination.labelOf(context), style: PillNavBar._labelStyle),
                 ],
               ],
             ),

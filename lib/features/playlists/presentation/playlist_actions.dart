@@ -180,7 +180,7 @@ Future<void> confirmPlaylistDownload(BuildContext context, WidgetRef ref, Playli
           if (downloads.settings.wifiOnly) ...[
             const SizedBox(height: 10),
             const Text(
-              'Tenés "solo con WiFi": si no hay WiFi, la descarga espera en pausa.',
+              'Tienes "solo con WiFi": si no hay WiFi, la descarga espera en pausa.',
               style: TextStyle(color: KijiColors.muted),
             ),
           ],

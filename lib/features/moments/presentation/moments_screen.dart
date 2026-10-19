@@ -53,8 +53,8 @@ class MomentsScreen extends ConsumerWidget {
           ? const Padding(
               padding: EdgeInsets.all(24),
               child: Text(
-                'Guardá el segundo exacto de una canción (el solo, el estribillo) con el botón '
-                '"Momento" del reproductor. Aparecen acá para volver a ellos con un toque.',
+                'Guarda el segundo exacto de una canción (el solo, el estribillo) con el botón '
+                '"Momento" del reproductor. Aparecen aquí para volver a ellos con un toque.',
                 style: TextStyle(color: KijiColors.muted),
               ),
             )

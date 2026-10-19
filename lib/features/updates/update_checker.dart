@@ -140,12 +140,12 @@ class UpdateNotifier extends Notifier<UpdateState> {
       state = UpdateState(
         lastCheck: now,
         latest: newer ? release : null,
-        message: newer ? 'Hay una versión nueva: ${release.version}.' : 'Tenés la última versión ($kijiVersion).',
+        message: newer ? 'Hay una versión nueva: ${release.version}.' : 'Tienes la última versión ($kijiVersion).',
       );
       debugPrint('=== ACTUALIZACIONES: última ${release?.version ?? '?'}, esta $kijiVersion ===');
     } catch (error) {
       debugPrint('=== ACTUALIZACIONES: no se pudo consultar (${error.runtimeType}) ===');
-      state = UpdateState(lastCheck: state.lastCheck, latest: state.latest, message: 'No se pudo consultar. Revisá tu conexión.');
+      state = UpdateState(lastCheck: state.lastCheck, latest: state.latest, message: 'No se pudo consultar. Revisa tu conexión.');
     }
   }
 }

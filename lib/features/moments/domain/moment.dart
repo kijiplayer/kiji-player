@@ -2,7 +2,7 @@ import '../../../models/track.dart';
 import '../../../utils/duration_formatter.dart';
 
 /// Un "Momento" (Tarea Z6, propio de Kiji): un segundo exacto de una canción
-/// que el usuario quiso guardar ("acá empieza el solo").
+/// que el usuario quiso guardar ("aquí empieza el solo").
 class Moment {
   const Moment({required this.id, required this.track, required this.position, required this.createdAt});
 

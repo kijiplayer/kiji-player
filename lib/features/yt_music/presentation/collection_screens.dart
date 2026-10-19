@@ -186,7 +186,7 @@ Widget _loadingOrError(AsyncValue<Object?> value, VoidCallback retry) => value.h
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('No se pudo abrir. Revisá tu conexión.', style: TextStyle(color: KijiColors.muted)),
+              const Text('No se pudo abrir. Revisa tu conexión.', style: TextStyle(color: KijiColors.muted)),
               const SizedBox(height: 12),
               FilledButton(onPressed: retry, child: const Text('Reintentar')),
             ],

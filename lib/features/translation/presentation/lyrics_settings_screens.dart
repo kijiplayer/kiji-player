@@ -14,7 +14,7 @@ import '../domain/languages.dart';
 
 /// Texto del apartado 1, tal como se definió.
 const localTranslationNotice =
-    'La letra se traduce dentro de tu teléfono. No se envía a nadie y no perdés anonimato. Solo una vez '
+    'La letra se traduce dentro de tu teléfono. No se envía a nadie y no pierdes anonimato. Solo una vez '
     'por idioma se descarga el modelo de traducción (el servidor solo sabe que alguien bajó ese idioma, no '
     'qué canción). Es buena para entender la letra, aunque a veces suena literal.';
 
@@ -46,7 +46,7 @@ class LyricsSourcesScreen extends ConsumerWidget {
         children: [
           const Text(
             'Kiji busca la letra en este orden: primero la incluida en el archivo (sin internet) y después '
-            'cada fuente, hasta que una la tenga. Solo se busca cuando abrís la letra. Cada fuente recibe '
+            'cada fuente, hasta que una la tenga. Solo se busca cuando abres la letra. Cada fuente recibe '
             'únicamente lo que dice abajo; nada tuyo.',
             style: TextStyle(color: KijiColors.muted),
           ),
@@ -155,7 +155,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
             if (_installed == null)
               const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator())
             else if (_installed!.isEmpty)
-              const Text('Ninguno todavía: se bajan solos (avisando el tamaño) la primera vez que traducís.',
+              const Text('Ninguno todavía: se bajan solos (avisando el tamaño) la primera vez que traduces.',
                   style: TextStyle(color: KijiColors.muted))
             else
               for (final entry in _installed!.entries)
@@ -178,7 +178,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
               contentPadding: EdgeInsets.zero,
               title: const Text('Traducir con Gemini'),
               subtitle: Text(settings.geminiEnabled
-                  ? 'Activado. Perdés parte del anonimato al usarlo.'
+                  ? 'Activado. Pierdes parte del anonimato al usarlo.'
                   : 'Apagado. Antes de activarlo vas a ver qué implica.'),
               value: settings.geminiEnabled,
               onChanged: (on) async {
@@ -199,7 +199,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Usar Gemini para traducir'),
-                  subtitle: const Text('Si lo apagás, se traduce en el teléfono.'),
+                  subtitle: const Text('Si lo apagas, se traduce en el teléfono.'),
                   value: settings.useGemini,
                   onChanged: (on) => notifier.update((s) => s.copyWith(useGemini: on)),
                 ),
@@ -216,7 +216,7 @@ class GeminiConsentScreen extends StatelessWidget {
   const GeminiConsentScreen({super.key});
 
   static const points = [
-    'Perdés parte del anonimato: las líneas de la letra se envían a Google, asociadas a tu cuenta de '
+    'Pierdes parte del anonimato: las líneas de la letra se envían a Google, asociadas a tu cuenta de '
         'Google (por la clave).',
     'En el nivel gratuito, Google usa ese contenido para mejorar sus productos y personas de Google pueden '
         'leerlo (Google dice que lo separa de tu cuenta antes).',
@@ -233,7 +233,7 @@ class GeminiConsentScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
-          const Text('Qué cambia si activás la traducción con Gemini', style: TextStyle(fontSize: 18)),
+          const Text('Qué cambia si activas la traducción con Gemini', style: TextStyle(fontSize: 18)),
           const SizedBox(height: 16),
           for (final point in points)
             Padding(
@@ -251,7 +251,7 @@ class GeminiConsentScreen extends StatelessWidget {
             ),
           const SizedBox(height: 8),
           const Text(
-            'Si no querés nada de esto, la traducción en tu teléfono sigue disponible y es anónima.',
+            'Si no quieres nada de esto, la traducción en tu teléfono sigue disponible y es anónima.',
             style: TextStyle(color: KijiColors.muted),
           ),
           const SizedBox(height: 24),
@@ -291,7 +291,7 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
     final typed = _key.text.trim();
     final key = typed.isNotEmpty ? typed : await service.secrets.read(geminiKeySecret);
     if (key == null || key.isEmpty) {
-      setState(() => _status = 'Pegá la clave primero.');
+      setState(() => _status = 'Pega la clave primero.');
       return;
     }
     setState(() {
@@ -315,7 +315,7 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
       });
       await widget.onChanged();
     } on GeminiException catch (error) {
-      setState(() => _status = '${error.message} Mientras tanto podés traducir en el teléfono.');
+      setState(() => _status = '${error.message} Mientras tanto puedes traducir en el teléfono.');
     } finally {
       if (mounted) setState(() => _testing = false);
     }
@@ -332,7 +332,7 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
         const SizedBox(height: 6),
         Row(
           children: [
-            const Expanded(child: Text('1. Entrá a aistudio.google.com con tu cuenta de Google.')),
+            const Expanded(child: Text('1. Entra a aistudio.google.com con tu cuenta de Google.')),
             TextButton(
               onPressed: () => launchUrl(Uri.parse('https://aistudio.google.com/apikey'),
                   mode: LaunchMode.externalApplication),
@@ -340,10 +340,10 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
             ),
           ],
         ),
-        const Text('2. Tocá "Get API key" → "Create API key" (no pide tarjeta).'),
-        const Text('3. Copiá la clave y pegala acá abajo.'),
-        const Text('4. Tocá "Probar".'),
-        const Text('5. Elegí el modelo (Kiji recomienda el más liviano, Flash-Lite).'),
+        const Text('2. Toca "Get API key" → "Create API key" (no pide tarjeta).'),
+        const Text('3. Copia la clave y pégala aquí abajo.'),
+        const Text('4. Toca "Probar".'),
+        const Text('5. Elige el modelo (Kiji recomienda el más liviano, Flash-Lite).'),
         const SizedBox(height: 10),
         TextField(
           controller: _key,
@@ -351,7 +351,7 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
           autocorrect: false,
           enableSuggestions: false,
           decoration: InputDecoration(
-            labelText: widget.hasKey ? 'Clave guardada (pegá otra para cambiarla)' : 'Clave de Gemini',
+            labelText: widget.hasKey ? 'Clave guardada (pega otra para cambiarla)' : 'Clave de Gemini',
             suffixIcon: IconButton(
               tooltip: 'Pegar',
               icon: const Icon(Icons.content_paste_rounded),

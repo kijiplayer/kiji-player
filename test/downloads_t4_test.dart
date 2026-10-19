@@ -140,6 +140,16 @@ void main() {
     });
   });
 
+  test('Buscar otra versión sin éxito: se conserva el motivo y no se vuelve a ofrecer', () {
+    final age = DownloadFailure.fromOutcome(const ResolveOutcome.content(ContentProblem.ageRestricted, []));
+    final after = age.withoutAlternative();
+    expect(after.message, contains('restricción de edad'));
+    expect(after.message, contains('no hay'));
+    expect(after.message, isNot(contains('Puedes buscar otra versión')));
+    expect(after.canSearchAlternative, isFalse);
+    expect(DownloadFailure.fromJson(after.toJson()).canSearchAlternative, isFalse);
+  });
+
   test('Errores comunes en palabras simples', () {
     expect(DownloadFailure.fromError(const SocketException('x')).kind, DownloadFailureKind.network);
     expect(

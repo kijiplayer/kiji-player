@@ -186,7 +186,7 @@ void main() {
       expect(seeds.key, isNotEmpty);
     });
 
-    test('Arma las secciones sin repetir y "Descubrí" solo trae nuevas', () {
+    test('Arma las secciones sin repetir y "Descubre" solo trae nuevas', () {
       final a = _yt('a'), b = _yt('b');
       final history = [_h(a, minutesAgo: 0), _h(b, count: 5, minutesAgo: 3)];
       final seeds = HomeFeedLogic.seeds(history, const []);

@@ -13,10 +13,10 @@ class HomeSeeds {
   /// La de "Porque escuchaste X": la última de YouTube que sonó.
   final Track? becauseOf;
 
-  /// Las más escuchadas (para "Mezcla para vos").
+  /// Las más escuchadas (para "Mezcla para ti").
   final List<Track> mix;
 
-  /// Me gusta y artistas frecuentes (para "Descubrí").
+  /// Me gusta y artistas frecuentes (para "Descubre").
   final List<Track> discover;
 
   List<Track> get all => {for (final t in [?becauseOf, ...mix, ...discover]) t.id: t}.values.toList();
@@ -52,7 +52,7 @@ abstract final class HomeFeedLogic {
         return c != 0 ? c : b.lastPlayed.compareTo(a.lastPlayed);
       });
     final mix = [for (final e in byCount) if (e.track.id != becauseOf?.id) e.track].take(2).toList();
-    // Descubrí: me gusta y, si faltan, la mejor de cada artista frecuente.
+    // Descubre: me gusta y, si faltan, la mejor de cada artista frecuente.
     final used = {becauseOf?.id, for (final t in mix) t.id};
     final discover = <Track>[];
     for (final t in liked.where(_isYouTube)) {
@@ -68,7 +68,7 @@ abstract final class HomeFeedLogic {
   }
 
   /// Arma Inicio con las relacionadas de cada semilla ([related], por id).
-  /// "Mezcla" combina tus más escuchadas con relacionadas; "Descubrí" son
+  /// "Mezcla" combina tus más escuchadas con relacionadas; "Descubre" son
   /// solo canciones que nunca sonaron ni tienen me gusta.
   static HomeFeed build({
     required HomeSeeds seeds,

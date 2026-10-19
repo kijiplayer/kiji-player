@@ -134,7 +134,7 @@ void main() {
 
     container.read(sleepTimerMarkingProvider.notifier).state = true;
     await tester.pump();
-    expect(find.text('Tocá la onda donde querés que se pause'), findsOneWidget);
+    expect(find.text('Toca la onda donde quieres que se pause'), findsOneWidget);
     await tester.tapAt(tester.getTopLeft(find.byType(WaveformProgress)) + const Offset(75, 20));
     await tester.pump(const Duration(milliseconds: 300));
 

@@ -1,5 +1,5 @@
 // audio_session marca la lista de dispositivos como "experimental": la usamos
-// solo acá, detrás de [AudioOutputMonitor], para poder cambiarla sin tocar el resto.
+// solo aquí, detrás de [AudioOutputMonitor], para poder cambiarla sin tocar el resto.
 // ignore_for_file: experimental_member_use
 
 import 'dart:async';

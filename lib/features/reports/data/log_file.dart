@@ -21,7 +21,7 @@ class LogFile {
   File get previous => File(p.join(directory.path, 'kiji.1.log'));
 
   void write(LogLine line) {
-    // Nunca se usa debugPrint acá: volvería a entrar al registro.
+    // Nunca se usa debugPrint aquí: volvería a entrar al registro.
     try {
       if (_size < 0) {
         directory.createSync(recursive: true);

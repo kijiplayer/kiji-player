@@ -104,7 +104,7 @@ class DownloadsView extends ConsumerWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Buscá una canción y tocá el ícono de descarga para escucharla sin conexión.',
+                'Busca una canción y toca el ícono de descarga para escucharla sin conexión.',
                 style: TextStyle(color: AppColors.onSurfaceMuted),
               ),
             ),

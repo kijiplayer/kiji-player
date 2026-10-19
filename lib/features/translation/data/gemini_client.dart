@@ -82,7 +82,7 @@ class GeminiClient {
       if (error.type == DioExceptionType.connectionError || error.type == DioExceptionType.connectionTimeout) {
         return const GeminiException('Sin conexión a internet.', offline: true);
       }
-      if (status == 429) return const GeminiException('Llegaste al límite gratuito de Gemini por hoy. Probá mañana.');
+      if (status == 429) return const GeminiException('Llegaste al límite gratuito de Gemini por hoy. Prueba mañana.');
       if (status == 400 && body.contains('API_KEY')) return const GeminiException('La clave no es válida. Revisala.');
       if (status == 401 || status == 403) {
         return const GeminiException('Google rechazó la clave (o el nivel gratuito no está disponible en tu país).');
@@ -109,8 +109,8 @@ class GeminiClient {
 
   /// Traduce [lines] al idioma [target]. Devuelve una línea por cada una.
   Future<List<String>> translate(String key, String model, List<String> lines, String target) async {
-    final prompt = 'Traducí estas líneas de una canción al idioma "${languageName(target)}" ($target). '
-        'Mantené el sentido y el tono, una traducción por línea. Respondé SOLO con un array JSON de '
+    final prompt = 'Traduce estas líneas de una canción al idioma "${languageName(target)}" ($target). '
+        'Mantén el sentido y el tono, una traducción por línea. Responde SOLO con un array JSON de '
         'strings, con exactamente ${lines.length} elementos, en el mismo orden.\n\n${jsonEncode(lines)}';
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -131,7 +131,7 @@ class GeminiClient {
       final text = responseText(response.data);
       final decoded = text == null ? null : jsonDecode(text);
       if (decoded is! List || decoded.length != lines.length) {
-        throw const GeminiException('Gemini devolvió otra cantidad de líneas. Probá de nuevo.');
+        throw const GeminiException('Gemini devolvió otra cantidad de líneas. Prueba de nuevo.');
       }
       return [for (final line in decoded) '$line'];
     } on GeminiException {

@@ -206,7 +206,7 @@ void main() {
 
     test('Error de Gemini se explica y ofrece el teléfono', () async {
       await secrets.write(geminiKeySecret, 'clave-inventada');
-      gemini.fail = const GeminiException('Llegaste al límite gratuito de Gemini por hoy. Probá mañana.');
+      gemini.fail = const GeminiException('Llegaste al límite gratuito de Gemini por hoy. Prueba mañana.');
       await expectLater(
         service.translateGemini('v2', lines, 'models/x', 'es'),
         throwsA(isA<TranslationException>()

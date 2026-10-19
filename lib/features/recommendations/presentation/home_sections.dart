@@ -129,7 +129,7 @@ class TrackCard extends StatelessWidget {
   }
 }
 
-/// "Porque escuchaste X", "Mezcla para vos" y "Descubrí" (Tarea Z5).
+/// "Porque escuchaste X", "Mezcla para ti" y "Descubre" (Tarea Z5).
 class RecommendationSections extends ConsumerWidget {
   const RecommendationSections({super.key});
 
@@ -143,7 +143,7 @@ class RecommendationSections extends ConsumerWidget {
           children: [
             SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
             SizedBox(width: 10),
-            Text('Buscando música para vos…', style: TextStyle(color: KijiColors.muted)),
+            Text('Buscando música para ti…', style: TextStyle(color: KijiColors.muted)),
           ],
         ),
       ),
@@ -153,8 +153,8 @@ class RecommendationSections extends ConsumerWidget {
         children: [
           if (feed.becauseOf != null)
             TrackShelf(title: 'Porque escuchaste ${feed.becauseOf!.title}', tracks: feed.because),
-          TrackShelf(title: 'Mezcla para vos', note: 'tus favoritas + nuevas', tracks: feed.mix),
-          TrackShelf(title: 'Descubrí', note: 'relacionadas de YouTube Music', tracks: feed.discover),
+          TrackShelf(title: 'Mezcla para ti', note: 'tus favoritas + nuevas', tracks: feed.mix),
+          TrackShelf(title: 'Descubre', note: 'relacionadas de YouTube Music', tracks: feed.discover),
         ],
       ),
     );
@@ -163,7 +163,7 @@ class RecommendationSections extends ConsumerWidget {
 
 /// "Para empezar" (usuario nuevo): géneros y estados de ánimo de YouTube Music.
 class StartHereSection extends ConsumerWidget {
-  const StartHereSection({super.key, this.title = 'Para empezar', this.note = 'elegí un estilo'});
+  const StartHereSection({super.key, this.title = 'Para empezar', this.note = 'elige un estilo'});
 
   final String title;
   final String note;
@@ -237,7 +237,7 @@ class MoodScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(mood.title)),
       body: shelves.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => const Center(child: Text('No se pudo cargar. Revisá tu conexión.')),
+        error: (error, _) => const Center(child: Text('No se pudo cargar. Revisa tu conexión.')),
         data: (list) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
@@ -315,7 +315,7 @@ class YtPlaylistScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(card.title)),
       body: tracks.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => const Center(child: Text('No se pudo cargar. Revisá tu conexión.')),
+        error: (error, _) => const Center(child: Text('No se pudo cargar. Revisa tu conexión.')),
         data: (list) => ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [

@@ -62,7 +62,7 @@ class TimerWaveform extends ConsumerWidget {
             const Icon(Icons.bedtime_outlined, size: 16, color: KijiColors.cyan),
             const SizedBox(width: 6),
             const Expanded(
-              child: Text('Tocá la onda donde querés que se pause', style: TextStyle(color: KijiColors.cyan)),
+              child: Text('Toca la onda donde quieres que se pause', style: TextStyle(color: KijiColors.cyan)),
             ),
             TextButton(
               onPressed: () => ref.read(sleepTimerMarkingProvider.notifier).state = false,

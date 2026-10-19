@@ -1,0 +1,26 @@
+{
+  "@@locale": "es",
+  "navHome": "Inicio",
+  "@navHome": {"description": "Pestaña principal de la navegación"},
+  "navSearch": "Buscar",
+  "@navSearch": {"description": "Pestaña de búsqueda"},
+  "navLibrary": "Biblioteca",
+  "@navLibrary": {"description": "Pestaña de la biblioteca (música guardada, playlists y descargas)"},
+  "settingsTitle": "Configuración",
+  "@settingsTitle": {"description": "Título de la pantalla de ajustes"},
+  "settingsSearchHint": "Buscar una opción…",
+  "@settingsSearchHint": {"description": "Texto de ayuda del buscador de Configuración"},
+  "errorReportTitle": "Algo falló en Kiji",
+  "@errorReportTitle": {"description": "Título del aviso cuando ocurre un error"},
+  "errorReportBody": "{summary}.\n\n¿Quieres avisarle al desarrollador? Se abre GitHub con un informe ya escrito, sin tu nombre, tus archivos ni tus cuentas. Lo puedes leer antes de enviarlo.",
+  "@errorReportBody": {
+    "description": "Texto del aviso de error; summary explica qué falló",
+    "placeholders": {"summary": {"type": "String"}}
+  },
+  "errorReportSend": "Enviar al desarrollador",
+  "@errorReportSend": {"description": "Botón que abre GitHub con el informe"},
+  "errorReportDownload": "Descargar informe (.txt)",
+  "@errorReportDownload": {"description": "Botón que guarda el informe en un archivo"},
+  "errorReportNoThanks": "No, gracias",
+  "@errorReportNoThanks": {"description": "Botón para cerrar el aviso sin hacer nada"}
+}

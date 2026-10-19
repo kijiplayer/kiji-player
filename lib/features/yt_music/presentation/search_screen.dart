@@ -112,7 +112,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       } catch (error) {
         if (!mounted) return;
         setState(() {
-          _error = 'No se pudo buscar. Revisá tu conexión a Internet.';
+          _error = 'No se pudo buscar. Revisa tu conexión a Internet.';
           _loading = false;
         });
         debugPrint('=== ERROR AL BUSCAR ${_kind.label.toUpperCase()} "$query": $error ===');
@@ -130,7 +130,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = 'No se pudo buscar. Revisá tu conexión a Internet.';
+        _error = 'No se pudo buscar. Revisa tu conexión a Internet.';
         _loading = false;
       });
       debugPrint('=== ERROR AL BUSCAR "$query" ===\n$error');
@@ -182,10 +182,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           const SizedBox(height: 16),
         ],
         if (suggestions.isNotEmpty)
-          TrackShelf(title: 'Te puede gustar', note: 'según lo que escuchás', tracks: suggestions),
+          TrackShelf(title: 'Te puede gustar', note: 'según lo que escuchas', tracks: suggestions),
         isNew
             ? const StartHereSection()
-            : const StartHereSection(title: 'Explorá por estilo', note: 'géneros y ánimos de YouTube Music'),
+            : const StartHereSection(title: 'Explora por estilo', note: 'géneros y ánimos de YouTube Music'),
       ],
     );
   }
@@ -307,7 +307,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     if (query.trim().isEmpty) {
       return const Center(
-        child: Text('Buscá entre tu música guardada y tus descargas',
+        child: Text('Busca entre tu música guardada y tus descargas',
             style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
@@ -362,7 +362,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
         final track = ytTrackFromResult(result, audioUrl: '');
 
-        // Mantener apretado (celular) o clic derecho (PC): "Reproducir a
+        // Mantener presionado (celular) o clic derecho (PC): "Reproducir a
         // continuación" / "Agregar a la cola".
         return StaggeredEntrance(
           index: index,

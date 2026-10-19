@@ -105,7 +105,7 @@ class _Sidebar extends ConsumerWidget {
                 return const Padding(
                   padding: EdgeInsets.only(left: 8),
                   child: Text(
-                    'Tus playlists van a aparecer acá.',
+                    'Tus playlists van a aparecer aquí.',
                     style: TextStyle(color: KijiColors.muted, fontSize: 13),
                   ),
                 );
@@ -162,7 +162,7 @@ class _SidebarItem extends StatelessWidget {
           leading: Icon(destination.icon,
               color: selected ? KijiColors.onAccent : KijiColors.muted),
           title: Text(
-            destination.label,
+            destination.labelOf(context),
             style: TextStyle(
               color: selected ? KijiColors.onAccent : Colors.white,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

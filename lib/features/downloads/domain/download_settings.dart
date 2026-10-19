@@ -1,4 +1,4 @@
-/// Preferencias de descargas. Viven acá hasta que exista la pantalla de
+/// Preferencias de descargas. Viven aquí hasta que exista la pantalla de
 /// Configuración (Tarea G), que las mostrará también.
 class DownloadSettings {
   const DownloadSettings({this.wifiOnly = true, this.limitBytes});

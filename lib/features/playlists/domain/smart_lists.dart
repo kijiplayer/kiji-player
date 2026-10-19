@@ -27,7 +27,7 @@ enum SmartList {
   liked('Me gusta', 'Las canciones que marcaste con ♥.'),
   mostPlayed('Más escuchadas', 'Las 25 que más veces escuchaste en Kiji.'),
   recent('Escuchadas hace poco', 'Las últimas 25 que escuchaste.'),
-  forgottenFavorites('Favoritas olvidadas', 'Con ♥, que no escuchás hace más de un mes.'),
+  forgottenFavorites('Favoritas olvidadas', 'Con ♥, que no escuchas hace más de un mes.'),
   downloaded('Descargadas', 'Todo lo que guardaste para escuchar sin conexión.'),
   neverPlayed('Nunca escuchadas', 'De tu música del dispositivo, las que todavía no escuchaste en Kiji.');
 

@@ -23,7 +23,7 @@ class DesktopFolderSource implements LocalLibrarySource {
   })  : _baseDirectory = baseDirectory ?? getApplicationSupportDirectory,
         _pickFolder = pickFolder ??
             (() => FilePicker.getDirectoryPath(
-                  dialogTitle: 'Elegí una carpeta con música',
+                  dialogTitle: 'Elige una carpeta con música',
                 ));
 
   /// Extensiones de audio que se leen.

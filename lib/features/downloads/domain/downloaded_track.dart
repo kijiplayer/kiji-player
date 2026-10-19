@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../models/track.dart';
 
 /// Una canción de YouTube guardada dentro de la app para escucharla sin
-/// conexión. Los archivos viven en `<appSupportDir>/downloads/`; acá solo se
+/// conexión. Los archivos viven en `<appSupportDir>/downloads/`; aquí solo se
 /// guardan nombres de archivo (no rutas completas), así el índice sigue
 /// sirviendo si cambia la carpeta base (otra plataforma, copia de seguridad).
 class DownloadedTrack {

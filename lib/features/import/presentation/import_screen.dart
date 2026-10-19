@@ -41,7 +41,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
   Future<void> _pickAndRead() async {
     final files = await FilePicker.pickFiles(
-      dialogTitle: 'Elegí el archivo de la otra app',
+      dialogTitle: 'Elige el archivo de la otra app',
       // "backup" no es un tipo conocido en Android: se acepta cualquiera y se
       // valida al leerlo.
       type: FileType.any,
@@ -126,10 +126,10 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
           const Text(
-            'Traé tus playlists, me gusta e historial desde Echo Music, Metrolist, InnerTune u '
+            'Trae tus playlists, me gusta e historial desde Echo Music, Metrolist, InnerTune u '
             'OuterTune (.backup), listas .m3u/.m3u8, o CSV de Exportify (Spotify) y de Google '
             'Takeout (YouTube Music). Antes de importar vas a ver qué se agrega; nada de lo que ya '
-            'tenés se borra ni se cambia.',
+            'tienes se borra ni se cambia.',
             style: TextStyle(color: KijiColors.muted),
           ),
           const SizedBox(height: 16),
@@ -200,7 +200,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                     Text('• y ${plan.bundle.playlists.length - 8} más', style: const TextStyle(color: KijiColors.muted)),
                   const SizedBox(height: 8),
                   const Text(
-                    'Si ya tenés una playlist con el mismo nombre, la nueva se llama "(importada)".',
+                    'Si ya tienes una playlist con el mismo nombre, la nueva se llama "(importada)".',
                     style: TextStyle(color: KijiColors.muted, fontSize: 12),
                   ),
                   const SizedBox(height: 12),
@@ -297,7 +297,7 @@ class _ExportSection extends ConsumerWidget {
         if (playlists.isEmpty)
           const Padding(
             padding: EdgeInsets.only(top: 8),
-            child: Text('Todavía no tenés playlists.', style: TextStyle(color: KijiColors.muted)),
+            child: Text('Todavía no tienes playlists.', style: TextStyle(color: KijiColors.muted)),
           ),
         for (final playlist in playlists)
           ListTile(

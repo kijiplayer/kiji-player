@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../utils/save_text_file.dart';
+import '../../../l10n/l10n.dart';
 import '../data/error_report.dart';
 import '../data/kiji_logs.dart';
 
@@ -23,36 +24,33 @@ Future<void> downloadReport(BuildContext context, ErrorReport? report) async {
 
 /// "Algo falló": las tres opciones de la Tarea T3. Nunca se manda nada sin que el usuario elija.
 Future<void> showErrorReportDialog(BuildContext context, ErrorReport report) {
+  final t = tr(context);
   return showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
       icon: const Icon(Icons.bug_report_outlined),
-      title: const Text('Algo falló en Kiji'),
-      content: Text(
-        '${report.summary}.\n\n'
-        '¿Quieres avisarle al desarrollador? Se abre GitHub con un informe ya escrito, '
-        'sin tu nombre, tus archivos ni tus cuentas. Lo puedes leer antes de enviarlo.',
-      ),
+      title: Text(t.errorReportTitle),
+      content: Text(t.errorReportBody(report.summary)),
       actionsOverflowDirection: VerticalDirection.down,
       actionsOverflowButtonSpacing: 4,
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('No, gracias'),
+          child: Text(t.errorReportNoThanks),
         ),
         TextButton(
           onPressed: () {
             Navigator.of(dialogContext).pop();
             downloadReport(context, report);
           },
-          child: const Text('Descargar informe (.txt)'),
+          child: Text(t.errorReportDownload),
         ),
         FilledButton(
           onPressed: () {
             Navigator.of(dialogContext).pop();
             sendReportToDeveloper(context, report);
           },
-          child: const Text('Enviar al desarrollador'),
+          child: Text(t.errorReportSend),
         ),
       ],
     ),

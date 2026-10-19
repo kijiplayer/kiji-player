@@ -26,15 +26,28 @@ enum DownloadFailureKind {
 
 /// Una falla de descarga, con el motivo en palabras simples para la lista.
 class DownloadFailure {
-  const DownloadFailure(this.kind, this.message, {this.problem});
+  const DownloadFailure(this.kind, this.message, {this.problem, this.noAlternative = false});
 
   final DownloadFailureKind kind;
   final String message;
   final ContentProblem? problem;
 
+  /// Ya se buscó otra versión y no hay (el botón deja de ofrecerse).
+  final bool noAlternative;
+
   /// "Buscar otra versión" tiene sentido: la canción en sí no se puede bajar con este video.
   bool get canSearchAlternative =>
-      kind == DownloadFailureKind.content || kind == DownloadFailureKind.allForms || kind == DownloadFailureKind.refused;
+      !noAlternative &&
+      (kind == DownloadFailureKind.content || kind == DownloadFailureKind.allForms || kind == DownloadFailureKind.refused);
+
+  /// La misma falla, después de buscar otra versión sin encontrarla: se conserva el motivo.
+  DownloadFailure withoutAlternative() => DownloadFailure(
+        kind,
+        '${message.replaceAll(' Puedes buscar otra versión.', '').replaceAll(' o busca otra versión', '')} '
+        'Kiji buscó otra versión en YouTube Music y no hay.',
+        problem: problem,
+        noAlternative: true,
+      );
 
   static const network = DownloadFailure(
     DownloadFailureKind.network,
@@ -51,10 +64,6 @@ class DownloadFailure {
   );
   static const noSpace = DownloadFailure(DownloadFailureKind.noSpace, 'No queda espacio en el dispositivo.');
   static const unknown = DownloadFailure(DownloadFailureKind.unknown, 'No se pudo descargar. Reintenta en un rato.');
-  static const noAlternative = DownloadFailure(
-    DownloadFailureKind.content,
-    'Kiji no encontró otra versión de esta canción en YouTube Music.',
-  );
 
   /// El resultado de buscar el audio, en palabras simples.
   static DownloadFailure fromOutcome(ResolveOutcome outcome) {
@@ -89,11 +98,13 @@ class DownloadFailure {
         'kind': kind.name,
         'message': message,
         if (problem != null) 'problem': problem!.name,
+        if (noAlternative) 'noAlternative': true,
       };
 
   static DownloadFailure fromJson(Map<String, dynamic> json) => DownloadFailure(
         DownloadFailureKind.values.asNameMap()[json['kind']] ?? DownloadFailureKind.unknown,
         json['message'] as String? ?? unknown.message,
         problem: ContentProblem.values.asNameMap()[json['problem']],
+        noAlternative: json['noAlternative'] == true,
       );
 }

@@ -18,7 +18,7 @@ import 'package:path_provider/path_provider.dart';
 import '../domain/js_challenge_solver.dart';
 
 /// Código del Web Worker: el solver de yt-dlp y las funciones propias. El
-/// reproductor de YouTube se ejecuta acá adentro, aislado de la página (al
+/// reproductor de YouTube se ejecuta aquí adentro, aislado de la página (al
 /// ejecutarse en la página, la dejaba vacía y se perdía todo lo preparado).
 /// yt-dlp también lo corre sin página (Deno, Node).
 const _workerBridge = r'''

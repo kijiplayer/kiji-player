@@ -53,7 +53,7 @@ abstract final class HistoryLogic {
           .map((e) => e.track)
           .toList();
 
-  /// "Para vos · calculado en tu teléfono": las que más escuchaste (empate:
+  /// "Para ti · calculado en tu teléfono": las que más escuchaste (empate:
   /// la más reciente), sin la que está sonando.
   static List<Track> forYou(List<HistoryEntry> entries, {String? excludeId, int limit = 4}) =>
       ([...entries.where((e) => e.track.id != excludeId)]

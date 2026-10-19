@@ -32,6 +32,7 @@ import '../data/settings_store.dart';
 import '../domain/app_settings.dart';
 import '../domain/setting_search.dart';
 import 'credits_screen.dart';
+import '../../../l10n/l10n.dart';
 
 /// Secciones de Configuración, en el orden del plan (Tarea G).
 enum SettingsSection {
@@ -105,7 +106,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final visible = query.isEmpty ? options : options.where((o) => o.matches(query)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Configuración')),
+      appBar: AppBar(title: Text(tr(context).settingsTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
@@ -116,7 +117,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               controller: _query,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                hintText: 'Buscar una opción…',
+                hintText: tr(context).settingsSearchHint,
                 prefixIcon: const Icon(Icons.search_rounded, color: KijiColors.muted),
                 suffixIcon: query.isEmpty
                     ? null
@@ -252,12 +253,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       SettingOption(
         section: SettingsSection.player,
         title: 'Pausar al silenciar',
-        subtitle: 'Si bajás el volumen a cero, la música se pausa; al subirlo, sigue.',
+        subtitle: 'Si bajas el volumen a cero, la música se pausa; al subirlo, sigue.',
         keywords: const ['mute', 'silencio', 'volumen cero', 'pausa'],
         builder: (context, ref) => SwitchListTile(
           title: const Text('Pausar al silenciar'),
           subtitle: const Text(
-            'Si bajás el volumen del teléfono a cero, la música se pausa; al subirlo, sigue. Solo en Android.',
+            'Si bajas el volumen del teléfono a cero, la música se pausa; al subirlo, sigue. Solo en Android.',
           ),
           value: ref.watch(settingsProvider).pauseOnMute,
           onChanged: (value) =>
@@ -475,7 +476,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: Text(
             'Al abrir una letra, cada fuente recibe solo título, artista, álbum, duración o el id del video. '
             'La traducción en el teléfono no envía nada (solo se baja el modelo del idioma, una vez). '
-            'Gemini es opcional y está apagado: si lo activás, las líneas de la letra van a Google con tu '
+            'Gemini es opcional y está apagado: si lo activas, las líneas de la letra van a Google con tu '
             'clave, que queda cifrada solo en este dispositivo.',
           ),
         ),
@@ -498,14 +499,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       SettingOption(
         section: SettingsSection.privacy,
         title: 'Recomendaciones de Inicio',
-        subtitle: 'Qué se le pide a YouTube Music para "Porque escuchaste", "Mezcla" y "Descubrí".',
+        subtitle: 'Qué se le pide a YouTube Music para "Porque escuchaste", "Mezcla" y "Descubre".',
         keywords: const ['recomendaciones', 'descubri', 'mezcla', 'relacionadas', 'youtube'],
         builder: (context, ref) => const ListTile(
           leading: Icon(Icons.auto_awesome_outlined),
           title: Text('Recomendaciones de Inicio'),
           subtitle: Text(
             'Tu gusto se calcula en este teléfono. A YouTube Music solo se le piden, sin cuenta, las '
-            'canciones relacionadas con hasta 5 que escuchaste (solo su id). Tu historial no sale de acá.',
+            'canciones relacionadas con hasta 5 que escuchaste (solo su id). Tu historial no sale de aquí.',
           ),
         ),
       ),
@@ -527,7 +528,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       SettingOption(
         section: SettingsSection.privacy,
         title: 'Borrar el historial de escucha',
-        subtitle: 'Vacía "Escuchado recientemente" y "Para vos".',
+        subtitle: 'Vacía "Escuchado recientemente" y "Para ti".',
         keywords: const ['historial', 'recientes', 'borrar'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.history_toggle_off_rounded),
@@ -536,7 +537,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => _confirm(
             context,
             title: '¿Borrar el historial?',
-            message: 'Inicio deja de mostrar "Escuchado recientemente" y "Para vos" hasta que vuelvas '
+            message: 'Inicio deja de mostrar "Escuchado recientemente" y "Para ti" hasta que vuelvas '
                 'a escuchar música. No borra canciones ni descargas.',
             action: 'Borrar',
             onConfirm: () async {

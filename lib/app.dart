@@ -5,6 +5,7 @@ import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/playback_automation.dart';
 import 'features/extractor/data/auto_tests.dart';
 import 'features/reports/data/error_reporter.dart';
+import 'l10n/app_localizations.dart';
 import 'features/reports/data/kiji_logs.dart';
 import 'features/reports/presentation/error_report_dialog.dart';
 import 'features/settings/data/settings_store.dart';
@@ -68,7 +69,7 @@ class _KijiAppState extends ConsumerState<KijiApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Pausar al silenciar y retomar con el Bluetooth (Tarea K). Vive acá y no
+    // Pausar al silenciar y retomar con el Bluetooth (Tarea K). Vive aquí y no
     // en el reproductor porque escucha al reproductor.
     ref.watch(playbackAutomationProvider);
     // Copia de seguridad diaria (Tarea U): se revisa al abrir Kiji.
@@ -76,6 +77,11 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     return MaterialApp(
       title: 'Kiji Player',
       debugShowCheckedModeBanner: false,
+      // Textos en ARB (Tarea T5). Por ahora siempre en español: el inglés se activa cuando
+      // estén traducidos todos los textos (los de Material, como "Cancelar", ya salen en español).
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('es'),
       theme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       darkTheme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       themeMode: ThemeMode.dark,

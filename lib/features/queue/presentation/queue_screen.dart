@@ -75,13 +75,13 @@ class QueueList extends ConsumerWidget {
     return queue.isEmpty
           ? const Center(
               child: Text(
-                'Elegí una canción para empezar.',
+                'Elige una canción para empezar.',
                 style: TextStyle(color: AppColors.onSurfaceMuted),
               ),
             )
           : ReorderableListView.builder(
               // Agarradera propia: funciona igual con el dedo y con el mouse
-              //. Mantener apretado en cualquier parte también.
+              //. Mantener presionado en cualquier parte también.
               buildDefaultDragHandles: false,
               padding: padding,
               itemCount: queue.length,

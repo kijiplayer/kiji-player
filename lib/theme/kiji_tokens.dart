@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Tokens de diseño de **Kiji Nocturne** (mockup aprobado el
-/// 15/10/2026). Todo color, radio, tamaño y tipografía de la app sale de acá,
+/// 15/10/2026). Todo color, radio, tamaño y tipografía de la app sale de aquí,
 /// para que Personalización (Tarea P) pueda cambiarlos en un solo lugar.
 abstract final class KijiColors {
   /// Fondo casi negro azulado.

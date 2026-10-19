@@ -70,7 +70,7 @@ class LyricsScreen extends ConsumerWidget {
                     error: (error, _) => _Message(
                       icon: Icons.cloud_off_rounded,
                       text: error is LyricsUnavailableException
-                          ? 'No se pudo buscar la letra (${error.reason}). Probá de nuevo en un rato.'
+                          ? 'No se pudo buscar la letra (${error.reason}). Prueba de nuevo en un rato.'
                           : 'No se pudo buscar la letra.',
                       actionLabel: 'Reintentar',
                       onAction: () => ref.invalidate(lyricsProvider(request)),
@@ -194,7 +194,7 @@ Future<void> searchLyricsManually(BuildContext context, WidgetRef ref, LyricsReq
 
 /// "Importar un .lrc" para la canción que suena.
 Future<void> importLrc(BuildContext context, WidgetRef ref, LyricsRequest request) async {
-  final picked = await FilePicker.pickFiles(dialogTitle: 'Elegí un archivo .lrc', type: FileType.any);
+  final picked = await FilePicker.pickFiles(dialogTitle: 'Elige un archivo .lrc', type: FileType.any);
   if (picked.isEmpty || !context.mounted) return;
   try {
     final text = utf8.decode(await picked.first.readAsBytes(), allowMalformed: true);
@@ -325,7 +325,7 @@ final lyricsSelectionModeProvider = StateProvider.autoDispose<bool>((ref) => fal
 
 /// Letra sincronizada: resalta la línea que suena, avanza sola y al tocar una
 /// línea va a ese momento. Si el usuario se aleja por la letra, deja de
-/// seguir y aparece "Volver a la canción" (Tarea Z4). Mantener apretada una
+/// seguir y aparece "Volver a la canción" (Tarea Z4). Mantener presionada una
 /// línea entra en el modo de elegir líneas para compartir.
 class SyncedLyricsView extends ConsumerStatefulWidget {
   const SyncedLyricsView({
@@ -544,7 +544,7 @@ class _SelectionBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                count == 0 ? 'Tocá las líneas que querés compartir' : '$count ${count == 1 ? 'línea elegida' : 'líneas elegidas'}',
+                count == 0 ? 'Toca las líneas que quieres compartir' : '$count ${count == 1 ? 'línea elegida' : 'líneas elegidas'}',
                 style: const TextStyle(color: KijiColors.muted),
               ),
               const SizedBox(height: 8),
@@ -574,7 +574,7 @@ class _SelectionBar extends StatelessWidget {
   }
 }
 
-/// Letra sin tiempos. Mantener apretada una línea permite compartir.
+/// Letra sin tiempos. Mantener presionada una línea permite compartir.
 class PlainLyricsView extends ConsumerStatefulWidget {
   const PlainLyricsView({super.key, required this.text, required this.track, this.translations});
 

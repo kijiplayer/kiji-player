@@ -25,7 +25,7 @@ class LyricLine {
 /// (su API es solo para su app).
 enum LyricsSource {
   embedded('Incluida en el archivo'),
-  imported('Importada por vos'),
+  imported('Importada por ti'),
   lrclib('LRCLIB'),
   youlyplus('YouLyPlus'),
   paxsenix('PaxSenix'),

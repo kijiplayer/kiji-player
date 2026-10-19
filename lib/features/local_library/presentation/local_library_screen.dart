@@ -165,8 +165,8 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
       _LibraryStatus.denied => _source.usesFolders
           ? _InfoCard(
               icon: Icons.folder_open_rounded,
-              message: 'Elegí la carpeta donde guardás tu música. '
-                  'Kiji solo lee las carpetas que vos elijas.',
+              message: 'Elige la carpeta donde guardas tu música. '
+                  'Kiji solo lee las carpetas que tú elijas.',
               actionLabel: 'Elegir carpeta',
               onAction: _chooseFolder,
             )

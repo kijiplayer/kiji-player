@@ -134,7 +134,7 @@ class BackupScreen extends ConsumerWidget {
   }
 
   Future<void> _pickAndRestore(BuildContext context, WidgetRef ref) async {
-    final picked = await FilePicker.pickFiles(dialogTitle: 'Elegí una copia de Kiji', type: FileType.any);
+    final picked = await FilePicker.pickFiles(dialogTitle: 'Elige una copia de Kiji', type: FileType.any);
     final path = picked.isEmpty ? null : picked.first.path;
     if (path == null || !context.mounted) return;
     await _restore(context, ref, File(path));
@@ -224,5 +224,5 @@ String restorePreviewText(BackupManifest manifest) {
       '• ${n(c.downloads, 'canción descargada', 'canciones descargadas')} (el audio se vuelve a bajar)\n'
       '${c.covers > 0 ? '• ${n(c.covers, 'carátula personalizada', 'carátulas personalizadas')}\n' : ''}'
       '\nReemplaza tus playlists, me gusta, historial y ajustes actuales. Antes, Kiji guarda una '
-      'copia de lo que tenés ahora, así que se puede volver atrás.';
+      'copia de lo que tienes ahora, así que se puede volver atrás.';
 }

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kiji_player/app.dart';
 import 'package:kiji_player/features/extractor/data/auto_tests.dart';
+import 'package:kiji_player/features/playlists/domain/playlist.dart';
+import 'package:kiji_player/features/playlists/playlists_provider.dart';
 import 'package:kiji_player/features/recommendations/data/home_feed_provider.dart';
 import 'package:kiji_player/features/recommendations/domain/home_feed.dart';
 import 'package:kiji_player/features/updates/update_checker.dart';
@@ -106,9 +108,35 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-Widget _app(Object notifierFactory) => ProviderScope(
+/// Una playlist con pistas de YouTube, sin leer el disco.
+class _FixedPlaylists extends PlaylistsNotifier {
+  @override
+  List<Playlist> build() => [
+        Playlist(
+          id: 'pl-1',
+          name: 'Para la ruta',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+          tracks: [
+            for (final id in ['aaaaaaaaaaa', 'bbbbbbbbbbb'])
+              Track(
+                id: 'yt-$id',
+                title: 'Tema $id',
+                artist: 'Artista inventado',
+                coverColor: const Color(0xFF7C5CFF),
+                audioUrl: '',
+                source: TrackSource.youtube,
+                durationMs: 200000,
+              ),
+          ],
+        ),
+      ];
+}
+
+Widget _app(Object notifierFactory, {bool playlists = false}) => ProviderScope(
       overrides: [
         playbackProvider.overrideWith(notifierFactory as PlaybackNotifier Function()),
+        if (playlists) playlistsProvider.overrideWith(_FixedPlaylists.new),
         // Sin red en los tests: Inicio sin recomendaciones ni géneros.
         homeFeedProvider.overrideWith((ref) async => const HomeFeed()),
         moodsProvider.overrideWith((ref) async => const <YtMood>[]),
@@ -119,6 +147,16 @@ Widget _app(Object notifierFactory) => ProviderScope(
     );
 
 void main() {
+  // Inicio con playlists de YouTube: el aviso de errores (Tarea T3) mostró en Kiji Dev un
+  // "setState() during build" al dibujar Inicio con playlists de verdad.
+  testWidgets('Inicio con playlists de YouTube se dibuja sin errores', (tester) async {
+    await tester.pumpWidget(_app(EmptyPlaybackNotifier.new, playlists: true));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('Para la ruta'), findsWidgets);
+  });
+
   testWidgets('Sin nada guardado arranca vacío y sin mini-player', (WidgetTester tester) async {
     await tester.pumpWidget(_app(EmptyPlaybackNotifier.new));
 
@@ -131,12 +169,12 @@ void main() {
     );
   });
 
-  testWidgets('Inicio: saludo, "Seguí donde quedaste" y mini-player con pausa', (tester) async {
+  testWidgets('Inicio: saludo, "Sigue donde quedaste" y mini-player con pausa', (tester) async {
     await tester.pumpWidget(_app(MockPlaybackNotifier.new));
     await tester.pump();
 
     expect(find.textContaining(RegExp(r'^Buen(os|as) ')), findsOneWidget);
-    expect(find.text('SEGUÍ DONDE QUEDASTE'), findsOneWidget);
+    expect(find.text('SIGUE DONDE QUEDASTE'), findsOneWidget);
     final mini = find.byType(MiniPlayer);
     expect(find.descendant(of: mini, matching: find.text('Midnight Echoes')), findsOneWidget);
     expect(find.descendant(of: mini, matching: find.text('Luna Nova')), findsOneWidget);

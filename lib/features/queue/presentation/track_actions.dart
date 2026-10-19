@@ -13,7 +13,7 @@ import '../../playlists/presentation/playlist_screens.dart';
 import '../../sleep_timer/sleep_timer_provider.dart';
 import '../../customize/presentation/track_text.dart';
 
-/// Menú de una canción (mantener apretado en el celular, clic derecho en la
+/// Menú de una canción (mantener presionado en el celular, clic derecho en la
 /// PC): "Reproducir a continuación" y "Agregar a la cola".
 Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) {
   final messenger = ScaffoldMessenger.of(context);

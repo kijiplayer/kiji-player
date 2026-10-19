@@ -273,7 +273,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         (_) => _pushSystemState(),
         onError: (Object error) => unawaited(_onPlaybackError(error)),
       ))
-      // just_audio 0.10 informa los errores de reproducción por acá (no
+      // just_audio 0.10 informa los errores de reproducción por aquí (no
       // como error de playbackEventStream).
       ..add(player.errorStream.listen((error) => unawaited(_onPlaybackError(error))))
       ..add(
@@ -401,7 +401,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       unawaited(_saveState());
       if (autoPlay) {
         _startPlaying();
-        // Historial local (Inicio: "Escuchado recientemente", "Para vos").
+        // Historial local (Inicio: "Escuchado recientemente", "Para ti").
         // Restaurar al abrir (autoPlay: false) no cuenta como escuchar.
         ref.read(listeningHistoryProvider.notifier).record(track);
       }
@@ -640,7 +640,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         isInitialized: false,
       );
       _notify(const PlaybackNotice(
-        'Sin conexión: la música quedó en pausa. Cuando vuelva internet, tocá play.',
+        'Sin conexión: la música quedó en pausa. Cuando vuelva internet, toca play.',
         action: NoticeAction.openDownloads,
       ));
       return;
@@ -686,7 +686,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> _onPlaybackError(Object error, {Duration? at}) async {
     final track = state.track;
     // Durante una carga los errores los maneja el propio _setSource (prueba
-    // otro modo u otro cliente); acá solo llegan los de una canción que ya
+    // otro modo u otro cliente); aquí solo llegan los de una canción que ya
     // estaba sonando.
     if (track == null || _recovering || !state.isInitialized) {
       debugPrint('=== REPRODUCCION: error durante la carga (lo maneja la carga): $error ===');

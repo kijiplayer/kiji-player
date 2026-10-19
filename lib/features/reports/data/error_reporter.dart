@@ -58,6 +58,8 @@ class ErrorReporter {
 
   void _offer(String key, ErrorReport report) {
     debugPrint('=== INFORME: ${report.summary} (${report.where}) ${report.detail} ===');
+    // Las primeras líneas de la pila, para encontrar el error en el registro.
+    if (report.stack.isNotEmpty) debugPrint(report.stack.split('\n').take(8).join('\n'));
     recent.add(report);
     if (recent.length > 20) recent.removeAt(0);
     if (!_offered.add(key)) return;

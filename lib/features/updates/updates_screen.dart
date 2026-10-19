@@ -42,8 +42,8 @@ Future<void> showReleaseSheet(BuildContext context, Release release) => showModa
               Text(release.notes.isEmpty ? 'Esta versión no trae notas.' : release.notes),
               const SizedBox(height: 16),
               const Text(
-                'Kiji nunca se actualiza solo ni baja nada: la descarga la hacés vos desde la página '
-                'oficial, si querés.',
+                'Kiji nunca se actualiza solo ni baja nada: la descarga la haces tú desde la página '
+                'oficial, si quieres.',
                 style: TextStyle(color: KijiColors.muted, fontSize: 13),
               ),
               const SizedBox(height: 12),

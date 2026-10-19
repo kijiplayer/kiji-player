@@ -34,6 +34,6 @@ Future<String?> checkWritable(Directory folder) async {
     return null;
   } catch (error) {
     debugPrint('=== COPIA: no se puede escribir en ${folder.path}: $error ===');
-    return 'Kiji no puede guardar en esa carpeta. Elegí otra.';
+    return 'Kiji no puede guardar en esa carpeta. Elige otra.';
   }
 }
