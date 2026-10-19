@@ -14,6 +14,7 @@ import '../../settings/data/settings_store.dart';
 import '../data/backup_notifier.dart';
 import '../data/backup_service.dart';
 import '../domain/backup_manifest.dart';
+import '../data/backup_folder.dart';
 
 /// Configuración → Copia de seguridad → "Copia de seguridad de Kiji" (Tarea U).
 class BackupScreen extends ConsumerWidget {
@@ -66,7 +67,7 @@ class BackupScreen extends ConsumerWidget {
                     ListTile(
                       leading: const Icon(Icons.undo_rounded),
                       title: const Text('Volver a la carpeta de fábrica'),
-                      subtitle: const Text('Documentos/Kiji'),
+                      subtitle: const Text('Documentos/$backupFolderName'),
                       onTap: () => notifier.setFolder(null),
                     ),
                 ],

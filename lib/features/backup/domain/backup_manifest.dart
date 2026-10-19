@@ -3,6 +3,8 @@
 // viewmodels/BackupRestoreViewModel.kt (copia en un archivo y restaurar). El formato,
 // la copia diaria y la vista previa son propios de Kiji.
 
+import '../../dev_tools/dev_build.dart';
+
 /// Cuántas cosas trae una copia (para la vista previa).
 class BackupCounts {
   const BackupCounts({this.playlists = 0, this.likes = 0, this.history = 0, this.downloads = 0, this.covers = 0});
@@ -18,12 +20,12 @@ class BackupCounts {
   final int covers;
 
   Map<String, dynamic> toJson() => {
-        'playlists': playlists,
-        'likes': likes,
-        'history': history,
-        'downloads': downloads,
-        'covers': covers,
-      };
+    'playlists': playlists,
+    'likes': likes,
+    'history': history,
+    'downloads': downloads,
+    'covers': covers,
+  };
 
   factory BackupCounts.fromJson(Object? json) {
     int read(String key) => json is Map && json[key] is int ? json[key] as int : 0;
@@ -61,14 +63,16 @@ class BackupManifest {
   final String reason;
 
   Map<String, dynamic> toJson() => {
-        'app': app,
-        'version': version,
-        'createdAt': createdAt.toUtc().toIso8601String(),
-        'platform': platform,
-        'reason': reason,
-        'files': files,
-        'counts': counts.toJson(),
-      };
+    'app': app,
+    // De qué app sale la copia (Kiji o Kiji Dev): solo informativo.
+    'flavor': isDevBuild ? 'dev' : 'prod',
+    'version': version,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'platform': platform,
+    'reason': reason,
+    'files': files,
+    'counts': counts.toJson(),
+  };
 
   /// null si no es una copia de Kiji o es de una versión que no se entiende.
   static BackupManifest? tryParse(Object? json) {

@@ -5,27 +5,36 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-/// Carpeta de las copias por defecto: `Documentos/Kiji`, fuera de la app,
+import '../../dev_tools/dev_build.dart';
+
+/// Nombre de la carpeta de las copias: Kiji Dev guarda las suyas aparte, nunca junto a las de Kiji.
+const backupFolderName = isDevBuild ? 'Kiji Dev' : 'Kiji';
+
+/// Carpeta de las copias por defecto: `Documentos/Kiji` (o `Documentos/Kiji Dev`), fuera de la app,
 /// para que sobreviva si se desinstala Kiji (una ruta por
 /// plataforma, siempre con path_provider o el sistema).
 Future<Directory> defaultBackupFolder() async {
   if (!kIsWeb && Platform.isAndroid) {
     try {
       final documents = await const MethodChannel('kiji/storage').invokeMethod<String>('documentsDir');
-      if (documents != null) return Directory(p.join(documents, 'Kiji'));
+      if (documents != null) return Directory(p.join(documents, backupFolderName));
     } catch (error) {
       debugPrint('=== COPIA: no se pudo ubicar Documentos: $error ===');
     }
     // Respaldo: la carpeta de la app en el almacenamiento externo (se borra al
     // desinstalar, pero es mejor que nada).
     final external = await getExternalStorageDirectory();
-    if (external != null) return Directory(p.join(external.path, 'Kiji'));
+    if (external != null) return Directory(p.join(external.path, backupFolderName));
   }
-  return Directory(p.join((await getApplicationDocumentsDirectory()).path, 'Kiji'));
+  return Directory(p.join((await getApplicationDocumentsDirectory()).path, backupFolderName));
 }
 
 /// null si se puede escribir en [folder]; si no, el motivo en palabras simples.
 Future<String?> checkWritable(Directory folder) async {
+  // Kiji Dev nunca escribe en la carpeta de Kiji (se mezclarían las copias de las dos apps).
+  if (isDevBuild && p.basename(folder.path) == 'Kiji') {
+    return 'Esa es la carpeta de Kiji. Kiji Dev guarda sus copias aparte: elige otra.';
+  }
   try {
     await folder.create(recursive: true);
     final probe = File(p.join(folder.path, '.kiji-prueba'));
