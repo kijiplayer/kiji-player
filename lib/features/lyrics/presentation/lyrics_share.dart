@@ -12,6 +12,7 @@ import '../../../models/track.dart';
 import '../../../screens/player/player_motion.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/album_cover.dart';
+import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/kiji_logo.dart';
 
 /// Texto para compartir unas líneas: entre comillas y con la canción.
@@ -104,26 +105,28 @@ class LyricsCard extends ConsumerWidget {
               Expanded(child: _Names(track: track)),
             ],
           ),
-        if (minimal) const SizedBox(height: 4) else const Spacer(),
-        // Las líneas se achican si no entran (nunca se cortan).
-        Flexible(
-          flex: minimal ? 0 : 6,
-          fit: FlexFit.loose,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: SizedBox(
-              width: format.width - 48,
-              child: _Lines(lines: lines, translations: translations, text: text, large: !landscape),
+        // Las líneas, centradas en el espacio libre; se achican si no entran (nunca se cortan).
+        if (minimal)
+          _Lines(lines: lines, translations: translations, text: text, large: true)
+        else
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                  width: format.width - 48,
+                  child: _Lines(lines: lines, translations: translations, text: text, large: !landscape),
+                ),
+              ),
             ),
           ),
-        ),
         if (minimal) ...[
           const SizedBox(height: 14),
           Text('— ${track.title}, ${track.artist}',
               style: const TextStyle(color: Colors.white70, fontSize: 13, fontStyle: FontStyle.italic)),
-        ] else
-          const Spacer(),
+        ],
         if (showLogo) ...[
           const SizedBox(height: 14),
           Row(
@@ -264,6 +267,7 @@ Future<void> showLyricsCardDialog(
 }) {
   return Navigator.of(context).push(MaterialPageRoute<void>(
     fullscreenDialog: true,
+    settings: const RouteSettings(name: KijiRoutes.share),
     builder: (_) => _ShareCardScreen(lines: lines, track: track, translations: translations),
   ));
 }

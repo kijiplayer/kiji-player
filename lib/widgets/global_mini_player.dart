@@ -17,7 +17,8 @@ final kijiNavigatorKey = GlobalKey<NavigatorState>();
 abstract final class KijiRoutes {
   static const player = 'player';
   static const lyrics = 'lyrics';
-  static const hideMiniPlayer = {'/', player, lyrics};
+  static const share = 'share';
+  static const hideMiniPlayer = {'/', player, lyrics, share};
 }
 
 /// Lo que importa de la pila de pantallas para el mini-reproductor.

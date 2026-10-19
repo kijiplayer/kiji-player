@@ -611,7 +611,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       initialPosition: initialPosition,
       autoPlay: autoPlay,
     );
-    if (result == LoadResult.offline || result == LoadResult.unplayable) {
+    if (result == LoadResult.offline || result == LoadResult.unplayable || result == LoadResult.contentBlocked) {
       await _grace(track, index, result, initialPosition);
     }
   }
