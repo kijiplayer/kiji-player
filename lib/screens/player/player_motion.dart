@@ -13,6 +13,17 @@ import '../../widgets/album_cover.dart';
 /// Colores ya calculados (por id de canción), para no repetir el trabajo.
 final _coverColors = <String, Color>{};
 
+/// El color real de la carátula de [track] si ya se calculó (lo comparten el halo y la letra).
+Color? knownCoverAccent(String trackId) => _coverColors[trackId];
+
+/// Calcula (una vez por canción) el color real de la carátula.
+Future<Color?> coverAccentFor(Track track, ImageProvider? image) async {
+  final known = _coverColors[track.id];
+  if (known != null || image == null) return known;
+  final scheme = await ColorScheme.fromImageProvider(provider: image, brightness: Brightness.dark);
+  return _coverColors[track.id] = scheme.primary;
+}
+
 /// Animaciones del reproductor (Tarea Z6). Todas se apagan con "Reducir
 /// animaciones".
 

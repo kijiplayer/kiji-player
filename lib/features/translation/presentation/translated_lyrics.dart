@@ -122,8 +122,9 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
           child: Container(
             padding: const EdgeInsets.all(12),
+            // Vidrio sobre el fondo de la letra (no una tarjeta de formulario).
             decoration: BoxDecoration(
-              color: KijiColors.surfaceHigh,
+              color: Colors.black.withValues(alpha: 0.28),
               borderRadius: BorderRadius.circular(KijiRadii.tile),
               border: Border.all(color: KijiColors.glassBorder),
             ),

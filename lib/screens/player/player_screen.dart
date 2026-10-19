@@ -66,45 +66,52 @@ class PlayerScreen extends ConsumerWidget {
     if (track == null) {
       return const Scaffold(body: Center(child: Text('Elige una canción')));
     }
-    final downloaded = track.youtubeVideoId != null &&
-        ref.watch(downloadsProvider).completed.containsKey(track.youtubeVideoId);
+    final downloaded =
+        track.youtubeVideoId != null && ref.watch(downloadsProvider).completed.containsKey(track.youtubeVideoId);
 
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
           PlayerHalo(track: track, playing: playback.isPlaying),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final coverSize = min(
-                  KijiSizes.playerCover,
-                  min(constraints.maxWidth - 48, constraints.maxHeight * 0.38),
-                );
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _TopBar(track: track, downloaded: downloaded),
-                        const SizedBox(height: 16),
-                        _Cover(track: track, size: coverSize),
-                        const SizedBox(height: 24),
-                        _TitleRow(track: track, downloaded: downloaded),
-                        const SizedBox(height: 20),
-                        _Progress(playback: playback, seed: track.id),
-                        const SizedBox(height: 12),
-                        const PlaybackControlsRow(),
-                        const SizedBox(height: 20),
-                        const _BottomActions(),
-                        const SizedBox(height: 16),
-                      ],
+          // Deslizar hacia arriba en cualquier parte del reproductor abre la letra.
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onVerticalDragEnd: (details) {
+              if ((details.primaryVelocity ?? 0) < -350) LyricsScreen.open(context);
+            },
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final coverSize = min(
+                    KijiSizes.playerCover,
+                    min(constraints.maxWidth - 48, constraints.maxHeight * 0.38),
+                  );
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _TopBar(track: track, downloaded: downloaded),
+                          const SizedBox(height: 16),
+                          _Cover(track: track, size: coverSize),
+                          const SizedBox(height: 24),
+                          _TitleRow(track: track, downloaded: downloaded),
+                          const SizedBox(height: 20),
+                          _Progress(playback: playback, seed: track.id),
+                          const SizedBox(height: 12),
+                          const PlaybackControlsRow(),
+                          const SizedBox(height: 20),
+                          const _BottomActions(),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -180,9 +187,7 @@ class _TopBar extends StatelessWidget {
                 subtitle: const Text('Cómo está funcionando YouTube hoy'),
                 onTap: () {
                   Navigator.pop(context);
-                  navigator.push(MaterialPageRoute<void>(
-                    builder: (_) => const ExtractorHealthScreen(),
-                  ));
+                  navigator.push(MaterialPageRoute<void>(builder: (_) => const ExtractorHealthScreen()));
                 },
               ),
           ],
@@ -206,9 +211,7 @@ class _Cover extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(KijiRadii.cover),
-          boxShadow: [
-            BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4),
-          ],
+          boxShadow: [BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4)],
         ),
         child: GradientBorder(
           radius: KijiRadii.cover,
@@ -238,12 +241,7 @@ class _TitleRow extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TrackTitleText(
-                track,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: KijiText.title(size: 26),
-              ),
+              TrackTitleText(track, maxLines: 2, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 26)),
               const SizedBox(height: 4),
               TrackArtistText(
                 track,

@@ -13,6 +13,8 @@ import '../../../models/track.dart';
 import '../../../providers/appearance_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
+import '../../../screens/player/player_motion.dart';
+import '../../../widgets/album_cover.dart';
 import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../customize/presentation/track_text.dart';
@@ -32,9 +34,18 @@ class LyricsScreen extends ConsumerWidget {
   const LyricsScreen({super.key});
 
   static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(
+        PageRouteBuilder<void>(
           settings: const RouteSettings(name: KijiRoutes.lyrics),
-          builder: (_) => const LyricsScreen(),
+          transitionDuration: KijiMotion.emphasized,
+          reverseTransitionDuration: KijiMotion.normal,
+          pageBuilder: (_, _, _) => const LyricsScreen(),
+          // Sube desde abajo, como si la letra estuviera debajo del reproductor.
+          transitionsBuilder: (context, animation, _, child) => SlideTransition(
+            position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+                .chain(CurveTween(curve: KijiMotion.emphasizedCurve))
+                .animate(animation),
+            child: child,
+          ),
         ),
       );
 
@@ -48,18 +59,11 @@ class LyricsScreen extends ConsumerWidget {
     final lyrics = ref.watch(lyricsProvider(request));
 
     return Scaffold(
+      backgroundColor: KijiColors.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [track.coverColor.withValues(alpha: 0.35), KijiColors.background],
-              ),
-            ),
-          ),
+          RepaintBoundary(child: LyricsBackdrop(track: track)),
           SafeArea(
             child: Column(
               children: [
@@ -109,13 +113,6 @@ class LyricsScreen extends ConsumerWidget {
                                     builder: body,
                                   )
                                 : body(null),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Text(
-                              'LETRA: ${value.source?.label.toUpperCase() ?? ''}',
-                              style: KijiText.mono(size: 10),
-                            ),
                           ),
                         ],
                       );
@@ -232,12 +229,13 @@ class _Header extends ConsumerWidget {
               children: [
                 TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 18)),
                 TrackArtistText(track,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: KijiColors.muted)),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
               ],
             ),
           ),
           PopupMenuButton<String>(
-            tooltip: 'Más opciones de la letra',
+            tooltip: 'Opciones de la letra',
+            icon: const Icon(Icons.more_horiz_rounded, color: Colors.white70),
             onSelected: (action) {
               switch (action) {
                 case 'search':
@@ -253,18 +251,31 @@ class _Header extends ConsumerWidget {
                   ref.read(lyricsTranslationOnProvider.notifier).state = !on;
               }
             },
-            itemBuilder: (context) => [
-              if (!(lyrics?.isEmpty ?? true))
-                PopupMenuItem(
-                  value: 'translate',
-                  child: Text(ref.watch(lyricsTranslationOnProvider) ? 'Quitar la traducción' : 'Traducir la letra'),
+            itemBuilder: (context) {
+              PopupMenuItem<String> item(String value, IconData icon, String text) => PopupMenuItem(
+                    value: value,
+                    child: Row(children: [Icon(icon, size: 20), const SizedBox(width: 12), Flexible(child: Text(text))]),
+                  );
+              final hasLyrics = !(lyrics?.isEmpty ?? true);
+              return [
+                if (hasLyrics)
+                  item('translate', Icons.translate_rounded,
+                      ref.read(lyricsTranslationOnProvider) ? 'Quitar la traducción' : 'Traducir'),
+                if (lyrics?.isSynced ?? false) item('offset', Icons.sync_rounded, 'Sincronizar (adelantar o atrasar)'),
+                if (hasLyrics) item('share', Icons.ios_share_rounded, 'Compartir líneas'),
+                const PopupMenuDivider(),
+                PopupMenuItem<String>(
+                  enabled: false,
+                  height: 32,
+                  child: Text(
+                    lyrics?.source == null ? 'FUENTE' : 'FUENTE: ${lyrics!.source!.label.toUpperCase()}',
+                    style: KijiText.mono(size: 10),
+                  ),
                 ),
-              const PopupMenuItem(value: 'search', child: Text('Buscar a mano')),
-              const PopupMenuItem(value: 'import', child: Text('Importar un .lrc')),
-              if (lyrics?.isSynced ?? false) const PopupMenuItem(value: 'offset', child: Text('Ajustar el desfase')),
-              if (!(lyrics?.isEmpty ?? true))
-                const PopupMenuItem(value: 'share', child: Text('Elegir líneas para compartir')),
-            ],
+                item('search', Icons.manage_search_rounded, 'Buscar en otra fuente'),
+                item('import', Icons.file_open_outlined, 'Importar un .lrc'),
+              ];
+            },
           ),
         ],
       ),
@@ -382,7 +393,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
       if (context == null || !mounted) return;
       Scrollable.ensureVisible(
         context,
-        alignment: 0.35,
+        alignment: 0.4,
         duration: reduceMotion ? Duration.zero : KijiMotion.normal,
         curve: Curves.easeOutCubic,
       );
@@ -428,7 +439,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
             return false;
           },
           child: ListView.builder(
-            padding: EdgeInsets.fromLTRB(24, 160, 24, selecting ? 220 : 160),
+            padding: EdgeInsets.fromLTRB(28, 220, 28, selecting ? 260 : 320),
             itemCount: widget.lines.length,
             itemBuilder: (context, index) {
               final line = widget.lines[index];
@@ -466,10 +477,10 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                         duration: calm ? Duration.zero : KijiMotion.normal,
                         curve: Curves.easeOutCubic,
                         style: KijiText.title(
-                          size: isCurrent ? 26 : 22,
-                          weight: isCurrent ? FontWeight.w700 : FontWeight.w600,
-                          color: isCurrent ? Colors.white : KijiColors.muted.withValues(alpha: isPast ? 0.45 : 0.75),
-                        ),
+                          size: isCurrent ? 30 : 24,
+                          weight: isCurrent ? FontWeight.w800 : FontWeight.w700,
+                          color: Colors.white.withValues(alpha: isCurrent ? 1 : (isPast ? 0.3 : 0.48)),
+                        ).copyWith(height: 1.2),
                         child: Text(
                           line.text.isEmpty ? '♪' : line.text,
                           semanticsLabel: isCurrent ? 'Ahora: ${line.text}' : line.text,
@@ -481,8 +492,9 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                           child: Text(
                             translation,
                             style: TextStyle(
-                              color: KijiColors.cyan.withValues(alpha: isCurrent ? 0.95 : 0.6),
-                              fontSize: isCurrent ? 17 : 15,
+                              color: Colors.white.withValues(alpha: isCurrent ? 0.8 : 0.3),
+                              fontSize: isCurrent ? 18 : 16,
+                              fontStyle: FontStyle.italic,
                             ),
                           ),
                         ),
@@ -624,11 +636,12 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(lines[i], style: KijiText.title(size: 20, weight: FontWeight.w500)),
+                    Text(lines[i], style: KijiText.title(size: 22, weight: FontWeight.w600).copyWith(height: 1.3)),
                     if (widget.translations != null &&
                         i < widget.translations!.length &&
                         (widget.translations![i]?.isNotEmpty ?? false))
-                      Text(widget.translations![i]!, style: const TextStyle(color: KijiColors.cyan, fontSize: 15)),
+                      Text(widget.translations![i]!,
+                          style: const TextStyle(color: Colors.white60, fontSize: 16, fontStyle: FontStyle.italic)),
                   ],
                 ),
               ),
@@ -676,6 +689,68 @@ class _Message extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Fondo de la letra: la portada difuminada con el color real de la canción. El difuminado sale de
+/// decodificar la portada en 24 px y estirarla (barato: no usa filtros de desenfoque, que en el
+/// teléfono costaban ~10 ms por cuadro).
+class LyricsBackdrop extends ConsumerStatefulWidget {
+  const LyricsBackdrop({super.key, required this.track});
+
+  final Track track;
+
+  @override
+  ConsumerState<LyricsBackdrop> createState() => _LyricsBackdropState();
+}
+
+class _LyricsBackdropState extends ConsumerState<LyricsBackdrop> {
+  String? _askedFor;
+
+  @override
+  Widget build(BuildContext context) {
+    final track = widget.track;
+    final image = trackImageProvider(ref, track);
+    final accent = knownCoverAccent(track.id) ?? track.coverColor;
+    if (_askedFor != track.id && knownCoverAccent(track.id) == null) {
+      _askedFor = track.id;
+      coverAccentFor(track, image).then((_) {
+        if (mounted) setState(() {});
+      }, onError: (Object error) => debugPrint('=== LETRAS: sin color de la carátula (${error.runtimeType}) ==='));
+    }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (image != null)
+          Opacity(
+            opacity: 0.6,
+            child: Image(
+              image: ResizeImage(image, width: 24, height: 24),
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
+              gaplessPlayback: true,
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            ),
+          ),
+        // Capa oscura fija: la letra se lee igual con portadas claras.
+        const ColoredBox(color: Color(0x80000000)),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 600),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                accent.withValues(alpha: 0.4),
+                Color.lerp(accent, KijiColors.background, 0.75)!.withValues(alpha: 0.7),
+                KijiColors.background.withValues(alpha: 0.95),
+              ],
+              stops: const [0, 0.45, 1],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

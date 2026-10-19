@@ -32,6 +32,7 @@ void main() {
     expect(find.bySemanticsLabel('Ahora: Repetida'), findsOneWidget);
     expect(find.bySemanticsLabel('Ahora: The sun is warm today'), findsNothing);
 
+    await tester.pumpAndSettle(); // termina de desplazarse hasta la línea que suena
     await tester.tap(find.text('The sun is warm today'));
     expect(playback.sought, const Duration(minutes: 1, seconds: 4, milliseconds: 70));
   });
