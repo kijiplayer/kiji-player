@@ -10,6 +10,7 @@ import '../../../widgets/album_cover.dart';
 import '../../customize/presentation/track_text.dart';
 import '../data/moments_store.dart';
 import '../domain/moment.dart';
+import 'moment_marks.dart';
 
 /// Guarda el segundo que suena como Momento y lo avisa (botón del reproductor).
 void saveCurrentMoment(BuildContext context, WidgetRef ref) {
@@ -80,7 +81,12 @@ class _MomentTile extends ConsumerWidget {
       title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Row(
         children: [
-          Text(formatDuration(moment.position), style: KijiText.mono(size: 12, color: KijiColors.cyan)),
+          Text(
+            moment.isInterval
+                ? '${formatDuration(moment.position)}–${formatDuration(moment.end!)}'
+                : formatDuration(moment.position),
+            style: KijiText.mono(size: 12, color: KijiColors.cyan),
+          ),
           const SizedBox(width: 8),
           Expanded(child: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis)),
         ],
@@ -89,6 +95,15 @@ class _MomentTile extends ConsumerWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (moment.isInterval)
+            IconButton(
+              tooltip: 'Repetir este tramo',
+              icon: Icon(
+                Icons.repeat_one_rounded,
+                color: ref.watch(momentLoopProvider)?.id == moment.id ? KijiColors.cyan : null,
+              ),
+              onPressed: () => toggleMomentLoop(context, ref, moment),
+            ),
           IconButton(
             tooltip: 'Compartir',
             icon: const Icon(Icons.share_outlined),

@@ -20,12 +20,12 @@ import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/global_mini_player.dart';
 import '../../widgets/mini_player.dart' show coverHeroTag;
-import '../../features/moments/presentation/moments_screen.dart';
 import 'player_motion.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 import '../../features/playlists/presentation/playlist_screens.dart';
+import '../../features/moments/presentation/moment_marks.dart';
 
 /// De dónde sale la canción, para "REPRODUCIENDO DESDE".
 String playingFromLabel(Track track, {required bool downloaded}) {
@@ -301,6 +301,7 @@ class _Progress extends ConsumerWidget {
             Text(formatDuration(playback.duration), style: KijiText.mono(size: 12)),
           ],
         ),
+        const MomentLoopChip(),
       ],
     );
   }
@@ -410,7 +411,7 @@ class _BottomActions extends ConsumerWidget {
           icon: Icons.bookmark_add_outlined,
           label: 'Momento',
           tooltip: 'Guardar este momento',
-          onPressed: () => saveCurrentMoment(context, ref),
+          onPressed: () => showNewMomentSheet(context, ref),
         ),
       ],
     );

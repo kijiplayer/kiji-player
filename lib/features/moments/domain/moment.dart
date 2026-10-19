@@ -1,20 +1,28 @@
 import '../../../models/track.dart';
 import '../../../utils/duration_formatter.dart';
 
-/// Un "Momento" (Tarea Z6, propio de Kiji): un segundo exacto de una canción
-/// que el usuario quiso guardar ("aquí empieza el solo").
+/// Un "Momento" (propio de Kiji): un segundo exacto de una canción ("aquí empieza el solo") o un
+/// tramo ("de 1:12 a 1:40, la parte que me gusta").
 class Moment {
-  const Moment({required this.id, required this.track, required this.position, required this.createdAt});
+  const Moment({required this.id, required this.track, required this.position, required this.createdAt, this.end});
 
   final String id;
   final Track track;
+
+  /// El segundo del punto, o el principio del tramo.
   final Duration position;
+
+  /// El final del tramo; null si es un punto.
+  final Duration? end;
   final DateTime createdAt;
+
+  bool get isInterval => end != null;
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'track': track.toJson(),
         'positionMs': position.inMilliseconds,
+        if (end != null) 'endMs': end!.inMilliseconds,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -27,6 +35,7 @@ class Moment {
       id: json['id'] as String,
       track: Track.fromJson(track),
       position: Duration(milliseconds: ms),
+      end: json['endMs'] is int && (json['endMs'] as int) > ms ? Duration(milliseconds: json['endMs'] as int) : null,
       createdAt: DateTime.tryParse('${json['createdAt']}') ?? DateTime.now(),
     );
   }
@@ -36,7 +45,10 @@ class Moment {
 /// arranca en ese segundo; con un archivo propio, solo el texto.
 String momentShareText(Moment moment) {
   final at = formatDuration(moment.position);
-  final base = '«${moment.track.title}» de ${moment.track.artist}, desde el $at';
+  final end = moment.end;
+  final base = end == null
+      ? '«${moment.track.title}» de ${moment.track.artist}, desde el $at'
+      : '«${moment.track.title}» de ${moment.track.artist}, de $at a ${formatDuration(end)}';
   final id = moment.track.youtubeVideoId;
   if (id == null) return base;
   return '$base\nhttps://youtu.be/$id?t=${moment.position.inSeconds}';

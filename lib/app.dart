@@ -16,6 +16,7 @@ import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/global_mini_player.dart';
 import 'widgets/playback_shortcuts.dart';
+import 'features/moments/presentation/moment_marks.dart';
 
 class KijiApp extends ConsumerStatefulWidget {
   const KijiApp({super.key});
@@ -38,6 +39,8 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     ref.listenManual(settingsProvider.select((s) => s.saveLogs), (_, on) => KijiLogs.setEnabled(on),
         fireImmediately: true);
     ErrorReporter.instance.pending.addListener(_offerReport);
+    // Repetir un tramo (Momentos): vuelve al principio al llegar al final.
+    watchMomentLoop(ref);
     // Nunca mientras suena música: si llegó un aviso sonando, se ofrece al pausar.
     ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
       if (!playing) _offerReport();

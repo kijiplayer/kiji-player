@@ -288,7 +288,8 @@ void main() {
         child: const MaterialApp(home: LyricsSourcesScreen()),
       ));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(LyricsSource.online.first.label));
+      expect(find.text('1. ${LyricsSource.online.first.label}'), findsOneWidget, reason: 'se ve el orden');
+      await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
       expect(container.read(settingsProvider).disabledLyricsSources, {LyricsSource.online.first});
     });

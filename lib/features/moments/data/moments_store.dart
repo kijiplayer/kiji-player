@@ -37,13 +37,15 @@ class MomentsNotifier extends Notifier<List<Moment>> {
     }
   }
 
-  /// Guarda el segundo [position] de [track] (redondeado al segundo).
-  Moment add(Track track, Duration position, {DateTime? now}) {
+  /// Guarda el segundo [position] de [track] (redondeado al segundo) o, con [end], el tramo de
+  /// [position] a [end].
+  Moment add(Track track, Duration position, {Duration? end, DateTime? now}) {
     final at = now ?? DateTime.now();
     final moment = Moment(
       id: '${at.microsecondsSinceEpoch}',
       track: track.copyWith(audioUrl: track.source == TrackSource.youtube ? '' : track.audioUrl),
       position: Duration(seconds: position.inSeconds),
+      end: end == null || end.inSeconds <= position.inSeconds ? null : Duration(seconds: end.inSeconds),
       createdAt: at,
     );
     state = [moment, ...state];

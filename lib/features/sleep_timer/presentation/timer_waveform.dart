@@ -7,6 +7,7 @@ import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/nocturne/waveform_progress.dart';
 import '../domain/sleep_timer_logic.dart';
 import '../sleep_timer_provider.dart';
+import '../../moments/presentation/moment_marks.dart';
 
 /// Fracción de la canción donde va la luna del temporizador, o null.
 double? sleepMarkerFraction(SleepTimerState? timer, PlaybackState playback) {
@@ -53,7 +54,15 @@ class TimerWaveform extends ConsumerWidget {
             }
           : ref.read(playbackProvider.notifier).seekToProgress,
     );
-    if (!marking) return wave;
+    // Momentos de esta canción sobre la onda: puntos y tramos.
+    final withMoments = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const MomentMarks(),
+        Stack(children: [wave, const Positioned.fill(child: MomentIntervalsHighlight())]),
+      ],
+    );
+    if (!marking) return withMoments;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -70,7 +79,7 @@ class TimerWaveform extends ConsumerWidget {
             ),
           ],
         ),
-        wave,
+        withMoments,
       ],
     );
   }
