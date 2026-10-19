@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -23,6 +24,7 @@ import '../features/extractor/data/ytdlp_engine.dart';
 import '../features/extractor/domain/extraction_failure.dart';
 import '../features/stream_cache/data/chunked_source.dart';
 import '../features/stream_cache/data/stream_cache.dart';
+import '../utils/startup_log.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/ytm_client.dart';
 import '../features/yt_music/domain/subtitle_parser.dart';
@@ -223,9 +225,20 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // Riverpod todavía no guardó el estado inicial y revienta con
     // "Bad state: Tried to read the state of an uninitialized provider".
     // El microtask lo difiere hasta después de que build() retorne.
-    unawaited(Future.microtask(_restoreState));
+    // La interfaz primero (bug de Windows): la cola se restaura después del primer cuadro, porque
+    // cargar la canción crea el motor de audio (libmpv en la PC), que puede tardar.
+    unawaited(_restoreAfterFirstFrame());
 
     return PlaybackState.initial();
+  }
+
+  Future<void> _restoreAfterFirstFrame() async {
+    try {
+      await SchedulerBinding.instance.endOfFrame.timeout(const Duration(seconds: 3));
+    } on TimeoutException {
+      StartupLog.mark('el primer cuadro tardó; se restaura la cola igual');
+    }
+    await StartupLog.guard('restaurar la cola', _restoreState, limit: const Duration(seconds: 30));
   }
 
   AudioPlayer get _audioPlayer {

@@ -97,7 +97,8 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
     window_class.hInstance = GetModuleHandle(nullptr);
     window_class.hIcon =
         LoadIcon(window_class.hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
-    window_class.hbrBackground = 0;
+    // Fondo oscuro de Kiji (#07070C) mientras se dibuja el primer cuadro: nada de ventana blanca.
+    window_class.hbrBackground = ::CreateSolidBrush(RGB(7, 7, 12));
     window_class.lpszMenuName = nullptr;
     window_class.lpfnWndProc = Win32Window::WndProc;
     RegisterClass(&window_class);

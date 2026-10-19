@@ -8,6 +8,13 @@
 
 #include "win32_window.h"
 
+// Evento con nombre que se activa cuando Kiji dibuja su primer cuadro (lo mira otra instancia
+// para saber si esta quedó trabada).
+inline constexpr const wchar_t kFirstFrameEvent[] = L"Local\\KijiPlayer.PrimerCuadro";
+
+// Temporizador que muestra la ventana aunque el primer cuadro se demore.
+inline constexpr UINT_PTR kShowTimerId = 0x4B4A;
+
 // A window that does nothing but host a Flutter view.
 class FlutterWindow : public Win32Window {
  public:

@@ -51,7 +51,14 @@ class YtDlpEngine extends ExtractionEngine {
 
   Future<File> binary() async => File(p.join((await _directory()).path, 'ytdlp', assetName));
 
-  Future<bool> installed() async => _installedSync = await (await binary()).exists();
+  Future<bool> installed() async {
+    try {
+      return _installedSync = await (await binary()).exists();
+    } catch (error) {
+      debugPrint('=== MOTOR C: no se pudo mirar si yt-dlp está instalado: $error ===');
+      return _installedSync = false;
+    }
+  }
 
   /// Baja yt-dlp y verifica su huella. [onProgress] recibe bytes y total.
   Future<void> install({void Function(int done, int total)? onProgress}) async {

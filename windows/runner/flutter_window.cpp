@@ -29,7 +29,14 @@ bool FlutterWindow::OnCreate() {
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
     this->Show();
+    // Avisa a otra instancia que esta ya dibujó su primer cuadro (no está trabada).
+    HANDLE ready = ::CreateEventW(nullptr, TRUE, FALSE, kFirstFrameEvent);
+    if (ready) ::SetEvent(ready);
   });
+
+  // Si el primer cuadro tarda (algo se trabó antes de dibujar), la ventana igual aparece a los
+  // 1,5 s con el fondo oscuro de Kiji, en vez de quedar un proceso invisible.
+  ::SetTimer(GetHandle(), kShowTimerId, 1500, nullptr);
 
   // Flutter can complete the first frame before the "show window" callback is
   // registered. The following call ensures a frame is pending to ensure the
@@ -64,6 +71,13 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   switch (message) {
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
+      break;
+    case WM_TIMER:
+      if (wparam == kShowTimerId) {
+        ::KillTimer(hwnd, kShowTimerId);
+        this->Show();
+        return 0;
+      }
       break;
   }
 

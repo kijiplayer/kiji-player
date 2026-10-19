@@ -5,6 +5,8 @@ import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+
+import '../../../utils/startup_log.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../models/track.dart';
@@ -74,7 +76,10 @@ class DesktopFolderSource implements LocalLibrarySource {
     final roots = await folders();
     // Recorrer carpetas y leer etiquetas puede tardar: en otro isolate para
     // que la interfaz no se trabe.
-    final entries = await Isolate.run(() => scanFolders(roots));
+    // Con límite: archivos "solo en la nube" (OneDrive) pueden quedarse esperando al leerlos.
+    final entries = await StartupLog.guard('leer la carpeta de música', () => Isolate.run(() => scanFolders(roots)),
+            limit: const Duration(seconds: 90)) ??
+        const <ScannedSong>[];
     return [for (final entry in entries) entry.toTrack()]
       ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
   }
