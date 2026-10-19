@@ -2,7 +2,7 @@
 // (con la WebView real del solver). Se corre a mano, SOLO EN PC:
 //   flutter test integration_test/extractor_forms_test.dart -d windows
 // NUNCA en el celular real: `flutter test` desinstala la app y borra sus datos
-//. En el celular se usa el botón
+// (en el teléfono borraría los datos de la app). En el celular se usa el botón
 // "Probar todas las formas ahora" de la Salud del Extractor.
 // Escribe la tabla en el log con el prefijo "=== DIAG".
 

@@ -4,7 +4,7 @@
 //
 // SOLO EN PC: flutter test integration_test/extractor_playback_test.dart -d windows
 // NUNCA en el celular real: `flutter test` desinstala la app y borra sus datos
-//. En el celular se usa el botón de la app.
+// (en el teléfono borraría los datos de la app). En el celular se usa el botón de la app.
 
 import 'dart:io';
 

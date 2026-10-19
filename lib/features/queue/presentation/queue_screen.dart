@@ -80,8 +80,8 @@ class QueueList extends ConsumerWidget {
               ),
             )
           : ReorderableListView.builder(
-              // Agarradera propia: funciona igual con el dedo y con el mouse
-              //. Mantener presionado en cualquier parte también.
+              // Agarradera propia: funciona igual con el dedo y con el mouse.
+              // Mantener presionado en cualquier parte también.
               buildDefaultDragHandles: false,
               padding: padding,
               itemCount: queue.length,

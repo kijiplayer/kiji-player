@@ -66,3 +66,7 @@ GoogleService-Info.plist
 *.msix
 # Datos de la app que pudieran copiarse acá al probar (copias, cookies, claves cifradas).
 secrets/
+
+# Notas internas (fuera del repo)
+CLAUDE.md
+.claude/
