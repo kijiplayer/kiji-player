@@ -380,23 +380,47 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
     }
   }
 
+  final _controller = ScrollController();
+
+  /// Relleno arriba y abajo de la lista (para que la línea actual quede al 40 % de la altura).
+  static const _top = 220.0;
+  double get _bottom => ref.read(lyricsSelectionModeProvider) ? 260 : 320;
+
   @override
   void dispose() {
     _backTimer?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
+  /// Lleva la línea [index] al 40 % de la pantalla, con desplazamiento suave. Si está lejos, la
+  /// lista todavía no la construyó (no tiene posición): primero va a una posición estimada con la
+  /// altura promedio de las líneas y después la ajusta exacta.
   void _scrollTo(int index, bool reduceMotion) {
     if (index < 0) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = _keys[index].currentContext;
-      if (context == null || !mounted) return;
-      Scrollable.ensureVisible(
-        context,
-        alignment: 0.4,
-        duration: reduceMotion ? Duration.zero : KijiMotion.normal,
-        curve: Curves.easeOutCubic,
-      );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      for (var attempt = 0; attempt < 3 && mounted; attempt++) {
+        final line = _keys[index].currentContext;
+        if (line != null && line.mounted) {
+          await Scrollable.ensureVisible(
+            line,
+            alignment: 0.4,
+            duration: reduceMotion ? Duration.zero : KijiMotion.normal,
+            curve: Curves.easeOutCubic,
+          );
+          return;
+        }
+        if (!_controller.hasClients) return;
+        final pos = _controller.position;
+        final average = (pos.maxScrollExtent + pos.viewportDimension - _top - _bottom) / widget.lines.length;
+        final target = (_top + index * average - pos.viewportDimension * 0.4).clamp(0.0, pos.maxScrollExtent);
+        if (reduceMotion) {
+          _controller.jumpTo(target);
+        } else {
+          await _controller.animateTo(target, duration: KijiMotion.emphasized, curve: Curves.easeInOutCubic);
+        }
+        await WidgetsBinding.instance.endOfFrame;
+      }
     });
   }
 
@@ -439,7 +463,8 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
             return false;
           },
           child: ListView.builder(
-            padding: EdgeInsets.fromLTRB(28, 220, 28, selecting ? 260 : 320),
+            controller: _controller,
+            padding: EdgeInsets.fromLTRB(28, _top, 28, selecting ? 260 : 320),
             itemCount: widget.lines.length,
             itemBuilder: (context, index) {
               final line = widget.lines[index];

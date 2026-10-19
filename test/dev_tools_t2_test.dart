@@ -95,7 +95,7 @@ void main() {
     });
   });
 
-  test('Las pruebas corren en modo depuración: las herramientas se ven', () {
-    expect(isDevBuild, isTrue);
+  test('Sin --flavor dev (como Kiji normal) las herramientas no existen', () {
+    expect(isDevBuild, isFalse);
   });
 }

@@ -36,6 +36,35 @@ void main() {
     await tester.tap(find.text('The sun is warm today'));
     expect(playback.sought, const Duration(minutes: 1, seconds: 4, milliseconds: 70));
   });
+
+  testWidgets('"Volver a la canción" vuelve a la línea que suena aunque te hayas ido muy lejos', (tester) async {
+    final playback = _FakePlayback();
+    // 200 líneas inventadas, una cada 2 s; la canción va por la 150.
+    final lrc = [for (var i = 0; i < 200; i++) '[${(i * 2 ~/ 60).toString().padLeft(2, '0')}:${(i * 2 % 60).toString().padLeft(2, '0')}.00] Línea de prueba $i'].join('\n');
+    await tester.pumpWidget(ProviderScope(
+      overrides: [playbackProvider.overrideWith(() => playback)],
+      child: MaterialApp(home: Scaffold(body: SyncedLyricsView(lines: parseLrc(lrc)))),
+    ));
+    playback.at(const Duration(seconds: 301));
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('Ahora: Línea de prueba 150'), findsOneWidget);
+
+    // El usuario sube hasta el principio de la letra.
+    for (var i = 0; i < 40; i++) {
+      await tester.drag(find.byType(ListView), const Offset(0, 800));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Línea de prueba 0'), findsOneWidget);
+    expect(find.bySemanticsLabel('Ahora: Línea de prueba 150'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('back-to-song')));
+    await tester.pumpAndSettle();
+    final line = tester.getRect(find.bySemanticsLabel('Ahora: Línea de prueba 150'));
+    expect(line.top, inInclusiveRange(0, 600), reason: 'la línea que suena quedó a la vista');
+    expect(find.byKey(const Key('back-to-song')), findsNothing, reason: 'retoma el seguimiento');
+  });
 }
 
 class _FakePlayback extends PlaybackNotifier {
