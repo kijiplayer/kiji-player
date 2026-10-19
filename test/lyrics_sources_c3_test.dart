@@ -1,11 +1,16 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kiji_player/features/lyrics/data/lrclib_client.dart';
 import 'package:kiji_player/features/lyrics/data/lyrics_repository.dart';
 import 'package:kiji_player/features/lyrics/data/lyrics_sources.dart';
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
+import 'package:kiji_player/features/lyrics/lyrics_provider.dart';
+import 'package:kiji_player/features/lyrics/presentation/lyrics_sources_sheet.dart';
+import 'package:kiji_player/features/settings/data/settings_store.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
 
 /// Fuente falsa con letra inventada (nunca letras reales).
@@ -76,5 +81,44 @@ void main() {
     await repo.choose(_req.id, _synced(LyricsSource.kugou));
     final again = LyricsRepository(fetchers: [], baseDirectory: () async => dir);
     expect((await again.get(_req)).source, LyricsSource.kugou, reason: 'la elegida queda guardada');
+  });
+
+  // D1: la hoja tenía ListTile sobre un Container con color (sin Material) y Flutter avisaba un
+  // error en cada fila; el aviso de "Algo falló" tapaba la lista y se veían pocas fuentes.
+  testWidgets('La hoja de fuentes se abre sin errores y muestra siempre las 8', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    final repo = LyricsRepository(
+      fetchers: [for (final s in LyricsSource.online) _Fake(s, () => s == LyricsSource.lrclib ? _plain(s) : null)],
+      baseDirectory: () async => dir,
+    );
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        lyricsRepositoryProvider.overrideWithValue(repo),
+        settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => dir)),
+      ],
+      child: MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showLyricsSourcesSheet(
+              context,
+              _req,
+              current: LyricsSource.lrclib,
+              onSearchByHand: () {},
+              onImport: () {},
+            ),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    for (final s in LyricsSource.online) {
+      expect(find.text(s.label), findsOneWidget, reason: s.label);
+    }
+    expect(find.text('Es la que ves ahora'), findsOneWidget);
   });
 }

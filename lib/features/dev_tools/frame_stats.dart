@@ -30,7 +30,7 @@ abstract final class FrameStats {
     _since = now;
   }
 
-  /// "n=42 build 3.1/6.0/9.2 ms raster 4.0/7.5/12.1 ms (mediana/p90/máx) >16ms=1".
+  /// "cuadros=42 build 3.1/6.0/9.2 ms raster 4.0/7.5/12.1 ms (mediana/p90/máx) >16ms=1".
   @visibleForTesting
   static String summarize(List<int> buildUs, List<int> rasterUs) {
     String stats(List<int> us) {
@@ -43,7 +43,7 @@ abstract final class FrameStats {
     for (var i = 0; i < buildUs.length; i++) {
       if (buildUs[i] + rasterUs[i] > 16000) slow++;
     }
-    return 'n=${buildUs.length} build ${stats(buildUs)} ms raster ${stats(rasterUs)} ms '
+    return 'cuadros=${buildUs.length} build ${stats(buildUs)} ms raster ${stats(rasterUs)} ms '
         '(mediana/p90/máx) >16ms=$slow';
   }
 }

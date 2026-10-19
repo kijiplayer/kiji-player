@@ -439,11 +439,12 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
 
   @override
   Widget build(BuildContext context) {
-    final position = ref.watch(playbackProvider.select((p) => p.position));
     final offset = widget.trackId == null
         ? Duration.zero
         : ref.watch(lyricsOffsetProvider(widget.trackId!)).valueOrNull ?? Duration.zero;
-    final current = currentLineIndex(widget.lines, position + offset);
+    // Solo la línea que suena (no la posición): la lista se vuelve a armar cuando cambia de línea,
+    // no en cada cuadro (antes costaba ~30 ms por cuadro con la letra abierta).
+    final current = ref.watch(playbackProvider.select((p) => currentLineIndex(widget.lines, p.position + offset)));
     final calm = reduceMotion(context, ref);
     final selecting = ref.watch(lyricsSelectionModeProvider);
     _follow(current, calm);

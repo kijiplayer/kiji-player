@@ -40,6 +40,7 @@ class ErrorReporter {
     'setState() or markNeedsBuild() called during build',
     'was used after being disposed',
     'Incorrect use of ParentDataWidget',
+    'ink splashes may be invisible',
   ];
 
   /// true si [error] es solo de dibujo (el usuario no lo nota).
@@ -55,7 +56,7 @@ class ErrorReporter {
       final text = details.toString().split('\n');
       final culprit = [
         for (var i = 0; i < text.length; i++)
-          if (text[i].contains('error-causing widget') || text[i].contains('creator:')) ...text.skip(i).take(2),
+          if (text[i].contains('error-causing widget') || text[i].contains('creator:')) ...text.skip(i).take(4),
       ];
       debugPrint('=== REGISTRO: error de dibujo (sin aviso): ${'${details.exception}'.split('\n').first} '
           '${culprit.map((l) => l.trim()).join(' ')} ===');

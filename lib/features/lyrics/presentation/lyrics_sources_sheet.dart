@@ -25,12 +25,8 @@ Future<void> showLyricsSourcesSheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black38,
-    builder: (_) => _SourcesSheet(
-      request: request,
-      current: current,
-      onSearchByHand: onSearchByHand,
-      onImport: onImport,
-    ),
+    builder: (_) =>
+        _SourcesSheet(request: request, current: current, onSearchByHand: onSearchByHand, onImport: onImport),
   );
 }
 
@@ -90,69 +86,71 @@ class _SourcesSheetState extends ConsumerState<_SourcesSheet> {
       borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: Container(
+        // Material (no un Container con color): los ListTile y sus toques se dibujan sobre él.
+        child: Material(
           color: const Color(0xCC0B0B12),
-          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
-          child: SafeArea(
-            top: false,
-            child: ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+            child: SafeArea(
+              top: false,
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text('Fuente de la letra', style: KijiText.title(size: 22)),
-                const SizedBox(height: 6),
-                Text(
-                  pending > 0
-                      ? 'Preguntando a las fuentes… ($pending)'
-                      : 'Toca una fuente que tenga la letra para usarla en esta canción.',
-                  style: const TextStyle(color: Colors.white70, fontSize: 15),
-                ),
-                const SizedBox(height: 12),
-                for (final source in [
-                  if (_current != null && !order.contains(_current)) _current!,
-                  ...order,
-                ])
-                  _SourceRow(
-                    source: source,
-                    probe: _results[source],
-                    inUse: source == _current,
-                    onTap: _results[source]?.lyrics == null || source == _current ? null : () => _choose(_results[source]!),
+                  const SizedBox(height: 16),
+                  Text('Fuente de la letra', style: KijiText.title(size: 22)),
+                  const SizedBox(height: 6),
+                  Text(
+                    pending > 0
+                        ? 'Preguntando a las fuentes… ($pending)'
+                        : 'Toca una fuente que tenga la letra para usarla en esta canción.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 15),
                   ),
-                const SizedBox(height: 12),
-                const Divider(color: Colors.white12),
-                _ActionRow(
-                  icon: Icons.manage_search_rounded,
-                  text: 'Buscar con otro título o artista',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    widget.onSearchByHand();
-                  },
-                ),
-                _ActionRow(
-                  icon: Icons.file_open_outlined,
-                  text: 'Importar un archivo .lrc',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    widget.onImport();
-                  },
-                ),
-                _ActionRow(
-                  icon: Icons.swap_vert_rounded,
-                  text: 'Cambiar el orden de las fuentes',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    LyricsSourcesScreen.open(context);
-                  },
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  for (final source in [if (_current != null && !order.contains(_current)) _current!, ...order])
+                    _SourceRow(
+                      source: source,
+                      probe: _results[source],
+                      inUse: source == _current,
+                      onTap: _results[source]?.lyrics == null || source == _current
+                          ? null
+                          : () => _choose(_results[source]!),
+                    ),
+                  const SizedBox(height: 12),
+                  const Divider(color: Colors.white12),
+                  _ActionRow(
+                    icon: Icons.manage_search_rounded,
+                    text: 'Buscar con otro título o artista',
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      widget.onSearchByHand();
+                    },
+                  ),
+                  _ActionRow(
+                    icon: Icons.file_open_outlined,
+                    text: 'Importar un archivo .lrc',
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      widget.onImport();
+                    },
+                  ),
+                  _ActionRow(
+                    icon: Icons.swap_vert_rounded,
+                    text: 'Cambiar el orden de las fuentes',
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      LyricsSourcesScreen.open(context);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -211,7 +209,10 @@ class _SourceRow extends StatelessWidget {
                 if (probe == null && !inUse)
                   const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                 else
-                  Text(label, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(
+                    label,
+                    style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
               ],
             ),
           ),
@@ -230,9 +231,9 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-        leading: Icon(icon, color: Colors.white70),
-        title: Text(text, style: const TextStyle(fontSize: 16)),
-        onTap: onTap,
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+    leading: Icon(icon, color: Colors.white70),
+    title: Text(text, style: const TextStyle(fontSize: 16)),
+    onTap: onTap,
+  );
 }
