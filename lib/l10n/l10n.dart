@@ -4,7 +4,20 @@ import 'app_localizations.dart';
 
 export 'app_localizations.dart';
 
-/// Los textos de Kiji en el idioma de la app (Tarea T5). Si una pantalla se dibuja sin los
-/// delegados de idioma (pruebas, diálogos sueltos), vuelve al español en vez de fallar.
-AppLocalizations tr(BuildContext context) =>
-    Localizations.of<AppLocalizations>(context, AppLocalizations) ?? lookupAppLocalizations(const Locale('es'));
+AppLocalizations _current = lookupAppLocalizations(const Locale('es'));
+
+/// Los textos de Kiji en el idioma elegido (Configuración → Idioma). Se usa en cualquier parte,
+/// también fuera de las pantallas (avisos, errores): `tx.settingsTitle`.
+AppLocalizations get tx => _current;
+
+/// El idioma de la app en uso ('es' o 'en').
+String get kijiLanguage => _current.localeName;
+
+/// Cambia el idioma de los textos (la app vuelve a dibujar todo; ver KijiApp).
+void setKijiLocale(Locale locale) {
+  final supported = AppLocalizations.supportedLocales.any((l) => l.languageCode == locale.languageCode);
+  _current = lookupAppLocalizations(supported ? Locale(locale.languageCode) : const Locale('en'));
+}
+
+/// Compatibilidad: lo mismo que [tx].
+AppLocalizations tr(BuildContext context) => tx;
