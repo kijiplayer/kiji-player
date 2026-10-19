@@ -20,6 +20,7 @@ import '../features/extractor/data/alternatives.dart';
 import '../features/extractor/data/engines.dart';
 import '../features/extractor/data/path_health.dart';
 import '../features/extractor/data/stream_resolver.dart';
+import '../features/extractor/domain/resolved_stream.dart';
 import '../features/extractor/data/ytdlp_engine.dart';
 import '../features/extractor/domain/extraction_failure.dart';
 import '../features/stream_cache/data/chunked_source.dart';
@@ -519,6 +520,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           await _audioPlayer.setAudioSource(source, initialPosition: initialPosition);
           if (token != _loadToken) return LoadResult.cancelled;
           _currentClient = stream.path;
+          _currentStream = stream;
           if (sourceId != videoId && known.swap == null) {
             alternatives.remember(videoId, sourceId);
             _notify(PlaybackNotice('«${track.title}»: el video tiene restricción o está bloqueado; suena su versión «Canción».'));
@@ -719,6 +721,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// Reproduce una única pista suelta, convirtiéndola en una cola de un
   /// solo elemento. [startAt]: desde qué segundo (un "Momento", Tarea Z6).
   Future<void> playTrack(Track track, {Duration startAt = Duration.zero}) async {
+    await _stopTail();
     _requestedNext.clear();
     state = state.copyWith(queue: [track], currentIndex: 0);
     await _loadOrRecover(track, 0, initialPosition: startAt);
@@ -728,6 +731,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// Esto es lo que usa la Biblioteca al tocar una canción: toda la lista
   /// visible se vuelve la cola, para que Siguiente/Anterior tengan sentido.
   Future<void> playQueue(List<Track> tracks, {int startIndex = 0}) async {
+    await _stopTail();
     if (tracks.isEmpty) return;
     final index = startIndex.clamp(0, tracks.length - 1);
     _requestedNext.clear();
@@ -750,7 +754,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   void moveInQueue(int from, int to) => _applyQueue(_queueSnapshot.move(from, to));
 
   /// Salta a la canción [index] de la cola.
-  Future<void> playFromQueue(int index) => _playAtIndex(index);
+  Future<void> playFromQueue(int index) async {
+    await _stopTail();
+    await _playAtIndex(index);
+  }
 
   /// Quita la canción [index]. Devuelve lo necesario para deshacerlo.
   Future<RemovedFromQueue?> removeFromQueue(int index) async {
@@ -939,6 +946,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   }
 
   Future<void> _dispose() async {
+    await _stopTail();
     _saveTimer?.cancel();
     _lifecycleListener?.dispose();
     for (final subscription in _subscriptions) {
@@ -973,9 +981,13 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     }
   }
 
-  Future<void> pause() => _audioPlayer.pause();
+  Future<void> pause() async {
+    await _stopTail();
+    await _audioPlayer.pause();
+  }
 
   Future<void> seekTo(Duration position) async {
+    await _stopTail();
     if (!state.isInitialized) return;
     await _audioPlayer.seek(position);
   }
@@ -1030,9 +1042,145 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   bool _fadeInPending = false;
   int _fadeInToken = -1;
 
+  // ---------------------------------------------------------------------
+  // Mezcla real entre canciones (Tarea K2): un segundo reproductor, la "cola", toca el final de
+  // esta canción mientras el principal arranca la siguiente. Suenan las dos y, de paso, se tapa
+  // el tiempo de carga de la siguiente.
+  // ---------------------------------------------------------------------
+
+  AudioPlayer? _tail;
+  bool _tailReady = false;
+  bool _tailPreparing = false;
+  bool _crossfading = false;
+  Timer? _tailFade;
+
+  /// Para pruebas: la cola está sonando.
+  @visibleForTesting
+  bool get debugTailPlaying => _tail?.playing ?? false;
+
+  /// El audio de la canción actual (para que la cola lo pida igual).
+  ResolvedStream? _currentStream;
+
+  bool get _hasNextForCrossfade {
+    final queue = state.queue;
+    if (queue.length <= 1 || state.repeatMode == PlaybackRepeatMode.one) return false;
+    return state.shuffleEnabled || state.currentIndex + 1 < queue.length || state.repeatMode == PlaybackRepeatMode.all;
+  }
+
+  Future<void> _prepareTail() async {
+    final track = state.track;
+    if (track == null || _tailPreparing) return;
+    _tailPreparing = true;
+    final tail = AudioPlayer();
+    try {
+      final videoId = track.youtubeVideoId;
+      AudioSource? source;
+      if (videoId == null) {
+        source = AudioSource.file(track.audioUrl);
+      } else {
+        final downloaded = await ref.read(downloadsRepositoryProvider).fileFor(videoId);
+        final cached = downloaded ?? await _cache.completeFile(videoId);
+        if (cached != null) {
+          source = AudioSource.file(cached.path);
+        } else if (_currentStream != null && !_currentStream!.isHls) {
+          source = ChunkedYtSource(stream: _currentStream!, refresh: (_) async => null);
+        }
+      }
+      if (source == null || state.track?.id != track.id) {
+        await tail.dispose();
+        return;
+      }
+      await tail.setAudioSource(source, initialPosition: _audioPlayer.position).timeout(const Duration(seconds: 8));
+      await tail.setVolume(0);
+      if (state.track?.id != track.id) {
+        await tail.dispose();
+        return;
+      }
+      _tail = tail;
+      _tailReady = true;
+      debugPrint('=== MEZCLA: cola lista para "${track.title}" ===');
+    } catch (error) {
+      debugPrint('=== MEZCLA: no se pudo preparar la cola (${error.runtimeType}); queda el fundido simple ===');
+      await tail.dispose();
+    } finally {
+      _tailPreparing = false;
+    }
+  }
+
+  Future<void> _startCrossfade(int seconds) async {
+    final tail = _tail;
+    if (tail == null || _crossfading) return;
+    _crossfading = true;
+    final volume = state.volume * _fade;
+    try {
+      await tail.seek(_audioPlayer.position);
+      await tail.setVolume(volume);
+      unawaited(tail.play());
+    } catch (error) {
+      debugPrint('=== MEZCLA: la cola no arrancó (${error.runtimeType}) ===');
+      await _stopTail();
+      return;
+    }
+    debugPrint('=== MEZCLA: empieza ($seconds s), suenan las dos ===');
+    final watch = Stopwatch()..start();
+    _tailFade = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      final gain = crossfadeOutGain(watch.elapsed, seconds);
+      unawaited(tail.setVolume(volume * gain));
+      if (gain <= 0.001) {
+        debugPrint('=== MEZCLA: terminó ===');
+        unawaited(_stopTail());
+      }
+    });
+    // El principal calla ya (la cola sigue con el final) y la siguiente entra subiendo.
+    _transition = 0;
+    await _applyVolume();
+    _fadeInPending = true;
+    await _advance();
+  }
+
+  /// Corta la cola en el acto (pausa, salto, cambio de canción…).
+  Future<void> _stopTail() async {
+    _tailFade?.cancel();
+    _tailFade = null;
+    final tail = _tail;
+    _tail = null;
+    _tailReady = false;
+    _crossfading = false;
+    if (tail != null) {
+      try {
+        await tail.dispose();
+      } catch (error) {
+        debugPrint('=== MEZCLA: no se pudo cerrar la cola: $error ===');
+      }
+    }
+  }
+
   void _updateTransition(Duration position) {
     final seconds = ref.read(settingsProvider).crossfadeSeconds;
-    final gain = transitionGain(
+    switch (crossfadeStep(
+      position: position,
+      duration: state.duration,
+      seconds: seconds,
+      hasNext: _hasNextForCrossfade && state.isPlaying,
+      prepared: _tailReady,
+      started: _crossfading,
+    )) {
+      case CrossfadeStep.prepare:
+        unawaited(_prepareTail());
+      case CrossfadeStep.start:
+        unawaited(_startCrossfade(seconds));
+        return;
+      case CrossfadeStep.none:
+        break;
+    }
+    // Con la cola preparada, el principal no baja (la cola hace el final); ya mezclando, el
+    // principal calla hasta que carga la siguiente (si no, el mismo final sonaría doble).
+    final waitingNext = _fadeInToken != _loadToken;
+    final gain = _crossfading && waitingNext
+        ? 0.0
+        : _tailReady && waitingNext
+            ? 1.0
+            : transitionGain(
       position: position,
       duration: state.duration,
       seconds: seconds,
@@ -1064,6 +1212,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// la canción actual, reinicia la canción en vez de saltar (comportamiento
   /// estándar de la mayoría de los reproductores).
   Future<void> previousTrack() async {
+    await _stopTail();
     if (state.queue.isEmpty) return;
     if (state.position.inSeconds >= 3 || state.queue.length <= 1) {
       await _audioPlayer.seek(Duration.zero);
@@ -1084,6 +1233,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// pista al azar distinta de la actual) y Repetir (al llegar al final,
   /// vuelve al principio si Repetir está activo; si no, se detiene).
   Future<void> nextTrack() async {
+    await _stopTail();
+    await _advance();
+  }
+
+  /// Pasa a la siguiente canción (también desde la mezcla, sin cortar la cola).
+  Future<void> _advance() async {
     final queue = state.queue;
     if (queue.isEmpty) return;
 

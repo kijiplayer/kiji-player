@@ -110,6 +110,36 @@ void main() {
     expect(rule.onConnected(isPlaying: false, hasTrack: false), isFalse, reason: 'no hay nada para seguir');
   });
 
+  test('Mezcla real (K2): se prepara antes, arranca a N s del final y solo con siguiente', () {
+    CrossfadeStep at(int sec, {bool prepared = false, bool hasNext = true, bool started = false}) => crossfadeStep(
+          position: Duration(seconds: sec),
+          duration: const Duration(seconds: 200),
+          seconds: 5,
+          hasNext: hasNext,
+          prepared: prepared,
+          started: started,
+        );
+    expect(at(150), CrossfadeStep.none);
+    expect(at(193), CrossfadeStep.prepare, reason: '3 s antes de la mezcla');
+    expect(at(193, prepared: true), CrossfadeStep.none);
+    expect(at(196, prepared: true), CrossfadeStep.start);
+    expect(at(196), CrossfadeStep.none, reason: 'sin cola lista: queda el fundido simple');
+    expect(at(196, prepared: true, hasNext: false), CrossfadeStep.none, reason: 'última canción');
+    expect(at(196, prepared: true, started: true), CrossfadeStep.none, reason: 'una sola vez');
+    expect(
+      crossfadeStep(position: const Duration(seconds: 5), duration: const Duration(seconds: 8), seconds: 5,
+          hasNext: true, prepared: true, started: false),
+      CrossfadeStep.none,
+      reason: 'canción más corta que el doble de la mezcla',
+    );
+  });
+
+  test('La cola baja con potencia constante', () {
+    expect(crossfadeOutGain(Duration.zero, 5), 1);
+    expect(crossfadeOutGain(const Duration(milliseconds: 2500), 5), closeTo(0.7071, 0.001));
+    expect(crossfadeOutGain(const Duration(seconds: 5), 5), closeTo(0, 1e-9));
+  });
+
   test('compartir: enlace de song.link para YouTube, solo texto para archivos', () {
     expect(shareTextFor(_track('yt-abc123XYZ_-')),
         'De música ligera — Soda Stereo\nhttps://song.link/y/abc123XYZ_-');

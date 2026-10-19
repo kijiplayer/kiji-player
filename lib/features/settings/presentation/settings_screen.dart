@@ -203,7 +203,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       SettingOption(
         section: SettingsSection.player,
         title: 'Transición suave entre canciones',
-        subtitle: 'La canción baja al final y la siguiente sube al empezar.',
+        subtitle: 'El final de una canción y el principio de la siguiente suenan a la vez.',
         keywords: const ['crossfade', 'fundido', 'mezcla', 'fade', 'transicion'],
         builder: (context, ref) {
           final seconds = ref.watch(settingsProvider.select((s) => s.crossfadeSeconds));
@@ -212,7 +212,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: const Text('Transición suave entre canciones'),
             subtitle: Text(seconds == 0
                 ? 'Apagada'
-                : '$seconds s: la canción baja al final y la siguiente sube al empezar.'),
+                : '$seconds s: el final de una canción y el principio de la siguiente suenan a la vez.'),
             trailing: Text(seconds == 0 ? 'No' : '$seconds s', style: KijiText.mono(size: 13)),
             // Toda la fila abre la lista (antes solo respondía el texto chico de la derecha).
             onTap: () async {
@@ -261,14 +261,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
-        title: 'Retomar al reconectar el Bluetooth',
-        subtitle: 'Si la música se cortó al desconectarse los auriculares, sigue al volver.',
+        title: 'Retomar al conectar el Bluetooth',
+        subtitle: 'Al conectar auriculares o un parlante Bluetooth, la canción en pausa sigue sola.',
         keywords: const ['auriculares', 'bluetooth', 'reanudar', 'auto', 'coche'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Retomar al reconectar el Bluetooth'),
+          title: const Text('Retomar al conectar el Bluetooth'),
           subtitle: const Text(
-            'Si la música sonaba cuando se desconectaron los auriculares y vuelven en menos de 10 minutos, '
-            'sigue sola.',
+            'Al conectar auriculares o un parlante Bluetooth, la canción que estaba en pausa sigue sola '
+            '(como en Echo).',
           ),
           value: ref.watch(settingsProvider).resumeOnBluetooth,
           onChanged: (value) =>

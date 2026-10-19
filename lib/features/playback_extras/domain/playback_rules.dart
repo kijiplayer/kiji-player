@@ -85,3 +85,41 @@ bool useLowQuality({required bool dataSaver, required List<ConnectivityResult> c
   const unmetered = {ConnectivityResult.wifi, ConnectivityResult.ethernet};
   return !connection.any(unmetered.contains);
 }
+
+/// Mezcla real entre canciones (Tarea K2): qué hacer en este punto de la canción.
+enum CrossfadeStep {
+  none,
+
+  /// Preparar la "cola" (el final de esta canción en un segundo reproductor), en pausa.
+  prepare,
+
+  /// Arrancar la cola y pasar el reproductor principal a la siguiente: suenan las dos.
+  start,
+}
+
+/// Se prepara [lead] antes y se arranca a [seconds] del final, solo si hay una siguiente
+/// canción y la actual es al menos el doble de larga que la mezcla.
+CrossfadeStep crossfadeStep({
+  required Duration position,
+  required Duration duration,
+  required int seconds,
+  required bool hasNext,
+  required bool prepared,
+  required bool started,
+  Duration lead = const Duration(seconds: 3),
+}) {
+  if (seconds <= 0 || !hasNext || started || duration <= Duration.zero) return CrossfadeStep.none;
+  final mix = Duration(seconds: seconds);
+  if (duration < mix * 2) return CrossfadeStep.none;
+  final remaining = duration - position;
+  if (remaining <= mix) return prepared ? CrossfadeStep.start : CrossfadeStep.none;
+  if (remaining <= mix + lead && !prepared) return CrossfadeStep.prepare;
+  return CrossfadeStep.none;
+}
+
+/// Volumen de la cola mientras baja (potencia constante): 1 al empezar, 0 al terminar.
+double crossfadeOutGain(Duration elapsed, int seconds) {
+  if (seconds <= 0) return 0;
+  final t = (elapsed.inMilliseconds / (seconds * 1000)).clamp(0.0, 1.0);
+  return math.cos(t * math.pi / 2);
+}
