@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Clave de firma de las versiones release: fuera del repo, en <usuario>/kiji-keys/key.properties.
+// Sin ese archivo (otra PC), la release se firma con la clave de depuración.
+val kijiKeyProperties = Properties().apply {
+    val file = File(System.getProperty("user.home"), "kiji-keys/key.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -42,9 +51,20 @@ android {
         }
     }
 
+    signingConfigs {
+        if (kijiKeyProperties.containsKey("storeFile")) {
+            create("release") {
+                storeFile = file(kijiKeyProperties.getProperty("storeFile"))
+                storePassword = kijiKeyProperties.getProperty("storePassword")
+                keyAlias = kijiKeyProperties.getProperty("keyAlias")
+                keyPassword = kijiKeyProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 }
