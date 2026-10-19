@@ -549,6 +549,12 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
               ref.read(lyricsSelectionModeProvider.notifier).state = false;
             },
             lines: () => [for (final i in (_selected.toList()..sort())) widget.lines[i].text],
+            translations: widget.translations == null
+                ? null
+                : () => [
+                      for (final i in (_selected.toList()..sort()))
+                        i < widget.translations!.length ? widget.translations![i] : null,
+                    ],
             track: widget.track!,
           ),
       ],
@@ -557,12 +563,21 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
 }
 
 class _SelectionBar extends StatelessWidget {
-  const _SelectionBar({required this.count, required this.onCancel, required this.lines, required this.track});
+  const _SelectionBar({
+    required this.count,
+    required this.onCancel,
+    required this.lines,
+    required this.track,
+    this.translations,
+  });
 
   final int count;
   final VoidCallback onCancel;
   final List<String> Function() lines;
   final Track track;
+
+  /// La traducción de las líneas elegidas (mismo orden), si se está traduciendo.
+  final List<String?>? Function()? translations;
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +608,7 @@ class _SelectionBar extends StatelessWidget {
                     label: const Text('Como texto'),
                   ),
                   FilledButton.icon(
-                    onPressed: count == 0 ? null : () => showLyricsCardDialog(context, lines(), track),
+                    onPressed: count == 0 ? null : () => showLyricsCardDialog(context, lines(), track, translations: translations?.call()),
                     icon: const Icon(Icons.image_outlined),
                     label: const Text('Como imagen'),
                   ),
@@ -678,6 +693,12 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
               ref.read(lyricsSelectionModeProvider.notifier).state = false;
             },
             lines: () => [for (final i in (_selected.toList()..sort())) lines[i]],
+            translations: widget.translations == null
+                ? null
+                : () => [
+                      for (final i in (_selected.toList()..sort()))
+                        i < widget.translations!.length ? widget.translations![i] : null,
+                    ],
             track: widget.track,
           ),
       ],
