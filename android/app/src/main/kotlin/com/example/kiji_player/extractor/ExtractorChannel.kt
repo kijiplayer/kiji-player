@@ -46,6 +46,15 @@ object ExtractorChannel {
               ExtractorTestWorker.schedule(context, call.argument<Boolean>("enabled") ?: true)
               result.success(null)
             }
+            "setSession" -> {
+              // Cuenta opcional: nunca se registra (InnerTubeX oculta cookies y tokens).
+              engine.setSession(
+                call.argument<String>("cookie"),
+                call.argument<String>("visitorData"),
+                call.argument<String>("dataSyncId"),
+              )
+              result.success(null)
+            }
             "prewarm" -> {
               withContext(Dispatchers.IO) { engine.prewarm() }
               result.success(null)

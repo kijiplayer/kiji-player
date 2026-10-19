@@ -17,6 +17,8 @@ import 'theme/app_theme.dart';
 import 'widgets/global_mini_player.dart';
 import 'widgets/playback_shortcuts.dart';
 import 'features/moments/presentation/moment_marks.dart';
+import 'features/account/data/account_store.dart';
+import 'features/account/presentation/account_screens.dart';
 
 class KijiApp extends ConsumerStatefulWidget {
   const KijiApp({super.key});
@@ -41,6 +43,18 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     ErrorReporter.instance.pending.addListener(_offerReport);
     // Repetir un tramo (Momentos): vuelve al principio al llegar al final.
     watchMomentLoop(ref);
+    // Cuenta opcional: se carga la sesión guardada (si hay) y se ofrece cuando una canción la necesita.
+    ref.read(accountProvider);
+    ref.listenManual(accountOfferProvider, (_, offer) {
+      if (offer == null) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final context = kijiNavigatorKey.currentContext;
+        ref.read(accountOfferProvider.notifier).state = null;
+        if (context == null || !context.mounted) return;
+        final signedIn = await showAccountOfferDialog(context, ref, offer);
+        if (signedIn) await ref.read(playbackProvider.notifier).playTrack(offer.track);
+      });
+    });
     // Nunca mientras suena música: si llegó un aviso sonando, se ofrece al pausar.
     ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
       if (!playing) _offerReport();

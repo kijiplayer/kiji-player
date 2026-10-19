@@ -22,6 +22,7 @@ class YtPlayerClient {
     this.playerSessionToken = false,
     this.useHls = false,
     this.embedded = false,
+    this.loginSupported = false,
     this.retired,
     this.note,
   });
@@ -58,6 +59,10 @@ class YtPlayerClient {
   /// Reproductor "incrustado" (como en otra página): pide primero la página
   /// `embed` para usar SU visitorData y sus `encryptedHostFlags` (Tarea Z8).
   final bool embedded;
+
+  /// Con la cuenta opcional (Configuración → Cuenta), esta forma manda la sesión: sirve para las
+  /// canciones con restricción de edad.
+  final bool loginSupported;
 
   /// Si no es null, la forma está retirada de la cadena automática y dice por
   /// qué (Tarea Z8, medido con InnerTubeX). Se ve en "Formas retiradas".
@@ -221,6 +226,7 @@ const ytPlayerClients = <YtPlayerClient>[
     userAgent: firefoxUserAgent,
     needsPlayerScript: true,
     usesPoToken: true,
+    loginSupported: true,
     note: 'La web de YouTube Music; descifra con el solver y manda un PO token.',
   ),
   YtPlayerClient(

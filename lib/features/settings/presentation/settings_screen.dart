@@ -33,6 +33,8 @@ import '../domain/app_settings.dart';
 import '../domain/setting_search.dart';
 import 'credits_screen.dart';
 import '../../../l10n/l10n.dart';
+import '../../account/data/account_store.dart';
+import '../../account/presentation/account_screens.dart';
 
 /// Secciones de Configuración, en el orden del plan (Tarea G).
 enum SettingsSection {
@@ -41,6 +43,7 @@ enum SettingsSection {
   lyrics('Letras', Icons.lyrics_outlined),
   appearance('Apariencia', Icons.palette_outlined),
   storage('Almacenamiento', Icons.sd_storage_outlined),
+  account('Cuenta', Icons.account_circle_outlined),
   privacy('Privacidad', Icons.shield_outlined),
   backup('Copia de seguridad', Icons.backup_outlined),
   updates('Actualizaciones', Icons.system_update_alt_rounded),
@@ -592,6 +595,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => ExtractorHealthScreen.open(context),
         ),
+      ),
+      // Cuenta de Google opcional.
+      SettingOption(
+        section: SettingsSection.account,
+        title: 'Cuenta de Google (opcional)',
+        subtitle: 'Solo para canciones que YouTube entrega únicamente a cuentas.',
+        keywords: const ['cuenta', 'google', 'iniciar sesion', 'login', 'edad', 'cerrar sesion'],
+        builder: (context, ref) {
+          final session = ref.watch(accountProvider);
+          return ListTile(
+            leading: Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded),
+            title: Text(session == null ? 'Cuenta de Google (opcional)' : 'Sesión iniciada'),
+            subtitle: Text(session == null
+                ? 'Solo para canciones que YouTube entrega únicamente a cuentas.'
+                : 'Toca para ver o cerrar la sesión.'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => AccountScreen.open(context),
+          );
+        },
       ),
       // Registros e informes (Tarea T3).
       SettingOption(

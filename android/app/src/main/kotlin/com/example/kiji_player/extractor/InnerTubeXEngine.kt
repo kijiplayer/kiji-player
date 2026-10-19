@@ -120,6 +120,13 @@ class InnerTubeXEngine(context: Context) {
     )
 
   /** Paga los costos en frío (config, solver EJS, WebView de BotGuard) antes de la primera canción. */
+  /** Cuenta opcional (Configuración → Cuenta): null = sin sesión. Solo vive en memoria. */
+  fun setSession(cookie: String?, visitorData: String?, dataSyncId: String?) {
+    innerTube.cookie = cookie
+    innerTube.dataSyncId = dataSyncId
+    if (visitorData != null) innerTube.visitorData = visitorData
+  }
+
   suspend fun prewarm() {
     val start = SystemClock.elapsedRealtime()
     try {

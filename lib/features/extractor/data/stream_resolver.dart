@@ -6,6 +6,7 @@ import '../domain/resolved_stream.dart';
 import 'engines.dart';
 import 'extractor_trace.dart';
 import 'path_health.dart';
+import '../../account/domain/yt_session.dart';
 
 /// Resultado de buscar el audio de una canción con todos los motores.
 class ResolveOutcome {
@@ -31,9 +32,13 @@ class ResolveOutcome {
 /// aceptó). Anota en la Salud solo las fallas de la forma, y decide si el problema es de la
 /// canción cuando las formas coinciden.
 class StreamResolver {
-  StreamResolver({required this.engines, PathHealth? health, ExtractorTrace? trace})
+  StreamResolver({required this.engines, PathHealth? health, ExtractorTrace? trace, bool Function()? signedIn})
       : health = health ?? PathHealth.instance,
-        trace = trace ?? ExtractorTrace.instance;
+        trace = trace ?? ExtractorTrace.instance,
+        signedIn = signedIn ?? (() => YtSessionHolder.signedIn);
+
+  /// Hay una cuenta iniciada (Configuración → Cuenta).
+  final bool Function() signedIn;
 
   final List<ExtractionEngine> engines;
   final PathHealth health;
@@ -77,9 +82,13 @@ class StreamResolver {
         debugPrint('=== EXTRACTOR: $stream ===');
         return ResolveOutcome.found(stream, failures);
       }
-      // Si un motor ya confirmó un problema de la canción, no tiene sentido seguir.
+      // Si un motor ya confirmó un problema de la canción, no tiene sentido seguir. Con la cuenta
+      // opcional, la restricción de edad no corta: la prueban las formas que mandan la sesión.
       final verdict = contentVerdict([for (final f in failures) f.$2]);
-      if (verdict != null && failures.any((f) => f.$2.isConclusive)) return ResolveOutcome.content(verdict, failures);
+      final accountMayHelp = verdict == ContentProblem.ageRestricted && signedIn();
+      if (verdict != null && !accountMayHelp && failures.any((f) => f.$2.isConclusive)) {
+        return ResolveOutcome.content(verdict, failures);
+      }
     }
     final verdict = contentVerdict([for (final f in failures) f.$2]);
     if (verdict != null) return ResolveOutcome.content(verdict, failures);

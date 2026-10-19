@@ -33,6 +33,8 @@ import '../features/yt_music/domain/subtitle_parser.dart';
 import '../models/track.dart';
 import 'downloads_provider.dart';
 import 'system_media_provider.dart';
+import '../features/account/data/account_store.dart';
+import '../features/account/domain/yt_session.dart';
 
 /// Nombrado "PlaybackRepeatMode" (no "RepeatMode" a secas) porque Flutter
 /// ya expone su propio `RepeatMode` en material.dart (usado por animaciones
@@ -456,7 +458,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // encontró antes; si se sabe que no tiene, se salta enseguida.
     final alternatives = AlternativeFinder.of(_ytClient);
     final known = await alternatives.known(videoId);
-    if (known.blocked != null && known.swap == null) {
+    // Con la cuenta opcional se vuelve a probar una canción con restricción de edad.
+    final accountMayHelp = known.blocked == ContentProblem.ageRestricted && YtSessionHolder.signedIn;
+    if (known.blocked != null && known.swap == null && !accountMayHelp) {
       _lastContentProblem = known.blocked;
       return LoadResult.contentBlocked;
     }
@@ -652,6 +656,15 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       final next = index + 1 < queue.length ? index + 1 : (state.repeatMode == PlaybackRepeatMode.off ? null : 0);
       _notify(PlaybackNotice('«${track.title}»: ${problem == null ? 'no se puede reproducir' : contentProblemText(problem)}. '
           '${next == null || next == index ? '' : 'Pasamos a la siguiente.'}'));
+      // Solo una cuenta lo resuelve: se ofrece iniciar sesión (una vez por canción como mucho).
+      final videoId = track.youtubeVideoId;
+      if (problem == ContentProblem.ageRestricted &&
+          videoId != null &&
+          !YtSessionHolder.signedIn &&
+          !ref.read(settingsProvider).accountPromptsOff &&
+          askedForAccount.add(videoId)) {
+        ref.read(accountOfferProvider.notifier).state = AccountOffer(track: track);
+      }
       if (next == null || next == index) {
         await _audioPlayer.pause();
         state = state.copyWith(position: position, isInitialized: false);

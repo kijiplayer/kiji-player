@@ -16,6 +16,7 @@ import 'po_token.dart';
 import 'webview_ejs_solver.dart';
 import 'ytm_browse_parser.dart';
 import 'yt_clients.dart';
+import '../../account/domain/yt_session.dart';
 
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
 /// a nuestro modelo de dominio [Track].
@@ -566,6 +567,9 @@ class YtMusicClient {
       return fail('En la PC todavía no se pueden reproducir listas HLS');
     }
     visitorData ??= await _getVisitorData();
+    // Cuenta opcional: solo en las formas que la admiten (la de la web de YouTube Music).
+    final session = client.loginSupported ? YtSessionHolder.current : null;
+    if (session?.visitorData != null) visitorData = session!.visitorData;
     // Reproductor incrustado: su visitorData y sus encryptedHostFlags salen de la página embed.
     String? hostFlags;
     if (client.embedded) {
@@ -607,9 +611,13 @@ class YtMusicClient {
           'Referer': 'https://${client.host}/',
           'X-Goog-Visitor-Id': ?visitorData,
           'User-Agent': client.userAgent,
+          ...?session?.authHeaders(),
         }),
         data: {
-          'context': {'client': client.context(visitorData)},
+          'context': {
+            'client': client.context(visitorData),
+            if (session?.dataSyncId != null) 'user': {'onBehalfOfUser': session!.dataSyncId},
+          },
           'videoId': videoId,
           'contentCheckOk': true,
           'racyCheckOk': true,

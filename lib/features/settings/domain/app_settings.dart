@@ -28,6 +28,7 @@ class AppSettings {
     this.saveLogs = true,
     this.offerErrorReports = true,
     this.lyricsSourceOrder = LyricsSource.online,
+    this.accountPromptsOff = false,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -110,6 +111,9 @@ class AppSettings {
   /// En qué orden se buscan las letras en internet (Configuración → Letras → Fuentes).
   final List<LyricsSource> lyricsSourceOrder;
 
+  /// "No volver a preguntar" si iniciar sesión (Configuración → Cuenta).
+  final bool accountPromptsOff;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -133,6 +137,7 @@ class AppSettings {
     bool? saveLogs,
     bool? offerErrorReports,
     List<LyricsSource>? lyricsSourceOrder,
+    bool? accountPromptsOff,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -156,6 +161,7 @@ class AppSettings {
         saveLogs: saveLogs ?? this.saveLogs,
         offerErrorReports: offerErrorReports ?? this.offerErrorReports,
         lyricsSourceOrder: lyricsSourceOrder ?? this.lyricsSourceOrder,
+        accountPromptsOff: accountPromptsOff ?? this.accountPromptsOff,
       );
 
   Map<String, dynamic> toJson() => {
@@ -181,6 +187,7 @@ class AppSettings {
         'saveLogs': saveLogs,
         'offerErrorReports': offerErrorReports,
         'lyricsSourceOrder': [for (final s in lyricsSourceOrder) s.name],
+        'accountPromptsOff': accountPromptsOff,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -217,6 +224,7 @@ class AppSettings {
       saveLogs: read('saveLogs', d.saveLogs),
       offerErrorReports: read('offerErrorReports', d.offerErrorReports),
       lyricsSourceOrder: lyricsOrderFrom(json['lyricsSourceOrder']),
+      accountPromptsOff: read('accountPromptsOff', d.accountPromptsOff),
     );
   }
 

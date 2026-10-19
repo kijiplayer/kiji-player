@@ -5,6 +5,9 @@ import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../domain/download_failure.dart';
+import '../../account/domain/yt_session.dart';
+import '../../account/presentation/account_screens.dart';
+import '../../extractor/domain/extraction_failure.dart';
 
 /// Color del aviso de una descarga con error.
 const downloadWarningColor = Color(0xFFFFB84D);
@@ -165,6 +168,18 @@ List<Widget> _failureActions(
             }
           },
         ),
+      // Restricción de edad: solo una cuenta lo resuelve (opcional, sin insistir).
+      if (failure?.problem == ContentProblem.ageRestricted && !YtSessionHolder.signedIn) ...[
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          icon: const Icon(Icons.login_rounded),
+          label: const Text('Iniciar sesión para bajarla'),
+          onPressed: () async {
+            close();
+            if (await LoginScreen.open(context)) notifier.retry(videoId);
+          },
+        ),
+      ],
       const SizedBox(height: 8),
       OutlinedButton.icon(
         icon: const Icon(Icons.refresh_rounded),
