@@ -23,6 +23,7 @@ final lyricsProvider = FutureProvider.autoDispose.family<Lyrics, LyricsRequest>(
   (ref, request) => ref.watch(lyricsRepositoryProvider).get(
         request,
         disabled: ref.watch(settingsProvider.select((s) => s.disabledLyricsSources)),
+        order: ref.watch(settingsProvider.select((s) => s.lyricsSourceOrder)),
       ),
 );
 

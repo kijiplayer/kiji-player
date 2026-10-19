@@ -39,28 +39,49 @@ class LyricsSourcesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final disabled = ref.watch(settingsProvider.select((s) => s.disabledLyricsSources));
+    final order = ref.watch(settingsProvider.select((s) => s.lyricsSourceOrder));
+    final notifier = ref.read(settingsProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: const Text('Fuentes de letras')),
-      body: ListView(
+      body: ReorderableListView(
+        buildDefaultDragHandles: false,
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
-        children: [
-          const Text(
-            'Kiji busca la letra en este orden: primero la incluida en el archivo (sin internet) y después '
-            'cada fuente, hasta que una la tenga. Solo se busca cuando abres la letra. Cada fuente recibe '
-            'únicamente lo que dice abajo; nada tuyo.',
+        header: const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: Text(
+            'Kiji busca la letra primero en el archivo (sin internet) y después en estas fuentes, en este '
+            'orden, hasta que una la tenga. Arrastra para cambiar el orden. Solo se busca cuando abres la '
+            'letra, y cada fuente recibe únicamente lo que dice abajo; nada tuyo.',
             style: TextStyle(color: KijiColors.muted),
           ),
-          const SizedBox(height: 12),
-          for (final source in LyricsSource.online)
-            SwitchListTile(
-              title: Text(source.label),
+        ),
+        onReorderItem: (from, to) {
+          final next = [...order];
+          next.insert(to, next.removeAt(from));
+          notifier.update((s) => s.copyWith(lyricsSourceOrder: next));
+        },
+        children: [
+          for (final (index, source) in order.indexed)
+            ListTile(
+              key: ValueKey(source),
+              contentPadding: const EdgeInsets.only(left: 4),
+              leading: ReorderableDragStartListener(
+                index: index,
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.drag_indicator_rounded, semanticLabel: 'Arrastrar para cambiar el orden'),
+                ),
+              ),
+              title: Text('${index + 1}. ${source.label}'),
               subtitle: Text('Recibe: ${_sends[source] ?? '—'}'),
-              value: !disabled.contains(source),
-              onChanged: (on) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(
-                    disabledLyricsSources: on
-                        ? ({...s.disabledLyricsSources}..remove(source))
-                        : {...s.disabledLyricsSources, source},
-                  )),
+              trailing: Switch(
+                value: !disabled.contains(source),
+                onChanged: (on) => notifier.update((s) => s.copyWith(
+                      disabledLyricsSources: on
+                          ? ({...s.disabledLyricsSources}..remove(source))
+                          : {...s.disabledLyricsSources, source},
+                    )),
+              ),
             ),
         ],
       ),

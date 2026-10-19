@@ -25,6 +25,7 @@ import '../domain/lyrics.dart';
 import '../lyrics_provider.dart';
 import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_share.dart';
+import 'lyrics_sources_sheet.dart';
 
 /// Desfase que se está ajustando ahora (null = no se está ajustando).
 final _adjustingOffsetProvider = StateProvider.autoDispose<bool>((ref) => false);
@@ -238,10 +239,14 @@ class _Header extends ConsumerWidget {
             icon: const Icon(Icons.more_horiz_rounded, color: Colors.white70),
             onSelected: (action) {
               switch (action) {
-                case 'search':
-                  searchLyricsManually(context, ref, request);
-                case 'import':
-                  importLrc(context, ref, request);
+                case 'source':
+                  showLyricsSourcesSheet(
+                    context,
+                    request,
+                    current: lyrics?.source,
+                    onSearchByHand: () => searchLyricsManually(context, ref, request),
+                    onImport: () => importLrc(context, ref, request),
+                  );
                 case 'offset':
                   ref.read(_adjustingOffsetProvider.notifier).state = true;
                 case 'share':
@@ -264,16 +269,8 @@ class _Header extends ConsumerWidget {
                 if (lyrics?.isSynced ?? false) item('offset', Icons.sync_rounded, 'Sincronizar (adelantar o atrasar)'),
                 if (hasLyrics) item('share', Icons.ios_share_rounded, 'Compartir líneas'),
                 const PopupMenuDivider(),
-                PopupMenuItem<String>(
-                  enabled: false,
-                  height: 32,
-                  child: Text(
-                    lyrics?.source == null ? 'FUENTE' : 'FUENTE: ${lyrics!.source!.label.toUpperCase()}',
-                    style: KijiText.mono(size: 10),
-                  ),
-                ),
-                item('search', Icons.manage_search_rounded, 'Buscar en otra fuente'),
-                item('import', Icons.file_open_outlined, 'Importar un .lrc'),
+                item('source', Icons.library_books_outlined,
+                    lyrics?.source == null ? 'Elegir la fuente' : 'Fuente: ${lyrics!.source!.label}'),
               ];
             },
           ),

@@ -2,6 +2,7 @@
 // Archivo de referencia: lyrics/LyricsHelper.kt (primero la caché, después las fuentes, y si
 // una falla se prueba la siguiente).
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -27,6 +28,17 @@ typedef LyricsRequest = ({
   /// Ruta del archivo, si es una canción local (puede traer la letra adentro).
   String? localPath,
 });
+
+/// Qué respondió una fuente al comparar (⋯ → Fuente).
+enum LyricsProbeState { off, none, failed, plain, synced }
+
+class LyricsProbe {
+  const LyricsProbe(this.source, this.state, [this.lyrics]);
+
+  final LyricsSource source;
+  final LyricsProbeState state;
+  final Lyrics? lyrics;
+}
 
 /// Letras guardadas en `<appSupportDir>/lyrics/`, para pedirlas una sola vez.
 class LyricsRepository {
@@ -59,7 +71,11 @@ class LyricsRepository {
   /// si no, la primera fuente que la tenga (Tarea Z4), salteando las de
   /// [disabled]. Si ninguna respondió (sin conexión), tira
   /// [LyricsUnavailableException] y no se guarda nada.
-  Future<Lyrics> get(LyricsRequest request, {Set<LyricsSource> disabled = const {}}) async {
+  Future<Lyrics> get(
+    LyricsRequest request, {
+    Set<LyricsSource> disabled = const {},
+    List<LyricsSource> order = LyricsSource.online,
+  }) async {
     final file = await _fileFor(request.id);
     // 1) Caché.
     final cached = await file.read();
@@ -83,24 +99,38 @@ class LyricsRepository {
       }
     }
 
-    // 3) Las fuentes, en orden.
-    final lyrics = await _fromSources(request, disabled);
+    // 3) Las fuentes, en el orden que eligió el usuario.
+    final lyrics = await _fromSources(request, disabled, order);
     await _save(file, lyrics);
     return lyrics;
   }
 
   /// "Buscar a mano" (Tarea Z4): con otro título o artista, en todas las
   /// fuentes; si encuentra, reemplaza la guardada de la canción [request.id].
-  Future<Lyrics> search(LyricsRequest request, {Set<LyricsSource> disabled = const {}}) async {
-    final lyrics = await _fromSources(request, disabled);
+  Future<Lyrics> search(
+    LyricsRequest request, {
+    Set<LyricsSource> disabled = const {},
+    List<LyricsSource> order = LyricsSource.online,
+  }) async {
+    final lyrics = await _fromSources(request, disabled, order);
     if (!lyrics.isEmpty) await _save(await _fileFor(request.id), lyrics);
     return lyrics;
   }
 
-  Future<Lyrics> _fromSources(LyricsRequest request, Set<LyricsSource> disabled) async {
+  /// Las fuentes en el orden elegido (las que no estén en [order] van al final).
+  List<LyricsFetcher> _ordered(List<LyricsSource> order) {
+    int rank(LyricsFetcher f) {
+      final i = order.indexOf(f.source);
+      return i < 0 ? order.length : i;
+    }
+
+    return [..._fetchers]..sort((a, b) => rank(a).compareTo(rank(b)));
+  }
+
+  Future<Lyrics> _fromSources(LyricsRequest request, Set<LyricsSource> disabled, List<LyricsSource> order) async {
     var answered = 0;
     final failures = <String>[];
-    for (final fetcher in _fetchers) {
+    for (final fetcher in _ordered(order)) {
       if (disabled.contains(fetcher.source)) continue;
       try {
         final lyrics = await fetcher.fetch(request);
@@ -121,6 +151,42 @@ class LyricsRepository {
       throw LyricsUnavailableException(failures.length == 1 ? failures.first : 'sin conexión');
     }
     return Lyrics.none;
+  }
+
+  /// Pregunta a TODAS las fuentes a la vez (⋯ → Fuente) y avisa cada respuesta apenas llega:
+  /// cuáles tienen esta letra y si está sincronizada. Las apagadas se informan sin preguntarles.
+  Stream<LyricsProbe> probe(LyricsRequest request, {Set<LyricsSource> disabled = const {}}) {
+    final controller = StreamController<LyricsProbe>();
+    var pending = 0;
+    for (final fetcher in _fetchers) {
+      if (disabled.contains(fetcher.source)) {
+        controller.add(LyricsProbe(fetcher.source, LyricsProbeState.off));
+        continue;
+      }
+      pending++;
+      () async {
+        LyricsProbe result;
+        try {
+          final lyrics = await fetcher.fetch(request);
+          result = lyrics == null || lyrics.isEmpty
+              ? LyricsProbe(fetcher.source, LyricsProbeState.none)
+              : LyricsProbe(fetcher.source, lyrics.isSynced ? LyricsProbeState.synced : LyricsProbeState.plain, lyrics);
+        } catch (error) {
+          debugPrint('=== LETRAS: ${fetcher.source.label} no respondió al comparar (${error.runtimeType}) ===');
+          result = LyricsProbe(fetcher.source, LyricsProbeState.failed);
+        }
+        if (!controller.isClosed) controller.add(result);
+        if (--pending == 0) await controller.close();
+      }();
+    }
+    if (pending == 0) controller.close();
+    return controller.stream;
+  }
+
+  /// El usuario eligió [lyrics] para la canción [id] (⋯ → Fuente): se guarda y se usa siempre.
+  Future<void> choose(String id, Lyrics lyrics) async {
+    debugPrint('=== LETRAS: elegida a mano ${lyrics.source?.label} ===');
+    await _save(await _fileFor(id), lyrics);
   }
 
   /// Importar un `.lrc` (o texto) para la canción [id].

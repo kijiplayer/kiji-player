@@ -27,6 +27,7 @@ class AppSettings {
     this.ytDlpAccepted = false,
     this.saveLogs = true,
     this.offerErrorReports = true,
+    this.lyricsSourceOrder = LyricsSource.online,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -106,6 +107,9 @@ class AppSettings {
   /// Cuando algo falla, preguntar si se quiere mandar un informe (Tarea T3).
   final bool offerErrorReports;
 
+  /// En qué orden se buscan las letras en internet (Configuración → Letras → Fuentes).
+  final List<LyricsSource> lyricsSourceOrder;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -128,6 +132,7 @@ class AppSettings {
     bool? ytDlpAccepted,
     bool? saveLogs,
     bool? offerErrorReports,
+    List<LyricsSource>? lyricsSourceOrder,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -150,6 +155,7 @@ class AppSettings {
         ytDlpAccepted: ytDlpAccepted ?? this.ytDlpAccepted,
         saveLogs: saveLogs ?? this.saveLogs,
         offerErrorReports: offerErrorReports ?? this.offerErrorReports,
+        lyricsSourceOrder: lyricsSourceOrder ?? this.lyricsSourceOrder,
       );
 
   Map<String, dynamic> toJson() => {
@@ -174,6 +180,7 @@ class AppSettings {
         'ytDlpAccepted': ytDlpAccepted,
         'saveLogs': saveLogs,
         'offerErrorReports': offerErrorReports,
+        'lyricsSourceOrder': [for (final s in lyricsSourceOrder) s.name],
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -209,10 +216,23 @@ class AppSettings {
       ytDlpAccepted: read('ytDlpAccepted', d.ytDlpAccepted),
       saveLogs: read('saveLogs', d.saveLogs),
       offerErrorReports: read('offerErrorReports', d.offerErrorReports),
+      lyricsSourceOrder: lyricsOrderFrom(json['lyricsSourceOrder']),
     );
   }
 
   /// true si [durationMs] es un audio corto que hay que ocultar.
   bool hides(int durationMs) =>
       hideShortAudios && durationMs > 0 && durationMs < shortAudioMs;
+}
+
+/// El orden guardado de las fuentes de letras: las conocidas en ese orden y, al final, las que
+/// falten (fuentes nuevas de una versión más nueva de Kiji).
+List<LyricsSource> lyricsOrderFrom(Object? json) {
+  final names = LyricsSource.values.asNameMap();
+  final order = <LyricsSource>[
+    if (json is List)
+      for (final name in json)
+        if (names['$name'] case final source? when LyricsSource.online.contains(source)) source,
+  ];
+  return [...order.toSet(), for (final s in LyricsSource.online) if (!order.contains(s)) s];
 }
