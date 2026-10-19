@@ -13,6 +13,8 @@ import '../../../utils/byte_formatter.dart';
 import '../../../widgets/kiji_logo.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../backup/data/backup_notifier.dart';
+import '../../dev_tools/dev_build.dart';
+import '../../dev_tools/dev_tools_screen.dart';
 import '../../backup/presentation/backup_screen.dart';
 import '../../downloads/domain/download_settings.dart';
 import '../../downloads/presentation/downloads_screen.dart';
@@ -40,7 +42,8 @@ enum SettingsSection {
   privacy('Privacidad', Icons.shield_outlined),
   backup('Copia de seguridad', Icons.backup_outlined),
   updates('Actualizaciones', Icons.system_update_alt_rounded),
-  about('Acerca de', Icons.info_outline_rounded);
+  about('Acerca de', Icons.info_outline_rounded),
+  developer('Kiji Dev', Icons.developer_mode_rounded);
 
   const SettingsSection(this.label, this.icon);
   final String label;
@@ -587,6 +590,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => ExtractorHealthScreen.open(context),
         ),
       ),
+      // Herramientas de desarrollo (Tarea T2): solo en Kiji Dev.
+      if (isDevBuild)
+        SettingOption(
+          section: SettingsSection.developer,
+          title: 'Herramientas de desarrollo',
+          subtitle: 'Registro en vivo, extractor, caché y descargas.',
+          keywords: const ['dev', 'registro', 'log', 'diagnostico', 'cache'],
+          builder: (context, ref) => ListTile(
+            leading: const Icon(Icons.terminal_rounded),
+            title: const Text('Herramientas de desarrollo'),
+            subtitle: const Text('Registro en vivo, extractor, caché y descargas.'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => DevToolsScreen.open(context),
+          ),
+        ),
       // Actualizaciones (Tarea W1)
       SettingOption(
         section: SettingsSection.updates,

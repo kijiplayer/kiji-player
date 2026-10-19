@@ -7,10 +7,13 @@ import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'app.dart';
 import 'features/system_media/data/system_media_controls_factory.dart';
 import 'providers/system_media_provider.dart';
+import 'utils/app_log.dart';
 import 'utils/startup_log.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Registro en memoria para ver en vivo en Kiji Dev (Tarea T2).
+  AppLog.install();
   // Registro del arranque (bug de Windows): cada fase con su tiempo.
   StartupLog.start();
 

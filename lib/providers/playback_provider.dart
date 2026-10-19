@@ -1058,6 +1058,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   @visibleForTesting
   bool get debugTailPlaying => _tail?.playing ?? false;
 
+  /// El camino del audio que suena ahora ("A/WEB_REMIX"), para las herramientas de Kiji Dev.
+  String? get debugCurrentPath => _currentClient;
+
+  /// El audio que suena ahora (con su calidad), para las herramientas de Kiji Dev.
+  String? get debugCurrentStream => _currentStream?.toString();
+
   /// El audio de la canción actual (para que la cola lo pida igual).
   ResolvedStream? _currentStream;
 

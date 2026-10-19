@@ -4,14 +4,14 @@ import '../../yt_music/data/yt_clients.dart';
 import '../domain/extraction_failure.dart';
 import '../domain/resolved_stream.dart';
 import 'engines.dart';
+import 'extractor_trace.dart';
 import 'path_health.dart';
 
 /// Resultado de buscar el audio de una canción con todos los motores.
 class ResolveOutcome {
-  const ResolveOutcome.found(ResolvedStream this.stream)
+  const ResolveOutcome.found(ResolvedStream this.stream, [this.failures = const []])
       : problem = null,
-        offline = false,
-        failures = const [];
+        offline = false;
   const ResolveOutcome.content(ContentProblem this.problem, this.failures)
       : stream = null,
         offline = false;
@@ -31,13 +31,33 @@ class ResolveOutcome {
 /// aceptó). Anota en la Salud solo las fallas de la forma, y decide si el problema es de la
 /// canción cuando las formas coinciden.
 class StreamResolver {
-  StreamResolver({required this.engines, PathHealth? health}) : health = health ?? PathHealth.instance;
+  StreamResolver({required this.engines, PathHealth? health, ExtractorTrace? trace})
+      : health = health ?? PathHealth.instance,
+        trace = trace ?? ExtractorTrace.instance;
 
   final List<ExtractionEngine> engines;
   final PathHealth health;
 
+  /// Las últimas búsquedas, para las herramientas de Kiji Dev (Tarea T2).
+  final ExtractorTrace trace;
+
   /// [skipPaths]: caminos que ya fallaron con esta canción ("A/AUTO", "B/WEB_REMIX").
   Future<ResolveOutcome> resolve(String videoId, {bool lowQuality = false, Set<String> skipPaths = const {}}) async {
+    final watch = Stopwatch()..start();
+    final outcome = await _resolve(videoId, lowQuality: lowQuality, skipPaths: skipPaths);
+    trace.add(TraceEntry(
+      at: DateTime.now(),
+      videoId: videoId,
+      elapsed: watch.elapsed,
+      ok: outcome.stream != null,
+      result: outcome.stream?.toString() ??
+          (outcome.problem != null ? 'contenido: ${outcome.problem!.name}' : outcome.offline ? 'sin conexión' : 'falló'),
+      failures: [for (final (path, failure) in outcome.failures) (path, failure.toString())],
+    ));
+    return outcome;
+  }
+
+  Future<ResolveOutcome> _resolve(String videoId, {required bool lowQuality, required Set<String> skipPaths}) async {
     final failures = <(String, ExtractionFailure)>[];
     for (final engine in engines) {
       if (!engine.isSupported) continue;
@@ -55,7 +75,7 @@ class StreamResolver {
       if (stream != null) {
         health.recordSuccess(stream.path);
         debugPrint('=== EXTRACTOR: $stream ===');
-        return ResolveOutcome.found(stream);
+        return ResolveOutcome.found(stream, failures);
       }
       // Si un motor ya confirmó un problema de la canción, no tiene sentido seguir.
       final verdict = contentVerdict([for (final f in failures) f.$2]);
