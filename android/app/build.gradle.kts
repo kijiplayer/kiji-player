@@ -36,7 +36,8 @@ android {
         create("dev") {
             dimension = "canal"
             applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
+            // Kiji Dev: la misma versión con "-dev.<compilación>" (0.5.0-beta.1-dev.2).
+            versionNameSuffix = "-dev.${flutter.versionCode}"
             manifestPlaceholders["appName"] = "Kiji Dev"
         }
     }

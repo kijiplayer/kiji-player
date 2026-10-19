@@ -19,6 +19,7 @@ import '../../yt_music/data/ytm_client.dart';
 import '../domain/lyrics.dart';
 import 'lrclib_client.dart';
 import 'lyrics_repository.dart' show LyricsRequest;
+import '../../../version.dart';
 
 /// Una fuente de letras.
 abstract class LyricsFetcher {
@@ -31,7 +32,7 @@ abstract class LyricsFetcher {
 
 String? videoIdOf(LyricsRequest request) => request.id.startsWith('yt-') ? request.id.substring(3) : null;
 
-const kijiUserAgent = 'Kiji Player 1.0.0 (software libre, GPL-3.0)';
+const kijiUserAgent = 'Kiji Player $kijiVersion (software libre, GPL-3.0)';
 
 Dio lyricsDio() => Dio(BaseOptions(
       connectTimeout: const Duration(seconds: 8),

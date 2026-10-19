@@ -8,10 +8,10 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../utils/json_file.dart';
 import '../settings/data/settings_store.dart';
+import '../../version.dart';
 
-/// Versión de esta copia de Kiji. Tiene que coincidir con `version:` de
-/// `pubspec.yaml` (lo controla un test).
-const kijiVersion = '1.0.0';
+export '../../version.dart';
+
 
 /// Repositorio oficial. Solo se abre su página; Kiji nunca baja ni instala nada.
 const kijiRepo = 'kijiplayer/kiji-player';
@@ -47,11 +47,29 @@ class Release {
 
 /// Compara versiones "1.2.10" > "1.2.9". Lo que no sea número cuenta como 0.
 int compareVersions(String a, String b) {
-  List<int> parts(String v) => [for (final x in v.split('+').first.split('.')) int.tryParse(x.replaceAll(RegExp(r'\D'), '')) ?? 0];
-  final pa = parts(a), pb = parts(b);
-  for (var i = 0; i < pa.length || i < pb.length; i++) {
-    final x = i < pa.length ? pa[i] : 0, y = i < pb.length ? pb[i] : 0;
+  // "0.5.0-beta.2+7": núcleo 0.5.0, prelanzamiento beta.2 (el +7 no cuenta). Una versión sin
+  // prelanzamiento es más nueva que cualquier beta del mismo núcleo.
+  (List<int>, List<String>?) parse(String v) {
+    final clean = v.trim().replaceFirst(RegExp(r'^v'), '').split('+').first;
+    final dash = clean.indexOf('-');
+    final core = dash < 0 ? clean : clean.substring(0, dash);
+    final pre = dash < 0 ? null : clean.substring(dash + 1).split('.');
+    return ([for (final x in core.split('.')) int.tryParse(x) ?? 0], pre);
+  }
+
+  final (ca, pa) = parse(a);
+  final (cb, pb) = parse(b);
+  for (var i = 0; i < ca.length || i < cb.length; i++) {
+    final x = i < ca.length ? ca[i] : 0, y = i < cb.length ? cb[i] : 0;
     if (x != y) return x.compareTo(y);
+  }
+  if (pa == null || pb == null) return pa == pb ? 0 : (pa == null ? 1 : -1);
+  for (var i = 0; i < pa.length || i < pb.length; i++) {
+    if (i >= pa.length) return -1;
+    if (i >= pb.length) return 1;
+    final x = int.tryParse(pa[i]), y = int.tryParse(pb[i]);
+    final c = x != null && y != null ? x.compareTo(y) : pa[i].compareTo(pb[i]);
+    if (c != 0) return c;
   }
   return 0;
 }

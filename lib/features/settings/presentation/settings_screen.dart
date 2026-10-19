@@ -23,7 +23,6 @@ import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../reports/presentation/reports_screen.dart';
 import '../../recommendations/data/search_history.dart';
-import '../../updates/update_checker.dart';
 import '../../updates/updates_screen.dart';
 import '../../translation/domain/languages.dart';
 import '../../translation/presentation/lyrics_settings_screens.dart';
@@ -35,6 +34,7 @@ import 'credits_screen.dart';
 import '../../../l10n/l10n.dart';
 import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart';
+import '../../../version_label.dart';
 
 /// Secciones de Configuración, en el orden del plan (Tarea G).
 enum SettingsSection {
@@ -736,10 +736,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: 'Kiji Player',
         subtitle: 'Software libre (GPL-3.0).',
         keywords: const ['version', 'licencia', 'gpl'],
-        builder: (context, ref) => const ListTile(
-          leading: KijiLogo(size: 40),
-          title: Text('Kiji Player $kijiVersion'),
-          subtitle: Text('Software libre (GPL-3.0). Sin pagos, sin anuncios y sin telemetría.'),
+        builder: (context, ref) => ListTile(
+          leading: const KijiLogo(size: 40),
+          title: Text('${isDevBuild ? 'Kiji Dev' : 'Kiji Player'} $kijiVersionLabel'),
+          subtitle: Text('Canal $kijiChannel · compilada el $kijiBuildDateLabel\n'
+              'Software libre (GPL-3.0). Sin pagos, sin anuncios y sin telemetría.'),
+          isThreeLine: true,
         ),
       ),
       SettingOption(
