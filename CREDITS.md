@@ -35,6 +35,9 @@ personas que los construyen y mantienen.
 | `lib/features/backup/` (`backup_manifest.dart`, `backup_screen.dart`) | Echo Music (idea, no código) | `ui/screens/settings/BackupAndRestore.kt`, `viewmodels/BackupRestoreViewModel.kt` (copia en un archivo y restaurar) |
 | `lib/features/equalizer/` (`equalizer_model.dart`, `equalizer_screen.dart`) | Echo Music (idea, no código) | `ui/screens/equalizer/EqScreen.kt`, `EQViewModel.kt`, `dsp-core/.../models/SavedEQProfile.kt` (perfiles guardados y uno activo) |
 | `lib/features/playback_extras/` (`playback_rules.dart`) | Echo Music (idea, no código) | `playback/crossfade/EqualPowerCurve.kt` (curva de potencia constante), `playback/MusicService.kt` (PauseOnMute, ResumeOnBluetoothConnect) |
+| `android/.../extractor/InnerTubeXEngine.kt` | Echo Music 1.4.3 (GPL-3.0) | `utils/InnerTubeXResolver.kt` (motor A: exclusión por canción, precalentamiento, config remota) |
+| `android/.../extractor/PoTokenWebView.kt`, `PoTokenGenerator.kt`, `JavaScriptUtil.kt`, `PoTokenException.kt`, `assets/po_token.html` | Echo Music 1.4.3, que a su vez viene de NewPipe (GPL-3.0) | `utils/potoken/*` (PO token BotGuard en una WebView). Kiji corrigió la vinculación: el token de la URL va ligado al video |
+| `lib/features/stream_cache/data/chunked_source.dart` | Echo Music (idea, código propio) | `playback/ChunkedDataSource.kt` (rangos acotados y URL renovada) |
 
 ## Servicios que usa Kiji (solo cuando el usuario lo pide)
 
@@ -49,6 +52,8 @@ personas que los construyen y mantienen.
 | YouTube (subtítulos) | Letra desde los subtítulos del video | Id del video. |
 | [YouTube Music](https://music.youtube.com) | Letra sin sincronizar de la pestaña "Letra" | Id del video. |
 | [Mozilla Remote Settings](https://firefox.settings.services.mozilla.com) | Bajar una sola vez el motor y el modelo de un idioma para traducir en el teléfono | Nada de la canción: solo qué archivos de idioma se bajan. |
+| [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) (GitHub) | Tabla `player_configs.json` para descifrar el audio (motores A y B), como mucho cada 6 h | Nada tuyo: GitHub ve una consulta a un archivo público. |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp) (releases de GitHub, solo PC y a pedido) | Motor C de extracción, si el usuario lo acepta | Se baja el programa oficial y se verifica su huella; después le pide a YouTube el audio de la canción, como Kiji. |
 | [Google Gemini API](https://ai.google.dev) (opcional, apagado de fábrica) | Traducir letras con IA, con la clave del propio usuario | Solo las líneas de la letra y el idioma de destino, con la clave del usuario (cifrada en el dispositivo). |
 | [song.link / Odesli](https://odesli.co) | Enlace universal al compartir una canción | Nada desde Kiji: solo se arma el enlace con el id del video; lo abre quien lo recibe. |
 
@@ -67,6 +72,11 @@ personas que los construyen y mantienen.
 | `bergamot-translator.js` de [Firefox](https://searchfox.org/mozilla-central/source/toolkit/components/translations/bergamot-translator) | MPL-2.0 | Pegamento JavaScript del motor, sin cambios, en `assets/translation/`. |
 | [Modelos de Firefox Translations](https://github.com/mozilla/firefox-translations-models) (Mozilla) | MPL-2.0 | Un modelo por par de idiomas; se bajan solo cuando el usuario elige traducir y se pueden borrar. |
 | [url_launcher](https://pub.dev/packages/url_launcher) | BSD-3-Clause | Abrir páginas en el navegador (guía de Gemini). |
+| [InnerTubeX](https://github.com/MetrolistGroup/innertubex) v0.10.0 (MetrolistGroup) | GPL-3.0 | Motor A de extracción en Android (Tarea Z8), desde JitPack. |
+| [quickjs-kt](https://github.com/dokar3/quickjs-kt) (dentro de InnerTubeX) | Apache-2.0 | Motor JavaScript para descifrar en Android. |
+| [Ktor](https://ktor.io), [OkHttp](https://square.github.io/okhttp/), [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) | Apache-2.0 | Red y concurrencia del motor A. |
+| [WorkManager](https://developer.android.com/jetpack/androidx/releases/work) (AndroidX) | Apache-2.0 | Prueba diaria del extractor (solo WiFi y batería no baja). |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Unlicense | Motor C (solo PC, opcional): no viene en la app; se baja si el usuario lo pide. |
 | [flutter_svg](https://pub.dev/packages/flutter_svg) | MIT | Mostrar el logo (`assets/branding/kiji_logo.svg`) dentro de la app. |
 | [flutter_launcher_icons](https://pub.dev/packages/flutter_launcher_icons) (solo para desarrollo) | MIT | Generar el ícono adaptable de Android y el `.ico` de Windows desde el logo. |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains) | SIL OFL 1.1 | Tipografía de tiempos y números, incluida en `assets/fonts/jetbrains_mono/` (con su `OFL.txt`). |
