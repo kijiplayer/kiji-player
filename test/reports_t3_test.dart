@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kiji_player/features/reports/data/error_report.dart';
@@ -66,14 +67,23 @@ void main() {
       expect(ErrorReporter.instance.pending.value, isNull);
     });
 
-    test('El mismo error se ofrece una sola vez por sesión', () {
+    test('Como mucho un aviso por sesión, aunque los errores sean distintos', () {
       final reporter = ErrorReporter.instance;
       reporter.capture(StateError('falso'), StackTrace.current, where: 'interfaz');
       expect(reporter.pending.value?.summary, 'Algo falló en la pantalla');
       reporter.dismiss();
-      reporter.capture(StateError('falso'), StackTrace.current, where: 'interfaz');
+      reporter.capture(ArgumentError('otro'), StackTrace.current, where: 'segundo plano');
+      reporter.unplayable('abcdefghijk');
       expect(reporter.pending.value, isNull);
-      expect(reporter.recent.length, 2, reason: 'igual queda en la lista de la sesión');
+      expect(reporter.recent.length, 3, reason: 'igual quedan en la lista de la sesión');
+    });
+
+    test('Errores de dibujo (un texto que no entra) van solo al registro, sin aviso', () {
+      final reporter = ErrorReporter.instance;
+      reporter.captureFlutter(FlutterErrorDetails(exception: FlutterError('A RenderFlex overflowed by 28 pixels on the right.')));
+      reporter.capture(FlutterError('setState() or markNeedsBuild() called during build.'), null, where: 'interfaz');
+      expect(reporter.pending.value, isNull);
+      expect(reporter.recent, isEmpty);
     });
 
     test('El informe trae versión, qué pasó y el registro limpio', () {

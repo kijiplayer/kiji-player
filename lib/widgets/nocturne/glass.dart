@@ -36,7 +36,9 @@ class Glass extends StatelessWidget {
     return ClipRRect(
       borderRadius: borderRadius,
       child: blur
-          ? BackdropFilter(
+          // Agrupado (rendimiento): todos los vidrios de la pantalla comparten una sola pasada
+          // de desenfoque del fondo (BackdropGroup en app.dart).
+          ? BackdropFilter.grouped(
               filter: ImageFilter.blur(sigmaX: KijiSizes.glassBlur, sigmaY: KijiSizes.glassBlur),
               child: body,
             )

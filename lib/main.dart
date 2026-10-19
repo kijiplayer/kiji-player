@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 
 import 'app.dart';
+import 'features/dev_tools/dev_build.dart';
+import 'features/dev_tools/frame_stats.dart';
 import 'features/reports/data/error_reporter.dart';
 import 'features/system_media/data/system_media_controls_factory.dart';
 import 'providers/system_media_provider.dart';
@@ -31,7 +33,7 @@ Future<void> main() async {
   };
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    ErrorReporter.instance.capture(details.exception, details.stack, where: 'interfaz');
+    ErrorReporter.instance.captureFlutter(details);
   };
 
   // Windows y Linux: just_audio no trae motor propio; usa media_kit (libmpv).
@@ -45,6 +47,8 @@ Future<void> main() async {
   final systemMediaControls = await StartupLog.guard('controles del sistema', createSystemMediaControls,
           limit: const Duration(seconds: 5)) ??
       const NoSystemMediaControls();
+  // Kiji Dev: medidor de cuadros en el registro (rendimiento).
+  if (isDevBuild) FrameStats.start();
   StartupLog.mark('runApp');
 
   runApp(

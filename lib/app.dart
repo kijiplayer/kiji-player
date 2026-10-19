@@ -9,6 +9,7 @@ import 'l10n/app_localizations.dart';
 import 'features/reports/data/kiji_logs.dart';
 import 'features/reports/presentation/error_report_dialog.dart';
 import 'features/settings/data/settings_store.dart';
+import 'providers/playback_provider.dart';
 import 'features/updates/update_checker.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
@@ -37,6 +38,10 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     ref.listenManual(settingsProvider.select((s) => s.saveLogs), (_, on) => KijiLogs.setEnabled(on),
         fireImmediately: true);
     ErrorReporter.instance.pending.addListener(_offerReport);
+    // Nunca mientras suena música: si llegó un aviso sonando, se ofrece al pausar.
+    ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
+      if (!playing) _offerReport();
+    });
   }
 
   @override
@@ -55,6 +60,7 @@ class _KijiAppState extends ConsumerState<KijiApp> {
       ErrorReporter.instance.dismiss();
       return;
     }
+    if (ref.read(playbackProvider).isPlaying) return;
     _offering = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final context = kijiNavigatorKey.currentContext;
@@ -89,8 +95,10 @@ class _KijiAppState extends ConsumerState<KijiApp> {
       // El mini-reproductor se ve en todas las pantallas (Tarea Z7).
       navigatorKey: kijiNavigatorKey,
       navigatorObservers: [_routes],
-      builder: (context, child) => PlaybackShortcuts(
-        child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => BackdropGroup(
+        child: PlaybackShortcuts(
+          child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+        ),
       ),
       home: const HomeScreen(),
     );

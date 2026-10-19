@@ -8,6 +8,8 @@ import '../features/customize/data/artwork_cache.dart';
 import '../features/customize/data/track_overrides.dart';
 import '../features/system_media/data/cover_art.dart';
 import '../models/track.dart';
+import '../providers/downloads_provider.dart';
+import 'kiji_logo.dart';
 import '../features/downloads/presentation/download_status.dart';
 
 class AlbumCover extends StatelessWidget {
@@ -17,12 +19,16 @@ class AlbumCover extends StatelessWidget {
     this.size = 48,
     this.borderRadius = 8,
     this.iconSize = 24,
+    this.logo = false,
   });
 
   final Color color;
   final double size;
   final double borderRadius;
   final double iconSize;
+
+  /// El logo de Kiji en lugar de la nota (respaldo de una canción sin portada).
+  final bool logo;
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +53,14 @@ class AlbumCover extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(
-        Icons.music_note_rounded,
-        color: Colors.white70,
-        size: iconSize,
-      ),
+      alignment: Alignment.center,
+      child: logo
+          ? Opacity(opacity: 0.85, child: KijiLogo(size: size * 0.5))
+          : Icon(
+              Icons.music_note_rounded,
+              color: Colors.white70,
+              size: iconSize,
+            ),
     );
   }
 }
@@ -97,6 +106,7 @@ class TrackArtwork extends ConsumerWidget {
       size: size,
       borderRadius: radius,
       iconSize: size * 0.4,
+      logo: true,
     );
     final image = trackImageProvider(ref, track);
     if (image == null) return fallback;
@@ -115,7 +125,9 @@ class TrackArtwork extends ConsumerWidget {
 }
 
 /// La imagen de la carátula de [track], en este orden: la foto elegida por el
-/// usuario, la incluida en el archivo, la guardada en caché y la de internet.
+/// usuario, la incluida en el archivo, la descargada junto al audio (sirve sin
+/// conexión), la guardada en caché, la de internet y, para YouTube sin miniatura
+/// (descargas, importadas, radio), la del video por su id.
 /// null si no tiene (se usa el degradado de su color). También la usa el
 /// reproductor para sacar el color real del halo (Tarea Z6).
 ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
@@ -129,8 +141,18 @@ ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
     final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
     if (embedded.existsSync()) return FileImage(embedded);
   }
+  final videoId = track.youtubeVideoId;
+  if (videoId != null) {
+    final downloaded = ref.watch(downloadsProvider.select((s) {
+      final thumb = s.completed[videoId]?.thumbnailFileName;
+      return thumb == null || s.directoryPath == null ? null : p.join(s.directoryPath!, thumb);
+    }));
+    if (downloaded != null) return FileImage(File(downloaded));
+  }
   final url = track.thumbnailUrl;
-  if (url == null || !url.startsWith('http')) return null;
+  if (url == null || !url.startsWith('http')) {
+    return videoId == null ? null : NetworkImage(youtubeThumbnailUrl(videoId));
+  }
   if (cache != null) {
     final cached = File(p.join(cache.path, artworkCacheName(url)));
     if (cached.existsSync()) return FileImage(cached);

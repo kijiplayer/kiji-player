@@ -18,6 +18,9 @@ Future<Uri?> coverArtFor(Track track) async {
   if (thumbnail != null && thumbnail.startsWith('http')) {
     return Uri.parse(largerThumbnailUrl(thumbnail));
   }
+  // Canciones de YouTube sin miniatura guardada (descargas, importadas, radio): la del video.
+  final videoId = track.youtubeVideoId;
+  if (videoId != null) return Uri.parse(youtubeThumbnailUrl(videoId));
   try {
     return await _colorCover(track.coverColor);
   } catch (error) {
@@ -28,6 +31,9 @@ Future<Uri?> coverArtFor(Track track) async {
 
 /// Las miniaturas de la búsqueda vienen en 60×60; para la pantalla de
 /// bloqueo pedimos una más grande ("=w60-h60" → "=w544-h544").
+/// Miniatura de un video de YouTube por su id (para canciones sin miniatura guardada).
+String youtubeThumbnailUrl(String videoId) => 'https://i.ytimg.com/vi/$videoId/hqdefault.jpg';
+
 String largerThumbnailUrl(String url) =>
     url.replaceFirstMapped(RegExp(r'=w\d+-h\d+'), (_) => '=w544-h544');
 

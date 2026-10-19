@@ -174,7 +174,7 @@ class _QueueTile extends StatelessWidget {
             leading: Stack(
               alignment: Alignment.center,
               children: [
-                AlbumCover(color: track.coverColor, size: 44, iconSize: 20),
+                TrackArtwork(track: track, size: 44, radius: 8, showDownloadState: false),
                 if (isCurrent)
                   Icon(
                     isPlaying ? Icons.graphic_eq_rounded : Icons.pause_rounded,
