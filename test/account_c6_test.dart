@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -91,7 +93,16 @@ void main() {
         EngineId.b,
         () => const EngineResult.ok(
             ResolvedStream(videoId: 'abcdefghijk', url: 'https://g/1', engine: EngineId.b, form: 'WEB_REMIX')));
-    final health = PathHealth(directory: () async => '.');
+    final dir = Directory.systemTemp.createTempSync('kiji_c6');
+    addTearDown(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windows a veces la tiene abierta un instante; es una carpeta temporal.
+      }
+    });
+    final health = PathHealth(directory: () async => dir.path);
 
     final anonymous = await StreamResolver(engines: [a, b], health: health, signedIn: () => false).resolve('abcdefghijk');
     expect(anonymous.problem, ContentProblem.ageRestricted);
