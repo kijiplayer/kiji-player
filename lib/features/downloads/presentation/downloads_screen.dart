@@ -13,6 +13,7 @@ import '../domain/downloaded_track.dart';
 import '../../queue/presentation/track_actions.dart';
 import 'download_button.dart';
 import '../../customize/presentation/track_text.dart';
+import 'download_status.dart';
 
 /// Sección "Descargadas" de la Biblioteca: lo que se puede escuchar sin
 /// conexión, cuánto ocupa, y las opciones de descarga.
@@ -61,6 +62,17 @@ class DownloadsView extends ConsumerWidget {
         padding: EdgeInsets.only(bottom: bottomPadding),
         children: [
           _SettingsCard(downloads: downloads),
+          if (active.any((d) => d.status == ActiveDownloadStatus.failed))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
+                label: Text(
+                  '${active.where((d) => d.status == ActiveDownloadStatus.failed).length} con error: ver cuáles',
+                ),
+                onPressed: () => showFailedDownloadsSheet(context, ref),
+              ),
+            ),
           if (active.isNotEmpty) ...[
             const _SectionTitle('Descargando'),
             for (final download in active)
@@ -77,6 +89,9 @@ class DownloadsView extends ConsumerWidget {
                   maxLines: 2,
                 ),
                 trailing: DownloadButton(track: download.track),
+                onTap: download.status == ActiveDownloadStatus.failed && download.track.youtubeVideoId != null
+                    ? () => showDownloadFailureSheet(context, ref, download.track.youtubeVideoId!)
+                    : null,
               ),
           ],
           _SectionTitle(

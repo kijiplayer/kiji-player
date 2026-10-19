@@ -25,6 +25,7 @@ class DownloadsRepository {
   Directory? _dir;
   JsonFile? _index;
   JsonFile? _settingsFile;
+  JsonFile? _failedFile;
   Map<String, DownloadedTrack>? _entries;
 
   /// Carpeta de descargas (se crea si no existe).
@@ -34,6 +35,7 @@ class DownloadsRepository {
     await dir.create(recursive: true);
     _index = JsonFile(p.join(dir.path, 'index.json'), logTag: 'DESCARGAS');
     _settingsFile = JsonFile(p.join(dir.path, 'settings.json'), logTag: 'DESCARGAS');
+    _failedFile = JsonFile(p.join(dir.path, 'failed.json'), logTag: 'DESCARGAS');
     return _dir = dir;
   }
 
@@ -108,6 +110,27 @@ class DownloadsRepository {
       'version': 1,
       'tracks': [for (final track in entries.values) track.toJson()],
     });
+  }
+
+  /// Descargas que fallaron, por `videoId` (Tarea T4), para verlas al volver a abrir Kiji.
+  Future<Map<String, Map<String, dynamic>>> failed() async {
+    await directory();
+    final json = await _failedFile!.read();
+    if (json is! Map) return {};
+    try {
+      return {
+        for (final e in ((json['tracks'] as Map?) ?? const {}).entries)
+          '${e.key}': Map<String, dynamic>.from(e.value as Map),
+      };
+    } catch (error) {
+      await _failedFile!.deleteCorrupt(error);
+      return {};
+    }
+  }
+
+  Future<void> saveFailed(Map<String, Map<String, dynamic>> failed) async {
+    await directory();
+    await _failedFile!.write({'version': 1, 'tracks': failed});
   }
 
   Future<DownloadSettings> loadSettings() async {

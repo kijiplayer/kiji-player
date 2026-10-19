@@ -6,6 +6,7 @@ import '../../../providers/downloads_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
+import 'download_status.dart';
 
 /// Ícono de descarga con 4 estados: descargar / progreso / lista / error.
 /// Solo aparece para canciones de YouTube.
@@ -50,9 +51,9 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     }
     if (active.status == ActiveDownloadStatus.failed) {
       return IconButton(
-        icon: const Icon(Icons.error_outline_rounded, color: Colors.orangeAccent),
-        tooltip: active.errorMessage ?? 'Reintentar',
-        onPressed: () => ref.read(downloadsProvider.notifier).retry(videoId),
+        icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
+        tooltip: 'No se pudo descargar: ver por qué',
+        onPressed: () => showDownloadFailureSheet(context, ref, videoId),
       );
     }
     return IconButton(
@@ -83,6 +84,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
   }
 
   Future<void> _startFlow() async {
+    final videoId = widget.track.youtubeVideoId;
     setState(() => _checking = true);
     final notifier = ref.read(downloadsProvider.notifier);
     final check = await notifier.check(widget.track);
@@ -90,6 +92,13 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     setState(() => _checking = false);
 
     if (!check.canDownload) {
+      final failure = check.failure;
+      if (failure != null) {
+        // YouTube no dio el audio: queda en la lista con su motivo y sus opciones (Tarea T4).
+        notifier.recordFailure(widget.track, failure);
+        await showDownloadFailureSheet(context, ref, videoId!);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(check.blockedReason ?? 'No se pudo descargar.')),
       );

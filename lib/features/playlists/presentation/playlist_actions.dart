@@ -11,6 +11,7 @@ import '../../downloads/data/playlist_download.dart';
 import '../../import/data/playlist_export.dart';
 import '../domain/playlist.dart';
 import '../playlists_provider.dart';
+import '../../downloads/presentation/download_status.dart';
 
 /// Texto para compartir una playlist: nombre y una línea por canción, con su
 /// enlace de YouTube Music si tiene. No sube nada: lo manda quien comparte.
@@ -214,7 +215,8 @@ class PlaylistDownloadCard extends ConsumerWidget {
     final notifier = ref.read(playlistDownloadsProvider.notifier);
     final finished = status.finished;
     final title = finished
-        ? 'Listo: ${status.done} descargadas${status.failed > 0 ? ', ${status.failed} no se pudieron' : ''}.'
+        ? '${status.done} ${status.done == 1 ? 'descargada' : 'descargadas'}'
+            '${status.failed > 0 ? ', ${status.failed} ${status.failed == 1 ? 'falló' : 'fallaron'}' : ''}.'
         : '${status.paused ? 'En pausa' : 'Descargando'}: ${status.done + status.failed} de ${status.total}'
             '${status.failed > 0 ? ' (${status.failed} con error)' : ''}';
     return Padding(
@@ -265,6 +267,25 @@ class PlaylistDownloadCard extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 6, right: 8),
                 child: Text(status.message!, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
+              ),
+            if (finished && status.failedIds.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, right: 8),
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.list_alt_rounded),
+                      label: const Text('Ver cuáles'),
+                      onPressed: () => showFailedDownloadsSheet(context, ref, only: status.failedIds),
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Reintentar las fallidas'),
+                      onPressed: () => notifier.retryFailed(playlistId),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),

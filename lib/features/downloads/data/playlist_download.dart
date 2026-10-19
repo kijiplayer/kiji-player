@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
+import '../domain/download_failure.dart';
 
 /// Bytes por segundo que se suponen para estimar el tamaño antes de
 /// resolver cada canción (audio de YouTube de unos 128 kbps).
@@ -63,11 +64,15 @@ class PlaylistDownloadState {
     this.paused = false,
     this.message,
     this.receivedBytes = 0,
+    this.failedIds = const [],
   });
 
   final int total;
   final int done;
   final int failed;
+
+  /// Cuáles fallaron (Tarea T4: "Ver cuáles" y "Reintentar las fallidas").
+  final List<String> failedIds;
   final bool paused;
 
   /// Por qué se pausó sola (sin WiFi, sin espacio…), para el usuario.
@@ -85,6 +90,7 @@ class PlaylistDownloadState {
     bool? paused,
     String? Function()? message,
     int? receivedBytes,
+    List<String>? failedIds,
   }) =>
       PlaylistDownloadState(
         total: total,
@@ -93,6 +99,7 @@ class PlaylistDownloadState {
         paused: paused ?? this.paused,
         message: message == null ? this.message : message(),
         receivedBytes: receivedBytes ?? this.receivedBytes,
+        failedIds: failedIds ?? this.failedIds,
       );
 }
 
@@ -159,6 +166,19 @@ class PlaylistDownloadsNotifier extends Notifier<Map<String, PlaylistDownloadSta
     }
   }
 
+  /// "Reintentar las fallidas" (Tarea T4): vuelve a poner en la cola las que fallaron en esta
+  /// playlist; la tarjeta cuenta de nuevo solo esas.
+  void retryFailed(String playlistId) {
+    final current = state[playlistId];
+    if (current == null || current.failedIds.isEmpty) return;
+    final ids = [...current.failedIds];
+    _pending[playlistId] = [];
+    _inFlight[playlistId] = {...ids};
+    state = {...state, playlistId: PlaylistDownloadState(total: ids.length)};
+    debugPrint('=== DESCARGAS: se reintentan ${ids.length} de la playlist ===');
+    _downloads.retryAll(ids);
+  }
+
   /// Saca la tarjeta de una descarga terminada.
   void dismiss(String playlistId) {
     if (state[playlistId]?.finished ?? false) state = Map.of(state)..remove(playlistId);
@@ -171,6 +191,7 @@ class PlaylistDownloadsNotifier extends Notifier<Map<String, PlaylistDownloadSta
       final current = next[entry.key];
       if (current == null) continue;
       var done = current.done, failed = current.failed;
+      final failedIds = [...current.failedIds];
       for (final id in [...entry.value]) {
         if (downloads.completed.containsKey(id)) {
           entry.value.remove(id);
@@ -179,6 +200,7 @@ class PlaylistDownloadsNotifier extends Notifier<Map<String, PlaylistDownloadSta
           // Queda en Descargadas para reintentar a mano; la cola sigue.
           entry.value.remove(id);
           failed++;
+          failedIds.add(id);
         } else if (!downloads.active.containsKey(id)) {
           // La cancelaron desde Descargadas.
           entry.value.remove(id);
@@ -187,7 +209,7 @@ class PlaylistDownloadsNotifier extends Notifier<Map<String, PlaylistDownloadSta
       }
       final received = entry.value.fold(0, (sum, id) => sum + (downloads.active[id]?.received ?? 0));
       if (done != current.done || failed != current.failed || received != current.receivedBytes) {
-        next[entry.key] = current.copyWith(done: done, failed: failed, receivedBytes: received);
+        next[entry.key] = current.copyWith(done: done, failed: failed, receivedBytes: received, failedIds: failedIds);
         changed = true;
         if (done != current.done || failed != current.failed) {
           scheduleMicrotask(() => _feed(entry.key));
@@ -223,7 +245,10 @@ class PlaylistDownloadsNotifier extends Notifier<Map<String, PlaylistDownloadSta
           return;
         }
         if (!check.canDownload) {
-          state = {...state, playlistId: now.copyWith(failed: now.failed + 1)};
+          // YouTube no dio el audio ni para empezar: queda en la lista de fallidas, con su
+          // motivo, para verla y reintentarla (antes solo se sumaba al contador).
+          _downloads.recordFailure(track, check.failure ?? DownloadFailure.unknown);
+          state = {...state, playlistId: now.copyWith(failed: now.failed + 1, failedIds: [...now.failedIds, id])};
           continue;
         }
         flying.add(id);

@@ -8,6 +8,7 @@ import '../features/customize/data/artwork_cache.dart';
 import '../features/customize/data/track_overrides.dart';
 import '../features/system_media/data/cover_art.dart';
 import '../models/track.dart';
+import '../features/downloads/presentation/download_status.dart';
 
 class AlbumCover extends StatelessWidget {
   const AlbumCover({
@@ -65,14 +66,32 @@ class TrackArtwork extends ConsumerWidget {
     required this.track,
     this.size = 48,
     this.radius = 8,
+    this.showDownloadState = true,
   });
 
   final Track track;
   final double size;
   final double radius;
 
+  /// En las listas (carátulas chicas) se ve el estado de descarga (Tarea T4).
+  final bool showDownloadState;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final art = _artwork(ref);
+    final videoId = track.youtubeVideoId;
+    if (!showDownloadState || videoId == null || size > 72) return art;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [art, DownloadStateOverlay(videoId: videoId, size: size)],
+      ),
+    );
+  }
+
+  Widget _artwork(WidgetRef ref) {
     final fallback = AlbumCover(
       color: track.coverColor,
       size: size,

@@ -9,7 +9,13 @@ import '../features/downloads/data/download_service.dart';
 import '../features/downloads/data/downloads_repository.dart';
 import '../features/downloads/data/storage_info_impl.dart';
 import '../features/downloads/domain/download_settings.dart';
+import '../features/downloads/domain/download_failure.dart';
 import '../features/downloads/domain/downloaded_track.dart';
+import '../features/extractor/data/alternatives.dart';
+import '../features/extractor/data/engines.dart';
+import '../features/extractor/data/stream_resolver.dart';
+import '../features/extractor/data/ytdlp_engine.dart';
+import '../features/yt_music/data/ytm_client.dart';
 import '../features/downloads/domain/storage_info.dart';
 import '../models/track.dart';
 
@@ -17,9 +23,14 @@ final downloadsRepositoryProvider = Provider<DownloadsRepository>((ref) => Downl
 
 final storageInfoProvider = Provider<StorageInfo>((ref) => createStorageInfo());
 
-final downloadServiceProvider = Provider<DownloadService>(
-  (ref) => DownloadService(ref.watch(downloadsRepositoryProvider)),
-);
+final downloadServiceProvider = Provider<DownloadService>((ref) {
+  final client = YtMusicClient();
+  return DownloadService(
+    ref.watch(downloadsRepositoryProvider),
+    ytClient: client,
+    resolver: StreamResolver(engines: [InnerTubeXEngine(), KijiEngine(client), ref.read(ytDlpEngineProvider)]),
+  );
+});
 
 enum ActiveDownloadStatus { queued, downloading, failed }
 
@@ -31,7 +42,10 @@ class ActiveDownload {
     this.estimate,
     this.received = 0,
     this.total,
-    this.errorMessage,
+    this.failure,
+    this.sourceId,
+    this.refusedPaths = const {},
+    this.searching = false,
   });
 
   final Track track;
@@ -40,25 +54,58 @@ class ActiveDownload {
   final int received;
   final int? total;
 
+  /// Por qué falló, en palabras simples (Tarea T4).
+  final DownloadFailure? failure;
+
+  /// Otra versión de la canción que se baja en su lugar ("Buscar otra versión"); se guarda con
+  /// el id original para que la playlist la vea descargada.
+  final String? sourceId;
+
+  /// Caminos con los que YouTube cortó esta descarga: al reintentar se saltean.
+  final Set<String> refusedPaths;
+
+  /// Buscando otra versión ahora mismo.
+  final bool searching;
+
   /// Mensaje simple para el usuario, sin detalles técnicos.
-  final String? errorMessage;
+  String? get errorMessage => failure?.message;
 
   double? get progress => total == null || total == 0 ? null : received / total!;
 
   ActiveDownload copyWith({
     ActiveDownloadStatus? status,
-    DownloadEstimate? estimate,
+    DownloadEstimate? Function()? estimate,
     int? received,
     int? total,
-    String? errorMessage,
+    DownloadFailure? Function()? failure,
+    String? Function()? sourceId,
+    Set<String>? refusedPaths,
+    bool? searching,
   }) =>
       ActiveDownload(
         track: track,
         status: status ?? this.status,
-        estimate: estimate ?? this.estimate,
+        estimate: estimate == null ? this.estimate : estimate(),
         received: received ?? this.received,
         total: total ?? this.total,
-        errorMessage: errorMessage,
+        failure: failure == null ? this.failure : failure(),
+        sourceId: sourceId == null ? this.sourceId : sourceId(),
+        refusedPaths: refusedPaths ?? this.refusedPaths,
+        searching: searching ?? this.searching,
+      );
+
+  /// Lo que se guarda de una descarga fallida (para verla al volver a abrir Kiji).
+  Map<String, dynamic> toFailedJson() => {
+        'track': track.toJson(),
+        if (failure != null) 'failure': failure!.toJson(),
+        if (sourceId != null) 'sourceId': sourceId,
+      };
+
+  static ActiveDownload fromFailedJson(Map<String, dynamic> json) => ActiveDownload(
+        track: Track.fromJson(json['track'] as Map<String, dynamic>),
+        status: ActiveDownloadStatus.failed,
+        failure: json['failure'] is Map ? DownloadFailure.fromJson(json['failure'] as Map<String, dynamic>) : null,
+        sourceId: json['sourceId'] as String?,
       );
 }
 
@@ -108,9 +155,13 @@ class DownloadCheck {
     this.freeBytes,
     this.blockedReason,
     this.waitingForWifi = false,
+    this.failure,
   });
 
   final DownloadEstimate? estimate;
+
+  /// YouTube no dio el audio: por qué (la descarga de playlists la deja en la lista de fallidas).
+  final DownloadFailure? failure;
 
   /// Espacio libre en el disco, o null si la plataforma no lo informa.
   final int? freeBytes;
@@ -144,7 +195,13 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       final completed = await _repository.all();
       final settings = await _repository.loadSettings();
       final directory = await _repository.directory();
+      final failed = await _repository.failed();
       state = state.copyWith(
+        active: {
+          for (final e in failed.entries)
+            if (!completed.containsKey(e.key)) e.key: ActiveDownload.fromFailedJson(e.value),
+          ...state.active,
+        },
         completed: Map.of(completed),
         settings: settings,
         loaded: true,
@@ -183,15 +240,18 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       );
     }
 
-    final DownloadEstimate? estimate;
+    final DownloadEstimate estimate;
     try {
-      estimate = await _service.estimate(videoId);
+      final outcome = await _service.estimate(await _sourceFor(videoId));
+      if (outcome.estimate == null) {
+        debugPrint('=== DESCARGAS: $videoId no se puede bajar: ${outcome.failure!.kind.name} ===');
+        return DownloadCheck(blockedReason: outcome.failure!.message, failure: outcome.failure);
+      }
+      estimate = outcome.estimate!;
     } catch (error) {
       debugPrint('=== DESCARGAS: falló la estimación de $videoId: $error ===');
-      return const DownloadCheck(blockedReason: 'No se pudo conectar con YouTube. Probá de nuevo.');
-    }
-    if (estimate == null) {
-      return const DownloadCheck(blockedReason: 'YouTube no ofrece audio para esta canción.');
+      final failure = DownloadFailure.fromError(error);
+      return DownloadCheck(blockedReason: failure.message, failure: failure);
     }
 
     final freeBytes = await ref
@@ -215,6 +275,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   void start(Track track, DownloadEstimate estimate) {
     final videoId = track.youtubeVideoId;
     if (videoId == null || state.completed.containsKey(videoId)) return;
+    final previous = state.active[videoId];
     state = state.copyWith(active: {
       ...state.active,
       videoId: ActiveDownload(
@@ -222,9 +283,42 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
         status: ActiveDownloadStatus.queued,
         estimate: estimate,
         total: estimate.sizeBytes,
+        sourceId: previous?.sourceId,
       ),
     });
     _pump();
+  }
+
+  /// Deja [track] en la lista de fallidas con su motivo (la descarga de playlists, cuando
+  /// YouTube no dio el audio ni para empezar). Así se ve cuáles fueron y se pueden reintentar.
+  void recordFailure(Track track, DownloadFailure failure) {
+    final videoId = track.youtubeVideoId;
+    if (videoId == null || state.completed.containsKey(videoId)) return;
+    final previous = state.active[videoId];
+    state = state.copyWith(active: {
+      ...state.active,
+      videoId: ActiveDownload(
+        track: track,
+        status: ActiveDownloadStatus.failed,
+        failure: failure,
+        sourceId: previous?.sourceId,
+      ),
+    });
+    _saveFailed();
+  }
+
+  /// La versión que se baja en lugar de [videoId]: la elegida con "Buscar otra versión" o la
+  /// que encontró la reproducción (Tarea Z8); si no, el mismo video.
+  Future<String> _sourceFor(String videoId) async {
+    final chosen = state.active[videoId]?.sourceId;
+    if (chosen != null) return chosen;
+    try {
+      final known = await AlternativeFinder.of(_service.ytClient).known(videoId);
+      return known.swap ?? videoId;
+    } catch (error) {
+      debugPrint('=== DESCARGAS: no se pudo leer las alternativas: ${error.runtimeType} ===');
+      return videoId;
+    }
   }
 
   /// Arranca descargas en cola mientras haya lugar.
@@ -253,18 +347,33 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
 
     var download = state.active[videoId]!;
     try {
-      var estimate = download.estimate ?? await _service.estimate(videoId);
-      if (estimate == null) throw const ExpiredUrlException();
-
-      (String, int) result;
-      try {
-        result = await _download(videoId, estimate, token);
-      } on ExpiredUrlException {
-        // La URL vence en unas horas: se pide otra y se sigue desde el .part.
-        debugPrint('=== DESCARGAS: URL vencida para $videoId, se resuelve de nuevo ===');
-        estimate = await _service.estimate(videoId);
-        if (estimate == null) rethrow;
-        result = await _download(videoId, estimate, token);
+      final source = await _sourceFor(videoId);
+      final refused = {...download.refusedPaths};
+      var estimate = download.estimate;
+      (String, int)? result;
+      // Hasta 3 caminos: si YouTube corta la descarga (403/410), esa forma se anota y se
+      // prueba otra; el .part sigue si el archivo es el mismo.
+      for (var attempt = 0; attempt < 3 && result == null; attempt++) {
+        if (estimate == null) {
+          final outcome = await _service.estimate(source, skipPaths: refused);
+          if (outcome.estimate == null) {
+            _fail(videoId, outcome.failure!, refusedPaths: refused);
+            return;
+          }
+          estimate = outcome.estimate!;
+        }
+        try {
+          result = await _download(videoId, estimate, token);
+        } on ExpiredUrlException {
+          debugPrint('=== DESCARGAS: YouTube cortó $videoId por ${estimate.path}; se prueba otro camino ===');
+          await _service.refused(estimate);
+          if (estimate.path != null) refused.add(estimate.path!);
+          estimate = null;
+        }
+      }
+      if (result == null) {
+        _fail(videoId, DownloadFailure.refusedMidway, refusedPaths: refused);
+        return;
       }
 
       download = state.active[videoId] ?? download;
@@ -288,13 +397,14 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
         completed: {...state.completed, videoId: entry},
         active: Map.of(state.active)..remove(videoId),
       );
+      _saveFailed();
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) return; // cancel() ya limpió el estado
-      debugPrint('=== DESCARGAS: falló $videoId: $error ===');
-      _fail(videoId, 'Se cortó la conexión. Tocá para reintentar: sigue desde donde quedó.');
+      debugPrint('=== DESCARGAS: falló $videoId: ${error.type.name} ===');
+      _fail(videoId, DownloadFailure.network);
     } catch (error) {
-      debugPrint('=== DESCARGAS: falló $videoId: $error ===');
-      _fail(videoId, 'No se pudo descargar. Tocá para reintentar.');
+      debugPrint('=== DESCARGAS: falló $videoId: ${error.runtimeType} ===');
+      _fail(videoId, DownloadFailure.fromError(error));
     } finally {
       _cancelTokens.remove(videoId);
       _pump();
@@ -313,10 +423,11 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     );
   }
 
-  void _fail(String videoId, String message) {
+  void _fail(String videoId, DownloadFailure failure, {Set<String>? refusedPaths}) {
     // La estimación se descarta: al reintentar se pide una URL nueva.
     final current = state.active[videoId];
     if (current == null) return;
+    debugPrint('=== DESCARGAS: $videoId quedó con error: ${failure.kind.name} ===');
     state = state.copyWith(active: {
       ...state.active,
       videoId: ActiveDownload(
@@ -324,15 +435,81 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
         status: ActiveDownloadStatus.failed,
         received: current.received,
         total: current.total,
-        errorMessage: message,
+        failure: failure,
+        sourceId: current.sourceId,
+        refusedPaths: refusedPaths ?? current.refusedPaths,
       ),
     });
+    _saveFailed();
   }
 
-  /// Reintenta una descarga fallida, sin perder lo que ya se bajó.
+  /// Guarda las fallidas (para verlas y reintentarlas al volver a abrir Kiji).
+  void _saveFailed() {
+    final failed = {
+      for (final e in state.active.entries)
+        if (e.value.status == ActiveDownloadStatus.failed) e.key: e.value.toFailedJson(),
+    };
+    unawaited(_repository.saveFailed(failed).catchError((Object error) {
+      debugPrint('=== DESCARGAS: no se pudo guardar la lista de fallidas: ${error.runtimeType} ===');
+    }));
+  }
+
+  /// Reintenta una descarga fallida, sin perder lo que ya se bajó. Pide el audio otra vez
+  /// a todos los motores (salteando los caminos que cortaron esta descarga).
   void retry(String videoId) {
-    _updateActive(videoId, (d) => d.copyWith(status: ActiveDownloadStatus.queued));
+    _updateActive(videoId, (d) => d.copyWith(status: ActiveDownloadStatus.queued, estimate: () => null));
+    _saveFailed();
     _pump();
+  }
+
+  /// "Reintentar las fallidas" (Tarea T4). Devuelve cuántas se reintentaron.
+  int retryAll([Iterable<String>? videoIds]) {
+    final ids = [
+      for (final e in state.active.entries)
+        if (e.value.status == ActiveDownloadStatus.failed && (videoIds == null || videoIds.contains(e.key))) e.key,
+    ];
+    for (final id in ids) {
+      _updateActive(id, (d) => d.copyWith(status: ActiveDownloadStatus.queued, estimate: () => null));
+    }
+    _saveFailed();
+    _pump();
+    return ids.length;
+  }
+
+  /// "Buscar otra versión" (Tarea T4): busca la misma canción en YouTube Music (la versión
+  /// "Canción", con la duración más parecida) y la baja en lugar de esta. Devuelve si encontró.
+  Future<bool> searchAlternative(String videoId) async {
+    final download = state.active[videoId];
+    if (download == null) return false;
+    _updateActive(videoId, (d) => d.copyWith(searching: true));
+    String? alternative;
+    try {
+      alternative = await AlternativeFinder.of(_service.ytClient).find(download.track);
+    } catch (error) {
+      debugPrint('=== DESCARGAS: falló la búsqueda de otra versión: ${error.runtimeType} ===');
+    }
+    _updateActive(videoId, (d) => d.copyWith(searching: false));
+    if (alternative == null || alternative == videoId || alternative == download.sourceId) {
+      _fail(videoId, DownloadFailure.noAlternative);
+      return false;
+    }
+    debugPrint('=== DESCARGAS: $videoId se baja con otra versión ($alternative) ===');
+    AlternativeFinder.of(_service.ytClient).remember(videoId, alternative);
+    await _deletePartials(videoId);
+    _updateActive(
+      videoId,
+      (d) => d.copyWith(
+        status: ActiveDownloadStatus.queued,
+        sourceId: () => alternative,
+        estimate: () => null,
+        failure: () => null,
+        refusedPaths: const {},
+        received: 0,
+      ),
+    );
+    _saveFailed();
+    _pump();
+    return true;
   }
 
   /// Cancela y borra lo que se había bajado (no queda espacio ocupado a escondidas).
@@ -341,6 +518,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     final download = state.active[videoId];
     state = state.copyWith(active: Map.of(state.active)..remove(videoId));
     if (download != null) await _deletePartials(videoId);
+    _saveFailed();
     _pump();
   }
 

@@ -191,6 +191,24 @@ void main() {
       expect(await File(await repository.pathFor('vid.m4a')).readAsBytes(), body);
     });
 
+    test('Un .part de otro archivo (otra forma, otro tamaño) no se mezcla: empieza de cero', () async {
+      final server = await _serve(body);
+      addTearDown(server.close);
+      final path = await repository.pathFor('vid.m4a');
+      await File('$path.part').writeAsBytes(List.filled(1000, 7));
+      await File('$path.part.size').writeAsString('${body.length + 999}');
+
+      await DownloadService(repository, dio: Dio()).download(
+        'vid',
+        DownloadEstimate(url: 'http://127.0.0.1:${server.port}/audio', extension: 'm4a', sizeBytes: body.length),
+        cancelToken: CancelToken(),
+        onProgress: (_, _) {},
+      );
+
+      expect(await File(path).readAsBytes(), body);
+      expect(File('$path.part.size').existsSync(), isFalse);
+    });
+
     test('Una URL vencida (403) se informa para pedir otra', () async {
       final server = await _serve(body, forbidden: () => true);
       addTearDown(server.close);
