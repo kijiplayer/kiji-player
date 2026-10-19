@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/kiji_tokens.dart';
 import 'update_checker.dart';
+import '../../version_label.dart';
 
 /// "Hace 3 horas", "hace 2 días" (para la última consulta).
 String agoText(DateTime when, DateTime now) {
@@ -72,7 +73,7 @@ class UpdateStatusTile extends ConsumerWidget {
         latest == null ? Icons.verified_outlined : Icons.new_releases_outlined,
         color: latest == null ? KijiColors.muted : KijiColors.cyan,
       ),
-      title: Text(latest == null ? 'Kiji $kijiVersion' : 'Hay una versión nueva: ${latest.version}'),
+      title: Text(latest == null ? 'Kiji $kijiVersionLabel' : 'Hay una versión nueva: ${latest.version}'),
       subtitle: Text([
         if (update.message != null) update.message!,
         last == null ? 'Todavía no se consultó.' : 'Última consulta: ${agoText(last, DateTime.now())}.',
