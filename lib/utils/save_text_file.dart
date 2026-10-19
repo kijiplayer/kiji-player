@@ -6,11 +6,12 @@ import 'package:flutter/material.dart';
 
 /// Pregunta dónde guardar un archivo de texto (UTF-8) y avisa cómo salió.
 /// Lo usan Exportar playlists (Importar y el ⋯ de la playlist).
-Future<void> saveTextFile(BuildContext context, String fileName, String content) async {
+Future<void> saveTextFile(BuildContext context, String fileName, String content,
+    {String dialogTitle = 'Guardar playlist'}) async {
   final messenger = ScaffoldMessenger.of(context);
   try {
     final uri = await FilePicker.saveFile(
-      dialogTitle: 'Guardar playlist',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       bytes: Uint8List.fromList(utf8.encode(content)),
     );

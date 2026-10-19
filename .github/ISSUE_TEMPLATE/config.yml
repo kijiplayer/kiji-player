@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Preguntas y charla
+    url: https://github.com/kijiplayer/kiji-player/discussions
+    about: Dudas de uso, ideas a medio pensar o mostrar cómo usas Kiji.

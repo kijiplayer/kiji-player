@@ -46,8 +46,18 @@ abstract final class AppLog {
     };
   }
 
+  static void Function(LogLine line)? _sink;
+
+  /// Copia cada línea también a [sink] (el registro guardado de la Tarea T3), empezando por
+  /// las que ya están en memoria. Con null deja de copiar.
+  static void attachSink(void Function(LogLine line)? sink) {
+    _sink = sink;
+    if (sink != null) _lines.forEach(sink);
+  }
+
   static void add(String text, {DateTime? at}) {
     final line = LogLine(at ?? DateTime.now(), tidy(text));
+    _sink?.call(line);
     _lines.addLast(line);
     while (_lines.length > capacity) {
       _lines.removeFirst();

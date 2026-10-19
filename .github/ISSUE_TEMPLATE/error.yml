@@ -1,0 +1,36 @@
+name: Algo falló
+description: Kiji se cerró, no reprodujo, mostró un error o hizo algo raro.
+title: "Error: "
+labels: ["error", "por revisar"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por avisar! Si llegaste desde Kiji, el informe ya está escrito abajo.
+        Revísalo antes de enviarlo: no lleva tu nombre, tus cuentas ni tus archivos.
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: ¿Qué estabas haciendo?
+      description: Con tus palabras, en una o dos frases. Por ejemplo, "puse una playlist y se detuvo en la segunda canción".
+    validations:
+      required: false
+  - type: dropdown
+    id: plataforma
+    attributes:
+      label: ¿Dónde?
+      options:
+        - Android
+        - Windows
+        - Linux
+        - Otro
+    validations:
+      required: false
+  - type: textarea
+    id: informe
+    attributes:
+      label: Informe de Kiji
+      description: Lo escribe Kiji (Configuración → Registros e informes). También puedes pegar el .txt.
+      render: text
+    validations:
+      required: false

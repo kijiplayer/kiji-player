@@ -25,6 +25,8 @@ class AppSettings {
     this.checkUpdates = true,
     this.autoExtractorTests = true,
     this.ytDlpAccepted = false,
+    this.saveLogs = true,
+    this.offerErrorReports = true,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -98,6 +100,12 @@ class AppSettings {
   /// Motor C (solo PC): el usuario aceptó bajar y usar yt-dlp (Tarea Z8). Apagado de fábrica.
   final bool ytDlpAccepted;
 
+  /// Guardar un registro en el dispositivo, sin datos personales (Tarea T3).
+  final bool saveLogs;
+
+  /// Cuando algo falla, preguntar si se quiere mandar un informe (Tarea T3).
+  final bool offerErrorReports;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -118,6 +126,8 @@ class AppSettings {
     bool? checkUpdates,
     bool? autoExtractorTests,
     bool? ytDlpAccepted,
+    bool? saveLogs,
+    bool? offerErrorReports,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -138,6 +148,8 @@ class AppSettings {
         checkUpdates: checkUpdates ?? this.checkUpdates,
         autoExtractorTests: autoExtractorTests ?? this.autoExtractorTests,
         ytDlpAccepted: ytDlpAccepted ?? this.ytDlpAccepted,
+        saveLogs: saveLogs ?? this.saveLogs,
+        offerErrorReports: offerErrorReports ?? this.offerErrorReports,
       );
 
   Map<String, dynamic> toJson() => {
@@ -160,6 +172,8 @@ class AppSettings {
         'checkUpdates': checkUpdates,
         'autoExtractorTests': autoExtractorTests,
         'ytDlpAccepted': ytDlpAccepted,
+        'saveLogs': saveLogs,
+        'offerErrorReports': offerErrorReports,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -193,6 +207,8 @@ class AppSettings {
       checkUpdates: read('checkUpdates', d.checkUpdates),
       autoExtractorTests: read('autoExtractorTests', d.autoExtractorTests),
       ytDlpAccepted: read('ytDlpAccepted', d.ytDlpAccepted),
+      saveLogs: read('saveLogs', d.saveLogs),
+      offerErrorReports: read('offerErrorReports', d.offerErrorReports),
     );
   }
 

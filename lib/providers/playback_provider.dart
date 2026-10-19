@@ -20,6 +20,7 @@ import '../features/extractor/data/alternatives.dart';
 import '../features/extractor/data/engines.dart';
 import '../features/extractor/data/path_health.dart';
 import '../features/extractor/data/stream_resolver.dart';
+import '../features/reports/data/error_reporter.dart';
 import '../features/extractor/domain/resolved_stream.dart';
 import '../features/extractor/data/ytdlp_engine.dart';
 import '../features/extractor/domain/extraction_failure.dart';
@@ -489,6 +490,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         final offline = outcome.offline || !await _isOnline();
         debugPrint('=== REPRODUCCION: sin audio para $videoId '
             '(${offline ? "sin conexión" : "caminos agotados"}) ===');
+        if (!offline) ErrorReporter.instance.unplayable(videoId);
         return offline ? LoadResult.offline : LoadResult.unplayable;
       }
 

@@ -59,8 +59,16 @@ void main() {
       trace.clear();
     });
     tearDown(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 100)); // la Salud guarda sin esperar
-      dir.deleteSync(recursive: true);
+      // La Salud guarda sin esperar: en Windows la carpeta puede estar en uso un momento.
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        try {
+          dir.deleteSync(recursive: true);
+          return;
+        } on FileSystemException {
+          continue;
+        }
+      }
     });
 
     test('Cada búsqueda queda anotada con el camino ganador y las fallas de antes', () async {

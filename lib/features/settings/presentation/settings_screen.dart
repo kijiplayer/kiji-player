@@ -21,6 +21,7 @@ import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
+import '../../reports/presentation/reports_screen.dart';
 import '../../recommendations/data/search_history.dart';
 import '../../updates/update_checker.dart';
 import '../../updates/updates_screen.dart';
@@ -42,6 +43,7 @@ enum SettingsSection {
   privacy('Privacidad', Icons.shield_outlined),
   backup('Copia de seguridad', Icons.backup_outlined),
   updates('Actualizaciones', Icons.system_update_alt_rounded),
+  reports('Registros e informes', Icons.bug_report_outlined),
   about('Acerca de', Icons.info_outline_rounded),
   developer('Kiji Dev', Icons.developer_mode_rounded);
 
@@ -588,6 +590,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: const Text('Cómo está funcionando YouTube hoy.'),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => ExtractorHealthScreen.open(context),
+        ),
+      ),
+      // Registros e informes (Tarea T3).
+      SettingOption(
+        section: SettingsSection.reports,
+        title: 'Guardar un registro en este dispositivo',
+        subtitle: 'Ayuda a entender una falla. Sin datos personales, ocupa como mucho 1 MB y '
+            'nunca sale del dispositivo si tú no lo mandas.',
+        keywords: const ['registro', 'log', 'errores', 'fallas', 'informe'],
+        builder: (context, ref) => SwitchListTile(
+          title: const Text('Guardar un registro en este dispositivo'),
+          subtitle: const Text('Ayuda a entender una falla. Sin datos personales, ocupa como mucho 1 MB y '
+              'nunca sale del dispositivo si tú no lo mandas.'),
+          value: ref.watch(settingsProvider.select((s) => s.saveLogs)),
+          onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(saveLogs: v)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.reports,
+        title: 'Ofrecer un informe cuando algo falla',
+        subtitle: 'Kiji pregunta si quieres avisar al desarrollador. Nunca manda nada solo.',
+        keywords: const ['error', 'informe', 'github', 'reportar', 'fallas'],
+        builder: (context, ref) => SwitchListTile(
+          title: const Text('Ofrecer un informe cuando algo falla'),
+          subtitle: const Text('Kiji pregunta si quieres avisar al desarrollador. Nunca manda nada solo.'),
+          value: ref.watch(settingsProvider.select((s) => s.offerErrorReports)),
+          onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(offerErrorReports: v)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.reports,
+        title: 'Ver el registro y los informes',
+        subtitle: 'Leer el registro, descargar un informe (.txt) o mandarlo al desarrollador.',
+        keywords: const ['registro', 'log', 'informe', 'txt', 'github', 'issue'],
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.description_outlined),
+          title: const Text('Ver el registro y los informes'),
+          subtitle: const Text('Leer el registro, descargar un informe (.txt) o mandarlo al desarrollador.'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => ReportsScreen.open(context),
         ),
       ),
       // Herramientas de desarrollo (Tarea T2): solo en Kiji Dev.

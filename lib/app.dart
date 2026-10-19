@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/playback_automation.dart';
 import 'features/extractor/data/auto_tests.dart';
+import 'features/reports/data/error_reporter.dart';
+import 'features/reports/data/kiji_logs.dart';
+import 'features/reports/presentation/error_report_dialog.dart';
+import 'features/settings/data/settings_store.dart';
 import 'features/updates/update_checker.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
@@ -28,6 +32,38 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
     // Salud del Extractor (Tarea Z8): pruebas automáticas con canciones de control.
     Future.microtask(() => ref.read(extractorAutoTestsProvider).start());
+    // Registros e informes (Tarea T3).
+    ref.listenManual(settingsProvider.select((s) => s.saveLogs), (_, on) => KijiLogs.setEnabled(on),
+        fireImmediately: true);
+    ErrorReporter.instance.pending.addListener(_offerReport);
+  }
+
+  @override
+  void dispose() {
+    ErrorReporter.instance.pending.removeListener(_offerReport);
+    super.dispose();
+  }
+
+  bool _offering = false;
+
+  /// Algo falló: se pregunta si se quiere mandar un informe (una vez por tipo de error).
+  void _offerReport() {
+    final report = ErrorReporter.instance.pending.value;
+    if (report == null || _offering) return;
+    if (!ref.read(settingsProvider).offerErrorReports) {
+      ErrorReporter.instance.dismiss();
+      return;
+    }
+    _offering = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final context = kijiNavigatorKey.currentContext;
+      try {
+        if (context != null && context.mounted) await showErrorReportDialog(context, report);
+      } finally {
+        _offering = false;
+        ErrorReporter.instance.dismiss();
+      }
+    });
   }
 
   @override

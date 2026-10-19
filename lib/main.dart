@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 
 import 'app.dart';
+import 'features/reports/data/error_reporter.dart';
 import 'features/system_media/data/system_media_controls_factory.dart';
 import 'providers/system_media_provider.dart';
 import 'utils/app_log.dart';
@@ -24,7 +25,13 @@ Future<void> main() async {
     debugPrint('=== ERROR NO CAPTURADO: $error ===');
     StartupLog.mark('error no capturado: ${error.runtimeType}');
     debugPrint('$stackTrace');
+    // Registros e informes (Tarea T3): se ofrece mandar un informe (los cortes de red no).
+    ErrorReporter.instance.capture(error, stackTrace, where: 'segundo plano');
     return true;
+  };
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    ErrorReporter.instance.capture(details.exception, details.stack, where: 'interfaz');
   };
 
   // Windows y Linux: just_audio no trae motor propio; usa media_kit (libmpv).

@@ -12,6 +12,7 @@ import '../../utils/app_log.dart';
 import '../../utils/byte_formatter.dart';
 import '../extractor/data/extractor_trace.dart';
 import '../extractor/data/path_health.dart';
+import '../reports/data/error_reporter.dart';
 import '../settings/data/settings_store.dart';
 import '../stream_cache/data/stream_cache.dart';
 import '../yt_music/presentation/extractor_health_screen.dart';
@@ -31,6 +32,15 @@ class DevToolsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Herramientas de Kiji Dev'),
+          actions: [
+            IconButton(
+              tooltip: 'Probar el aviso de error',
+              icon: const Icon(Icons.bug_report_outlined),
+              // Tarea T3: muestra el aviso con sus tres opciones (una vez por sesión).
+              onPressed: () => ErrorReporter.instance
+                  .capture(StateError('error de prueba de Kiji Dev'), StackTrace.current, where: 'prueba'),
+            ),
+          ],
           bottom: const TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
