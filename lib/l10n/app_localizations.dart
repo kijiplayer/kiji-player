@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @copiaEnElHistorialElAudio.
   ///
   /// In es, this message translates to:
-  /// **'Copia {p0} {p1}{p2}:\n• {p3}\n• {p4}\n• {p5} en el historial\n• {p6} (el audio se vuelve a bajar)\n{p7}\nReemplaza tus playlists, me gusta, historial y ajustes actuales. Antes, Kiji guarda una copia de lo que tienes ahora, así que se puede volver atrás.'**
+  /// **'Copia {p0}{p1}{p2}:\n• {p3}\n• {p4}\n• {p5} en el historial\n• {p6} (el audio se vuelve a bajar)\n{p7}\nReemplaza tus playlists, me gusta, historial y ajustes actuales. Antes, Kiji guarda una copia de lo que tienes ahora, así que se puede volver atrás.'**
   String copiaEnElHistorialElAudio(
     Object? p0,
     Object? p1,
@@ -6040,6 +6040,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ajustes de traducción'**
   String get ajustesDeTraduccion;
+
+  /// No description provided for @nPlaylists.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 playlist} other{{count} playlists}}'**
+  String nPlaylists(num count);
+
+  /// No description provided for @nMeGusta.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 me gusta} other{{count} me gusta}}'**
+  String nMeGusta(num count);
+
+  /// No description provided for @unoYOtro.
+  ///
+  /// In es, this message translates to:
+  /// **'{a} y {b}'**
+  String unoYOtro(String a, String b);
+
+  /// No description provided for @copiaArticuloDiaRelativo.
+  ///
+  /// In es, this message translates to:
+  /// **'de '**
+  String get copiaArticuloDiaRelativo;
+
+  /// No description provided for @copiaArticuloFecha.
+  ///
+  /// In es, this message translates to:
+  /// **'del '**
+  String get copiaArticuloFecha;
 }
 
 class _AppLocalizationsDelegate

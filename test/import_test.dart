@@ -19,6 +19,7 @@ import 'package:kiji_player/features/import/domain/imported.dart';
 import 'package:kiji_player/features/playlists/domain/playlist.dart';
 import 'package:kiji_player/features/playlists/playlists_provider.dart';
 import 'package:kiji_player/features/yt_music/data/ytm_client.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/models/track.dart';
 
 /// `song.db` mínimo con las tablas de Echo / Metrolist (Room).
@@ -257,6 +258,20 @@ https://youtu.be/vidBBBBBBBB
     expect(plan.missingCount, 1);
     expect(previewText(plan), 'Se van a crear 1 playlist, 1 canción, 1 sin encontrar.');
     expect(progress.last, 2);
+  });
+
+  test('Vista previa en inglés, con me gusta e historial: nada en español mezclado', () async {
+    setKijiLocale(const Locale('en'));
+    addTearDown(() => setKijiLocale(const Locale('es')));
+    const song = ImportedSong(videoId: 'vidAAAAAAAA', title: 'Get Lucky');
+    final bundle = ImportBundle(
+      source: 'prueba',
+      playlists: [const ImportedPlaylist('A', [song]), const ImportedPlaylist('B', [song])],
+      liked: [song],
+      history: [ImportedPlay(song, DateTime(2026, 10, 20))],
+    );
+    final plan = await prepareImport(bundle, ImportMatcher(local: const [], online: _FakeLookup()));
+    expect(previewText(plan), '2 playlists will be created, 1 song, 0 not found. Also: 1 like and 1 in history.');
   });
 
   test('Importar nunca pisa nada, y "Deshacer" quita exactamente lo agregado', () async {

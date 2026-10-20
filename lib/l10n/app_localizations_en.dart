@@ -251,7 +251,7 @@ class AppLocalizationsEn extends AppLocalizations {
     Object? p6,
     Object? p7,
   ) {
-    return 'Backup from $p0 $p1$p2:\n• $p3\n• $p4\n• $p5 in your history\n• $p6 (audio is downloaded again)\n$p7\nIt replaces your current playlists, likes, history and settings. First, Kiji saves a backup of what you have now, so you can go back.';
+    return 'Backup from $p0$p1$p2:\n• $p3\n• $p4\n• $p5 in your history\n• $p6 (audio is downloaded again)\n$p7\nIt replaces your current playlists, likes, history and settings. First, Kiji saves a backup of what you have now, so you can go back.';
   }
 
   @override
@@ -3648,4 +3648,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ajustesDeTraduccion => 'Translation settings';
+
+  @override
+  String nPlaylists(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count playlists',
+      one: '1 playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nMeGusta(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count likes',
+      one: '1 like',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String unoYOtro(String a, String b) {
+    return '$a and $b';
+  }
+
+  @override
+  String get copiaArticuloDiaRelativo => '';
+
+  @override
+  String get copiaArticuloFecha => '';
 }

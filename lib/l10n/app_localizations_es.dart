@@ -251,7 +251,7 @@ class AppLocalizationsEs extends AppLocalizations {
     Object? p6,
     Object? p7,
   ) {
-    return 'Copia $p0 $p1$p2:\n• $p3\n• $p4\n• $p5 en el historial\n• $p6 (el audio se vuelve a bajar)\n$p7\nReemplaza tus playlists, me gusta, historial y ajustes actuales. Antes, Kiji guarda una copia de lo que tienes ahora, así que se puede volver atrás.';
+    return 'Copia $p0$p1$p2:\n• $p3\n• $p4\n• $p5 en el historial\n• $p6 (el audio se vuelve a bajar)\n$p7\nReemplaza tus playlists, me gusta, historial y ajustes actuales. Antes, Kiji guarda una copia de lo que tienes ahora, así que se puede volver atrás.';
   }
 
   @override
@@ -3656,4 +3656,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ajustesDeTraduccion => 'Ajustes de traducción';
+
+  @override
+  String nPlaylists(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count playlists',
+      one: '1 playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nMeGusta(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count me gusta',
+      one: '1 me gusta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String unoYOtro(String a, String b) {
+    return '$a y $b';
+  }
+
+  @override
+  String get copiaArticuloDiaRelativo => 'de ';
+
+  @override
+  String get copiaArticuloFecha => 'del ';
 }

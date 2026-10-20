@@ -22,7 +22,7 @@ const _separator = ' • ';
 const _resultTypes = {
   'canción', 'vídeo', 'video', 'episodio', 'pódcast', 'podcast', 'álbum', 'sencillo', 'ep', // l10n-ignore
   'artista', 'perfil', 'lista de reproducción', // l10n-ignore
-  'song', 'episode', 'album', 'single', 'artist', 'profile', 'playlist',
+  'song', 'episode', 'album', 'single', 'artist', 'profile', 'playlist', // l10n-ignore
 };
 
 final _durationPattern = RegExp(r'^\d{1,2}(:\d{2}){1,2}$');

@@ -30,6 +30,14 @@ class _Literal {
 }
 
 final _hasLetter = RegExp(r'[A-Za-zÁÉÍÓÚáéíóúñÑüÜ]');
+
+/// Palabras de interfaz que, sueltas, parecen claves (minúsculas, sin tilde) pero son texto para
+/// la persona usuaria. Y conectores que unen partes de una frase ("a y b").
+const _uiWords = {
+  'canciones', 'playlist', 'playlists', 'minutos', 'segundos', 'horas', 'artistas', 'descargadas',
+  'songs', 'minutes', 'seconds', 'hours', 'artists', 'likes',
+};
+const _connectors = {'y', 'o', 'de', 'del', 'and', 'or', 'of'};
 final _word = RegExp(r'[A-Za-zÁÉÍÓÚáéíóúñÑüÜ]{2,}');
 final _identifierLike = RegExp(r'^[A-Za-z0-9_.:/\-#@%+=<>|\[\]{}()*,?!~&^$\\ ;"]*$');
 const _technicalCalls = {
@@ -37,7 +45,8 @@ const _technicalCalls = {
   'Exception', 'StateError', 'ArgumentError', 'UnsupportedError', 'select', 'execute', 'runJavaScript',
   'runJavaScriptReturningResult', 'callAsyncJavaScript', 'evaluateJavascript', 'Key', 'ValueKey', 'ObjectKey',
   'PageStorageKey', 'Hero', 'heroTag', 'getString', 'setString', 'containsKey', 'remove', 'MethodChannel',
-  'EventChannel', 'invokeMethod', 'join', '_any', 'File', 'Directory', 'assert', 'tryParse', 'parse', 'jsonDecode',
+  'EventChannel', 'invokeMethod', '_any', 'File', 'Directory', 'assert', 'tryParse', 'parse', 'jsonDecode',
+  'contains', 'read', 'lengthOf',
 };
 
 /// Archivos generados o que no son de interfaz.
@@ -65,6 +74,19 @@ List<HardcodedText> findHardcodedText(String root) {
       if (lit.calls.any((c) => _technicalCalls.contains(c) || _technicalCalls.contains(c.split('.').last))) continue;
       final text = lit.text;
       final plain = text.replaceAll('{}', ' ');
+      final word = plain.trim().toLowerCase();
+      final after0 = src.substring(lit.end).trimLeft();
+      final before0 = src.substring(0, lit.offset).trimRight();
+      // Como dato: clave de un mapa (`'x':`, `json['x']`, `key: 'x'`) o etiqueta en mayúsculas.
+      final asData = after0.startsWith(':') ||
+          before0.endsWith('[') ||
+          RegExp(r'(key|logTag):$').hasMatch(before0) ||
+          (plain.trim() == plain.trim().toUpperCase() && plain.trim() != word);
+      // Palabras de interfaz y conectores sueltos: siempre texto para la persona usuaria.
+      if (!asData && (_uiWords.contains(word) || (_connectors.contains(word) && plain != word))) {
+        found.add(HardcodedText(file.path.replaceAll(r'\', '/'), lineNo + 1, text));
+        continue;
+      }
       if (!_hasLetter.hasMatch(plain) || !_word.hasMatch(plain)) continue;
       if (plain.contains('://') || plain.startsWith('/') || plain.startsWith('package:')) continue;
       // Claves de mapas (cabeceras HTTP, campos JSON): 'User-Agent': …

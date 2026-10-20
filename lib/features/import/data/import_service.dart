@@ -51,17 +51,17 @@ class ImportPlan {
 /// "Se van a crear 4 playlists, 210 canciones, 12 sin encontrar", y si hay,
 /// me gusta e historial.
 String previewText(ImportPlan plan) {
-  String n(int count, String one, String many) => '$count ${count == 1 ? one : many}';
   final parts = <String>[
-    tx.seVanACrear(n(plan.playlistCount, 'playlist', 'playlists')),
-    n(plan.songCount, tx.cancion, 'canciones'),
+    tx.seVanACrear(tx.nPlaylists(plan.playlistCount)),
+    tx.nCanciones(plan.songCount),
     tx.sinEncontrar(plan.missingCount),
   ];
   final extra = <String>[
-    if (plan.likedCount > 0) n(plan.likedCount, tx.meGusta, tx.meGusta),
+    if (plan.likedCount > 0) tx.nMeGusta(plan.likedCount),
     if (plan.historyCount > 0) tx.enElHistorial(plan.historyCount),
   ];
-  return '${parts.join(', ')}${extra.isEmpty ? '' : tx.tambien(extra.join(' y '))}.';
+  final also = extra.length == 2 ? tx.unoYOtro(extra[0], extra[1]) : extra.join();
+  return '${parts.join(', ')}${extra.isEmpty ? '' : tx.tambien(also)}.';
 }
 
 /// Busca todas las canciones distintas del archivo (de a [concurrency]).

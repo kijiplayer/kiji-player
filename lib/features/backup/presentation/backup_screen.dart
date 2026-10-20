@@ -203,20 +203,25 @@ String describeDate(DateTime date, DateTime now) {
 String restorePreviewText(BackupManifest manifest) {
   final c = manifest.counts;
   String n(int count, String one, String many) => '$count ${count == 1 ? one : many}';
+  final now = DateTime.now();
   final origin = switch (manifest.platform) {
     'android' => tx.deUnCelularAndroid,
     'windows' => tx.deUnaPcConWindows,
     _ => '',
   };
-  final when = describeDate(manifest.createdAt, DateTime.now());
-  final of = when.startsWith('hoy') || when.startsWith('ayer') ? 'de' : 'del';
+  final when = describeDate(manifest.createdAt, now);
+  // "de hoy" / "del 20/10/2026" en español; en inglés, sin artículo.
+  final daysAgo = DateTime(now.year, now.month, now.day)
+      .difference(DateTime(manifest.createdAt.year, manifest.createdAt.month, manifest.createdAt.day))
+      .inDays;
+  final of = daysAgo <= 1 ? tx.copiaArticuloDiaRelativo : tx.copiaArticuloFecha;
   return tx.copiaEnElHistorialElAudio(
     of,
     when,
     origin,
-    n(c.playlists, 'playlist', 'playlists'),
-    n(c.likes, tx.meGusta, tx.meGusta),
-    n(c.history, tx.cancion, 'canciones'),
+    tx.nPlaylists(c.playlists),
+    tx.nMeGusta(c.likes),
+    tx.nCanciones(c.history),
     n(c.downloads, tx.cancionDescargada, tx.cancionesDescargadas),
     c.covers > 0 ? '• ${n(c.covers, tx.caratulaPersonalizada, tx.caratulasPersonalizadas)}\n' : '',
   );

@@ -67,7 +67,7 @@
   "cancionDescargada": "downloaded song",
   "caratulaPersonalizada": "custom cover",
   "caratulasPersonalizadas": "custom covers",
-  "copiaEnElHistorialElAudio": "Backup from {p0} {p1}{p2}:\n• {p3}\n• {p4}\n• {p5} in your history\n• {p6} (audio is downloaded again)\n{p7}\nIt replaces your current playlists, likes, history and settings. First, Kiji saves a backup of what you have now, so you can go back.",
+  "copiaEnElHistorialElAudio": "Backup from {p0}{p1}{p2}:\n• {p3}\n• {p4}\n• {p5} in your history\n• {p6} (audio is downloaded again)\n{p7}\nIt replaces your current playlists, likes, history and settings. First, Kiji saves a backup of what you have now, so you can go back.",
   "noSePudoUsarEsaImagen": "Couldn't use that image.",
   "personalizarCancion": "Customize song",
   "soloCambiaComoSeVeEn": "This only changes how it looks in Kiji. The music file isn't touched.",
@@ -988,5 +988,10 @@
   "traduccionConIaTexto": "Uses Google Gemini with your key. The lyric lines leave your phone.",
   "traduccionConIaPreparar": "Set it up first: turn it on and add your key.",
   "beta": "Beta",
-  "ajustesDeTraduccion": "Translation settings"
+  "ajustesDeTraduccion": "Translation settings",
+  "nPlaylists": "{count, plural, =1{1 playlist} other{{count} playlists}}",
+  "nMeGusta": "{count, plural, =1{1 like} other{{count} likes}}",
+  "unoYOtro": "{a} and {b}",
+  "copiaArticuloDiaRelativo": "",
+  "copiaArticuloFecha": ""
 }
