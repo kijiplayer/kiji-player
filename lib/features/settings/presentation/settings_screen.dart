@@ -109,6 +109,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _query = TextEditingController();
 
+  /// Título de cada sección, para saltar a ella desde el índice de arriba.
+  final _sectionKeys = {for (final section in SettingsSection.values) section: GlobalKey()};
+
   @override
   void dispose() {
     _query.dispose();
@@ -123,66 +126,96 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(tr(context).settingsTitle)),
-      body: ListView(
+      // Columna y no ListView: así todas las secciones existen y el índice puede saltar a
+      // cualquiera (son unas 50 opciones, no hace falta construirlas de a poco).
+      body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
-        children: [
-          GradientBorder(
-            radius: KijiRadii.pill,
-            fill: KijiColors.surface,
-            child: TextField(
-              controller: _query,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: tr(context).settingsSearchHint,
-                prefixIcon: const Icon(Icons.search_rounded, color: KijiColors.muted),
-                suffixIcon: query.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: tx.borrarLaBusqueda,
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => setState(_query.clear),
-                      ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (visible.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                tx.noHayNingunaOpcionConEse,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: KijiColors.muted),
-              ),
-            ),
-          for (final section in SettingsSection.values)
-            if (visible.any((o) => o.section == section)) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-                child: Row(
-                  children: [
-                    Icon(section.icon, size: 18, color: KijiColors.cyan),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(section.label.toUpperCase(), style: KijiText.mono(size: 11))),
-                  ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GradientBorder(
+              radius: KijiRadii.pill,
+              fill: KijiColors.surface,
+              child: TextField(
+                controller: _query,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: tr(context).settingsSearchHint,
+                  prefixIcon: const Icon(Icons.search_rounded, color: KijiColors.muted),
+                  suffixIcon: query.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: tx.borrarLaBusqueda,
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () => setState(_query.clear),
+                        ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                 ),
               ),
-              Glass(
-                blur: false,
-                radius: KijiRadii.tile,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: Column(
+            ),
+            const SizedBox(height: 12),
+            // Índice de secciones (sin búsqueda): un toque lleva a cada una.
+            if (query.isEmpty)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final section in SettingsSection.values)
+                    if (visible.any((o) => o.section == section))
+                      ActionChip(
+                        avatar: Icon(section.icon, size: 16, color: KijiColors.cyan),
+                        label: Text(section.label),
+                        onPressed: () {
+                          final target = _sectionKeys[section]!.currentContext;
+                          if (target != null) {
+                            Scrollable.ensureVisible(
+                              target,
+                              duration: ref.read(settingsProvider).reduceMotion ? Duration.zero : KijiMotion.normal,
+                              curve: Curves.easeOutCubic,
+                            );
+                          }
+                        },
+                      ),
+                ],
+              ),
+            if (visible.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  tx.noHayNingunaOpcionConEse,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: KijiColors.muted),
+                ),
+              ),
+            for (final section in SettingsSection.values)
+              if (visible.any((o) => o.section == section)) ...[
+                Padding(
+                  key: _sectionKeys[section],
+                  padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+                  child: Row(
                     children: [
-                      for (final option in visible.where((o) => o.section == section)) option.builder(context, ref),
+                      Icon(section.icon, size: 18, color: KijiColors.cyan),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(section.label.toUpperCase(), style: KijiText.mono(size: 11))),
                     ],
                   ),
                 ),
-              ),
-            ],
-        ],
+                Glass(
+                  blur: false,
+                  radius: KijiRadii.tile,
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Column(
+                      children: [
+                        for (final option in visible.where((o) => o.section == section)) option.builder(context, ref),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+          ],
+        ),
       ),
     );
   }
@@ -389,7 +422,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         section: SettingsSection.appearance,
         title: tx.formatoDeHora,
         subtitle: tx.formatoDeHoraDescripcion,
-        keywords: const ['reloj', 'am', 'pm', '12', '24', 'horas'],
+        keywords: const ['reloj', 'am', 'pm', '12', '24', 'horas'], // l10n-ignore
         builder: (context, ref) {
           final example = DateTime(2026, 1, 1, 21, 10);
           // La del sistema sale del teléfono o la PC, no de la app (que ya aplica el ajuste).
@@ -439,7 +472,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         section: SettingsSection.storage,
         title: tx.descargarLoQueMeGusta,
         subtitle: tx.descargarLoQueMeGustaDescripcion,
-        keywords: const ['me gusta', 'favoritas', 'automatico', 'sin conexion', 'like', 'offline'],
+        keywords: const ['me gusta', 'favoritas', 'automatico', 'sin conexion', 'like', 'offline'], // l10n-ignore
         builder: (context, ref) {
           final auto = ref.watch(autoDownloadsProvider);
           final waiting = auto.pending.length;
@@ -672,11 +705,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           return ListTile(
             leading: Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded),
             title: Text(session == null ? tx.cuentaDeGoogleOpcional : tx.sesionIniciada2),
-            subtitle: Text(
-              session == null
-                  ? tx.soloParaCancionesConCuenta
-                  : tx.tocaParaVerOCerrarLa,
-            ),
+            subtitle: Text(session == null ? tx.soloParaCancionesConCuenta : tx.tocaParaVerOCerrarLa),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => AccountScreen.open(context),
           );
@@ -808,7 +837,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         section: SettingsSection.about,
         title: tx.novedadesDeEstaVersion,
         subtitle: tx.novedadesDeEstaVersionDescripcion(kijiVersion),
-        keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new'],
+        keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new'], // l10n-ignore
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.auto_awesome_outlined),
           title: Text(tx.novedadesDeEstaVersion),

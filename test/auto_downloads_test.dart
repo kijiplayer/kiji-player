@@ -68,7 +68,17 @@ void main() {
     dir = Directory.systemTemp.createTempSync('kiji_auto_');
     downloads = _FakeDownloads();
   });
-  tearDown(() => dir.deleteSync(recursive: true));
+  tearDown(() async {
+    // Puede quedar un guardado en camino: se reintenta un momento (Windows bloquea el archivo).
+    for (var i = 0; i < 20; i++) {
+      try {
+        dir.deleteSync(recursive: true);
+        return;
+      } on FileSystemException {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+    }
+  });
 
   ProviderContainer container({bool downloadLiked = false}) {
     final c = ProviderContainer(
@@ -86,6 +96,13 @@ void main() {
   }
 
   Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 50));
+
+  /// Espera (hasta 3 s) a que se cumpla [condition]: con la PC cargada, guardar tarda más.
+  Future<void> eventually(bool Function() condition) async {
+    for (var i = 0; i < 60 && !condition(); i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+  }
 
   test('Baja las de YouTube, saltea las locales y las repetidas', () async {
     final c = container();
@@ -113,6 +130,7 @@ void main() {
     expect(downloads.started, isEmpty);
     expect(c.read(autoDownloadsProvider).pending.length, 2);
     expect(c.read(autoDownloadsProvider).waitingReason, 'sin WiFi');
+    await eventually(() => File(p.join(dir.path, 'auto.json')).existsSync());
     expect(File(p.join(dir.path, 'auto.json')).existsSync(), isTrue);
 
     downloads.wifi = true;
@@ -127,13 +145,14 @@ void main() {
     c1.read(autoDownloadsProvider);
     await settle();
     c1.read(autoDownloadsProvider.notifier).enqueue([_t('a')]);
+    await eventually(() => File(p.join(dir.path, 'auto.json')).existsSync());
     await settle();
     c1.dispose();
 
     downloads = _FakeDownloads();
     final c2 = container();
     c2.read(autoDownloadsProvider);
-    await settle();
+    await eventually(() => downloads.started.isNotEmpty);
     expect(downloads.started, ['a']);
   });
 

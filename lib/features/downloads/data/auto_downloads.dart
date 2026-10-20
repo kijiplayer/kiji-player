@@ -26,7 +26,7 @@ class AutoDownloadsState {
 /// Dónde se guarda la lista de espera (se cambia en las pruebas).
 final autoDownloadsFileProvider = Provider<Future<JsonFile>>(
   (ref) async =>
-      JsonFile(p.join((await getApplicationSupportDirectory()).path, 'auto_downloads.json'), logTag: 'DESCARGAS AUTO'),
+      JsonFile(p.join((await getApplicationSupportDirectory()).path, 'auto_downloads.json'), logTag: 'DESCARGAS AUTO'), // l10n-ignore
 );
 
 /// Avisos de cambio de conexión (en las pruebas, ninguno).

@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos del registro (no se muestran en la interfaz).
 import 'dart:convert';
 import 'dart:io';
 

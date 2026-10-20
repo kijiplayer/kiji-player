@@ -114,6 +114,24 @@ void main() {
       expect(settingMatches('privacidad', title: 'Salud', section: 'Privacidad'), isTrue);
       expect(settingMatches('   ', title: 'Algo'), isFalse);
     });
+
+    test('Sinónimos en español e inglés', () {
+      expect(settingMatches('dark', title: 'Tema', subtitle: 'Oscuro, más oscuro o claro'), isTrue);
+      expect(settingMatches('tema', title: 'Theme'), isTrue);
+      expect(settingMatches('sleep', title: 'Temporizador'), isTrue);
+      expect(settingMatches('descargas', title: 'Download what I like'), isTrue);
+      expect(settingMatches('downl', title: 'Descargar solo con WiFi'), isTrue); // mientras se escribe
+      expect(settingMatches('idioma', title: 'Language'), isTrue);
+      expect(settingMatches('copia', title: 'Backup'), isTrue);
+      expect(settingMatches('clock', title: 'Formato de hora'), isTrue);
+    });
+
+    test('Un sinónimo corto no encuentra pedazos de otras palabras', () {
+      // "hora" trae "am"/"pm" como sinónimos: no tienen que encontrar "cambiar" ni "ampliar".
+      expect(settingMatches('hora', title: 'Cambiar la carpeta', subtitle: 'Ampliar el espacio'), isFalse);
+      expect(settingMatches('red', title: 'Reducir animaciones'), isTrue); // "red" escrito sí vale como texto
+      expect(settingMatches('wifi', title: 'Reducir animaciones'), isFalse);
+    });
   });
 
   group('Créditos dentro de la app', () {

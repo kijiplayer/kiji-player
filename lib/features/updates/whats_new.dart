@@ -78,7 +78,7 @@ bool shouldShowWhatsNew({required String? lastSeenVersion, required bool freshIn
 /// Novedades de esta versión, incluidas en la app (las mismas de la tienda de apps:
 /// `fastlane/metadata/android/<idioma>/changelogs/<compilación>.txt`).
 Future<String?> loadBundledWhatsNew(String languageCode, {AssetBundle? bundle, int build = kijiBuild}) async {
-  final folder = languageCode == 'es' ? 'es-ES' : 'en-US';
+  final folder = languageCode == 'es' ? 'es-ES' : 'en-US'; // l10n-ignore
   try {
     final text = await (bundle ?? rootBundle).loadString('fastlane/metadata/android/$folder/changelogs/$build.txt');
     return text.trim().isEmpty ? null : text.trim();
