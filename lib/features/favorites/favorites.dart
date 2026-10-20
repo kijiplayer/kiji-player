@@ -37,8 +37,6 @@ class FavoritesNotifier extends Notifier<Map<String, Track>> {
     }
   }
 
-  bool isLiked(String trackId) => state.containsKey(trackId);
-
   void toggle(Track track) {
     state = state.containsKey(track.id) ? (Map.of(state)..remove(track.id)) : {...state, track.id: track};
     unawaited(_save());

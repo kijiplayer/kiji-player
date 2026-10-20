@@ -74,13 +74,6 @@ class ImportBundle {
   final List<ImportedSong> liked;
   final List<ImportedPlay> history;
 
-  /// Canciones distintas en total (para la vista previa).
-  int get distinctSongs => {
-        for (final pl in playlists) ...pl.songs.map((s) => s.key),
-        ...liked.map((s) => s.key),
-        ...history.map((h) => h.song.key),
-      }.length;
-
   bool get isEmpty => playlists.isEmpty && liked.isEmpty && history.isEmpty;
 
   /// Todas las canciones (con repetidas).

@@ -88,8 +88,6 @@ class UpdateState {
 
   /// Resultado de la última consulta, en palabras simples.
   final String? message;
-
-  bool get hasUpdate => latest != null;
 }
 
 /// Una vez por día (si está prendido) le pregunta a GitHub cuál es la última

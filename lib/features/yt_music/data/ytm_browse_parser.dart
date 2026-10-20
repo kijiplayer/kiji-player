@@ -2,6 +2,8 @@ import '../domain/subtitle_parser.dart';
 import 'ytm_client.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
+import '../../../utils/json_access.dart';
+
 /// Un artista o un álbum de YouTube Music (resultado de búsqueda o carrusel).
 enum YtCollectionKind { artist, album }
 
@@ -81,8 +83,10 @@ String? _lastThumbnail(Object? node) {
   return found;
 }
 
-String? _pageType(Map? browseEndpoint) => ((browseEndpoint?['browseEndpointContextSupportedConfigs']
-        as Map?)?['browseEndpointContextMusicConfig'] as Map?)?['pageType'] as String?;
+String? _pageType(Map? browseEndpoint) => jsonStringAt(
+  browseEndpoint,
+  const ['browseEndpointContextSupportedConfigs', 'browseEndpointContextMusicConfig', 'pageType'],
+);
 
 List<String> _flexTexts(Map renderer) => [
       for (final column in (renderer['flexColumns'] as List? ?? const []).whereType<Map>())

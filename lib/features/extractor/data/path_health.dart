@@ -160,7 +160,4 @@ class PathHealth extends ChangeNotifier {
     });
     return [for (final x in indexed) x.$2];
   }
-
-  /// Cuántos caminos anduvieron en su último intento.
-  int get workingCount => _records.values.where((r) => r.working).length;
 }

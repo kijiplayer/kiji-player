@@ -5765,12 +5765,6 @@ abstract class AppLocalizations {
   /// **'Probando…'**
   String get probando;
 
-  /// No description provided for @reproduciendo.
-  ///
-  /// In es, this message translates to:
-  /// **'Reproduciendo'**
-  String get reproduciendo;
-
   /// No description provided for @idioma.
   ///
   /// In es, this message translates to:

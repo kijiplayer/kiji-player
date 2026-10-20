@@ -48,6 +48,16 @@ String? extractArtist(String text) {
 /// nadie, "Artista desconocido".
 String cleanArtistText(String text) => extractArtist(text) ?? unknownArtist;
 
+/// El tipo de página al que lleva un run de YouTube Music ("MUSIC_PAGE_TYPE_ARTIST",
+/// "MUSIC_PAGE_TYPE_ALBUM"…), o null.
+String? musicPageType(Object? run) => jsonStringAt(run, const [
+  'navigationEndpoint',
+  'browseEndpoint',
+  'browseEndpointContextSupportedConfigs',
+  'browseEndpointContextMusicConfig',
+  'pageType',
+]);
+
 /// Interpreta los `runs` del subtítulo. Usa el tipo de página de cada run
 /// (artista o álbum) cuando YouTube lo informa, y el texto si no.
 ParsedSubtitle parseSubtitleRuns(List<dynamic> runs) {
@@ -56,14 +66,7 @@ ParsedSubtitle parseSubtitleRuns(List<dynamic> runs) {
 
   String? album;
   for (final run in runs.whereType<Map>()) {
-    final pageType = jsonAt(run, const [
-      'navigationEndpoint',
-      'browseEndpoint',
-      'browseEndpointContextSupportedConfigs',
-      'browseEndpointContextMusicConfig',
-      'pageType',
-    ]);
-    if (pageType == 'MUSIC_PAGE_TYPE_ALBUM') album = jsonStringAt(run, const ['text']);
+    if (musicPageType(run) == 'MUSIC_PAGE_TYPE_ALBUM') album = jsonStringAt(run, const ['text']);
   }
 
   final durationText = segments.where(_durationPattern.hasMatch).lastOrNull;

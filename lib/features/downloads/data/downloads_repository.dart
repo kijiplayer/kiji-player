@@ -102,8 +102,6 @@ class DownloadsRepository {
     await _saveIndex();
   }
 
-  Future<int> totalBytes() async => (await all()).values.fold<int>(0, (sum, track) => sum + track.sizeBytes);
-
   Future<void> _saveIndex() async {
     final entries = await all();
     await _index!.write({

@@ -37,7 +37,6 @@ double transitionGain({
 /// sigue al subirlo, solo si la pausa la causó el silencio.
 class MuteRule {
   bool _pausedByMute = false;
-  bool get pausedByMute => _pausedByMute;
 
   /// Qué hacer con un nuevo volumen del sistema (0 a 1).
   MuteAction onVolume(double volume, {required bool isPlaying}) {

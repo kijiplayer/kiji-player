@@ -128,7 +128,7 @@ void main() {
       github.body = {'tag_name': 'v$kijiVersion', 'html_url': 'https://github.com/$kijiRepo/releases/tag/v$kijiVersion'};
       final c = container();
       await c.read(updateProvider.notifier).checkNow();
-      expect(c.read(updateProvider).hasUpdate, isFalse);
+      expect(c.read(updateProvider).latest, isNull);
       expect(c.read(updateProvider).message, contains('última versión'));
 
       github.status = 404;

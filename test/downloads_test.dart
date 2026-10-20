@@ -73,7 +73,6 @@ void main() {
       await repository.add(_entry('abc'));
 
       expect(await repository.fileFor('abc'), isNotNull);
-      expect(await repository.totalBytes(), 100);
 
       await repository.remove('abc');
       expect(await repository.fileFor('abc'), isNull);

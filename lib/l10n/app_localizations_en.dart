@@ -3493,9 +3493,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get probando => 'Testing…';
 
   @override
-  String get reproduciendo => 'Playing';
-
-  @override
   String get idioma => 'Language';
 
   @override

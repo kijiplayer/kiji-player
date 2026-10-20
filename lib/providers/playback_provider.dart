@@ -118,8 +118,6 @@ class PlaybackState {
       volume: volume ?? this.volume,
     );
   }
-
-  String get statusLabel => isPlaying ? tx.reproduciendo : tx.enPausa;
 }
 
 /// Avisos cortos para el usuario (sin detalles técnicos). La pantalla

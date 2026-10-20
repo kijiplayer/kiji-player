@@ -16,12 +16,8 @@ import '../domain/imported.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Elige el lector según la extensión y el contenido.
-Future<ImportBundle> parseImportFile(File file, {required Directory tempDir}) async =>
-    parseImportBytes(await file.readAsBytes(), p.basename(file.path), tempDir: tempDir, baseDir: file.parent.path);
-
-/// Igual que [parseImportFile], con los bytes (en Android, `file_picker`
-/// a veces no da una ruta real).
+/// Elige el lector según la extensión y el contenido. Recibe los bytes porque en Android
+/// `file_picker` a veces no da una ruta real.
 Future<ImportBundle> parseImportBytes(
   Uint8List bytes,
   String name, {

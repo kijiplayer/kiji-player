@@ -7,11 +7,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import '../../yt_music/data/ytm_client.dart';
 
 /// Caché de lo que se va escuchando de YouTube: una canción que ya sonó
 /// entera no se vuelve a bajar, y suena aunque no haya conexión.
@@ -36,8 +34,8 @@ class StreamCache {
   }
 
   /// Archivo completo en caché para [videoId], o null.
-  /// `LockCachingAudioSource` escribe `<archivo>.part` (y `.mime`) mientras
-  /// baja y lo renombra al terminar, así que solo cuenta el archivo final.
+  /// La fuente por pedazos escribe `<archivo>.part` mientras baja y lo renombra
+  /// al terminar, así que solo cuenta el archivo final.
   Future<File?> completeFile(String videoId) async {
     final dir = await directory();
     for (final ext in const ['webm', 'm4a']) {
@@ -51,48 +49,6 @@ class StreamCache {
   /// pedazos, que primero usa `<archivo>.part`).
   Future<File> targetFor(String videoId, String extension) async =>
       File(p.join((await directory()).path, '$videoId.$extension'));
-
-  /// Canciones que se están guardando ahora mismo. Dos fuentes con caché
-  /// escribiendo el mismo archivo a la vez lo corrompen (pasaba al tocar la
-  /// misma canción que se había restaurado al abrir).
-  final Set<String> _caching = {};
-
-  /// Fuente que reproduce [stream] y la va guardando en caché, o null si esa
-  /// canción ya se está guardando (entonces se reproduce sin caché).
-  Future<AudioSource?> sourceFor(String videoId, YtStream stream) async {
-    if (_caching.contains(videoId)) {
-      debugPrint('=== CACHE: $videoId ya se está guardando, esta vez sin caché ===');
-      return null;
-    }
-    final mime = Uri.parse(stream.url).queryParameters['mime'] ?? '';
-    final ext = mime.contains('webm') ? 'webm' : 'm4a';
-    // Experimental en just_audio, pero es justo lo que hace falta.
-    // Si falla, el reproductor reintenta sin caché (ver PlaybackNotifier).
-    // ignore: experimental_member_use
-    final source = LockCachingAudioSource(
-      Uri.parse(stream.url),
-      headers: {'User-Agent': stream.userAgent},
-      cacheFile: File(p.join((await directory()).path, '$videoId.$ext')),
-    );
-    _caching.add(videoId);
-    late final StreamSubscription<double> subscription;
-    void finished() {
-      _caching.remove(videoId);
-      subscription.cancel();
-    }
-
-    subscription = source.downloadProgressStream.listen(
-      (progress) {
-        if (progress >= 1.0) finished();
-      },
-      onError: (Object error) {
-        debugPrint('=== CACHE: se cortó el guardado de $videoId: $error ===');
-        finished();
-      },
-      onDone: finished,
-    );
-    return source;
-  }
 
   /// Marca [file] como recién usado (para borrar primero lo más viejo).
   Future<void> touch(File file) async {

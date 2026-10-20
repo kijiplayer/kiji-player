@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../domain/download_failure.dart';
@@ -322,6 +321,3 @@ class _FailedCard extends ConsumerWidget {
     );
   }
 }
-
-/// La canción de [track] tiene un estado de descarga que mostrar.
-bool showsDownloadState(Track track) => track.youtubeVideoId != null;

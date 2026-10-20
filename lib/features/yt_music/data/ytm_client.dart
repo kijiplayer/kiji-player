@@ -307,14 +307,7 @@ class YtMusicClient {
   /// Nombre del artista si [card] es la tarjeta de un artista.
   String? _cardArtist(Map card) {
     final run = jsonListAt(card, const ['title', 'runs'])?.whereType<Map>().firstOrNull;
-    final pageType = jsonAt(run, const [
-      'navigationEndpoint',
-      'browseEndpoint',
-      'browseEndpointContextSupportedConfigs',
-      'browseEndpointContextMusicConfig',
-      'pageType',
-    ]);
-    return pageType == 'MUSIC_PAGE_TYPE_ARTIST' ? jsonStringAt(run, const ['text']) : null;
+    return musicPageType(run) == 'MUSIC_PAGE_TYPE_ARTIST' ? jsonStringAt(run, const ['text']) : null;
   }
 
   YtMusicSearchResult? _parseItem(Map<String, dynamic> renderer, {String? fallbackArtist}) {
@@ -456,16 +449,6 @@ class YtMusicClient {
       return null;
     }
   }
-
-  /// Resuelve una URL del archivo de audio entero para [videoId] (para
-  /// descargar: sin las formas HLS, que son segmentos).
-  Future<String?> getAudioStreamUrl(String videoId) async => (await resolveStream(
-    videoId,
-    skipClients: {
-      for (final client in ytPlayerClients)
-        if (client.useHls) client.label,
-    },
-  ))?.url;
 
   /// true si el último [resolveStream] falló por falta de conexión (y no
   /// porque YouTube rechazara a todas las formas).
@@ -853,9 +836,6 @@ class YtMusicClient {
     return formats.whereType<Map>().where((f) => ((f['mimeType'] as String?) ?? '').startsWith('audio/')).toList()
       ..sort((a, b) => lowQuality ? bitrate(a).compareTo(bitrate(b)) : bitrate(b).compareTo(bitrate(a)));
   }
-
-  @visibleForTesting
-  static void resetBenchForTest() => _benchedUntil.clear();
 }
 
 /// Resultado de probar una forma.

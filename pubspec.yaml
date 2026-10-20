@@ -1,32 +1,13 @@
 name: kiji_player
-description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+description: "Free, open-source music player for Android and Windows. No ads, no payments, no tracking."
+publish_to: 'none'
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
+# La escribe tool/version.dart (versión + número de compilación).
 version: 0.5.0-beta.3+4
 
 environment:
   sdk: ^3.13.0
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
@@ -35,80 +16,64 @@ dependencies:
     sdk: flutter
   intl: any
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-  just_audio: ^0.10.6
+  # Estado y red.
   flutter_riverpod: ^2.6.1
-
-  # --- Fase 0/1: red, biblioteca local, permisos, tipografía ---
   dio: ^5.7.0
-
-  # --- Paso 2 (continuación): descifrado de firmas de YouTube ---
-  # Ejecuta el JavaScript real del reproductor de YouTube (no reinventamos
-  # el algoritmo a mano, lo corremos tal cual lo manda YouTube).
-  audio_session: ^0.1.21
-  on_audio_query: ^2.9.0
-  permission_handler: ^11.3.1
-  path_provider: ^2.1.6
   connectivity_plus: ^7.3.2
-  path: ^1.9.1
+
+  # Audio: reproducción, sesión, notificación y PC (media_kit).
+  just_audio: ^0.10.6
+  audio_session: ^0.1.21
   audio_service: ^0.18.19
   just_audio_media_kit: ^2.1.0
   media_kit_libs_windows_audio: ^1.0.9
   media_kit_libs_linux: ^1.2.1
-  file_picker: ^13.1.0
+
+  # Biblioteca local y archivos.
+  on_audio_query: ^2.9.0
   audio_metadata_reader: ^1.8.1
-  ffi: ^2.2.0
-  sqlite3: ^3.7.1
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.6
+  path: ^1.9.1
+  file_picker: ^13.1.0
   archive: ^4.5.2
-  share_plus: ^13.3.1
+  sqlite3: ^3.7.1
+  ffi: ^2.2.0
+
+  # Solver y PO token de YouTube, inicio de sesión y traducción en el teléfono.
   flutter_inappwebview: ^6.2.0-beta.3
+  crypto: ^3.0.7
+
+  # Compartir, abrir enlaces y fotos personalizadas.
+  share_plus: ^13.3.1
+  url_launcher: ^6.3.3
   crop_your_image: ^2.0.1
   image: ^4.12.0
-  crypto: ^3.0.7
-  url_launcher: ^6.3.3
-  flutter_svg: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
   generate: true
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
-  # Kiji Nocturne. Tipografías incluidas en la app (licencia OFL, ver los OFL.txt):
-  # no se descargan de Google al usarla, así nada sale del teléfono sin pedirlo.
-  # Créditos que se muestran en Configuración → Acerca de.
   assets:
+    # Créditos que se muestran en Configuración → Acerca de.
     - CREDITS.md
     # Solver de yt-dlp/ejs para descifrar el audio de YouTube.
     - assets/solver/
     # Traducción en el teléfono: pegamento JS de Bergamot, de Firefox (MPL-2.0).
     - assets/translation/
-    # Logo (Opción B · K de onda); los PNG de esta carpeta son solo para generar íconos.
-    - assets/branding/kiji_logo.svg
     # Las 5 notas de Kiji (bienvenida); se generan con tool/make_kiji_notes.py.
     - assets/sounds/kiji_notes.wav
 
+  # Kiji Nocturne. Tipografías incluidas en la app (licencia OFL, ver los OFL.txt):
+  # no se descargan de Google al usarla, así nada sale del teléfono sin pedirlo.
   fonts:
     - family: SpaceGrotesk
       fonts:
@@ -116,37 +81,6 @@ flutter:
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/jetbrains_mono/JetBrainsMono-Variable.ttf
-
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
 
 # Ícono de la app, generado desde assets/branding/kiji_logo.svg (ver tool/render_logo.dart).
 flutter_launcher_icons:
