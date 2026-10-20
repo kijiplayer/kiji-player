@@ -1,0 +1,21 @@
+# Barra de lenguajes de GitHub (linguist): Kiji está escrito en Dart. No cuentan los archivos que
+# Flutter genera para cada plataforma ni el código de terceros que viaja con la app.
+
+# Plataformas: proyecto base que crea y mantiene Flutter (runner, CMake, Swift, C++, HTML…).
+ios/** linguist-generated
+macos/** linguist-generated
+linux/** linguist-generated
+windows/** linguist-generated
+web/** linguist-generated
+android/app/src/main/res/** linguist-generated
+android/gradle/** linguist-generated
+android/gradle.properties linguist-generated
+android/settings.gradle.kts linguist-generated
+android/build.gradle.kts linguist-generated
+
+# Textos generados por `flutter gen-l10n` desde los .arb.
+lib/l10n/app_localizations*.dart linguist-generated
+
+# Código de terceros, copiado sin modificar (ver CREDITS.md).
+assets/solver/** linguist-vendored
+assets/translation/** linguist-vendored
