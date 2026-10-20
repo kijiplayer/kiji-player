@@ -5891,12 +5891,6 @@ abstract class AppLocalizations {
   /// **'La historia'**
   String get bienvenidaHistoriaTitulo;
 
-  /// No description provided for @bienvenidaBorrador.
-  ///
-  /// In es, this message translates to:
-  /// **'BORRADOR'**
-  String get bienvenidaBorrador;
-
   /// No description provided for @bienvenidaHistoria1.
   ///
   /// In es, this message translates to:

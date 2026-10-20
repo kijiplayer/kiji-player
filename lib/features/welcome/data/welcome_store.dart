@@ -5,11 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import '../../dev_tools/dev_build.dart';
-
-/// La bienvenida está, por ahora, solo en Kiji Dev. Para Kiji basta con cambiar esta línea.
-const welcomeEnabled = isDevBuild;
-
 /// Archivos que dicen "esta persona ya usó Kiji": si hay alguno, la bienvenida no aparece sola.
 const _userDataFiles = [
   'settings.json',

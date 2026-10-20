@@ -59,7 +59,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       });
     });
     // Bienvenida (solo a quien recién instala, una única vez).
-    if (welcomeEnabled) _maybeWelcome();
+    _maybeWelcome();
     // Nunca mientras suena música: si llegó un aviso sonando, se ofrece al pausar.
     ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
       if (!playing) _offerReport();

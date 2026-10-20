@@ -3561,9 +3561,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bienvenidaHistoriaTitulo => 'The story';
 
   @override
-  String get bienvenidaBorrador => 'DRAFT';
-
-  @override
   String get bienvenidaHistoria1 =>
       'Kiji is an independent project. It started from something simple: wanting to listen to music in peace, without ads getting in the way and without having to pay or sign up.';
 

@@ -346,7 +346,7 @@ class _Card extends StatelessWidget {
   }
 }
 
-// --- 3 · La historia (BORRADOR: el texto está en revisión) -------------------------------------
+// --- 3 · La historia ---------------------------------------------------------------------------
 
 class _StoryPage extends StatelessWidget {
   const _StoryPage();
@@ -355,21 +355,7 @@ class _StoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return _Page(
       children: [
-        Row(
-          children: [
-            Flexible(child: Text(tx.bienvenidaHistoriaTitulo, style: KijiText.title(size: 30))),
-            const SizedBox(width: 10),
-            // Se quita cuando se apruebe el texto.
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                border: Border.all(color: KijiColors.cyan.withValues(alpha: 0.6)),
-                borderRadius: BorderRadius.circular(KijiRadii.pill),
-              ),
-              child: Text(tx.bienvenidaBorrador, style: KijiText.mono(size: 10, color: KijiColors.cyan)),
-            ),
-          ],
-        ),
+        Text(tx.bienvenidaHistoriaTitulo, style: KijiText.title(size: 30)),
         const SizedBox(height: 18),
         for (final paragraph in [
           tx.bienvenidaHistoria1,
