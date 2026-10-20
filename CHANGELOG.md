@@ -1,5 +1,23 @@
 # Novedades de Kiji Player
 
+## 0.5.0-beta.3 — 20 de octubre de 2026
+
+**Para actualizar desde 0.5.0-beta.1:** Kiji ahora se firma con una clave nueva, así que Android no
+deja instalarla encima de la anterior. Haz una copia de seguridad (Configuración → Copia de
+seguridad), desinstala la versión vieja, instala esta y restaura la copia.
+
+**En tu idioma**
+- Toda la app está en español y en inglés. Se cambia en Configuración → Apariencia → Idioma, al
+  instante y sin reiniciar.
+- Con la letra del teléfono en grande, ningún texto se corta.
+
+**Bienvenida**
+- La primera vez que abres Kiji, cinco pantallas cortas cuentan qué es y te dejan elegir lo básico.
+  Se puede saltar, y no aparece si ya usabas Kiji. Para verla otra vez: Configuración → Acerca de.
+
+**Arreglos**
+- Salir de Kiji con el gesto de Android (deslizar desde abajo) ya no abre la letra.
+
 ## 0.5.0-beta.1 — 19 de octubre de 2026
 
 La primera versión con número. Es todo lo que Kiji aprendió hasta ahora.
