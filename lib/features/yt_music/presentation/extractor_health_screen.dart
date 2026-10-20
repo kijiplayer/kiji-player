@@ -227,6 +227,7 @@ class _YtDlpCardState extends ConsumerState<_YtDlpCard> {
 
   Future<void> _install() async {
     final engine = ref.read(ytDlpEngineProvider);
+    final settingsNotifier = ref.read(settingsProvider.notifier);
     setState(() {
       _progress = 0;
       _message = null;
@@ -237,13 +238,14 @@ class _YtDlpCardState extends ConsumerState<_YtDlpCard> {
           if (mounted && total > 0) setState(() => _progress = done / total);
         },
       );
-      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytDlpAccepted: true));
+      await settingsNotifier.update((s) => s.copyWith(ytDlpAccepted: true));
+      if (!mounted) return;
       setState(() {
         _installed = true;
         _message = tx.ytDlpListo;
       });
     } catch (error) {
-      setState(() => _message = tx.noSePudoInstalar(error));
+      if (mounted) setState(() => _message = tx.noSePudoInstalar(error));
     } finally {
       if (mounted) setState(() => _progress = null);
     }
@@ -270,9 +272,10 @@ class _YtDlpCardState extends ConsumerState<_YtDlpCard> {
                 Chip(label: Text(tx.instalado)),
                 TextButton(
                   onPressed: () async {
+                    final settingsNotifier = ref.read(settingsProvider.notifier);
                     await ref.read(ytDlpEngineProvider).remove();
-                    await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytDlpAccepted: false));
-                    setState(() => _installed = false);
+                    await settingsNotifier.update((s) => s.copyWith(ytDlpAccepted: false));
+                    if (mounted) setState(() => _installed = false);
                   },
                   child: Text(tx.quitarYtDlp),
                 ),

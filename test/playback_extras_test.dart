@@ -46,10 +46,12 @@ class _FakeVolume implements SystemVolumeMonitor {
   final controller = StreamController<double>.broadcast();
   @override
   Stream<double> get volume => controller.stream;
+  Future<void> close() => controller.close();
 }
 
 class _FakeOutputs implements AudioOutputMonitor {
   final controller = StreamController<AudioOutputKind>.broadcast();
+  Future<void> close() => controller.close();
   @override
   Future<AudioOutputKind> current() async => AudioOutputKind.bluetooth;
   @override

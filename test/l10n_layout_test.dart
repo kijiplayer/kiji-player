@@ -1,5 +1,7 @@
 // En inglés y con letra grande nada se tiene que cortar: si un texto no entra, Flutter avisa
 // "A RenderFlex overflowed…" y la prueba falla.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -102,7 +104,7 @@ void main() {
       await _settle(tester);
 
       // Configuración entera, de arriba a abajo.
-      SettingsScreen.open(kijiNavigatorKey.currentContext!);
+      unawaited(SettingsScreen.open(kijiNavigatorKey.currentContext!));
       await _settle(tester);
       final list = find.byType(Scrollable).first;
       for (var i = 0; i < 40; i++) {
@@ -120,7 +122,7 @@ void main() {
 
     await tester.pumpWidget(_app());
     await _settle(tester);
-    SettingsScreen.open(kijiNavigatorKey.currentContext!);
+    unawaited(SettingsScreen.open(kijiNavigatorKey.currentContext!));
     await _settle(tester);
     await tester.enterText(find.byType(TextField).first, 'idioma');
     await _settle(tester);

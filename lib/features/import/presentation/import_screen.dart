@@ -47,7 +47,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       // valida al leerlo.
       type: FileType.any,
     );
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     final file = files.first;
     setState(() {
       _step = _Step.reading;
@@ -64,6 +64,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         baseDir: file.path == null ? null : _parentOf(file.path!),
       );
       if (bundle.isEmpty) throw ImportFormatException(tx.elArchivoNoTieneCancionesPara);
+      if (!mounted) return;
       setState(() => _step = _Step.searching);
       final local = await ref.read(localTracksProvider.future);
       final plan = await prepareImport(

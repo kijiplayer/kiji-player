@@ -298,8 +298,10 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
 
   Future<void> _test() async {
     final service = ref.read(translationServiceProvider);
+    final settingsNotifier = ref.read(settingsProvider.notifier);
     final typed = _key.text.trim();
     final key = typed.isNotEmpty ? typed : await service.secrets.read(geminiKeySecret);
+    if (!mounted) return;
     if (key == null || key.isEmpty) {
       setState(() => _status = tx.pegaLaClavePrimero);
       return;
@@ -315,17 +317,17 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
         if (!saved) throw GeminiException(tx.noSePudoGuardarLaClave);
         _key.clear();
       }
-      final settings = ref.read(settingsProvider);
-      if (settings.geminiModel == null && models.isNotEmpty) {
-        await ref.read(settingsProvider.notifier).update((s) => s.copyWith(geminiModel: models.first.name));
+      if (models.isNotEmpty) {
+        await settingsNotifier.update((s) => s.geminiModel == null ? s.copyWith(geminiModel: models.first.name) : s);
       }
+      if (!mounted) return;
       setState(() {
         _models = models;
         _status = models.isEmpty ? tx.laClaveAndaSinModelos : tx.laClaveAndaGuardadaCifrada;
       });
       await widget.onChanged();
     } on GeminiException catch (error) {
-      setState(() => _status = tx.mientrasTantoPuedesTraducirEnEl(error.message));
+      if (mounted) setState(() => _status = tx.mientrasTantoPuedesTraducirEnEl(error.message));
     } finally {
       if (mounted) setState(() => _testing = false);
     }
@@ -387,8 +389,10 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
                 icon: const Icon(Icons.delete_outline_rounded),
                 label: Text(tx.borrarClave),
                 onPressed: () async {
+                  final settingsNotifier = ref.read(settingsProvider.notifier);
                   await ref.read(translationServiceProvider).secrets.delete(geminiKeySecret);
-                  await ref.read(settingsProvider.notifier).update((s) => s.copyWith(useGemini: false));
+                  await settingsNotifier.update((s) => s.copyWith(useGemini: false));
+                  if (!mounted) return;
                   setState(() {
                     _models = null;
                     _status = tx.claveBorradaDeEsteDispositivo;

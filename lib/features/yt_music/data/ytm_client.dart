@@ -17,6 +17,7 @@ import 'webview_ejs_solver.dart';
 import 'ytm_browse_parser.dart';
 import 'yt_clients.dart';
 import '../../account/domain/yt_session.dart';
+import '../../../utils/json_access.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
@@ -305,12 +306,15 @@ class YtMusicClient {
 
   /// Nombre del artista si [card] es la tarjeta de un artista.
   String? _cardArtist(Map card) {
-    final runs = (card['title'] as Map?)?['runs'] as List?;
-    final run = runs?.whereType<Map>().firstOrNull;
-    final pageType =
-        (((run?['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?)?['browseEndpointContextSupportedConfigs']
-            as Map?)?['browseEndpointContextMusicConfig']?['pageType'];
-    return pageType == 'MUSIC_PAGE_TYPE_ARTIST' ? run!['text'] as String? : null;
+    final run = jsonListAt(card, const ['title', 'runs'])?.whereType<Map>().firstOrNull;
+    final pageType = jsonAt(run, const [
+      'navigationEndpoint',
+      'browseEndpoint',
+      'browseEndpointContextSupportedConfigs',
+      'browseEndpointContextMusicConfig',
+      'pageType',
+    ]);
+    return pageType == 'MUSIC_PAGE_TYPE_ARTIST' ? jsonStringAt(run, const ['text']) : null;
   }
 
   YtMusicSearchResult? _parseItem(Map<String, dynamic> renderer, {String? fallbackArtist}) {
@@ -323,9 +327,8 @@ class YtMusicClient {
       final subtitleRuns = _extractRuns(flexColumns, 1);
       final subtitle = subtitleRuns == null ? null : parseSubtitleRuns(subtitleRuns);
 
-      final thumbnails =
-          ((renderer['thumbnail'] as Map?)?['musicThumbnailRenderer'] as Map?)?['thumbnail']?['thumbnails'] as List?;
-      final thumbnailUrl = thumbnails != null && thumbnails.isNotEmpty ? thumbnails.last['url'] as String? : null;
+      final thumbnails = jsonListAt(renderer, const ['thumbnail', 'musicThumbnailRenderer', 'thumbnail', 'thumbnails']);
+      final thumbnailUrl = jsonStringAt(thumbnails?.lastOrNull, const ['url']);
 
       return YtMusicSearchResult(
         videoId: videoId,
@@ -356,13 +359,11 @@ class YtMusicClient {
   }
 
   String? _extractText(List? flexColumns, int index) {
-    return _extractRuns(flexColumns, index)?.map((run) => (run as Map)['text']).join();
+    return _extractRuns(flexColumns, index)?.map((run) => jsonStringAt(run, const ['text']) ?? '').join();
   }
 
   List<dynamic>? _extractRuns(List? flexColumns, int index) {
-    if (flexColumns == null || index >= flexColumns.length) return null;
-    final column = flexColumns[index] as Map?;
-    final runs = (column?['musicResponsiveListItemFlexColumnRenderer'] as Map?)?['text']?['runs'] as List?;
+    final runs = jsonListAt(flexColumns, [index, 'musicResponsiveListItemFlexColumnRenderer', 'text', 'runs']);
     if (runs == null || runs.isEmpty) return null;
     return runs;
   }
@@ -644,7 +645,7 @@ class YtMusicClient {
 
     final playability = data['playabilityStatus'] as Map?;
     final formats = sortAudioFormats(
-      (data['streamingData']?['adaptiveFormats'] as List?) ?? const [],
+      jsonListAt(data, const ['streamingData', 'adaptiveFormats']) ?? const [],
       lowQuality: lowQuality,
     );
     if (formats.isEmpty) {
@@ -739,7 +740,7 @@ class YtMusicClient {
     Stopwatch watch,
     StreamAttempt Function(String) fail,
   ) async {
-    final manifest = data['streamingData']?['hlsManifestUrl'] as String?;
+    final manifest = jsonStringAt(data, const ['streamingData', 'hlsManifestUrl']);
     if (manifest == null) return fail(tx.youtubeNoEntregoLaListaHls);
     Future<Response<String>> text(String url) => _playerDio.get<String>(
       url,

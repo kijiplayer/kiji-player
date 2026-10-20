@@ -83,6 +83,7 @@ class ExtractorAutoTests {
       if (!await file.exists()) return 0;
       final json = jsonDecode(await file.readAsString());
       await file.delete();
+      if (json is! Map) return 0;
       var count = 0;
       for (final r in (json['results'] as List? ?? const [])) {
         if (r is! Map) continue;

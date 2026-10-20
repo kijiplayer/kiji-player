@@ -1,5 +1,7 @@
 import 'package:kiji_player/l10n/l10n.dart';
 
+import '../../../utils/json_access.dart';
+
 /// Lo que se puede sacar del subtítulo de un resultado de YouTube Music,
 /// que viene todo junto: "Canción • Daft Punk • Discovery • 5:20" o
 /// "Vídeo • Will Clarke • 927 visualizaciones • 4:01".
@@ -49,15 +51,19 @@ String cleanArtistText(String text) => extractArtist(text) ?? unknownArtist;
 /// Interpreta los `runs` del subtítulo. Usa el tipo de página de cada run
 /// (artista o álbum) cuando YouTube lo informa, y el texto si no.
 ParsedSubtitle parseSubtitleRuns(List<dynamic> runs) {
-  final text = runs.map((run) => (run as Map)['text'] ?? '').join();
+  final text = runs.map((run) => jsonStringAt(run, const ['text']) ?? '').join();
   final segments = text.split(_separator).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
 
   String? album;
   for (final run in runs.whereType<Map>()) {
-    final pageType = (((run['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?)?[
-            'browseEndpointContextSupportedConfigs'] as Map?)?['browseEndpointContextMusicConfig']
-        ?['pageType'];
-    if (pageType == 'MUSIC_PAGE_TYPE_ALBUM') album = run['text'] as String?;
+    final pageType = jsonAt(run, const [
+      'navigationEndpoint',
+      'browseEndpoint',
+      'browseEndpointContextSupportedConfigs',
+      'browseEndpointContextMusicConfig',
+      'pageType',
+    ]);
+    if (pageType == 'MUSIC_PAGE_TYPE_ALBUM') album = jsonStringAt(run, const ['text']);
   }
 
   final durationText = segments.where(_durationPattern.hasMatch).lastOrNull;
