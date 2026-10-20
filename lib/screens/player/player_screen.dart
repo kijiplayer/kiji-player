@@ -20,6 +20,7 @@ import '../../utils/duration_formatter.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/global_mini_player.dart';
 import '../../widgets/mini_player.dart' show coverHeroTag;
+import 'lyrics_swipe.dart';
 import 'player_motion.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/glass.dart';
@@ -76,12 +77,10 @@ class PlayerScreen extends ConsumerWidget {
         fit: StackFit.expand,
         children: [
           PlayerHalo(track: track, playing: playback.isPlaying),
-          // Deslizar hacia arriba en cualquier parte del reproductor abre la letra.
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onVerticalDragEnd: (details) {
-              if ((details.primaryVelocity ?? 0) < -350) LyricsScreen.open(context);
-            },
+          // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
+          // del sistema (salir de Kiji desde abajo no debe abrir la letra).
+          LyricsSwipeDetector(
+            onSwipeUp: () => LyricsScreen.open(context),
             child: SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
