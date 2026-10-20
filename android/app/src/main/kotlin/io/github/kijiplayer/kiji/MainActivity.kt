@@ -1,4 +1,4 @@
-package com.example.kiji_player
+package io.github.kijiplayer.kiji
 
 import android.content.Context
 import android.database.ContentObserver
@@ -15,7 +15,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import com.example.kiji_player.extractor.ExtractorChannel
+import io.github.kijiplayer.kiji.extractor.ExtractorChannel
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel

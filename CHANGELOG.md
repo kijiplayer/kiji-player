@@ -1,5 +1,21 @@
 # Novedades de Kiji Player
 
+## 0.5.1 — 20 de octubre de 2026
+
+**Kiji tiene un identificador nuevo: hay que reinstalar una vez**
+- En Android, Kiji pasa a llamarse por dentro `io.github.kijiplayer.kiji`, su nombre definitivo
+  para repositorios como IzzyOnDroid. Android la ve como otra app, así que esta vez no se actualiza
+  encima: se instala al lado de la anterior.
+- Para llevarte todo: en la Kiji anterior, Configuración → Copia de seguridad → "Hacer una copia
+  ahora". En la nueva, Configuración → Copia de seguridad → elige esa copia (está en
+  Documentos/Kiji) y restaúrala. Cuando veas todo bien, desinstala la anterior.
+- Las canciones descargadas se vuelven a bajar; las playlists, me gusta, historial y ajustes
+  vienen en la copia.
+
+**Descargas**
+- Además del APK de siempre, cada versión trae uno por tipo de procesador (arm64-v8a,
+  armeabi-v7a, x86_64), más livianos.
+
 ## 0.5.0-beta.4 — 20 de octubre de 2026
 
 **Traducir letras, más simple**

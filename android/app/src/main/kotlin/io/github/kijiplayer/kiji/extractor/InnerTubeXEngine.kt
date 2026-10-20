@@ -4,7 +4,7 @@
 // Cambios de Kiji: sin cuenta (anónimo), clasificación de errores para la Salud del Extractor,
 // HLS permitido (just_audio lo reproduce) y respuesta en un mapa para el canal `kiji/innertubex`.
 
-package com.example.kiji_player.extractor
+package io.github.kijiplayer.kiji.extractor
 
 import android.content.Context
 import android.content.SharedPreferences

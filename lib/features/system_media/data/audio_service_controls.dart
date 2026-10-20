@@ -25,7 +25,7 @@ class AudioServiceControls implements SystemMediaControls {
     final handler = await AudioService.init(
       builder: _KijiAudioHandler.new,
       config: AudioServiceConfig(
-        androidNotificationChannelId: 'com.example.kiji_player.playback',
+        androidNotificationChannelId: 'io.github.kijiplayer.kiji.playback',
         androidNotificationChannelName: tx.reproduccion2,
         androidNotificationChannelDescription: tx.controlesDeLaMusicaQueEsta,
         // En pausa, la notificación se puede descartar deslizándola.

@@ -1,0 +1,2 @@
+• Identificador nuevo (io.github.kijiplayer.kiji): se instala una vez al lado de la Kiji anterior. Para llevarte tus datos, haz una copia en la anterior (Configuración → Copia de seguridad), restáurala en la nueva y después desinstala la anterior.
+• Cada versión trae además APK más livianos por tipo de procesador (arm64-v8a, armeabi-v7a, x86_64).

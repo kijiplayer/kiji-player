@@ -17,4 +17,4 @@
 -dontwarn io.ktor.**
 
 # El extractor de Kiji (canal kiji/innertubex, tokens y la prueba diaria).
--keep class com.example.kiji_player.** { *; }
+-keep class io.github.kijiplayer.kiji.** { *; }

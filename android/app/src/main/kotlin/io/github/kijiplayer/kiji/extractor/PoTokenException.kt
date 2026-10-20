@@ -3,7 +3,7 @@
 // Archivo original: app/src/main/kotlin/.../utils/potoken/PoTokenException.kt (Echo 1.4.3).
 // Cambios de Kiji: paquete propio, registros con android.util.Log y sin dependencias de Echo.
 
-package com.example.kiji_player.extractor
+package io.github.kijiplayer.kiji.extractor
 
 class PoTokenException(message: String) : Exception(message)
 

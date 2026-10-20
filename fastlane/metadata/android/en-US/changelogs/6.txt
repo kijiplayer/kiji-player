@@ -1,0 +1,2 @@
+• New app identifier (io.github.kijiplayer.kiji): install it once next to the old Kiji. To keep your data, make a backup in the old one (Settings → Backup), restore it in the new one, then uninstall the old one.
+• Each release now also has smaller APKs per processor type (arm64-v8a, armeabi-v7a, x86_64).

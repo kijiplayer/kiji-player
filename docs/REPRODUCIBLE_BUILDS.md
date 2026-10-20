@@ -3,7 +3,7 @@
 The APK published on [Releases](https://github.com/kijiplayer/kiji-player/releases) can be rebuilt
 from the tagged source and compared file by file, except for the signature.
 
-## Environment used for 0.5.0-beta.4
+## Environment used for 0.5.1
 
 | | |
 |---|---|
@@ -15,10 +15,13 @@ from the tagged source and compared file by file, except for the signature.
 ## Build
 
 ```bash
-git checkout v0.5.0-beta.4
+git checkout v0.5.1
 flutter pub get
 flutter build apk --release --flavor prod
 ```
+
+The per-architecture APKs (`Kiji-Player-<version>-arm64-v8a.apk` and the others) are the same build
+with `--target-platform android-arm64`, `android-arm` or `android-x64`.
 
 The unsigned contents of `build/app/outputs/flutter-apk/app-prod-release.apk` match the published
 APK when the project is built from a checkout at the same path. Flutter writes the absolute path of
@@ -31,7 +34,7 @@ Every entry outside `META-INF/` (the signature) must be identical, for example w
 [diffoscope](https://diffoscope.org/):
 
 ```bash
-diffoscope Kiji-Player-0.5.0-beta.4.apk build/app/outputs/flutter-apk/app-prod-release.apk
+diffoscope Kiji-Player-0.5.1.apk build/app/outputs/flutter-apk/app-prod-release.apk
 ```
 
 Only `META-INF/` should differ.

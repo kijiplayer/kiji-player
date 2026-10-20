@@ -3,7 +3,7 @@
 // Archivo original: app/src/main/kotlin/.../utils/potoken/PoTokenGenerator.kt (Echo 1.4.3).
 // Cambios de Kiji: contexto inyectado, sin runBlocking (todo suspendido), registros sin tokens.
 
-package com.example.kiji_player.extractor
+package io.github.kijiplayer.kiji.extractor
 
 import android.content.Context
 import android.util.Log

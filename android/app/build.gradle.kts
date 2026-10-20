@@ -14,7 +14,7 @@ val kijiKeyProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.kiji_player"
+    namespace = "io.github.kijiplayer.kiji"
     // 37: lo exige InnerTubeX 0.10.0. No cambia la versión mínima de Android.
     compileSdk {
         version = release(37) { minorApiLevel = 0 }
@@ -27,7 +27,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.kiji_player"
+        applicationId = "io.github.kijiplayer.kiji"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -1,4 +1,4 @@
-package com.example.kiji_player.extractor
+package io.github.kijiplayer.kiji.extractor
 
 import android.content.Context
 import android.util.Log
