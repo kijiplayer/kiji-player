@@ -2424,5 +2424,16 @@
   "novedadesDeEstaVersion": "Novedades de esta versión",
   "novedadesDeEstaVersionDescripcion": "Lo que cambió en Kiji {version}",
   "@novedadesDeEstaVersionDescripcion": {"placeholders": {"version": {"type": "String"}}},
-  "estaVersionNoTraeNovedades": "Esta versión no trae una lista de novedades."
+  "estaVersionNoTraeNovedades": "Esta versión no trae una lista de novedades.",
+  "menuLetraLeer": "Leer",
+  "menuLetraAjustar": "Ajustar y compartir",
+  "menuLetraSincronizar": "Sincronizar",
+  "menuLetraBuscarOtra": "Buscar otra",
+  "menuLetraImportar": "Importar .lrc",
+  "menuLetraElegirFuente": "Elegir fuente",
+  "tamanoDeLasLetras": "Tamaño de las letras",
+  "tamanoDeLasLetrasDescripcion": "Qué tan grande se ve la letra de las canciones",
+  "tamanoChico": "Chico",
+  "tamanoNormal": "Normal",
+  "tamanoGrande": "Grande"
 }

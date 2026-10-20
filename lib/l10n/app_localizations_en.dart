@@ -3772,4 +3772,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get estaVersionNoTraeNovedades =>
       'This version has no list of changes.';
+
+  @override
+  String get menuLetraLeer => 'Reading';
+
+  @override
+  String get menuLetraAjustar => 'Adjust and share';
+
+  @override
+  String get menuLetraSincronizar => 'Sync';
+
+  @override
+  String get menuLetraBuscarOtra => 'Search again';
+
+  @override
+  String get menuLetraImportar => 'Import .lrc';
+
+  @override
+  String get menuLetraElegirFuente => 'Choose source';
+
+  @override
+  String get tamanoDeLasLetras => 'Lyrics size';
+
+  @override
+  String get tamanoDeLasLetrasDescripcion => 'How big song lyrics look';
+
+  @override
+  String get tamanoChico => 'Small';
+
+  @override
+  String get tamanoNormal => 'Normal';
+
+  @override
+  String get tamanoGrande => 'Large';
 }

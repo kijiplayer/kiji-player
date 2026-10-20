@@ -24,6 +24,7 @@ import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
+import '../../lyrics/presentation/lyrics_menu_sheet.dart';
 import '../../reports/presentation/reports_screen.dart';
 import '../../recommendations/data/search_history.dart';
 import '../../updates/updates_screen.dart';
@@ -336,6 +337,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
       // Letras
+      SettingOption(
+        section: SettingsSection.lyrics,
+        title: tx.tamanoDeLasLetras,
+        subtitle: tx.tamanoDeLasLetrasDescripcion,
+        keywords: const ['grande', 'chica', 'leer', 'accesibilidad'],
+        builder: (context, ref) => choiceTile<String>(
+          context,
+          icon: Icons.format_size_rounded,
+          title: tx.tamanoDeLasLetras,
+          value: ref.watch(settingsProvider.select((s) => s.lyricsSize)),
+          options: AppSettings.lyricsSizes,
+          label: lyricsSizeLabel,
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsSize: value)),
+        ),
+      ),
       SettingOption(
         section: SettingsSection.lyrics,
         title: tx.fuentesDeLetras,

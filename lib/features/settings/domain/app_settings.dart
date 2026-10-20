@@ -329,3 +329,10 @@ bool use24HourClock(String timeFormat, {required bool system}) => switch (timeFo
       '24' => true,
       _ => system,
     };
+
+/// Cuánto se agranda la letra de las canciones según "Tamaño de las letras".
+double lyricsScaleFor(String size) => switch (size) {
+  'small' => 0.85,
+  'large' => 1.2,
+  _ => 1.0,
+};

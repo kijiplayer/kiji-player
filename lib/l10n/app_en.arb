@@ -1017,5 +1017,16 @@
   "novedadesDeEstaVersion": "What's new in this version",
   "novedadesDeEstaVersionDescripcion": "What changed in Kiji {version}",
   "@novedadesDeEstaVersionDescripcion": {"placeholders": {"version": {"type": "String"}}},
-  "estaVersionNoTraeNovedades": "This version has no list of changes."
+  "estaVersionNoTraeNovedades": "This version has no list of changes.",
+  "menuLetraLeer": "Reading",
+  "menuLetraAjustar": "Adjust and share",
+  "menuLetraSincronizar": "Sync",
+  "menuLetraBuscarOtra": "Search again",
+  "menuLetraImportar": "Import .lrc",
+  "menuLetraElegirFuente": "Choose source",
+  "tamanoDeLasLetras": "Lyrics size",
+  "tamanoDeLasLetrasDescripcion": "How big song lyrics look",
+  "tamanoChico": "Small",
+  "tamanoNormal": "Normal",
+  "tamanoGrande": "Large"
 }

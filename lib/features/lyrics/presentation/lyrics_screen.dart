@@ -19,12 +19,14 @@ import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../customize/presentation/track_text.dart';
 import '../../settings/data/settings_store.dart';
+import '../../settings/domain/app_settings.dart';
 import '../data/lrclib_client.dart';
 import '../data/lyrics_repository.dart';
 import '../domain/lyrics.dart';
 import '../lyrics_provider.dart';
 import '../../translation/presentation/translate_sheet.dart';
 import '../../translation/presentation/translated_lyrics.dart';
+import 'lyrics_menu_sheet.dart';
 import 'lyrics_share.dart';
 import 'lyrics_sources_sheet.dart';
 
@@ -247,61 +249,69 @@ class _Header extends ConsumerWidget {
               ],
             ),
           ),
-          PopupMenuButton<String>(
+          GlassIconButton(
+            icon: Icons.more_horiz_rounded,
             tooltip: tx.opcionesDeLaLetra,
-            icon: const Icon(Icons.more_horiz_rounded, color: Colors.white70),
-            onSelected: (action) {
-              switch (action) {
-                case 'source':
-                  showLyricsSourcesSheet(
-                    context,
-                    request,
-                    current: lyrics?.source,
-                    onSearchByHand: () => searchLyricsManually(context, ref, request),
-                    onImport: () => importLrc(context, ref, request),
-                  );
-                case 'offset':
-                  ref.read(_adjustingOffsetProvider.notifier).state = true;
-                case 'share':
-                  ref.read(lyricsSelectionModeProvider.notifier).state = true;
-                case 'translate':
-                  // Prendida: se quita. Apagada: se elige cómo traducir (teléfono o IA).
-                  if (ref.read(lyricsTranslationOnProvider)) {
-                    ref.read(lyricsTranslationOnProvider.notifier).state = false;
-                  } else {
-                    showTranslateSheet(context, ref);
-                  }
-              }
-            },
-            itemBuilder: (context) {
-              PopupMenuItem<String> item(String value, IconData icon, String text) => PopupMenuItem(
-                value: value,
-                child: Row(
-                  children: [
-                    Icon(icon, size: 20),
-                    const SizedBox(width: 12),
-                    Flexible(child: Text(text)),
-                  ],
-                ),
-              );
+            onPressed: () {
               final hasLyrics = !(lyrics?.isEmpty ?? true);
-              return [
-                if (hasLyrics)
-                  item(
-                    'translate',
-                    Icons.translate_rounded,
-                    ref.read(lyricsTranslationOnProvider) ? tx.quitarLaTraduccion : tx.traducir,
+              final translating = ref.read(lyricsTranslationOnProvider);
+              showLyricsMenuSheet(
+                context,
+                groups: [
+                  LyricsMenuGroup(tx.menuLetraLeer, [
+                    if (hasLyrics)
+                      LyricsMenuAction(
+                        icon: Icons.translate_rounded,
+                        label: translating ? tx.quitarLaTraduccion : tx.traducir,
+                        active: translating,
+                        // Prendida: se quita. Apagada: se elige cómo traducir (teléfono o IA).
+                        onTap: () => translating
+                            ? ref.read(lyricsTranslationOnProvider.notifier).state = false
+                            : showTranslateSheet(context, ref),
+                      ),
+                  ]),
+                  LyricsMenuGroup(tx.menuLetraAjustar, [
+                    if (lyrics?.isSynced ?? false)
+                      LyricsMenuAction(
+                        icon: Icons.sync_rounded,
+                        label: tx.menuLetraSincronizar,
+                        onTap: () => ref.read(_adjustingOffsetProvider.notifier).state = true,
+                      ),
+                    if (hasLyrics)
+                      LyricsMenuAction(
+                        icon: Icons.ios_share_rounded,
+                        label: tx.compartirLineas,
+                        onTap: () => ref.read(lyricsSelectionModeProvider.notifier).state = true,
+                      ),
+                  ]),
+                  LyricsMenuGroup(
+                    lyrics?.source == null ? tx.fuenteDeLaLetra : tx.fuente(lyrics!.source!.label),
+                    [
+                      LyricsMenuAction(
+                        icon: Icons.library_books_outlined,
+                        label: tx.menuLetraElegirFuente,
+                        onTap: () => showLyricsSourcesSheet(
+                          context,
+                          request,
+                          current: lyrics?.source,
+                          onSearchByHand: () => searchLyricsManually(context, ref, request),
+                          onImport: () => importLrc(context, ref, request),
+                        ),
+                      ),
+                      LyricsMenuAction(
+                        icon: Icons.manage_search_rounded,
+                        label: tx.menuLetraBuscarOtra,
+                        onTap: () => searchLyricsManually(context, ref, request),
+                      ),
+                      LyricsMenuAction(
+                        icon: Icons.file_open_outlined,
+                        label: tx.menuLetraImportar,
+                        onTap: () => importLrc(context, ref, request),
+                      ),
+                    ],
                   ),
-                if (lyrics?.isSynced ?? false) item('offset', Icons.sync_rounded, tx.sincronizarAdelantarOAtrasar),
-                if (hasLyrics) item('share', Icons.ios_share_rounded, tx.compartirLineas),
-                // Sin letra no hay opciones arriba: sin divisor suelto.
-                if (hasLyrics) const PopupMenuDivider(),
-                item(
-                  'source',
-                  Icons.library_books_outlined,
-                  lyrics?.source == null ? tx.elegirLaFuente : tx.fuente(lyrics!.source!.label),
-                ),
-              ];
+                ],
+              );
             },
           ),
         ],
@@ -463,6 +473,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
 
   @override
   Widget build(BuildContext context) {
+    final scale = lyricsScaleFor(ref.watch(settingsProvider.select((s) => s.lyricsSize)));
     final offset = widget.trackId == null
         ? Duration.zero
         : ref.watch(lyricsOffsetProvider(widget.trackId!)).valueOrNull ?? Duration.zero;
@@ -524,7 +535,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                         duration: calm ? Duration.zero : KijiMotion.normal,
                         curve: Curves.easeOutCubic,
                         style: KijiText.title(
-                          size: isCurrent ? 30 : 24,
+                          size: (isCurrent ? 30 : 24) * scale,
                           weight: isCurrent ? FontWeight.w800 : FontWeight.w700,
                           color: Colors.white.withValues(alpha: isCurrent ? 1 : (isPast ? 0.3 : 0.48)),
                         ).copyWith(height: 1.2),
@@ -540,7 +551,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                             translation,
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: isCurrent ? 0.8 : 0.3),
-                              fontSize: isCurrent ? 18 : 16,
+                              fontSize: (isCurrent ? 18 : 16) * scale,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -671,6 +682,7 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
 
   @override
   Widget build(BuildContext context) {
+    final scale = lyricsScaleFor(ref.watch(settingsProvider.select((s) => s.lyricsSize)));
     final lines = widget.text.split('\n');
     final selecting = ref.watch(lyricsSelectionModeProvider);
     return Stack(
@@ -702,13 +714,16 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(lines[i], style: KijiText.title(size: 22, weight: FontWeight.w600).copyWith(height: 1.3)),
+                    Text(
+                      lines[i],
+                      style: KijiText.title(size: 22 * scale, weight: FontWeight.w600).copyWith(height: 1.3),
+                    ),
                     if (widget.translations != null &&
                         i < widget.translations!.length &&
                         (widget.translations![i]?.isNotEmpty ?? false))
                       Text(
                         widget.translations![i]!,
-                        style: const TextStyle(color: Colors.white60, fontSize: 16, fontStyle: FontStyle.italic),
+                        style: TextStyle(color: Colors.white60, fontSize: 16 * scale, fontStyle: FontStyle.italic),
                       ),
                   ],
                 ),

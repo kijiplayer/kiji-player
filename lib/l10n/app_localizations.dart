@@ -6166,6 +6166,72 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Esta versión no trae una lista de novedades.'**
   String get estaVersionNoTraeNovedades;
+
+  /// No description provided for @menuLetraLeer.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer'**
+  String get menuLetraLeer;
+
+  /// No description provided for @menuLetraAjustar.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustar y compartir'**
+  String get menuLetraAjustar;
+
+  /// No description provided for @menuLetraSincronizar.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar'**
+  String get menuLetraSincronizar;
+
+  /// No description provided for @menuLetraBuscarOtra.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar otra'**
+  String get menuLetraBuscarOtra;
+
+  /// No description provided for @menuLetraImportar.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar .lrc'**
+  String get menuLetraImportar;
+
+  /// No description provided for @menuLetraElegirFuente.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir fuente'**
+  String get menuLetraElegirFuente;
+
+  /// No description provided for @tamanoDeLasLetras.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño de las letras'**
+  String get tamanoDeLasLetras;
+
+  /// No description provided for @tamanoDeLasLetrasDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué tan grande se ve la letra de las canciones'**
+  String get tamanoDeLasLetrasDescripcion;
+
+  /// No description provided for @tamanoChico.
+  ///
+  /// In es, this message translates to:
+  /// **'Chico'**
+  String get tamanoChico;
+
+  /// No description provided for @tamanoNormal.
+  ///
+  /// In es, this message translates to:
+  /// **'Normal'**
+  String get tamanoNormal;
+
+  /// No description provided for @tamanoGrande.
+  ///
+  /// In es, this message translates to:
+  /// **'Grande'**
+  String get tamanoGrande;
 }
 
 class _AppLocalizationsDelegate
