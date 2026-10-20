@@ -1,40 +1,45 @@
 <p align="center">
-  <img src="assets/branding/kiji_logo.svg" width="112" height="112" alt="Logo de Kiji Player">
+  <b>English</b> | <a href="README.es.md">Español</a>
+</p>
+
+<p align="center">
+  <img src="assets/branding/kiji_logo.svg" width="112" height="112" alt="Kiji Player logo">
 </p>
 
 <h1 align="center">Kiji Player</h1>
 
 <p align="center">
-  Un reproductor de música libre para Android y Windows.<br>
-  Sin cuentas, sin anuncios y sin telemetría.
+  A free, open-source music player for Android and Windows.<br>
+  No ads, no payments, no tracking.
 </p>
 
 ---
 
-Kiji reproduce tu música guardada y la de YouTube Music, de forma anónima. Todo lo tuyo (la cola,
-las playlists, el historial y las descargas) se queda en tu dispositivo.
+Kiji plays the music on your device and from YouTube Music, anonymously. Everything that is yours
+(the queue, playlists, history and downloads) stays on your device.
 
-- Descargas para escuchar sin conexión, de una canción o de playlists enteras.
-- Letras sincronizadas, con traducción en el propio teléfono.
-- Inicio con recomendaciones calculadas en tu dispositivo.
-- Temporizador para dormir, ecualizador, transición suave entre canciones y copia de seguridad.
-- Importa playlists desde Echo Music, Metrolist, `.m3u` y otros formatos.
+- Downloads to listen offline, one song or whole playlists.
+- Synced lyrics, with translation done on the phone itself.
+- A home screen with recommendations calculated on your device.
+- Sleep timer, equalizer, crossfade between songs and backups.
+- Imports playlists from Echo Music, Metrolist, `.m3u` and other formats.
+- In English and Spanish.
 
-## Capturas
+## Screenshots
 
 <p align="center">
-  <img src="docs/capturas/reproductor.png" width="200" alt="Reproductor">
-  <img src="docs/capturas/playlist.png" width="200" alt="Una playlist">
-  <img src="docs/capturas/traduccion.png" width="200" alt="Letra traducida">
+  <img src="docs/capturas/reproductor.png" width="200" alt="Player">
+  <img src="docs/capturas/playlist.png" width="200" alt="A playlist">
+  <img src="docs/capturas/traduccion.png" width="200" alt="Lyrics translation">
 </p>
 
-## Instalación
+## Installation
 
-Todavía no hay versiones publicadas. Cuando las haya, estarán en
-[Releases](https://github.com/kijiplayer/kiji-player/releases): un APK para Android 7 o más nuevo y un
-instalador para Windows 10/11.
+There are no published versions yet. When there are, they will be on
+[Releases](https://github.com/kijiplayer/kiji-player/releases): an APK for Android 7 or newer and an
+installer for Windows 10/11.
 
-Para compilarlo tú mismo necesitas [Flutter](https://flutter.dev) 3.47 o más nuevo:
+To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 
 ```bash
 flutter pub get
@@ -42,14 +47,16 @@ flutter build apk --flavor prod   # Android
 flutter build windows             # Windows
 ```
 
-## Licencia y créditos
+## License and credits
 
-Kiji es software libre bajo la licencia [GNU GPL-3.0](LICENSE).
+Kiji is free software under the [GNU GPL-3.0](LICENSE) license.
 
-Se basa en el trabajo de [Echo Music](https://github.com/EchoMusicApp/Echo-Music) y
-[Metrolist](https://github.com/MetrolistGroup/Metrolist), dos reproductores libres para Android, y
-de los proyectos de los que ellos descienden. La lista completa, con qué se tomó de cada uno, está
-en [CREDITS.md](CREDITS.md).
+It builds on the work of [Echo Music](https://github.com/EchoMusicApp/Echo-Music) and
+[Metrolist](https://github.com/MetrolistGroup/Metrolist), two free music players for Android, and of
+the projects they come from. The full list, with what was taken from each one, is in
+[CREDITS.md](CREDITS.md).
 
-Kiji es un proyecto independiente, compatible con YouTube Music. No está afiliado ni respaldado por
-Google ni YouTube.
+Kiji is built with the help of AI, and every change is reviewed and approved by a person.
+
+Kiji is an independent project, compatible with YouTube Music. It is not affiliated with or endorsed
+by Google or YouTube.
