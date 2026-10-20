@@ -4,10 +4,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
 import 'features/dev_tools/dev_build.dart';
 import 'features/dev_tools/frame_stats.dart';
+import 'features/migrations/data_migrations.dart';
 import 'features/reports/data/error_reporter.dart';
 import 'features/system_media/data/system_media_controls_factory.dart';
 import 'providers/system_media_provider.dart';
@@ -36,6 +38,16 @@ Future<void> main() async {
     FlutterError.presentError(details);
     ErrorReporter.instance.captureFlutter(details);
   };
+
+  // Datos de una versión anterior: se ponen al día antes de que nada los lea, con una copia
+  // interna antes de tocarlos. Si algo falla, vuelven como estaban y se ofrece un informe.
+  await StartupLog.guard('migraciones', () async {
+    final result = await DataMigrator(await getApplicationSupportDirectory()).run();
+    StartupLog.mark('datos: $result');
+    if (result.outcome == MigrationOutcome.failedRestored) {
+      ErrorReporter.instance.capture(result.error!, StackTrace.current, where: 'migraciones');
+    }
+  }, limit: const Duration(seconds: 20));
 
   // Windows y Linux: just_audio no trae motor propio; usa media_kit (libmpv).
   // En Android/iOS/macOS no hace nada.

@@ -5,6 +5,7 @@ import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
+import '../../migrations/data_migrations.dart';
 import '../domain/backup_manifest.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -21,6 +22,8 @@ const backedUpFiles = [
   'library_folders.json',
   // Título, artista y foto personalizados de cada canción.
   'track_overrides.json',
+  // Versión del formato de los datos: al restaurar una copia vieja se ponen al día.
+  dataVersionFile,
 ];
 
 /// La lista de descargas va aparte: al restaurar no se pisa el índice (los
@@ -193,7 +196,10 @@ class BackupService {
       await covers.create(recursive: true);
       await File(p.join(covers.path, name)).writeAsBytes(entry.content as List<int>);
     }
-    debugPrint('=== COPIA: restaurada ${p.basename(file.path)} ===');
+    // Una copia de una versión anterior trae los datos en su formato: se ponen al día
+    // (con su copia interna antes, como al actualizar).
+    final migrated = await DataMigrator(data).run();
+    debugPrint('=== COPIA: restaurada ${p.basename(file.path)} (datos: $migrated) ===');
     return preview;
   }
 
