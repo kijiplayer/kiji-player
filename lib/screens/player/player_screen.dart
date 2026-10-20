@@ -64,7 +64,8 @@ class PlayerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playback = ref.watch(playbackProvider);
+    // Solo canción y play/pausa: la posición la dibuja _Progress por su cuenta.
+    final playback = ref.watch(playbackProvider.select((s) => (track: s.track, isPlaying: s.isPlaying)));
     final track = playback.track;
     if (track == null) {
       return Scaffold(body: Center(child: Text(tx.eligeUnaCancion)));
@@ -101,7 +102,7 @@ class PlayerScreen extends ConsumerWidget {
                           const SizedBox(height: 24),
                           _TitleRow(track: track, downloaded: downloaded),
                           const SizedBox(height: 20),
-                          _Progress(playback: playback, seed: track.id),
+                          const _Progress(),
                           const SizedBox(height: 12),
                           const PlaybackControlsRow(),
                           const SizedBox(height: 20),
@@ -283,13 +284,11 @@ class _TitleRow extends ConsumerWidget {
 }
 
 class _Progress extends ConsumerWidget {
-  const _Progress({required this.playback, required this.seed});
-
-  final PlaybackState playback;
-  final String seed;
+  const _Progress();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final playback = ref.watch(playbackProvider.select((s) => (position: s.position, duration: s.duration)));
     return Column(
       children: [
         // Con la luna del temporizador y "Marcar en la onda".
@@ -317,7 +316,9 @@ class PlaybackControlsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playback = ref.watch(playbackProvider);
+    final playback = ref.watch(
+      playbackProvider.select((s) => (repeatMode: s.repeatMode, shuffleEnabled: s.shuffleEnabled, isPlaying: s.isPlaying)),
+    );
     final notifier = ref.read(playbackProvider.notifier);
     final iconSize = compact ? 24.0 : 30.0;
 
