@@ -59,7 +59,7 @@ class LrcLibClient {
       if (candidates.isEmpty) return Lyrics.none;
       return _toLyrics(pickClosest(candidates, duration));
     } on DioException catch (error) {
-      debugPrint('=== LETRAS: LRCLIB no respondió: $error ===');
+      debugPrint('=== LETRAS: LRCLIB no respondió: ${error.type} ${error.response?.statusCode ?? ''} ===');
       throw LyricsUnavailableException(
         error.type == DioExceptionType.connectionError || error.type == DioExceptionType.connectionTimeout
             ? tx.sinConexionMinuscula

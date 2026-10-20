@@ -287,7 +287,8 @@ class _Header extends ConsumerWidget {
                   ),
                 if (lyrics?.isSynced ?? false) item('offset', Icons.sync_rounded, tx.sincronizarAdelantarOAtrasar),
                 if (hasLyrics) item('share', Icons.ios_share_rounded, tx.compartirLineas),
-                const PopupMenuDivider(),
+                // Sin letra no hay opciones arriba: sin divisor suelto.
+                if (hasLyrics) const PopupMenuDivider(),
                 item(
                   'source',
                   Icons.library_books_outlined,
