@@ -44,6 +44,12 @@ las playlists, el historial y las descargas) se queda en tu dispositivo.
 Las versiones se publican en [Releases](https://github.com/kijiplayer/kiji-player/releases). Kiji
 funciona en Android 7 o más nuevo y en Windows 10/11.
 
+<p>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/kijiplayer/kiji-player"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Consíguelo en Obtainium" height="54"></a>
+</p>
+
+Con Obtainium, Kiji se actualiza en Android directamente desde esas versiones.
+
 Para compilarlo tú mismo necesitas [Flutter](https://flutter.dev) 3.47 o más nuevo:
 
 ```bash
@@ -51,6 +57,9 @@ flutter pub get
 flutter build apk --flavor prod   # Android
 flutter build windows             # Windows
 ```
+
+El APK de Android se puede volver a compilar y comparar con el publicado: ver
+[docs/REPRODUCIBLE_BUILDS.md](docs/REPRODUCIBLE_BUILDS.md).
 
 ## Licencia y créditos
 

@@ -44,6 +44,12 @@ Kiji plays the music on your device and from YouTube Music, anonymously. Everyth
 Versions are published on [Releases](https://github.com/kijiplayer/kiji-player/releases). Kiji runs
 on Android 7 or newer and on Windows 10/11.
 
+<p>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/kijiplayer/kiji-player"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a>
+</p>
+
+With Obtainium, Kiji updates on Android straight from those releases.
+
 To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 
 ```bash
@@ -51,6 +57,9 @@ flutter pub get
 flutter build apk --flavor prod   # Android
 flutter build windows             # Windows
 ```
+
+The Android APK can be rebuilt and checked against the published one: see
+[docs/REPRODUCIBLE_BUILDS.md](docs/REPRODUCIBLE_BUILDS.md).
 
 ## License and credits
 

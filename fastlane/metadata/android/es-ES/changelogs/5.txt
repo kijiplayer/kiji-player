@@ -1,0 +1,4 @@
+• Traducir letras más simple: en el teléfono (privada) o con IA (Gemini, Beta). Un toque traduce.
+• Instalador para Windows.
+• Más fluida con música sonando; carátulas más livianas; con el celular de costado se ve más.
+• Arreglos: textos en inglés al importar y restaurar, respuestas de YouTube más seguras, sin errores al salir de una pantalla durante una descarga o prueba.

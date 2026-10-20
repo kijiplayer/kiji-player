@@ -1,0 +1,31 @@
+Kiji Player is a free, open-source music player. It plays the music on your phone and, without an account, music from YouTube Music. No ads, no payments, no tracking: everything that is yours (queue, playlists, history and downloads) stays on your device.
+
+<b>Listen</b>
+<ul>
+<li>Your music files and YouTube Music, in one place, with a smooth queue, shuffle and repeat.</li>
+<li>Download songs or whole playlists to listen offline. Downloads stay inside Kiji.</li>
+<li>Crossfade between songs, equalizer with per-device profiles and a sleep timer that fades out.</li>
+<li>Background playback with notification, lock screen and headphone controls.</li>
+</ul>
+
+<b>Lyrics</b>
+<ul>
+<li>Synced lyrics from several free sources, or the ones inside your files.</li>
+<li>Translation done on your phone (Firefox Translations models), private and offline once the language is downloaded.</li>
+<li>Optional AI translation with Google Gemini (Beta), only if you turn it on and add your own key.</li>
+</ul>
+
+<b>Yours</b>
+<ul>
+<li>Playlists, smart lists, "Moments" (save a second or a passage of a song) and custom covers.</li>
+<li>Import playlists, likes and history from Echo Music, Metrolist, InnerTune or OuterTune (.backup), .m3u and CSV.</li>
+<li>Daily backup to a folder you can see, and restore with a preview.</li>
+<li>In English and Spanish.</li>
+</ul>
+
+<b>Privacy</b>
+Kiji has no analytics and sends nothing on its own. Recommendations are calculated on your phone. Optional things that use the network (update check on GitHub, extractor tests) can be turned off.
+
+<b>Note:</b> Kiji is an independent project, compatible with YouTube Music. It is not affiliated with or endorsed by Google or YouTube. YouTube Music is a non-free network service.
+
+Kiji is free software under the GNU GPL-3.0. It builds on the work of Echo Music and Metrolist.

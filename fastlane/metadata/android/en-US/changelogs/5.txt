@@ -1,0 +1,4 @@
+• Simpler lyrics translation: pick on-device (private) or AI (Gemini, Beta). One tap translates.
+• Windows installer.
+• Smoother while playing; list covers use less memory; phone sideways shows more content.
+• Fixes: English texts when importing and restoring, safer handling of YouTube responses, no errors when leaving a screen during a download or test.
