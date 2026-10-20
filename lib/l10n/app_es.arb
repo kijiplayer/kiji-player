@@ -2340,5 +2340,51 @@
   "reproduciendo": "Reproduciendo",
   "idioma": "Idioma",
   "idiomaDescripcion": "Sistema, español o inglés. Cambia al instante.",
-  "idiomaDelSistema": "Sistema"
+  "idiomaDelSistema": "Sistema",
+  "bienvenidaSaltar": "Saltar",
+  "bienvenidaSiguiente": "Siguiente",
+  "bienvenidaEmpezar": "Empezar",
+  "bienvenidaSilenciar": "Silenciar",
+  "bienvenidaActivarSonido": "Activar el sonido",
+  "bienvenidaHola": "Hola",
+  "bienvenidaSoyKiji": "Esto es Kiji, tu reproductor de música.",
+  "bienvenidaEligeTuIdioma": "Elige tu idioma",
+  "bienvenidaQueEsKiji": "Qué es Kiji",
+  "bienvenidaQueEsKijiNota": "Un reproductor libre, para Android y Windows.",
+  "bienvenidaTarjeta1Titulo": "Sin anuncios, sin pagos y sin rastreo",
+  "bienvenidaTarjeta1Texto": "Nada que comprar, nada que te siga. Solo música.",
+  "bienvenidaTarjeta2Titulo": "YouTube Music y tu música",
+  "bienvenidaTarjeta2Texto": "Busca en YouTube Music sin cuenta y escucha también los archivos de tu dispositivo, todo en un solo lugar.",
+  "bienvenidaTarjeta3Titulo": "Letras, descargas y temporizador",
+  "bienvenidaTarjeta3Texto": "Letras sincronizadas (y traducidas), canciones para escuchar sin conexión y un temporizador para dormir.",
+  "bienvenidaHistoriaTitulo": "La historia",
+  "bienvenidaBorrador": "BORRADOR",
+  "bienvenidaHistoria1": "Kiji es un proyecto independiente. Nació de algo simple: querer escuchar música tranquilo, sin anuncios que interrumpan y sin tener que pagar ni crear una cuenta.",
+  "bienvenidaHistoria2": "Es software libre, con licencia GPL-3.0: el código está abierto para que cualquiera lo lea, lo mejore o aprenda de él.",
+  "bienvenidaHistoria3": "Kiji se programa con ayuda de inteligencia artificial, y cada cambio lo revisa y aprueba una persona antes de llegar a ti.",
+  "bienvenidaHistoria4": "Gracias a Echo Music y a Metrolist: Kiji aprende mucho de su trabajo libre.",
+  "bienvenidaAjustaATuGusto": "A tu gusto",
+  "bienvenidaOpcionalNota": "Todo esto es opcional. Si no tocas nada, Kiji funciona igual de bien.",
+  "bienvenidaTraducirLetrasAl": "Traducir las letras al",
+  "bienvenidaCalidad": "Mejor calidad con datos móviles",
+  "bienvenidaCalidadMejor": "Siempre la mejor calidad disponible.",
+  "bienvenidaCalidadAhorro": "Con datos móviles, calidad baja (unas 4 veces menos datos). Con WiFi, la mejor.",
+  "bienvenidaAhorroDeDatos": "Descargar solo con WiFi",
+  "bienvenidaAhorroDeDatosTexto": "Las descargas no usan tus datos móviles.",
+  "bienvenidaSeCambiaEnConfiguracion": "Se puede cambiar después en Configuración.",
+  "bienvenidaKijiNoRecopilaNada": "Kiji no recopila nada",
+  "bienvenidaPrivacidadTexto": "Sin estadísticas de uso, sin anuncios y sin cuentas obligatorias. Tu música, tu historial y tus ajustes se quedan en este dispositivo.",
+  "bienvenidaPaginaDe": "Página {page} de {total}",
+  "@bienvenidaPaginaDe": {
+    "placeholders": {
+      "page": {
+        "type": "Object?"
+      },
+      "total": {
+        "type": "Object?"
+      }
+    }
+  },
+  "verBienvenidaOtraVez": "Ver bienvenida otra vez",
+  "verBienvenidaOtraVezTexto": "Las pantallas del primer inicio."
 }

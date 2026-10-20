@@ -19,6 +19,8 @@ import 'widgets/playback_shortcuts.dart';
 import 'features/moments/presentation/moment_marks.dart';
 import 'features/account/data/account_store.dart';
 import 'features/account/presentation/account_screens.dart';
+import 'features/welcome/data/welcome_store.dart';
+import 'features/welcome/presentation/welcome_screen.dart';
 
 class KijiApp extends ConsumerStatefulWidget {
   const KijiApp({super.key});
@@ -56,6 +58,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
         if (signedIn) await ref.read(playbackProvider.notifier).playTrack(offer.track);
       });
     });
+    // Bienvenida (solo a quien recién instala, una única vez).
+    if (welcomeEnabled) _maybeWelcome();
     // Nunca mientras suena música: si llegó un aviso sonando, se ofrece al pausar.
     ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
       if (!playing) _offerReport();
@@ -67,6 +71,14 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     ErrorReporter.instance.pending.removeListener(_offerReport);
     super.dispose();
+  }
+
+  Future<void> _maybeWelcome() async {
+    if (!await WelcomeStore().shouldShow()) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = kijiNavigatorKey.currentContext;
+      if (context != null && context.mounted) WelcomeScreen.open(context, instant: true);
+    });
   }
 
   bool _offering = false;

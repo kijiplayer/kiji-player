@@ -5788,6 +5788,222 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sistema'**
   String get idiomaDelSistema;
+
+  /// No description provided for @bienvenidaSaltar.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar'**
+  String get bienvenidaSaltar;
+
+  /// No description provided for @bienvenidaSiguiente.
+  ///
+  /// In es, this message translates to:
+  /// **'Siguiente'**
+  String get bienvenidaSiguiente;
+
+  /// No description provided for @bienvenidaEmpezar.
+  ///
+  /// In es, this message translates to:
+  /// **'Empezar'**
+  String get bienvenidaEmpezar;
+
+  /// No description provided for @bienvenidaSilenciar.
+  ///
+  /// In es, this message translates to:
+  /// **'Silenciar'**
+  String get bienvenidaSilenciar;
+
+  /// No description provided for @bienvenidaActivarSonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Activar el sonido'**
+  String get bienvenidaActivarSonido;
+
+  /// No description provided for @bienvenidaHola.
+  ///
+  /// In es, this message translates to:
+  /// **'Hola'**
+  String get bienvenidaHola;
+
+  /// No description provided for @bienvenidaSoyKiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Esto es Kiji, tu reproductor de música.'**
+  String get bienvenidaSoyKiji;
+
+  /// No description provided for @bienvenidaEligeTuIdioma.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige tu idioma'**
+  String get bienvenidaEligeTuIdioma;
+
+  /// No description provided for @bienvenidaQueEsKiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué es Kiji'**
+  String get bienvenidaQueEsKiji;
+
+  /// No description provided for @bienvenidaQueEsKijiNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Un reproductor libre, para Android y Windows.'**
+  String get bienvenidaQueEsKijiNota;
+
+  /// No description provided for @bienvenidaTarjeta1Titulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin anuncios, sin pagos y sin rastreo'**
+  String get bienvenidaTarjeta1Titulo;
+
+  /// No description provided for @bienvenidaTarjeta1Texto.
+  ///
+  /// In es, this message translates to:
+  /// **'Nada que comprar, nada que te siga. Solo música.'**
+  String get bienvenidaTarjeta1Texto;
+
+  /// No description provided for @bienvenidaTarjeta2Titulo.
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube Music y tu música'**
+  String get bienvenidaTarjeta2Titulo;
+
+  /// No description provided for @bienvenidaTarjeta2Texto.
+  ///
+  /// In es, this message translates to:
+  /// **'Busca en YouTube Music sin cuenta y escucha también los archivos de tu dispositivo, todo en un solo lugar.'**
+  String get bienvenidaTarjeta2Texto;
+
+  /// No description provided for @bienvenidaTarjeta3Titulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Letras, descargas y temporizador'**
+  String get bienvenidaTarjeta3Titulo;
+
+  /// No description provided for @bienvenidaTarjeta3Texto.
+  ///
+  /// In es, this message translates to:
+  /// **'Letras sincronizadas (y traducidas), canciones para escuchar sin conexión y un temporizador para dormir.'**
+  String get bienvenidaTarjeta3Texto;
+
+  /// No description provided for @bienvenidaHistoriaTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'La historia'**
+  String get bienvenidaHistoriaTitulo;
+
+  /// No description provided for @bienvenidaBorrador.
+  ///
+  /// In es, this message translates to:
+  /// **'BORRADOR'**
+  String get bienvenidaBorrador;
+
+  /// No description provided for @bienvenidaHistoria1.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji es un proyecto independiente. Nació de algo simple: querer escuchar música tranquilo, sin anuncios que interrumpan y sin tener que pagar ni crear una cuenta.'**
+  String get bienvenidaHistoria1;
+
+  /// No description provided for @bienvenidaHistoria2.
+  ///
+  /// In es, this message translates to:
+  /// **'Es software libre, con licencia GPL-3.0: el código está abierto para que cualquiera lo lea, lo mejore o aprenda de él.'**
+  String get bienvenidaHistoria2;
+
+  /// No description provided for @bienvenidaHistoria3.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji se programa con ayuda de inteligencia artificial, y cada cambio lo revisa y aprueba una persona antes de llegar a ti.'**
+  String get bienvenidaHistoria3;
+
+  /// No description provided for @bienvenidaHistoria4.
+  ///
+  /// In es, this message translates to:
+  /// **'Gracias a Echo Music y a Metrolist: Kiji aprende mucho de su trabajo libre.'**
+  String get bienvenidaHistoria4;
+
+  /// No description provided for @bienvenidaAjustaATuGusto.
+  ///
+  /// In es, this message translates to:
+  /// **'A tu gusto'**
+  String get bienvenidaAjustaATuGusto;
+
+  /// No description provided for @bienvenidaOpcionalNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo esto es opcional. Si no tocas nada, Kiji funciona igual de bien.'**
+  String get bienvenidaOpcionalNota;
+
+  /// No description provided for @bienvenidaTraducirLetrasAl.
+  ///
+  /// In es, this message translates to:
+  /// **'Traducir las letras al'**
+  String get bienvenidaTraducirLetrasAl;
+
+  /// No description provided for @bienvenidaCalidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Mejor calidad con datos móviles'**
+  String get bienvenidaCalidad;
+
+  /// No description provided for @bienvenidaCalidadMejor.
+  ///
+  /// In es, this message translates to:
+  /// **'Siempre la mejor calidad disponible.'**
+  String get bienvenidaCalidadMejor;
+
+  /// No description provided for @bienvenidaCalidadAhorro.
+  ///
+  /// In es, this message translates to:
+  /// **'Con datos móviles, calidad baja (unas 4 veces menos datos). Con WiFi, la mejor.'**
+  String get bienvenidaCalidadAhorro;
+
+  /// No description provided for @bienvenidaAhorroDeDatos.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar solo con WiFi'**
+  String get bienvenidaAhorroDeDatos;
+
+  /// No description provided for @bienvenidaAhorroDeDatosTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Las descargas no usan tus datos móviles.'**
+  String get bienvenidaAhorroDeDatosTexto;
+
+  /// No description provided for @bienvenidaSeCambiaEnConfiguracion.
+  ///
+  /// In es, this message translates to:
+  /// **'Se puede cambiar después en Configuración.'**
+  String get bienvenidaSeCambiaEnConfiguracion;
+
+  /// No description provided for @bienvenidaKijiNoRecopilaNada.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji no recopila nada'**
+  String get bienvenidaKijiNoRecopilaNada;
+
+  /// No description provided for @bienvenidaPrivacidadTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin estadísticas de uso, sin anuncios y sin cuentas obligatorias. Tu música, tu historial y tus ajustes se quedan en este dispositivo.'**
+  String get bienvenidaPrivacidadTexto;
+
+  /// No description provided for @bienvenidaPaginaDe.
+  ///
+  /// In es, this message translates to:
+  /// **'Página {page} de {total}'**
+  String bienvenidaPaginaDe(Object? page, Object? total);
+
+  /// No description provided for @verBienvenidaOtraVez.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver bienvenida otra vez'**
+  String get verBienvenidaOtraVez;
+
+  /// No description provided for @verBienvenidaOtraVezTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Las pantallas del primer inicio.'**
+  String get verBienvenidaOtraVezTexto;
 }
 
 class _AppLocalizationsDelegate

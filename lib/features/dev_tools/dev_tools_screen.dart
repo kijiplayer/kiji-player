@@ -15,6 +15,7 @@ import '../extractor/data/path_health.dart';
 import '../reports/data/error_reporter.dart';
 import '../settings/data/settings_store.dart';
 import '../stream_cache/data/stream_cache.dart';
+import '../welcome/presentation/welcome_screen.dart';
 import '../yt_music/presentation/extractor_health_screen.dart';
 
 /// Herramientas de desarrollo (Tarea T2), solo en Kiji Dev: registro en vivo, diagnóstico del
@@ -33,6 +34,11 @@ class DevToolsScreen extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Herramientas de Kiji Dev'),
           actions: [
+            IconButton(
+              tooltip: 'Ver la bienvenida',
+              icon: const Icon(Icons.waving_hand_outlined),
+              onPressed: () => WelcomeScreen.open(context),
+            ),
             IconButton(
               tooltip: 'Probar el aviso de error',
               icon: const Icon(Icons.bug_report_outlined),

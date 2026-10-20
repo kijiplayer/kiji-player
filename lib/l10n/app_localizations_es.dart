@@ -3511,4 +3511,128 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get idiomaDelSistema => 'Sistema';
+
+  @override
+  String get bienvenidaSaltar => 'Saltar';
+
+  @override
+  String get bienvenidaSiguiente => 'Siguiente';
+
+  @override
+  String get bienvenidaEmpezar => 'Empezar';
+
+  @override
+  String get bienvenidaSilenciar => 'Silenciar';
+
+  @override
+  String get bienvenidaActivarSonido => 'Activar el sonido';
+
+  @override
+  String get bienvenidaHola => 'Hola';
+
+  @override
+  String get bienvenidaSoyKiji => 'Esto es Kiji, tu reproductor de música.';
+
+  @override
+  String get bienvenidaEligeTuIdioma => 'Elige tu idioma';
+
+  @override
+  String get bienvenidaQueEsKiji => 'Qué es Kiji';
+
+  @override
+  String get bienvenidaQueEsKijiNota =>
+      'Un reproductor libre, para Android y Windows.';
+
+  @override
+  String get bienvenidaTarjeta1Titulo =>
+      'Sin anuncios, sin pagos y sin rastreo';
+
+  @override
+  String get bienvenidaTarjeta1Texto =>
+      'Nada que comprar, nada que te siga. Solo música.';
+
+  @override
+  String get bienvenidaTarjeta2Titulo => 'YouTube Music y tu música';
+
+  @override
+  String get bienvenidaTarjeta2Texto =>
+      'Busca en YouTube Music sin cuenta y escucha también los archivos de tu dispositivo, todo en un solo lugar.';
+
+  @override
+  String get bienvenidaTarjeta3Titulo => 'Letras, descargas y temporizador';
+
+  @override
+  String get bienvenidaTarjeta3Texto =>
+      'Letras sincronizadas (y traducidas), canciones para escuchar sin conexión y un temporizador para dormir.';
+
+  @override
+  String get bienvenidaHistoriaTitulo => 'La historia';
+
+  @override
+  String get bienvenidaBorrador => 'BORRADOR';
+
+  @override
+  String get bienvenidaHistoria1 =>
+      'Kiji es un proyecto independiente. Nació de algo simple: querer escuchar música tranquilo, sin anuncios que interrumpan y sin tener que pagar ni crear una cuenta.';
+
+  @override
+  String get bienvenidaHistoria2 =>
+      'Es software libre, con licencia GPL-3.0: el código está abierto para que cualquiera lo lea, lo mejore o aprenda de él.';
+
+  @override
+  String get bienvenidaHistoria3 =>
+      'Kiji se programa con ayuda de inteligencia artificial, y cada cambio lo revisa y aprueba una persona antes de llegar a ti.';
+
+  @override
+  String get bienvenidaHistoria4 =>
+      'Gracias a Echo Music y a Metrolist: Kiji aprende mucho de su trabajo libre.';
+
+  @override
+  String get bienvenidaAjustaATuGusto => 'A tu gusto';
+
+  @override
+  String get bienvenidaOpcionalNota =>
+      'Todo esto es opcional. Si no tocas nada, Kiji funciona igual de bien.';
+
+  @override
+  String get bienvenidaTraducirLetrasAl => 'Traducir las letras al';
+
+  @override
+  String get bienvenidaCalidad => 'Mejor calidad con datos móviles';
+
+  @override
+  String get bienvenidaCalidadMejor => 'Siempre la mejor calidad disponible.';
+
+  @override
+  String get bienvenidaCalidadAhorro =>
+      'Con datos móviles, calidad baja (unas 4 veces menos datos). Con WiFi, la mejor.';
+
+  @override
+  String get bienvenidaAhorroDeDatos => 'Descargar solo con WiFi';
+
+  @override
+  String get bienvenidaAhorroDeDatosTexto =>
+      'Las descargas no usan tus datos móviles.';
+
+  @override
+  String get bienvenidaSeCambiaEnConfiguracion =>
+      'Se puede cambiar después en Configuración.';
+
+  @override
+  String get bienvenidaKijiNoRecopilaNada => 'Kiji no recopila nada';
+
+  @override
+  String get bienvenidaPrivacidadTexto =>
+      'Sin estadísticas de uso, sin anuncios y sin cuentas obligatorias. Tu música, tu historial y tus ajustes se quedan en este dispositivo.';
+
+  @override
+  String bienvenidaPaginaDe(Object? page, Object? total) {
+    return 'Página $page de $total';
+  }
+
+  @override
+  String get verBienvenidaOtraVez => 'Ver bienvenida otra vez';
+
+  @override
+  String get verBienvenidaOtraVezTexto => 'Las pantallas del primer inicio.';
 }

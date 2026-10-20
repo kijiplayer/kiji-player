@@ -35,6 +35,8 @@ import '../../../l10n/l10n.dart';
 import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart';
 import '../../../version_label.dart';
+import '../../welcome/data/welcome_store.dart';
+import '../../welcome/presentation/welcome_screen.dart';
 
 /// Secciones de Configuración, en el orden del plan (Tarea G).
 enum SettingsSection {
@@ -753,6 +755,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           isThreeLine: true,
         ),
       ),
+      if (welcomeEnabled)
+        SettingOption(
+          section: SettingsSection.about,
+          title: tx.verBienvenidaOtraVez,
+          subtitle: tx.verBienvenidaOtraVezTexto,
+          keywords: const ['bienvenida', 'welcome', 'inicio', 'tutorial'],
+          builder: (context, ref) => ListTile(
+            leading: const Icon(Icons.waving_hand_outlined),
+            title: Text(tx.verBienvenidaOtraVez),
+            subtitle: Text(tx.verBienvenidaOtraVezTexto),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => WelcomeScreen.open(context),
+          ),
+        ),
       SettingOption(
         section: SettingsSection.about,
         title: tx.creditos,
