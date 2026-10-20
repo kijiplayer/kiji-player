@@ -9,12 +9,14 @@ import 'l10n/l10n.dart';
 import 'features/reports/data/kiji_logs.dart';
 import 'features/reports/presentation/error_report_dialog.dart';
 import 'features/settings/data/settings_store.dart';
+import 'features/settings/domain/app_settings.dart';
 import 'providers/playback_provider.dart';
 import 'features/updates/update_checker.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/global_mini_player.dart';
+import 'utils/clock_format.dart';
 import 'widgets/playback_shortcuts.dart';
 import 'features/moments/presentation/moment_marks.dart';
 import 'features/account/data/account_store.dart';
@@ -41,8 +43,11 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     // Salud del Extractor: pruebas automáticas con canciones de control.
     Future.microtask(() => ref.read(extractorAutoTestsProvider).start());
     // Registros e informes.
-    ref.listenManual(settingsProvider.select((s) => s.saveLogs), (_, on) => KijiLogs.setEnabled(on),
-        fireImmediately: true);
+    ref.listenManual(
+      settingsProvider.select((s) => s.saveLogs),
+      (_, on) => KijiLogs.setEnabled(on),
+      fireImmediately: true,
+    );
     ErrorReporter.instance.pending.addListener(_offerReport);
     // Repetir un tramo (Momentos): vuelve al principio al llegar al final.
     watchMomentLoop(ref);
@@ -150,11 +155,21 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       // El mini-reproductor se ve en todas las pantallas.
       navigatorKey: kijiNavigatorKey,
       navigatorObservers: [_routes],
-      builder: (context, child) => BackdropGroup(
-        child: PlaybackShortcuts(
-          child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
-        ),
-      ),
+      builder: (context, child) {
+        // Hora de 12 o 24 horas (Configuración → Apariencia); "Sistema" deja la del teléfono.
+        kijiUse24Hour = use24HourClock(
+          ref.watch(settingsProvider.select((s) => s.timeFormat)),
+          system: MediaQuery.alwaysUse24HourFormatOf(context),
+        );
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: kijiUse24Hour),
+          child: BackdropGroup(
+            child: PlaybackShortcuts(
+              child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+            ),
+          ),
+        );
+      },
       home: const HomeScreen(),
     );
   }

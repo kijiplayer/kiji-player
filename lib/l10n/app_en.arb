@@ -993,5 +993,13 @@
   "nMeGusta": "{count, plural, =1{1 like} other{{count} likes}}",
   "unoYOtro": "{a} and {b}",
   "copiaArticuloDiaRelativo": "",
-  "copiaArticuloFecha": ""
+  "copiaArticuloFecha": "",
+  "formatoDeHora": "Time format",
+  "formatoDeHoraDescripcion": "12 or 24 hours; by default, the system's",
+  "horaDelSistema": "System default ({ejemplo})",
+  "@horaDelSistema": {"placeholders": {"ejemplo": {"type": "String"}}},
+  "hora12": "12-hour ({ejemplo})",
+  "@hora12": {"placeholders": {"ejemplo": {"type": "String"}}},
+  "hora24": "24-hour ({ejemplo})",
+  "@hora24": {"placeholders": {"ejemplo": {"type": "String"}}}
 }

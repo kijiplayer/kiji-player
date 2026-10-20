@@ -30,6 +30,13 @@ class AppSettings {
     this.lyricsSourceOrder = LyricsSource.online,
     this.accountPromptsOff = false,
     this.language = 'system',
+    this.timeFormat = 'system',
+    this.downloadLiked = false,
+    this.accent = 'nocturne',
+    this.theme = 'dark',
+    this.font = 'kiji',
+    this.lyricsSize = 'normal',
+    this.lastSeenVersion,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -43,6 +50,21 @@ class AppSettings {
 
   /// Idiomas de la app: 'system' sigue al del teléfono.
   static const languages = ['system', 'es', 'en'];
+
+  /// Formato de hora: el del sistema, 12 h o 24 h.
+  static const timeFormats = ['system', '12', '24'];
+
+  /// Colores de acento (Configuración → Apariencia). El primero es el de siempre.
+  static const accents = ['nocturne', 'aurora', 'ember', 'mint', 'ocean'];
+
+  /// Temas: oscuro (el de siempre), más oscuro (negro puro, ahorra batería en OLED) y claro.
+  static const themes = ['dark', 'darker', 'light'];
+
+  /// Tipografía de los títulos: la de Kiji (Space Grotesk) o la del sistema.
+  static const fonts = ['kiji', 'system'];
+
+  /// Tamaño de la letra de las canciones.
+  static const lyricsSizes = ['small', 'normal', 'large'];
 
   /// Duración mínima para no ser "audio corto" (sonidos de juegos, avisos).
   static const shortAudioMs = 30 * 1000;
@@ -121,6 +143,22 @@ class AppSettings {
   /// Idioma de la app (Configuración → Idioma): 'system', 'es' o 'en'.
   final String language;
 
+  /// Hora de 12 o 24 horas: 'system' (la del teléfono), '12' o '24'.
+  final String timeFormat;
+
+  /// Al marcar "me gusta" una canción de YouTube, bajarla (respeta "solo con WiFi"). Apagado de
+  /// fábrica.
+  final bool downloadLiked;
+
+  /// Personalización: color de acento, tema, tipografía y tamaño de la letra de las canciones.
+  final String accent;
+  final String theme;
+  final String font;
+  final String lyricsSize;
+
+  /// Última versión cuyas novedades se mostraron (para "Novedades de esta versión").
+  final String? lastSeenVersion;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -146,6 +184,13 @@ class AppSettings {
     List<LyricsSource>? lyricsSourceOrder,
     bool? accountPromptsOff,
     String? language,
+    String? timeFormat,
+    bool? downloadLiked,
+    String? accent,
+    String? theme,
+    String? font,
+    String? lyricsSize,
+    String? lastSeenVersion,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -171,6 +216,13 @@ class AppSettings {
         lyricsSourceOrder: lyricsSourceOrder ?? this.lyricsSourceOrder,
         accountPromptsOff: accountPromptsOff ?? this.accountPromptsOff,
         language: language ?? this.language,
+        timeFormat: timeFormat ?? this.timeFormat,
+        downloadLiked: downloadLiked ?? this.downloadLiked,
+        accent: accent ?? this.accent,
+        theme: theme ?? this.theme,
+        font: font ?? this.font,
+        lyricsSize: lyricsSize ?? this.lyricsSize,
+        lastSeenVersion: lastSeenVersion ?? this.lastSeenVersion,
       );
 
   Map<String, dynamic> toJson() => {
@@ -198,6 +250,13 @@ class AppSettings {
         'lyricsSourceOrder': [for (final s in lyricsSourceOrder) s.name],
         'accountPromptsOff': accountPromptsOff,
         'language': language,
+        'timeFormat': timeFormat,
+        'downloadLiked': downloadLiked,
+        'accent': accent,
+        'theme': theme,
+        'font': font,
+        'lyricsSize': lyricsSize,
+        if (lastSeenVersion != null) 'lastSeenVersion': lastSeenVersion,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -236,6 +295,13 @@ class AppSettings {
       lyricsSourceOrder: lyricsOrderFrom(json['lyricsSourceOrder']),
       accountPromptsOff: read('accountPromptsOff', d.accountPromptsOff),
       language: languages.contains(json['language']) ? json['language'] as String : d.language,
+      timeFormat: timeFormats.contains(json['timeFormat']) ? json['timeFormat'] as String : d.timeFormat,
+      downloadLiked: read('downloadLiked', d.downloadLiked),
+      accent: accents.contains(json['accent']) ? json['accent'] as String : d.accent,
+      theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
+      font: fonts.contains(json['font']) ? json['font'] as String : d.font,
+      lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,
+      lastSeenVersion: json['lastSeenVersion'] is String ? json['lastSeenVersion'] as String : null,
     );
   }
 
@@ -255,3 +321,11 @@ List<LyricsSource> lyricsOrderFrom(Object? json) {
   ];
   return [...order.toSet(), for (final s in LyricsSource.online) if (!order.contains(s)) s];
 }
+
+/// ¿La hora se muestra en 24 horas? `timeFormat` es el ajuste ('system', '12' o '24');
+/// con 'system' manda la preferencia del teléfono o de la PC ([system]).
+bool use24HourClock(String timeFormat, {required bool system}) => switch (timeFormat) {
+      '12' => false,
+      '24' => true,
+      _ => system,
+    };

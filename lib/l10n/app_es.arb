@@ -2400,5 +2400,13 @@
   "unoYOtro": "{a} y {b}",
   "@unoYOtro": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
   "copiaArticuloDiaRelativo": "de ",
-  "copiaArticuloFecha": "del "
+  "copiaArticuloFecha": "del ",
+  "formatoDeHora": "Formato de hora",
+  "formatoDeHoraDescripcion": "12 o 24 horas; de fábrica, el del sistema",
+  "horaDelSistema": "Según el sistema ({ejemplo})",
+  "@horaDelSistema": {"placeholders": {"ejemplo": {"type": "String"}}},
+  "hora12": "12 horas ({ejemplo})",
+  "@hora12": {"placeholders": {"ejemplo": {"type": "String"}}},
+  "hora24": "24 horas ({ejemplo})",
+  "@hora24": {"placeholders": {"ejemplo": {"type": "String"}}}
 }

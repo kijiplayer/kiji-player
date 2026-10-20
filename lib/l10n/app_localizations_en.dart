@@ -3681,4 +3681,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copiaArticuloFecha => '';
+
+  @override
+  String get formatoDeHora => 'Time format';
+
+  @override
+  String get formatoDeHoraDescripcion =>
+      '12 or 24 hours; by default, the system\'s';
+
+  @override
+  String horaDelSistema(String ejemplo) {
+    return 'System default ($ejemplo)';
+  }
+
+  @override
+  String hora12(String ejemplo) {
+    return '12-hour ($ejemplo)';
+  }
+
+  @override
+  String hora24(String ejemplo) {
+    return '24-hour ($ejemplo)';
+  }
 }

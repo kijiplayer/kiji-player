@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
+import '../../../utils/clock_format.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../settings/data/settings_store.dart';
 import '../data/backup_notifier.dart';
@@ -187,10 +188,10 @@ class BackupScreen extends ConsumerWidget {
   }
 }
 
-/// "hoy 08:30", "ayer 21:10" o "14/10/2026 09:00".
-String describeDate(DateTime date, DateTime now) {
+/// "hoy 08:30", "ayer 21:10" o "14/10/2026 09:00" (o "9:10 PM", según el formato de hora).
+String describeDate(DateTime date, DateTime now, {bool? use24Hour}) {
   String two(int n) => n.toString().padLeft(2, '0');
-  final time = '${two(date.hour)}:${two(date.minute)}';
+  final time = formatClock(date, use24Hour: use24Hour);
   final today = DateTime(now.year, now.month, now.day);
   final day = DateTime(date.year, date.month, date.day);
   final diff = today.difference(day).inDays;

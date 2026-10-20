@@ -10,6 +10,7 @@ import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
+import '../../../utils/clock_format.dart';
 import '../../../widgets/kiji_logo.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../backup/data/backup_notifier.dart';
@@ -378,6 +379,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 await ref.read(settingsProvider.notifier).update((s) => s.copyWith(language: value));
               }
             },
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.formatoDeHora,
+        subtitle: tx.formatoDeHoraDescripcion,
+        keywords: const ['reloj', 'am', 'pm', '12', '24', 'horas'],
+        builder: (context, ref) {
+          final example = DateTime(2026, 1, 1, 21, 10);
+          // La del sistema sale del teléfono o la PC, no de la app (que ya aplica el ajuste).
+          final system = View.of(context).platformDispatcher.alwaysUse24HourFormat;
+          String name(String option) => switch (option) {
+            '12' => tx.hora12(formatClock(example, use24Hour: false)),
+            '24' => tx.hora24(formatClock(example, use24Hour: true)),
+            _ => tx.horaDelSistema(formatClock(example, use24Hour: system)),
+          };
+          return choiceTile<String>(
+            context,
+            icon: Icons.schedule_rounded,
+            title: tx.formatoDeHora,
+            value: ref.watch(settingsProvider.select((s) => s.timeFormat)),
+            options: AppSettings.timeFormats,
+            label: name,
+            onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(timeFormat: value)),
           );
         },
       ),
@@ -806,4 +832,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _done(BuildContext context, String message) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+}
+
+/// Una opción con varias alternativas (formato de hora, tema, acento…): muestra la elegida y,
+/// al tocarla, una lista para cambiarla.
+Widget choiceTile<T>(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required T value,
+  required List<T> options,
+  required String Function(T option) label,
+  required void Function(T value) onChanged,
+}) {
+  return ListTile(
+    leading: Icon(icon),
+    title: Text(title),
+    subtitle: Text(label(value)),
+    onTap: () async {
+      final picked = await showDialog<T>(
+        context: context,
+        builder: (context) => SimpleDialog(
+          title: Text(title),
+          children: [
+            RadioGroup<T>(
+              groupValue: value,
+              onChanged: (value) => Navigator.pop(context, value),
+              child: Column(
+                children: [for (final option in options) RadioListTile<T>(value: option, title: Text(label(option)))],
+              ),
+            ),
+          ],
+        ),
+      );
+      if (picked != null && picked != value) onChanged(picked);
+    },
+  );
 }

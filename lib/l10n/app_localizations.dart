@@ -6070,6 +6070,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'del '**
   String get copiaArticuloFecha;
+
+  /// No description provided for @formatoDeHora.
+  ///
+  /// In es, this message translates to:
+  /// **'Formato de hora'**
+  String get formatoDeHora;
+
+  /// No description provided for @formatoDeHoraDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'12 o 24 horas; de fábrica, el del sistema'**
+  String get formatoDeHoraDescripcion;
+
+  /// No description provided for @horaDelSistema.
+  ///
+  /// In es, this message translates to:
+  /// **'Según el sistema ({ejemplo})'**
+  String horaDelSistema(String ejemplo);
+
+  /// No description provided for @hora12.
+  ///
+  /// In es, this message translates to:
+  /// **'12 horas ({ejemplo})'**
+  String hora12(String ejemplo);
+
+  /// No description provided for @hora24.
+  ///
+  /// In es, this message translates to:
+  /// **'24 horas ({ejemplo})'**
+  String hora24(String ejemplo);
 }
 
 class _AppLocalizationsDelegate

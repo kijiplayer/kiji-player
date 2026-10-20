@@ -16,6 +16,7 @@ import '../../models/track.dart';
 import '../../providers/downloads_provider.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
+import '../../utils/clock_format.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/kiji_logo.dart';
@@ -136,7 +137,7 @@ class _GreetingState extends State<_Greeting> {
 
   @override
   Widget build(BuildContext context) {
-    final time = '${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}';
+    final time = formatClock(_now, use24Hour: MediaQuery.alwaysUse24HourFormatOf(context));
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
