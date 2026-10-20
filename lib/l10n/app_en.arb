@@ -1001,5 +1001,17 @@
   "hora12": "12-hour ({ejemplo})",
   "@hora12": {"placeholders": {"ejemplo": {"type": "String"}}},
   "hora24": "24-hour ({ejemplo})",
-  "@hora24": {"placeholders": {"ejemplo": {"type": "String"}}}
+  "@hora24": {"placeholders": {"ejemplo": {"type": "String"}}},
+  "descargarLoQueMeGusta": "Download what I like",
+  "descargarLoQueMeGustaDescripcion": "When you like a YouTube song, it downloads by itself so you can play it offline. Respects \"Wi-Fi only\".",
+  "nEsperandoParaBajarse": "{n, plural, =1{1 song is waiting to download: {motivo}} other{{n} songs are waiting to download: {motivo}}}",
+  "@nEsperandoParaBajarse": {"placeholders": {"n": {"type": "int"}, "motivo": {"type": "String"}}},
+  "nBajandoseSolas": "{n, plural, =1{1 song left to download} other{{n} songs left to download}}",
+  "@nBajandoseSolas": {"placeholders": {"n": {"type": "int"}}},
+  "tambienLasQueYaTeGustan": "Also the ones you already like?",
+  "tambienLasQueYaTeGustanTexto": "{n, plural, =1{There is 1 liked YouTube song that isn't downloaded yet.} other{There are {n} liked YouTube songs that aren't downloaded yet.}}",
+  "@tambienLasQueYaTeGustanTexto": {"placeholders": {"n": {"type": "int"}}},
+  "soloLasNuevas": "Only new ones",
+  "tambienEsasN": "{n, plural, =1{Download that one too} other{Download those {n} too}}",
+  "@tambienEsasN": {"placeholders": {"n": {"type": "int"}}}
 }

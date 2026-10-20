@@ -17,7 +17,9 @@ import '../../backup/data/backup_notifier.dart';
 import '../../dev_tools/dev_build.dart';
 import '../../dev_tools/dev_tools_screen.dart';
 import '../../backup/presentation/backup_screen.dart';
+import '../../downloads/data/auto_downloads.dart';
 import '../../downloads/domain/download_settings.dart';
+import '../../favorites/favorites.dart';
 import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/equalizer_screen.dart';
@@ -434,6 +436,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.storage,
+        title: tx.descargarLoQueMeGusta,
+        subtitle: tx.descargarLoQueMeGustaDescripcion,
+        keywords: const ['me gusta', 'favoritas', 'automatico', 'sin conexion', 'like', 'offline'],
+        builder: (context, ref) {
+          final auto = ref.watch(autoDownloadsProvider);
+          final waiting = auto.pending.length;
+          return SwitchListTile(
+            secondary: const Icon(Icons.favorite_border_rounded),
+            title: Text(tx.descargarLoQueMeGusta),
+            subtitle: Text(switch (auto.waitingReason) {
+              final reason? when waiting > 0 => tx.nEsperandoParaBajarse(waiting, reason),
+              _ when waiting > 0 => tx.nBajandoseSolas(waiting),
+              _ => tx.descargarLoQueMeGustaDescripcion,
+            }),
+            value: ref.watch(settingsProvider.select((s) => s.downloadLiked)),
+            onChanged: (value) => _setDownloadLiked(context, ref, value),
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.storage,
         title: tx.limiteDeEspacioParaDescargas,
         keywords: const ['descargas', 'espacio', 'gb'],
         builder: (context, ref) {
@@ -828,6 +851,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
     if (confirmed == true) await onConfirm();
+  }
+
+  /// Al prender "Descargar lo que me gusta" se pregunta por las que ya tenían me gusta: de
+  /// fábrica solo se bajan las nuevas (nada de cientos de descargas de golpe sin avisar).
+  Future<void> _setDownloadLiked(BuildContext context, WidgetRef ref, bool value) async {
+    await ref.read(settingsProvider.notifier).update((s) => s.copyWith(downloadLiked: value));
+    if (!value) return;
+    final downloads = ref.read(downloadsProvider);
+    final missing = [
+      for (final track in ref.read(favoritesProvider).values)
+        if (track.youtubeVideoId case final id?)
+          if (!downloads.completed.containsKey(id) && !downloads.active.containsKey(id)) track,
+    ];
+    if (missing.isEmpty || !context.mounted) return;
+    final all = await showDialog<bool>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        title: Text(tx.tambienLasQueYaTeGustan),
+        content: Text(tx.tambienLasQueYaTeGustanTexto(missing.length)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialog, false), child: Text(tx.soloLasNuevas)),
+          FilledButton(onPressed: () => Navigator.pop(dialog, true), child: Text(tx.tambienEsasN(missing.length))),
+        ],
+      ),
+    );
+    if (all == true) ref.read(autoDownloadsProvider.notifier).enqueue(missing);
   }
 
   void _done(BuildContext context, String message) =>

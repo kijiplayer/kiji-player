@@ -3711,4 +3711,62 @@ class AppLocalizationsEs extends AppLocalizations {
   String hora24(String ejemplo) {
     return '24 horas ($ejemplo)';
   }
+
+  @override
+  String get descargarLoQueMeGusta => 'Descargar lo que me gusta';
+
+  @override
+  String get descargarLoQueMeGustaDescripcion =>
+      'Al dar me gusta a una canción de YouTube, se baja sola para escucharla sin conexión. Respeta \"solo con WiFi\".';
+
+  @override
+  String nEsperandoParaBajarse(int n, String motivo) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n canciones esperan para bajarse: $motivo',
+      one: '1 canción espera para bajarse: $motivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nBajandoseSolas(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n canciones por bajarse',
+      one: '1 canción por bajarse',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tambienLasQueYaTeGustan => '¿También las que ya te gustan?';
+
+  @override
+  String tambienLasQueYaTeGustanTexto(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other:
+          'Hay $n canciones de YouTube con me gusta que todavía no están descargadas.',
+      one: 'Hay 1 canción de YouTube con me gusta que todavía no está descargada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get soloLasNuevas => 'Solo las nuevas';
+
+  @override
+  String tambienEsasN(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Bajar también esas $n',
+      one: 'Bajar también esa',
+    );
+    return '$_temp0';
+  }
 }

@@ -7,7 +7,8 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../models/track.dart';
 import '../../utils/json_file.dart';
-
+import '../downloads/data/auto_downloads.dart';
+import '../settings/data/settings_store.dart';
 
 /// Canciones con "me gusta", por id. Se guardan solo en el teléfono
 /// (`<appSupportDir>/favorites.json`). Las playlists las usan como lista
@@ -38,8 +39,16 @@ class FavoritesNotifier extends Notifier<Map<String, Track>> {
   }
 
   void toggle(Track track) {
-    state = state.containsKey(track.id) ? (Map.of(state)..remove(track.id)) : {...state, track.id: track};
+    final liked = !state.containsKey(track.id);
+    state = liked ? {...state, track.id: track} : (Map.of(state)..remove(track.id));
     unawaited(_save());
+    // Configuración → "Descargar lo que me gusta" (apagada de fábrica).
+    if (liked && ref.read(settingsProvider).downloadLiked) {
+      ref.read(autoDownloadsProvider.notifier).enqueue([track]);
+    } else if (!liked && ref.exists(autoDownloadsProvider)) {
+      // Si todavía esperaba para bajarse, ya no; lo bajado queda.
+      ref.read(autoDownloadsProvider.notifier).remove(track.id);
+    }
   }
 
   /// Importar: agrega las que no estaban. Nunca quita ni cambia

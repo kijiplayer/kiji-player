@@ -6100,6 +6100,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'24 horas ({ejemplo})'**
   String hora24(String ejemplo);
+
+  /// No description provided for @descargarLoQueMeGusta.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar lo que me gusta'**
+  String get descargarLoQueMeGusta;
+
+  /// No description provided for @descargarLoQueMeGustaDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Al dar me gusta a una canción de YouTube, se baja sola para escucharla sin conexión. Respeta \"solo con WiFi\".'**
+  String get descargarLoQueMeGustaDescripcion;
+
+  /// No description provided for @nEsperandoParaBajarse.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 canción espera para bajarse: {motivo}} other{{n} canciones esperan para bajarse: {motivo}}}'**
+  String nEsperandoParaBajarse(int n, String motivo);
+
+  /// No description provided for @nBajandoseSolas.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 canción por bajarse} other{{n} canciones por bajarse}}'**
+  String nBajandoseSolas(int n);
+
+  /// No description provided for @tambienLasQueYaTeGustan.
+  ///
+  /// In es, this message translates to:
+  /// **'¿También las que ya te gustan?'**
+  String get tambienLasQueYaTeGustan;
+
+  /// No description provided for @tambienLasQueYaTeGustanTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{Hay 1 canción de YouTube con me gusta que todavía no está descargada.} other{Hay {n} canciones de YouTube con me gusta que todavía no están descargadas.}}'**
+  String tambienLasQueYaTeGustanTexto(int n);
+
+  /// No description provided for @soloLasNuevas.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo las nuevas'**
+  String get soloLasNuevas;
+
+  /// No description provided for @tambienEsasN.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{Bajar también esa} other{Bajar también esas {n}}}'**
+  String tambienEsasN(int n);
 }
 
 class _AppLocalizationsDelegate

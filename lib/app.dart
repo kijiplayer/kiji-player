@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
+import 'features/downloads/data/auto_downloads.dart';
 import 'features/playback_extras/data/playback_automation.dart';
 import 'features/extractor/data/auto_tests.dart';
 import 'features/reports/data/error_reporter.dart';
@@ -42,6 +43,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
     // Salud del Extractor: pruebas automáticas con canciones de control.
     Future.microtask(() => ref.read(extractorAutoTestsProvider).start());
+    // Descargas que esperaban (sin WiFi o al cerrar Kiji): siguen solas.
+    Future.microtask(() => ref.read(autoDownloadsProvider));
     // Registros e informes.
     ref.listenManual(
       settingsProvider.select((s) => s.saveLogs),
