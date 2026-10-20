@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/kiji_tokens.dart';
 import 'update_checker.dart';
+import 'whats_new.dart';
 import '../../version_label.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -42,7 +43,13 @@ Future<void> showReleaseSheet(BuildContext context, Release release) => showModa
           if (release.name != release.version && release.name != 'v${release.version}')
             Text(release.name, style: const TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 12),
-          Text(release.notes.isEmpty ? tx.estaVersionNoTraeNotas : release.notes),
+          Builder(
+            builder: (_) {
+              // Solo la parte en el idioma de la app (las notas de GitHub traen inglés y español).
+              final notes = releaseNotesFor(release.notes, kijiLanguage);
+              return Text(notes.isEmpty ? tx.estaVersionNoTraeNotas : notes, style: const TextStyle(height: 1.45));
+            },
+          ),
           const SizedBox(height: 16),
           Text(tx.kijiNuncaSeActualizaSoloNi, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
           const SizedBox(height: 12),

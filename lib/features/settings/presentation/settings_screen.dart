@@ -27,6 +27,7 @@ import '../../import/presentation/import_screen.dart';
 import '../../reports/presentation/reports_screen.dart';
 import '../../recommendations/data/search_history.dart';
 import '../../updates/updates_screen.dart';
+import '../../updates/whats_new.dart';
 import '../../translation/domain/languages.dart';
 import '../../translation/presentation/lyrics_settings_screens.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
@@ -801,6 +802,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: Text('${isDevBuild ? 'Kiji Dev' : 'Kiji Player'} $kijiVersionLabel'), // l10n-ignore
           subtitle: Text(tx.canalCompiladaElSoftwareLibreGpl(kijiChannel, kijiBuildDateLabel)),
           isThreeLine: true,
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.about,
+        title: tx.novedadesDeEstaVersion,
+        subtitle: tx.novedadesDeEstaVersionDescripcion(kijiVersion),
+        keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new'],
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.auto_awesome_outlined),
+          title: Text(tx.novedadesDeEstaVersion),
+          subtitle: Text(tx.novedadesDeEstaVersionDescripcion(kijiVersion)),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () async {
+            final notes = await loadBundledWhatsNew(kijiLanguage);
+            if (context.mounted) await showWhatsNewSheet(context, notes ?? tx.estaVersionNoTraeNovedades);
+          },
         ),
       ),
       SettingOption(

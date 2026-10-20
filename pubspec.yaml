@@ -73,6 +73,9 @@ flutter:
     - assets/translation/
     # Las 5 notas de Kiji (bienvenida); se generan con tool/make_kiji_notes.py.
     - assets/sounds/kiji_notes.wav
+    # "Novedades de esta versión": las mismas notas de la tienda de apps (una por compilación).
+    - fastlane/metadata/android/es-ES/changelogs/
+    - fastlane/metadata/android/en-US/changelogs/
 
   # Kiji Nocturne. Tipografías incluidas en la app (licencia OFL, ver los OFL.txt):
   # no se descargan de Google al usarla, así nada sale del teléfono sin pedirlo.

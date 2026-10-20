@@ -3769,4 +3769,16 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get novedadesDeEstaVersion => 'Novedades de esta versión';
+
+  @override
+  String novedadesDeEstaVersionDescripcion(String version) {
+    return 'Lo que cambió en Kiji $version';
+  }
+
+  @override
+  String get estaVersionNoTraeNovedades =>
+      'Esta versión no trae una lista de novedades.';
 }

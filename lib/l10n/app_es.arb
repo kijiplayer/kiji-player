@@ -2420,5 +2420,9 @@
   "@tambienLasQueYaTeGustanTexto": {"placeholders": {"n": {"type": "int"}}},
   "soloLasNuevas": "Solo las nuevas",
   "tambienEsasN": "{n, plural, =1{Bajar también esa} other{Bajar también esas {n}}}",
-  "@tambienEsasN": {"placeholders": {"n": {"type": "int"}}}
+  "@tambienEsasN": {"placeholders": {"n": {"type": "int"}}},
+  "novedadesDeEstaVersion": "Novedades de esta versión",
+  "novedadesDeEstaVersionDescripcion": "Lo que cambió en Kiji {version}",
+  "@novedadesDeEstaVersionDescripcion": {"placeholders": {"version": {"type": "String"}}},
+  "estaVersionNoTraeNovedades": "Esta versión no trae una lista de novedades."
 }

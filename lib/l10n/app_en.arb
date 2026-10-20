@@ -1013,5 +1013,9 @@
   "@tambienLasQueYaTeGustanTexto": {"placeholders": {"n": {"type": "int"}}},
   "soloLasNuevas": "Only new ones",
   "tambienEsasN": "{n, plural, =1{Download that one too} other{Download those {n} too}}",
-  "@tambienEsasN": {"placeholders": {"n": {"type": "int"}}}
+  "@tambienEsasN": {"placeholders": {"n": {"type": "int"}}},
+  "novedadesDeEstaVersion": "What's new in this version",
+  "novedadesDeEstaVersionDescripcion": "What changed in Kiji {version}",
+  "@novedadesDeEstaVersionDescripcion": {"placeholders": {"version": {"type": "String"}}},
+  "estaVersionNoTraeNovedades": "This version has no list of changes."
 }

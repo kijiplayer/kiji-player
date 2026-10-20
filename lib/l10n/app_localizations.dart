@@ -6148,6 +6148,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{n, plural, =1{Bajar también esa} other{Bajar también esas {n}}}'**
   String tambienEsasN(int n);
+
+  /// No description provided for @novedadesDeEstaVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Novedades de esta versión'**
+  String get novedadesDeEstaVersion;
+
+  /// No description provided for @novedadesDeEstaVersionDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que cambió en Kiji {version}'**
+  String novedadesDeEstaVersionDescripcion(String version);
+
+  /// No description provided for @estaVersionNoTraeNovedades.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta versión no trae una lista de novedades.'**
+  String get estaVersionNoTraeNovedades;
 }
 
 class _AppLocalizationsDelegate

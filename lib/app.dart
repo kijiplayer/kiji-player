@@ -13,6 +13,7 @@ import 'features/settings/data/settings_store.dart';
 import 'features/settings/domain/app_settings.dart';
 import 'providers/playback_provider.dart';
 import 'features/updates/update_checker.dart';
+import 'features/updates/whats_new.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
@@ -81,11 +82,34 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  /// Al abrir: la bienvenida a quien recién instala o, después de actualizar, una sola vez
+  /// "Novedades de esta versión".
   Future<void> _maybeWelcome() async {
-    if (!await WelcomeStore().shouldShow()) return;
+    final fresh = await WelcomeStore().shouldShow();
+    final settings = await ref.read(settingsProvider.notifier).loaded;
+    final showNews = shouldShowWhatsNew(lastSeenVersion: settings.lastSeenVersion, freshInstall: fresh);
+    Future<void> markSeen() async {
+      if (ref.read(settingsProvider).lastSeenVersion == kijiVersion) return;
+      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(lastSeenVersion: kijiVersion));
+    }
+
+    if (fresh) {
+      // Se anota al cerrar la bienvenida: si Kiji se cierra a mitad, la bienvenida vuelve.
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final context = kijiNavigatorKey.currentContext;
+        if (context != null && context.mounted) await WelcomeScreen.open(context, instant: true);
+        await markSeen();
+      });
+      return;
+    }
+    await markSeen();
+    if (!showNews) return;
+    final notes = await loadBundledWhatsNew(kijiLanguage);
+    if (notes == null) return;
+    debugPrint('=== NOVEDADES: se muestran las de $kijiVersion ===');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = kijiNavigatorKey.currentContext;
-      if (context != null && context.mounted) WelcomeScreen.open(context, instant: true);
+      if (context != null && context.mounted) showWhatsNewSheet(context, notes);
     });
   }
 
