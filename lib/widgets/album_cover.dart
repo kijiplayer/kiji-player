@@ -8,6 +8,7 @@ import '../features/customize/data/artwork_cache.dart';
 import '../features/customize/data/track_overrides.dart';
 import '../features/system_media/data/cover_art.dart';
 import '../models/track.dart';
+import '../utils/file_exists_cache.dart';
 import '../providers/downloads_provider.dart';
 import 'kiji_logo.dart';
 import '../features/downloads/presentation/download_status.dart';
@@ -87,7 +88,7 @@ class TrackArtwork extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final art = _artwork(ref);
+    final art = _artwork(context, ref);
     final videoId = track.youtubeVideoId;
     if (!showDownloadState || videoId == null || size > 72) return art;
     return SizedBox(
@@ -100,7 +101,7 @@ class TrackArtwork extends ConsumerWidget {
     );
   }
 
-  Widget _artwork(WidgetRef ref) {
+  Widget _artwork(BuildContext context, WidgetRef ref) {
     final fallback = AlbumCover(
       color: track.coverColor,
       size: size,
@@ -110,10 +111,13 @@ class TrackArtwork extends ConsumerWidget {
     );
     final image = trackImageProvider(ref, track);
     if (image == null) return fallback;
+    // Se decodifica al alto en pantalla, no a la resolución de la foto (cuadradas o apaisadas: el
+    // recorte de "cover" sigue nítido). En una lista, cada carátula ocupa mucha menos memoria.
+    final pixels = (size * MediaQuery.devicePixelRatioOf(context)).round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: Image(
-        image: image,
+        image: ResizeImage(image, height: pixels, policy: ResizeImagePolicy.fit),
         width: size,
         height: size,
         fit: BoxFit.cover,
@@ -139,7 +143,7 @@ ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
   // Carátula incluida en el archivo, guardada al importar.
   if (track.source == TrackSource.local && cache != null) {
     final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
-    if (embedded.existsSync()) return FileImage(embedded);
+    if (fileExistsCache.exists(embedded.path)) return FileImage(embedded);
   }
   final videoId = track.youtubeVideoId;
   if (videoId != null) {
@@ -155,7 +159,7 @@ ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
   }
   if (cache != null) {
     final cached = File(p.join(cache.path, artworkCacheName(url)));
-    if (cached.existsSync()) return FileImage(cached);
+    if (fileExistsCache.exists(cached.path)) return FileImage(cached);
   }
   return NetworkImage(largerThumbnailUrl(url));
 }
