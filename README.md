@@ -25,6 +25,20 @@ Kiji plays the music on your device and from YouTube Music, anonymously. Everyth
 - Imports playlists from Echo Music, Metrolist, `.m3u` and other formats.
 - In English and Spanish.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/capturas/reproductor_en.png" width="180" alt="Player">
+  <img src="docs/capturas/inicio_en.png" width="180" alt="Home">
+  <img src="docs/capturas/letras_en.png" width="180" alt="Synced lyrics">
+</p>
+<p align="center">
+  <img src="docs/capturas/biblioteca_en.png" width="180" alt="Library">
+  <img src="docs/capturas/bienvenida_en.png" width="180" alt="Welcome">
+</p>
+
+<p align="center"><sub>Songs, artists, covers and lyrics in the screenshots are made up.</sub></p>
+
 ## Installation
 
 Versions are published on [Releases](https://github.com/kijiplayer/kiji-player/releases). Kiji runs

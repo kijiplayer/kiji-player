@@ -25,6 +25,20 @@ las playlists, el historial y las descargas) se queda en tu dispositivo.
 - Importa playlists desde Echo Music, Metrolist, `.m3u` y otros formatos.
 - En español e inglés.
 
+## Capturas
+
+<p align="center">
+  <img src="docs/capturas/reproductor_es.png" width="180" alt="Reproductor">
+  <img src="docs/capturas/inicio_es.png" width="180" alt="Inicio">
+  <img src="docs/capturas/letras_es.png" width="180" alt="Letra sincronizada">
+</p>
+<p align="center">
+  <img src="docs/capturas/biblioteca_es.png" width="180" alt="Biblioteca">
+  <img src="docs/capturas/bienvenida_es.png" width="180" alt="Bienvenida">
+</p>
+
+<p align="center"><sub>Las canciones, artistas, portadas y letras de las capturas son inventadas.</sub></p>
+
 ## Instalación
 
 Las versiones se publican en [Releases](https://github.com/kijiplayer/kiji-player/releases). Kiji
