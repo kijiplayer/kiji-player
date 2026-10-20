@@ -83,7 +83,11 @@ void main() {
     }
     await tester.runAsync(() async {
       await tester.tap(find.text('Empezar'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      // Se espera a que quede guardado en disco (con la PC cargada puede tardar), con un tope.
+      final deadline = DateTime.now().add(const Duration(seconds: 5));
+      while (await store.shouldShow() && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
     });
     await settle(tester);
     expect(find.text('abrir'), findsOneWidget);

@@ -47,6 +47,14 @@ class _FakeMonitor implements AudioOutputMonitor {
 // Deja correr los microtasks y futures pendientes (carga y aplicación).
 Future<void> _settle() => Future<void>.delayed(const Duration(milliseconds: 50));
 
+/// Espera a que se cumpla [done] (con la PC cargada, una espera fija puede quedarse corta).
+Future<void> _until(bool Function() done) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 3));
+  while (!done() && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+  }
+}
+
 void main() {
   group('curva y presets', () {
     test('gainAt interpola en escala logarítmica y se queda en los extremos', () {
@@ -161,19 +169,20 @@ void main() {
       expect(engine.gains, [-2, -1, 3, 4, 1], reason: 'suena el parlante, no los auriculares');
 
       monitor.plug(AudioOutputKind.headphones);
-      await _settle();
+      await _until(() => c.read(equalizerProvider).output == AudioOutputKind.headphones && engine.gains?.first == 6);
       expect(c.read(equalizerProvider).output, AudioOutputKind.headphones);
       expect(engine.gains, [6, 4, 0, 0, 0]);
 
       monitor.plug(AudioOutputKind.speaker);
-      await _settle();
+      await _until(() => engine.gains?.first == -2);
       expect(engine.gains, [-2, -1, 3, 4, 1]);
 
       // Otra sesión lee lo mismo del disco.
       final engine2 = _FakeEngine();
       final c2 = container(engine2, _FakeMonitor(AudioOutputKind.headphones));
       c2.read(equalizerProvider);
-      await _settle();
+      await c2.read(equalizerProvider.notifier).loaded;
+      await _until(() => engine2.gains?.first == 6);
       expect(c2.read(equalizerProvider).settings.perDevice, isTrue);
       expect(engine2.enabled, isTrue);
       expect(engine2.gains, [6, 4, 0, 0, 0]);
