@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 // Adaptado de Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivos originales: app/.../utils/cipher/PlayerJsFetcher.kt (ubicar y bajar el
 // reproductor), PlayerConfigStore.kt y assets/player_configs.json (tabla por hash).

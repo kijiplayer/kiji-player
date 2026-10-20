@@ -3,6 +3,7 @@
 // (playlists locales: crear, renombrar, reordenar y quitar).
 
 import '../../../models/track.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 
 /// Una playlist de Kiji. Vive solo en el teléfono.
 class Playlist {
@@ -118,7 +119,7 @@ abstract final class PlaylistOps {
   /// hace falta). Nunca se pisa una playlist existente (Cero Sorpresas).
   static String uniqueName(String wanted, Iterable<String> existing, {String suffix = ''}) {
     final names = {for (final n in existing) n.trim().toLowerCase()};
-    final base = wanted.trim().isEmpty ? 'Playlist sin nombre' : wanted.trim();
+    final base = wanted.trim().isEmpty ? tx.playlistSinNombre : wanted.trim();
     if (!names.contains(base.toLowerCase())) return base;
     final withSuffix = suffix.isEmpty ? base : '$base $suffix';
     if (!names.contains(withSuffix.toLowerCase())) return withSuffix;

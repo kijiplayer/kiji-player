@@ -8,17 +8,13 @@ import 'extractor_trace.dart';
 import 'path_health.dart';
 import '../../account/domain/yt_session.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Resultado de buscar el audio de una canción con todos los motores.
 class ResolveOutcome {
-  const ResolveOutcome.found(ResolvedStream this.stream, [this.failures = const []])
-      : problem = null,
-        offline = false;
-  const ResolveOutcome.content(ContentProblem this.problem, this.failures)
-      : stream = null,
-        offline = false;
-  const ResolveOutcome.failed(this.failures, {this.offline = false})
-      : stream = null,
-        problem = null;
+  const ResolveOutcome.found(ResolvedStream this.stream, [this.failures = const []]) : problem = null, offline = false;
+  const ResolveOutcome.content(ContentProblem this.problem, this.failures) : stream = null, offline = false;
+  const ResolveOutcome.failed(this.failures, {this.offline = false}) : stream = null, problem = null;
 
   final ResolvedStream? stream;
 
@@ -33,9 +29,9 @@ class ResolveOutcome {
 /// canción cuando las formas coinciden.
 class StreamResolver {
   StreamResolver({required this.engines, PathHealth? health, ExtractorTrace? trace, bool Function()? signedIn})
-      : health = health ?? PathHealth.instance,
-        trace = trace ?? ExtractorTrace.instance,
-        signedIn = signedIn ?? (() => YtSessionHolder.signedIn);
+    : health = health ?? PathHealth.instance,
+      trace = trace ?? ExtractorTrace.instance,
+      signedIn = signedIn ?? (() => YtSessionHolder.signedIn);
 
   /// Hay una cuenta iniciada (Configuración → Cuenta).
   final bool Function() signedIn;
@@ -50,15 +46,22 @@ class StreamResolver {
   Future<ResolveOutcome> resolve(String videoId, {bool lowQuality = false, Set<String> skipPaths = const {}}) async {
     final watch = Stopwatch()..start();
     final outcome = await _resolve(videoId, lowQuality: lowQuality, skipPaths: skipPaths);
-    trace.add(TraceEntry(
-      at: DateTime.now(),
-      videoId: videoId,
-      elapsed: watch.elapsed,
-      ok: outcome.stream != null,
-      result: outcome.stream?.toString() ??
-          (outcome.problem != null ? 'contenido: ${outcome.problem!.name}' : outcome.offline ? 'sin conexión' : 'falló'),
-      failures: [for (final (path, failure) in outcome.failures) (path, failure.toString())],
-    ));
+    trace.add(
+      TraceEntry(
+        at: DateTime.now(),
+        videoId: videoId,
+        elapsed: watch.elapsed,
+        ok: outcome.stream != null,
+        result:
+            outcome.stream?.toString() ??
+            (outcome.problem != null
+                ? 'contenido: ${outcome.problem!.name}' // l10n-ignore
+                : outcome.offline
+                ? tx.sinConexionMinuscula
+                : tx.fallo),
+        failures: [for (final (path, failure) in outcome.failures) (path, failure.toString())],
+      ),
+    );
     return outcome;
   }
 
@@ -68,8 +71,16 @@ class StreamResolver {
       if (!engine.isSupported) continue;
       final prefix = engine.id.name.toUpperCase();
       if (skipPaths.contains('$prefix/AUTO')) continue;
-      final skip = {for (final path in skipPaths) if (path.startsWith('$prefix/')) path.substring(prefix.length + 1)};
-      final order = engine.id == EngineId.b ? health.order('B', [for (final c in ytPlayerClients) if (!c.isRetired) c.label]) : null;
+      final skip = {
+        for (final path in skipPaths)
+          if (path.startsWith('$prefix/')) path.substring(prefix.length + 1),
+      };
+      final order = engine.id == EngineId.b
+          ? health.order('B', [
+              for (final c in ytPlayerClients)
+                if (!c.isRetired) c.label,
+            ])
+          : null;
       final result = await engine.resolve(videoId, lowQuality: lowQuality, skip: skip, order: order);
       for (final (form, failure) in result.failures) {
         final path = '$prefix/$form';
@@ -98,7 +109,7 @@ class StreamResolver {
 
   /// YouTube rechazó [stream] a mitad de la canción: falla de esa forma.
   Future<void> refused(ResolvedStream stream) async {
-    health.recordFormFailure(stream.path, 'YouTube cortó el audio a mitad de la canción');
+    health.recordFormFailure(stream.path, tx.youtubeCortoElAudioAMitad);
     for (final engine in engines) {
       if (engine.id == stream.engine) await engine.refused(stream);
     }

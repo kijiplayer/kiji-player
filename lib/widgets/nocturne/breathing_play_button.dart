@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../../theme/kiji_tokens.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Botón PLAY de 84 px con degradado y un anillo de luz que "respira"
 /// mientras suena (§7). Con "reducir animaciones" el anillo queda quieto.
 class BreathingPlayButton extends StatefulWidget {
@@ -23,18 +25,22 @@ class BreathingPlayButton extends StatefulWidget {
   State<BreathingPlayButton> createState() => _BreathingPlayButtonState();
 }
 
-class _BreathingPlayButtonState extends State<BreathingPlayButton>
-    with TickerProviderStateMixin {
-  late final AnimationController _breath =
-      AnimationController(vsync: this, duration: KijiMotion.breath);
+class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerProviderStateMixin {
+  late final AnimationController _breath = AnimationController(vsync: this, duration: KijiMotion.breath);
 
   /// Play que se transforma en pausa (Tarea Z6).
-  late final AnimationController _morph =
-      AnimationController(vsync: this, duration: KijiMotion.normal, value: widget.isPlaying ? 1 : 0);
+  late final AnimationController _morph = AnimationController(
+    vsync: this,
+    duration: KijiMotion.normal,
+    value: widget.isPlaying ? 1 : 0,
+  );
 
   /// Rebote al tocar.
-  late final AnimationController _bounce =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 380), value: 1);
+  late final AnimationController _bounce = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+    value: 1,
+  );
 
   void _tap() {
     if (!widget.reduceMotion) {
@@ -44,8 +50,7 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
     widget.onPressed();
   }
 
-  bool get _animate =>
-      breathingShouldAnimate(isPlaying: widget.isPlaying, reduceMotion: widget.reduceMotion);
+  bool get _animate => breathingShouldAnimate(isPlaying: widget.isPlaying, reduceMotion: widget.reduceMotion);
 
   @override
   void initState() {
@@ -98,10 +103,7 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
                   height: size * 1.18,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 2,
-                      color: KijiColors.cyan.withValues(alpha: ringOpacity),
-                    ),
+                    border: Border.all(width: 2, color: KijiColors.cyan.withValues(alpha: ringOpacity)),
                     boxShadow: [
                       BoxShadow(
                         color: KijiColors.violet.withValues(alpha: 0.25 + 0.2 * t),
@@ -118,9 +120,9 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
         },
         child: Semantics(
           button: true,
-          label: widget.isPlaying ? 'Pausar' : 'Reproducir',
+          label: widget.isPlaying ? tx.pausar : tx.reproducir,
           child: Tooltip(
-            message: widget.isPlaying ? 'Pausar' : 'Reproducir',
+            message: widget.isPlaying ? tx.pausar : tx.reproducir,
             excludeFromSemantics: true,
             child: Material(
               shape: const CircleBorder(),
@@ -129,21 +131,20 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
               child: Ink(
                 width: size,
                 height: size,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: KijiColors.accentGradientDiagonal,
-                ),
+                decoration: const BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
                 child: InkWell(
                   onTap: _tap,
                   child: ScaleTransition(
                     // Se achica un poco y vuelve con rebote.
-                    scale: _bounce.drive(TweenSequence([
-                      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.82), weight: 30),
-                      TweenSequenceItem(
-                        tween: Tween(begin: 0.82, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
-                        weight: 70,
-                      ),
-                    ])),
+                    scale: _bounce.drive(
+                      TweenSequence([
+                        TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.82), weight: 30),
+                        TweenSequenceItem(
+                          tween: Tween(begin: 0.82, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
+                          weight: 70,
+                        ),
+                      ]),
+                    ),
                     child: Center(
                       child: AnimatedIcon(
                         icon: AnimatedIcons.play_pause,
@@ -165,5 +166,4 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton>
 
 /// El anillo solo se anima mientras suena y si no se pidió reducir
 /// animaciones.
-bool breathingShouldAnimate({required bool isPlaying, required bool reduceMotion}) =>
-    isPlaying && !reduceMotion;
+bool breathingShouldAnimate({required bool isPlaying, required bool reduceMotion}) => isPlaying && !reduceMotion;

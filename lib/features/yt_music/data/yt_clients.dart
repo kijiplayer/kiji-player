@@ -1,3 +1,6 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
+import 'package:kiji_player/l10n/l10n.dart';
+
 // Adaptado de Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivos originales: innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt
 // (versiones y datos de cada cliente) y app/.../utils/YTPlayerUtils.kt
@@ -74,26 +77,27 @@ class YtPlayerClient {
   final String? note;
 
   Map<String, dynamic> context(String? visitorData) => {
-        'clientName': name,
-        'clientVersion': version,
-        'osName': ?osName,
-        'osVersion': ?osVersion,
-        'deviceMake': ?deviceMake,
-        'deviceModel': ?deviceModel,
-        'androidSdkVersion': ?androidSdkVersion,
-        'hl': 'es',
-        'gl': 'US',
-        'visitorData': ?visitorData,
-      };
+    'clientName': name,
+    'clientVersion': version,
+    'osName': ?osName,
+    'osVersion': ?osVersion,
+    'deviceMake': ?deviceMake,
+    'deviceModel': ?deviceModel,
+    'androidSdkVersion': ?androidSdkVersion,
+    'hl': 'es',
+    'gl': 'US',
+    'visitorData': ?visitorData,
+  };
 }
 
-const safariUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 '
+const safariUserAgent =
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 '
     '(KHTML, like Gecko) Version/18.0 Safari/605.1.15';
 const _cobaltUserAgent = 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version';
-const chromeUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+const chromeUserAgent =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36';
-const firefoxUserAgent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0';
+const firefoxUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0';
 
 /// Orden en que Kiji prueba las formas: primero las que funcionan hoy (medido
 /// el 16/10/2026 con 20 canciones en un celular Android y en Windows, ver
@@ -103,7 +107,7 @@ const firefoxUserAgent =
 /// mantienen entre sí su orden; `WEB_CREATOR` no está porque exige iniciar
 /// sesión y Kiji es anónimo. Las propias de Kiji: la lista HLS de VISIONOS y
 /// las que descifran con el solver de yt-dlp y mandan un PO token (BotGuard).
-const ytPlayerClients = <YtPlayerClient>[
+List<YtPlayerClient> get ytPlayerClients => <YtPlayerClient>[
   YtPlayerClient(
     label: 'VISIONOS',
     name: 'VISIONOS',
@@ -114,7 +118,7 @@ const ytPlayerClients = <YtPlayerClient>[
     osVersion: '1.3.21O771',
     deviceMake: 'Apple',
     deviceModel: 'RealityDevice14,1',
-    note: 'Audio directo, sin descifrar.',
+    note: tx.audioDirectoSinDescifrar,
   ),
   YtPlayerClient(
     label: 'VISIONOS_HLS',
@@ -127,7 +131,7 @@ const ytPlayerClients = <YtPlayerClient>[
     deviceMake: 'Apple',
     deviceModel: 'RealityDevice14,1',
     useHls: true,
-    note: 'Lista HLS de segmentos chicos (otro servidor que VISIONOS directo). No se guarda en la caché.',
+    note: tx.listaHlsDeSegmentosChicosOtro,
   ),
   YtPlayerClient(
     label: 'TVHTML5_SIMPLY',
@@ -139,7 +143,7 @@ const ytPlayerClients = <YtPlayerClient>[
     needsPlayerScript: true,
     usesPoToken: true,
     playerSessionToken: true,
-    note: 'Televisor simple; descifra con el solver y manda un PO token.',
+    note: tx.televisorSimpleDescifraConElSolver,
   ),
   YtPlayerClient(
     label: 'TVHTML5_SIMPLY_MUSIC',
@@ -150,50 +154,49 @@ const ytPlayerClients = <YtPlayerClient>[
     needsPlayerScript: true,
     usesPoToken: true,
     playerSessionToken: true,
-    note: 'Como TVHTML5_SIMPLY, pero pidiendo a music.youtube.com.',
+    note: tx.comoTvhtml5SimplyPeroPidiendoA,
   ),
   YtPlayerClient(
     label: 'ANDROID_VR',
     name: 'ANDROID_VR',
     id: '28',
     version: '1.65.10',
-    userAgent: 'com.google.android.apps.youtube.vr.oculus/1.65.10 '
-        '(Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
+    userAgent: 'com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
     osName: 'Android',
     osVersion: '12L',
     deviceMake: 'Oculus',
     deviceModel: 'Quest 3',
     androidSdkVersion: 32,
-    retired: 'Entrega solo el primer MiB (medido con InnerTubeX, 18/10/2026).',
-    note: 'Audio directo, sin descifrar.',
+    retired: tx.entregaSoloElPrimerMibMedido,
+    note: tx.audioDirectoSinDescifrar,
   ),
   YtPlayerClient(
     label: 'TVHTML5',
     name: 'TVHTML5',
     id: '7',
     version: '7.20260213.00.00',
-    userAgent: 'Mozilla/5.0(SMART-TV; Linux; Tizen 4.0.0.2) AppleWebkit/605.1.15 '
+    userAgent:
+        'Mozilla/5.0(SMART-TV; Linux; Tizen 4.0.0.2) AppleWebkit/605.1.15 '
         '(KHTML, like Gecko) SamsungBrowser/9.2 TV Safari/605.1.15',
     host: 'www.youtube.com',
     needsPlayerScript: true,
     usesPoToken: true,
-    retired: 'YouTube responde "volver a cargar la página" (InnerTubeX: solo de prueba).',
-    note: 'Televisor; descifra con el solver.',
+    retired: tx.youtubeRespondeVolverACargarLa,
+    note: tx.televisorDescifraConElSolver,
   ),
   YtPlayerClient(
     label: 'ANDROID_VR_1.43',
     name: 'ANDROID_VR',
     id: '28',
     version: '1.43.32',
-    userAgent: 'com.google.android.apps.youtube.vr.oculus/1.43.32 (Linux; U; Android 12; en_US; '
-        'Quest 3; Build/SQ3A.220605.009.A1; Cronet/107.0.5284.2)',
+    userAgent: 'com.google.android.apps.youtube.vr.oculus/1.43.32 (Linux; U; Android 12; en_US; Quest 3; Build/SQ3A.220605.009.A1; Cronet/107.0.5284.2)',
     osName: 'Android',
     osVersion: '12',
     deviceMake: 'Oculus',
     deviceModel: 'Quest 3',
     androidSdkVersion: 32,
-    retired: 'YouTube ya no le da formatos de audio (InnerTubeX: NO_PLAYABLE_STREAM).',
-    note: 'Versión vieja de ANDROID_VR, de control.',
+    retired: tx.youtubeYaNoLeDaFormatos,
+    note: tx.versionViejaDeAndroidVrDe,
   ),
   YtPlayerClient(
     label: 'IPADOS',
@@ -205,8 +208,8 @@ const ytPlayerClients = <YtPlayerClient>[
     osVersion: '17.7.10.21H450',
     deviceMake: 'Apple',
     deviceModel: 'iPad7,6',
-    retired: 'YouTube ya no le da formatos de audio (InnerTubeX: rota).',
-    note: 'Suele dar solo el primer minuto.',
+    retired: tx.youtubeYaNoLeDaFormatos2,
+    note: tx.sueleDarSoloElPrimerMinuto,
   ),
   YtPlayerClient(
     label: 'IOS',
@@ -215,8 +218,8 @@ const ytPlayerClients = <YtPlayerClient>[
     version: '21.03.1',
     userAgent: 'com.google.ios.youtube/21.03.1 (iPhone16,2; U; CPU iOS 18_2 like Mac OS X;)',
     osVersion: '18.2.22C152',
-    retired: 'YouTube ya no le da formatos de audio (InnerTubeX: rota).',
-    note: 'Suele dar solo el primer minuto.',
+    retired: tx.youtubeYaNoLeDaFormatos2,
+    note: tx.sueleDarSoloElPrimerMinuto,
   ),
   YtPlayerClient(
     label: 'WEB_REMIX',
@@ -227,7 +230,7 @@ const ytPlayerClients = <YtPlayerClient>[
     needsPlayerScript: true,
     usesPoToken: true,
     loginSupported: true,
-    note: 'La web de YouTube Music; descifra con el solver y manda un PO token.',
+    note: tx.laWebDeYoutubeMusicDescifra,
   ),
   YtPlayerClient(
     label: 'WEB_EMBEDDED_PLAYER',
@@ -238,20 +241,21 @@ const ytPlayerClients = <YtPlayerClient>[
     host: 'www.youtube.com',
     needsPlayerScript: true,
     embedded: true,
-    note: 'El reproductor incrustado; usa el visitor de la página embed (Tarea Z8, como InnerTubeX 0.8.4).',
+    note: tx.elReproductorIncrustadoUsaElVisitor,
   ),
   YtPlayerClient(
     label: 'MWEB',
     name: 'MWEB',
     id: '2',
     version: '2.20250925.01.00',
-    userAgent: 'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 '
+    userAgent:
+        'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 '
         '(KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)',
     host: 'www.youtube.com',
     needsPlayerScript: true,
     usesPoToken: true,
-    retired: 'Necesita un PO token ligado a la página, que Kiji no genera (medido el 18/10/2026).',
-    note: 'La web para celulares; descifra con el solver y manda un PO token.',
+    retired: tx.necesitaUnPoTokenLigadoA,
+    note: tx.laWebParaCelularesDescifraCon,
   ),
 ];
 

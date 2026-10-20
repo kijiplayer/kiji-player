@@ -10,6 +10,8 @@ import '../../../models/track.dart';
 import '../domain/system_media_controls.dart';
 import 'cover_art.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Android / iOS / macOS: notificación, pantalla de bloqueo y auriculares
 /// mediante `audio_service`. El reproductor sigue siendo `PlaybackNotifier`;
 /// esto solo traduce en las dos direcciones.
@@ -22,10 +24,10 @@ class AudioServiceControls implements SystemMediaControls {
   static Future<AudioServiceControls> init() async {
     final handler = await AudioService.init(
       builder: _KijiAudioHandler.new,
-      config: const AudioServiceConfig(
+      config: AudioServiceConfig(
         androidNotificationChannelId: 'com.example.kiji_player.playback',
-        androidNotificationChannelName: 'Reproducción',
-        androidNotificationChannelDescription: 'Controles de la música que está sonando',
+        androidNotificationChannelName: tx.reproduccion2,
+        androidNotificationChannelDescription: tx.controlesDeLaMusicaQueEsta,
         // En pausa, la notificación se puede descartar deslizándola.
         androidStopForegroundOnPause: true,
       ),
@@ -38,14 +40,16 @@ class AudioServiceControls implements SystemMediaControls {
 
   @override
   Future<void> showTrack(Track track, {Duration? duration}) async {
-    _handler.mediaItem.add(MediaItem(
-      id: track.id,
-      title: track.title,
-      artist: track.artist,
-      album: track.album,
-      duration: duration ?? (track.durationMs > 0 ? Duration(milliseconds: track.durationMs) : null),
-      artUri: await coverArtFor(track),
-    ));
+    _handler.mediaItem.add(
+      MediaItem(
+        id: track.id,
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        duration: duration ?? (track.durationMs > 0 ? Duration(milliseconds: track.durationMs) : null),
+        artUri: await coverArtFor(track),
+      ),
+    );
   }
 
   @override
@@ -56,25 +60,27 @@ class AudioServiceControls implements SystemMediaControls {
     required Duration bufferedPosition,
   }) {
     if (playing) _askNotificationPermissionOnce();
-    _handler.playbackState.add(PlaybackState(
-      controls: [
-        MediaControl.skipToPrevious,
-        playing ? MediaControl.pause : MediaControl.play,
-        MediaControl.skipToNext,
-      ],
-      systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
-      androidCompactActionIndices: const [0, 1, 2],
-      processingState: switch (processing) {
-        MediaProcessing.idle => AudioProcessingState.idle,
-        MediaProcessing.loading => AudioProcessingState.loading,
-        MediaProcessing.buffering => AudioProcessingState.buffering,
-        MediaProcessing.ready => AudioProcessingState.ready,
-        MediaProcessing.completed => AudioProcessingState.completed,
-      },
-      playing: playing,
-      updatePosition: position,
-      bufferedPosition: bufferedPosition,
-    ));
+    _handler.playbackState.add(
+      PlaybackState(
+        controls: [
+          MediaControl.skipToPrevious,
+          playing ? MediaControl.pause : MediaControl.play,
+          MediaControl.skipToNext,
+        ],
+        systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
+        androidCompactActionIndices: const [0, 1, 2],
+        processingState: switch (processing) {
+          MediaProcessing.idle => AudioProcessingState.idle,
+          MediaProcessing.loading => AudioProcessingState.loading,
+          MediaProcessing.buffering => AudioProcessingState.buffering,
+          MediaProcessing.ready => AudioProcessingState.ready,
+          MediaProcessing.completed => AudioProcessingState.completed,
+        },
+        playing: playing,
+        updatePosition: position,
+        bufferedPosition: bufferedPosition,
+      ),
+    );
   }
 
   /// Android 13+ pide permiso para mostrar notificaciones. Se pregunta la
@@ -84,10 +90,9 @@ class AudioServiceControls implements SystemMediaControls {
     if (_askedNotificationPermission || defaultTargetPlatform != TargetPlatform.android) return;
     _askedNotificationPermission = true;
     Permission.notification.request().then(
-          (status) => debugPrint('=== CONTROLES: permiso de notificaciones: $status ==='),
-          onError: (Object error) =>
-              debugPrint('=== CONTROLES: no se pudo pedir el permiso de notificaciones: $error ==='),
-        );
+      (status) => debugPrint('=== CONTROLES: permiso de notificaciones: $status ==='),
+      onError: (Object error) => debugPrint('=== CONTROLES: no se pudo pedir el permiso de notificaciones: $error ==='),
+    );
   }
 }
 

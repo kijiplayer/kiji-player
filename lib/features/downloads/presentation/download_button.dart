@@ -8,6 +8,8 @@ import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
 import 'download_status.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Ícono de descarga con 4 estados: descargar / progreso / lista / error.
 /// Solo aparece para canciones de YouTube.
 class DownloadButton extends ConsumerStatefulWidget {
@@ -31,33 +33,31 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     final active = downloads.active[videoId];
 
     if (_checking) {
-      return const _Slot(
-        child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-      );
+      return const _Slot(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)));
     }
     if (downloads.completed.containsKey(videoId)) {
       return IconButton(
         icon: const Icon(Icons.download_done_rounded, color: KijiColors.cyan),
-        tooltip: 'Descargada',
+        tooltip: tx.descargada,
         onPressed: () => confirmDeleteDownload(context, ref, widget.track.title, videoId),
       );
     }
     if (active == null) {
       return IconButton(
         icon: const Icon(Icons.download_rounded, color: AppColors.onSurfaceMuted),
-        tooltip: 'Descargar',
+        tooltip: tx.descargar,
         onPressed: _startFlow,
       );
     }
     if (active.status == ActiveDownloadStatus.failed) {
       return IconButton(
         icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
-        tooltip: 'No se pudo descargar: ver por qué',
+        tooltip: tx.noSePudoDescargarVerPor,
         onPressed: () => showDownloadFailureSheet(context, ref, videoId),
       );
     }
     return IconButton(
-      tooltip: 'Cancelar descarga',
+      tooltip: tx.cancelarDescarga,
       onPressed: () => _confirmCancel(videoId),
       // Anillo con el porcentaje (§7). Tocarlo ofrece cancelar.
       icon: SizedBox(
@@ -73,10 +73,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
               value: active.status == ActiveDownloadStatus.queued ? null : active.progress,
             ),
             if (active.progress != null)
-              Text(
-                '${(active.progress! * 100).round()}',
-                style: KijiText.mono(size: 9, color: Colors.white),
-              ),
+              Text('${(active.progress! * 100).round()}', style: KijiText.mono(size: 9, color: Colors.white)),
           ],
         ),
       ),
@@ -99,9 +96,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
         await showDownloadFailureSheet(context, ref, videoId!);
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(check.blockedReason ?? 'No se pudo descargar.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(check.blockedReason ?? tx.noSePudoDescargar)));
       return;
     }
 
@@ -110,16 +105,17 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Descargar canción'),
+        title: Text(tx.descargarCancion),
         content: Text(
-          '«${widget.track.title}»\n\n'
-          'Va a ocupar ${size == null ? 'un tamaño desconocido' : formatBytes(size)}.\n'
-          '${free == null ? 'No se pudo saber cuánto espacio libre queda.' : 'Te quedan ${formatBytes(free)} libres.'}\n\n'
-          'Se guarda dentro de Kiji, no en tu carpeta de música.',
+          tx.vaAOcuparSeGuardaDentro(
+            widget.track.title,
+            size == null ? tx.unTamanoDesconocido : formatBytes(size),
+            free == null ? tx.noSePudoSaberElEspacioLibre : tx.teQuedanLibres(formatBytes(free)),
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Descargar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.descargar)),
         ],
       ),
     );
@@ -130,14 +126,11 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Cancelar la descarga?'),
-        content: const Text('Se borra lo que se había bajado de esta canción.'),
+        title: Text(tx.cancelarLaDescarga),
+        content: Text(tx.seBorraLoQueSeHabia),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Seguir')),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Cancelar descarga'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.seguir)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.cancelarDescarga)),
         ],
       ),
     );
@@ -146,23 +139,15 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
 }
 
 /// Pregunta antes de borrar una descarga y explica qué pasa después.
-Future<void> confirmDeleteDownload(
-  BuildContext context,
-  WidgetRef ref,
-  String title,
-  String videoId,
-) async {
+Future<void> confirmDeleteDownload(BuildContext context, WidgetRef ref, String title, String videoId) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('¿Borrar la descarga?'),
-      content: Text(
-        '«$title» deja de ocupar espacio. Si está en tu cola, no se quita: '
-        'vuelve a sonar desde internet.',
-      ),
+      title: Text(tx.borrarLaDescarga),
+      content: Text(tx.dejaDeOcuparEspacioSiEsta(title)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Borrar')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.borrar)),
       ],
     ),
   );

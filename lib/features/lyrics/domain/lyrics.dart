@@ -1,3 +1,5 @@
+import 'package:kiji_player/l10n/l10n.dart';
+
 // Inspirado en Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivos de referencia: app/src/main/kotlin/.../lyrics/LyricsUtils.kt (formato LRC) y
 // LyricsHelper.kt (orden de fuentes).
@@ -24,31 +26,32 @@ class LyricLine {
 /// después las fuentes de Echo, en su orden (`LyricsProviderRegistry.kt`), menos SimpMusic
 /// (su API es solo para su app).
 enum LyricsSource {
-  embedded('Incluida en el archivo'),
-  imported('Importada por ti'),
-  lrclib('LRCLIB'),
-  youlyplus('YouLyPlus'),
-  paxsenix('PaxSenix'),
-  unison('Unison'),
-  betterlyrics('Better Lyrics'),
-  kugou('KuGou'),
-  youtubeSubtitles('Subtítulos de YouTube'),
-  youtubeMusic('YouTube Music');
+  embedded,
+  imported,
+  lrclib,
+  youlyplus,
+  paxsenix,
+  unison,
+  betterlyrics,
+  kugou,
+  youtubeSubtitles,
+  youtubeMusic;
 
-  const LyricsSource(this.label);
-  final String label;
+  String get label => switch (this) {
+    LyricsSource.embedded => tx.incluidaEnElArchivo,
+    LyricsSource.imported => tx.importadaPorTi,
+    LyricsSource.lrclib => 'LRCLIB',
+    LyricsSource.youlyplus => 'YouLyPlus', // l10n-ignore
+    LyricsSource.paxsenix => 'PaxSenix', // l10n-ignore
+    LyricsSource.unison => 'Unison', // l10n-ignore
+    LyricsSource.betterlyrics => 'Better Lyrics', // l10n-ignore
+    LyricsSource.kugou => 'KuGou', // l10n-ignore
+    LyricsSource.youtubeSubtitles => tx.subtitulosDeYoutube,
+    LyricsSource.youtubeMusic => 'YouTube Music', // l10n-ignore
+  };
 
   /// Las que se buscan por internet (se pueden apagar en Configuración).
-  static const online = [
-    lrclib,
-    youlyplus,
-    paxsenix,
-    unison,
-    betterlyrics,
-    kugou,
-    youtubeSubtitles,
-    youtubeMusic,
-  ];
+  static const online = [lrclib, youlyplus, paxsenix, unison, betterlyrics, kugou, youtubeSubtitles, youtubeMusic];
 }
 
 /// Letra de una canción: sincronizada, en texto simple, instrumental, o
@@ -68,27 +71,24 @@ class Lyrics {
   bool get isEmpty => synced.isEmpty && (plain == null || plain!.trim().isEmpty) && !instrumental;
 
   Map<String, dynamic> toJson() => {
-        if (synced.isNotEmpty)
-          'synced': [
-            for (final line in synced) {'ms': line.time.inMilliseconds, 'text': line.text},
-          ],
-        if (plain != null) 'plain': plain,
-        'instrumental': instrumental,
-        if (source != null) 'source': source!.name,
-      };
+    if (synced.isNotEmpty)
+      'synced': [
+        for (final line in synced) {'ms': line.time.inMilliseconds, 'text': line.text},
+      ],
+    if (plain != null) 'plain': plain,
+    'instrumental': instrumental,
+    if (source != null) 'source': source!.name,
+  };
 
   factory Lyrics.fromJson(Map<String, dynamic> json) => Lyrics(
-        synced: [
-          for (final item in (json['synced'] as List<dynamic>? ?? const []))
-            LyricLine(
-              Duration(milliseconds: (item as Map<String, dynamic>)['ms'] as int),
-              item['text'] as String,
-            ),
-        ],
-        plain: json['plain'] as String?,
-        instrumental: json['instrumental'] as bool? ?? false,
-        source: LyricsSource.values.asNameMap()[json['source']],
-      );
+    synced: [
+      for (final item in (json['synced'] as List<dynamic>? ?? const []))
+        LyricLine(Duration(milliseconds: (item as Map<String, dynamic>)['ms'] as int), item['text'] as String),
+    ],
+    plain: json['plain'] as String?,
+    instrumental: json['instrumental'] as bool? ?? false,
+    source: LyricsSource.values.asNameMap()[json['source']],
+  );
 }
 
 final _timeTag = RegExp(r'\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]');

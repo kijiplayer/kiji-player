@@ -7,6 +7,8 @@ import '../data/kiji_logs.dart';
 import '../data/log_scrubber.dart';
 import 'error_report_dialog.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Configuración → Registros e informes (Tarea T3): leer el registro (ya sin datos personales),
 /// descargar un informe o mandarlo al desarrollador, y borrar el registro.
 class ReportsScreen extends StatefulWidget {
@@ -34,11 +36,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Borrar el registro?'),
-        content: const Text('Se borra todo lo guardado. Si el registro está prendido, sigue anotando desde ahora.'),
+        title: Text(tx.borrarElRegistro),
+        content: Text(tx.seBorraTodoLoGuardadoSi),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Borrar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.borrar)),
         ],
       ),
     );
@@ -51,7 +53,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget build(BuildContext context) {
     final recent = ErrorReporter.instance.recent.reversed.toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Registros e informes')),
+      appBar: AppBar(title: Text(tx.registrosEInformes)),
       body: FutureBuilder<(String, int)>(
         future: _data,
         builder: (context, snapshot) {
@@ -61,34 +63,33 @@ class _ReportsScreenState extends State<ReportsScreen> {
             children: [
               Text(
                 KijiLogs.enabled
-                    ? 'El registro guardado ocupa ${formatBytes(size)}. No tiene tu nombre, tus cuentas, claves '
-                        'ni direcciones de internet. Solo sale del dispositivo si tú lo mandas.'
-                    : 'El registro guardado está apagado: solo se usa lo de esta sesión, que se borra al cerrar Kiji.',
+                    ? tx.elRegistroGuardadoOcupa(formatBytes(size))
+                    : tx.elRegistroGuardadoEstaApagadoSolo,
                 style: const TextStyle(color: KijiColors.muted, height: 1.4),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 icon: const Icon(Icons.send_rounded),
-                label: const Text('Enviar al desarrollador'),
+                label: Text(tx.errorReportSend),
                 onPressed: () => sendReportToDeveloper(context, recent.isEmpty ? null : recent.first),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 icon: const Icon(Icons.download_rounded),
-                label: const Text('Descargar informe (.txt)'),
+                label: Text(tx.errorReportDownload),
                 onPressed: () => downloadReport(context, recent.isEmpty ? null : recent.first),
               ),
               const SizedBox(height: 8),
               TextButton.icon(
                 icon: const Icon(Icons.delete_outline_rounded),
-                label: const Text('Borrar el registro'),
+                label: Text(tx.borrarElRegistro2),
                 onPressed: _delete,
               ),
               const SizedBox(height: 16),
-              Text('ERRORES DE ESTA SESIÓN', style: KijiText.mono(size: 11, color: KijiColors.cyan)),
+              Text(tx.erroresDeEstaSesion, style: KijiText.mono(size: 11, color: KijiColors.cyan)),
               const SizedBox(height: 8),
               if (recent.isEmpty)
-                const Text('Ninguno. 🎉', style: TextStyle(color: KijiColors.muted))
+                Text(tx.ninguno, style: const TextStyle(color: KijiColors.muted))
               else
                 for (final r in recent)
                   ListTile(
@@ -98,7 +99,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     subtitle: Text('${r.where} · ${TimeOfDay.fromDateTime(r.at).format(context)}'),
                   ),
               const SizedBox(height: 16),
-              Text('EL REGISTRO (LO ÚLTIMO, TAL COMO SE MANDA)', style: KijiText.mono(size: 11, color: KijiColors.cyan)),
+              Text(tx.elRegistroLoUltimoTalComo, style: KijiText.mono(size: 11, color: KijiColors.cyan)),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -107,7 +108,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   borderRadius: BorderRadius.circular(KijiRadii.tile),
                 ),
                 child: SelectableText(
-                  text.isEmpty ? 'Vacío.' : text,
+                  text.isEmpty ? tx.vacio : text,
                   style: KijiText.mono(size: 10, color: KijiColors.text),
                 ),
               ),

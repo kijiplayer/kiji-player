@@ -7,10 +7,11 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/json_file.dart';
 
+
 /// Cómo le va a un camino (motor + forma, "B/WEB_REMIX") en las pruebas y al reproducir.
 class PathRecord {
   PathRecord({this.ok = 0, this.fail = 0, this.lastOk, this.lastFail, this.lastReason, List<bool>? recent})
-      : recent = recent ?? [];
+    : recent = recent ?? [];
 
   int ok;
   int fail;
@@ -27,22 +28,22 @@ class PathRecord {
   bool get working => recent.isNotEmpty && recent.last;
 
   Map<String, dynamic> toJson() => {
-        'ok': ok,
-        'fail': fail,
-        'lastOk': lastOk?.toIso8601String(),
-        'lastFail': lastFail?.toIso8601String(),
-        'lastReason': lastReason,
-        'recent': [for (final r in recent) r ? 1 : 0],
-      };
+    'ok': ok,
+    'fail': fail,
+    'lastOk': lastOk?.toIso8601String(),
+    'lastFail': lastFail?.toIso8601String(),
+    'lastReason': lastReason,
+    'recent': [for (final r in recent) r ? 1 : 0],
+  };
 
   static PathRecord fromJson(Map json) => PathRecord(
-        ok: (json['ok'] as num?)?.toInt() ?? 0,
-        fail: (json['fail'] as num?)?.toInt() ?? 0,
-        lastOk: DateTime.tryParse('${json['lastOk']}'),
-        lastFail: DateTime.tryParse('${json['lastFail']}'),
-        lastReason: json['lastReason'] as String?,
-        recent: [for (final r in (json['recent'] as List? ?? const [])) r == 1],
-      );
+    ok: (json['ok'] as num?)?.toInt() ?? 0,
+    fail: (json['fail'] as num?)?.toInt() ?? 0,
+    lastOk: DateTime.tryParse('${json['lastOk']}'),
+    lastFail: DateTime.tryParse('${json['lastFail']}'),
+    lastReason: json['lastReason'] as String?,
+    recent: [for (final r in (json['recent'] as List? ?? const [])) r == 1],
+  );
 }
 
 /// Salud del Extractor 2.0 (Tarea Z8): por camino, solo con fallas de la FORMA (las de la
@@ -50,8 +51,8 @@ class PathRecord {
 /// formas se ajusta solo según los éxitos recientes.
 class PathHealth extends ChangeNotifier {
   PathHealth({Future<String> Function()? directory, DateTime Function()? now})
-      : _directoryPath = directory,
-        _now = now ?? DateTime.now;
+    : _directoryPath = directory,
+      _now = now ?? DateTime.now;
 
   static final instance = PathHealth();
 
@@ -70,9 +71,12 @@ class PathHealth extends ChangeNotifier {
   PathRecord? operator [](String path) => _records[path];
 
   Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'extractor_health_v2.json'),
-        logTag: 'SALUD',
-      );
+    p.join(
+      await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(),
+      'extractor_health_v2.json',
+    ),
+    logTag: 'SALUD',
+  );
 
   Future<void> load() async {
     if (_loaded) return;
@@ -94,10 +98,14 @@ class PathHealth extends ChangeNotifier {
     }
   }
 
-  void _save() => unawaited(_jsonFile().then((f) => f.write({
+  void _save() => unawaited(
+    _jsonFile().then(
+      (f) => f.write({
         'lastTestAt': lastTestAt?.toIso8601String(),
         'paths': {for (final e in _records.entries) e.key: e.value.toJson()},
-      })));
+      }),
+    ),
+  );
 
   void _push(PathRecord r, bool value) {
     r.recent.add(value);

@@ -13,10 +13,14 @@ import '../../history/listening_history.dart';
 import '../../playlists/playlists_provider.dart';
 import '../domain/import_matcher.dart';
 import '../domain/imported.dart';
+
 import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:dio/dio.dart';
+
 import '../../customize/data/artwork_cache.dart';
 import '../../customize/data/track_overrides.dart';
+
+import 'package:kiji_player/l10n/l10n.dart';
 
 /// Resultado de buscar todas las canciones de un archivo, antes de importar.
 class ImportPlan {
@@ -29,13 +33,17 @@ class ImportPlan {
   final List<ImportedSong> unresolved;
 
   /// Playlists que quedan con al menos una canción.
-  int get playlistCount =>
-      bundle.playlists.where((pl) => pl.songs.any((s) => resolved.containsKey(s.key))).length;
+  int get playlistCount => bundle.playlists.where((pl) => pl.songs.any((s) => resolved.containsKey(s.key))).length;
   int get songCount => resolved.length;
   int get missingCount => unresolved.length;
-  int get likedCount => {for (final s in bundle.liked) if (resolved.containsKey(s.key)) s.key}.length;
-  int get historyCount =>
-      {for (final h in bundle.history) if (resolved.containsKey(h.song.key)) h.song.key}.length;
+  int get likedCount => {
+    for (final s in bundle.liked)
+      if (resolved.containsKey(s.key)) s.key,
+  }.length;
+  int get historyCount => {
+    for (final h in bundle.history)
+      if (resolved.containsKey(h.song.key)) h.song.key,
+  }.length;
 
   bool get isEmpty => songCount == 0;
 }
@@ -45,15 +53,15 @@ class ImportPlan {
 String previewText(ImportPlan plan) {
   String n(int count, String one, String many) => '$count ${count == 1 ? one : many}';
   final parts = <String>[
-    'Se van a crear ${n(plan.playlistCount, 'playlist', 'playlists')}',
-    n(plan.songCount, 'canción', 'canciones'),
-    '${plan.missingCount} sin encontrar',
+    tx.seVanACrear(n(plan.playlistCount, 'playlist', 'playlists')),
+    n(plan.songCount, tx.cancion, 'canciones'),
+    tx.sinEncontrar(plan.missingCount),
   ];
   final extra = <String>[
-    if (plan.likedCount > 0) n(plan.likedCount, 'me gusta', 'me gusta'),
-    if (plan.historyCount > 0) '${plan.historyCount} en el historial',
+    if (plan.likedCount > 0) n(plan.likedCount, tx.meGusta, tx.meGusta),
+    if (plan.historyCount > 0) tx.enElHistorial(plan.historyCount),
   ];
-  return '${parts.join(', ')}${extra.isEmpty ? '' : '. También: ${extra.join(' y ')}'}.';
+  return '${parts.join(', ')}${extra.isEmpty ? '' : tx.tambien(extra.join(' y '))}.';
 }
 
 /// Busca todas las canciones distintas del archivo (de a [concurrency]).
@@ -126,14 +134,14 @@ class ImportRecord {
   final List<String> missing;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'source': source,
-        'date': date.millisecondsSinceEpoch,
-        'playlistIds': playlistIds,
-        'likedIds': likedIds,
-        'historyIds': historyIds,
-        'missing': missing,
-      };
+    'id': id,
+    'source': source,
+    'date': date.millisecondsSinceEpoch,
+    'playlistIds': playlistIds,
+    'likedIds': likedIds,
+    'historyIds': historyIds,
+    'missing': missing,
+  };
 
   factory ImportRecord.fromJson(Map<String, dynamic> json) {
     List<String> list(String key) => [for (final v in json[key] as List<dynamic>? ?? const []) v as String];
@@ -167,8 +175,7 @@ List<HistoryEntry> aggregateHistory(ImportPlan plan) {
 
 /// Importaciones hechas (`<appSupportDir>/imports.json`), para deshacerlas.
 class ImportsNotifier extends Notifier<List<ImportRecord>> {
-  ImportsNotifier({Future<Directory> Function()? directory})
-      : _directory = directory ?? getApplicationSupportDirectory;
+  ImportsNotifier({Future<Directory> Function()? directory}) : _directory = directory ?? getApplicationSupportDirectory;
 
   final Future<Directory> Function() _directory;
   JsonFile? _file;
@@ -210,8 +217,12 @@ class ImportsNotifier extends Notifier<List<ImportRecord>> {
     for (final pl in plan.bundle.playlists) {
       final tracks = [for (final s in pl.songs) ?plan.resolved[s.key]];
       if (tracks.isEmpty) continue;
-      final created =
-          playlists.create(pl.name, tracks: tracks, suffix: '(importada)', importedFrom: plan.bundle.source);
+      final created = playlists.create(
+        pl.name,
+        tracks: tracks,
+        suffix: '(importada)',
+        importedFrom: plan.bundle.source,
+      );
       playlistIds.add(created.id);
       if (pl.pinned) playlists.setPinned(created.id, true);
       final thumb = pl.thumbnailUrl;
@@ -271,9 +282,9 @@ class ImportsNotifier extends Notifier<List<ImportRecord>> {
         try {
           final source = entry.value;
           final bytes = source.startsWith('http')
-              ? Uint8List.fromList((await Dio().get<List<int>>(source,
-                      options: Options(responseType: ResponseType.bytes)))
-                  .data!)
+              ? Uint8List.fromList(
+                  (await Dio().get<List<int>>(source, options: Options(responseType: ResponseType.bytes))).data!,
+                )
               : await File(source).readAsBytes();
           final name = await covers.save('playlist-${entry.key}', bytes);
           ref.read(playlistsProvider.notifier).customize(entry.key, coverFile: name);
@@ -319,7 +330,10 @@ class ImportsNotifier extends Notifier<List<ImportRecord>> {
     }
     ref.read(favoritesProvider.notifier).removeIds(record.likedIds);
     ref.read(listeningHistoryProvider.notifier).removeIds(record.historyIds);
-    state = [for (final r in state) if (r.id != record.id) r];
+    state = [
+      for (final r in state)
+        if (r.id != record.id) r,
+    ];
     unawaited(_save());
   }
 }

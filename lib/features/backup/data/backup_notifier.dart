@@ -19,6 +19,8 @@ import '../domain/backup_manifest.dart';
 import 'backup_folder.dart';
 import 'backup_service.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Una copia en la carpeta.
 class BackupEntry {
   const BackupEntry({required this.file, required this.date, required this.sizeBytes});
@@ -39,13 +41,18 @@ class BackupState {
 
   DateTime? get lastBackup => copies.isEmpty ? null : copies.first.date;
 
-  BackupState copyWith({Directory? folder, List<BackupEntry>? copies, bool? busy, String? error, bool clearError = false}) =>
-      BackupState(
-        folder: folder ?? this.folder,
-        copies: copies ?? this.copies,
-        busy: busy ?? this.busy,
-        error: clearError ? null : (error ?? this.error),
-      );
+  BackupState copyWith({
+    Directory? folder,
+    List<BackupEntry>? copies,
+    bool? busy,
+    String? error,
+    bool clearError = false,
+  }) => BackupState(
+    folder: folder ?? this.folder,
+    copies: copies ?? this.copies,
+    busy: busy ?? this.busy,
+    error: clearError ? null : (error ?? this.error),
+  );
 }
 
 /// Copia de seguridad (Tarea U): una por día, automática; se guardan las
@@ -56,13 +63,14 @@ class BackupNotifier extends Notifier<BackupState> {
     Future<Directory> Function()? defaultFolder,
     DateTime Function()? clock,
     this.platform,
-  })  : _dataDirectory = dataDirectory ?? getApplicationSupportDirectory,
-        _defaultFolder = defaultFolder ?? defaultBackupFolder,
-        _clock = clock ?? DateTime.now;
+  }) : _dataDirectory = dataDirectory ?? getApplicationSupportDirectory,
+       _defaultFolder = defaultFolder ?? defaultBackupFolder,
+       _clock = clock ?? DateTime.now;
 
   final Future<Directory> Function() _dataDirectory;
   final Future<Directory> Function() _defaultFolder;
   final DateTime Function() _clock;
+
   /// Para el manifiesto (en los tests, fijo).
   final String? platform;
   Timer? _timer;
@@ -134,7 +142,7 @@ class BackupNotifier extends Notifier<BackupState> {
       return true;
     } catch (error) {
       debugPrint('=== COPIA: no se pudo hacer ($reason): $error ===');
-      state = state.copyWith(busy: false, error: 'No se pudo hacer la copia en ${folder.path}.');
+      state = state.copyWith(busy: false, error: tx.noSePudoHacerLaCopia(folder.path));
       return false;
     }
   }

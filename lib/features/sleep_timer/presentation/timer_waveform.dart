@@ -9,6 +9,8 @@ import '../domain/sleep_timer_logic.dart';
 import '../sleep_timer_provider.dart';
 import '../../moments/presentation/moment_marks.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Fracción de la canción donde va la luna del temporizador, o null.
 double? sleepMarkerFraction(SleepTimerState? timer, PlaybackState playback) {
   final target = timer?.targetPosition;
@@ -48,8 +50,10 @@ class TimerWaveform extends ConsumerWidget {
               final target = Duration(milliseconds: (playback.duration.inMilliseconds * fraction).round());
               ref.read(sleepTimerProvider.notifier).startAtPosition(target);
               ref.read(playbackNoticeProvider.notifier).state = PlaybackNotice(
-                'La música se va a pausar en el ${SleepTimerLogic.format(target)}'
-                '${SleepTimerLogic.alreadyPassed(target, playback.position) ? ' (cuando vuelva ahí)' : ''}.',
+                tx.laMusicaSeVaAPausar2(
+                  SleepTimerLogic.format(target),
+                  SleepTimerLogic.alreadyPassed(target, playback.position) ? tx.cuandoVuelvaAhiSufijo : '',
+                ),
               );
             }
           : ref.read(playbackProvider.notifier).seekToProgress,
@@ -59,7 +63,12 @@ class TimerWaveform extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const MomentMarks(),
-        Stack(children: [wave, const Positioned.fill(child: MomentIntervalsHighlight())]),
+        Stack(
+          children: [
+            wave,
+            const Positioned.fill(child: MomentIntervalsHighlight()),
+          ],
+        ),
       ],
     );
     if (!marking) return withMoments;
@@ -70,12 +79,12 @@ class TimerWaveform extends ConsumerWidget {
           children: [
             const Icon(Icons.bedtime_outlined, size: 16, color: KijiColors.cyan),
             const SizedBox(width: 6),
-            const Expanded(
-              child: Text('Toca la onda donde quieres que se pause', style: TextStyle(color: KijiColors.cyan)),
+            Expanded(
+              child: Text(tx.tocaLaOndaDondeQuieresQue, style: const TextStyle(color: KijiColors.cyan)),
             ),
             TextButton(
               onPressed: () => ref.read(sleepTimerMarkingProvider.notifier).state = false,
-              child: const Text('Cancelar'),
+              child: Text(tx.cancelar),
             ),
           ],
         ),

@@ -13,6 +13,8 @@ import 'bergamot_engine.dart';
 import 'bergamot_models.dart';
 import 'gemini_client.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Nombre del secreto con la clave de Gemini.
 const geminiKeySecret = 'gemini_api_key';
 
@@ -43,10 +45,10 @@ class TranslationService {
     GeminiClient? gemini,
     SecretStore? secrets,
     Future<Directory> Function()? directory,
-  })  : models = models ?? BergamotModels(),
-        gemini = gemini ?? GeminiClient(),
-        secrets = secrets ?? createSecretStore(),
-        _directory = directory ?? getApplicationSupportDirectory {
+  }) : models = models ?? BergamotModels(),
+       gemini = gemini ?? GeminiClient(),
+       secrets = secrets ?? createSecretStore(),
+       _directory = directory ?? getApplicationSupportDirectory {
     this.engine = engine ?? BergamotEngine(this.models);
   }
 
@@ -91,19 +93,20 @@ class TranslationService {
   /// de la letra (si es null, se detecta).
   Future<LocalPlan> planLocal(List<String> lines, String target, {String? source}) async {
     final from = source ?? detectLanguage(lines);
-    if (from == null) throw const TranslationException('No se pudo saber en qué idioma está la letra.');
+    if (from == null) throw TranslationException(tx.noSePudoSaberEnQue);
     if (from == target) {
-      throw TranslationException('La letra ya está en ${languageName(target).toLowerCase()}.');
+      throw TranslationException(tx.laLetraYaEstaEn(languageName(target).toLowerCase()));
     }
     final List<LanguagePair>? route;
     try {
       route = await models.route(from, target);
     } catch (error) {
-      throw const TranslationException('No se pudo consultar la lista de idiomas (¿sin conexión?).');
+      throw TranslationException(tx.noSePudoConsultarLaLista);
     }
     if (route == null) {
       throw TranslationException(
-          'Todavía no hay traducción de ${languageName(from).toLowerCase()} a ${languageName(target).toLowerCase()}.');
+        tx.todaviaNoHayTraduccionDeA(languageName(from).toLowerCase(), languageName(target).toLowerCase()),
+      );
     }
     return LocalPlan(source: from, route: route, missingBytes: await models.missingBytes(route));
   }
@@ -123,7 +126,7 @@ class TranslationService {
     if (hit != null) return hit;
     final key = await secrets.read(geminiKeySecret);
     if (key == null || key.isEmpty) {
-      throw const TranslationException('Falta la clave de Gemini (Configuración → Letras → Traducción).', suggestLocal: true);
+      throw TranslationException(tx.faltaLaClaveDeGeminiConfiguracion, suggestLocal: true);
     }
     try {
       final out = await _byLines(lines, (texts) => gemini.translate(key, model, texts, target));
@@ -137,7 +140,10 @@ class TranslationService {
   /// Traduce solo las líneas con texto y devuelve una por cada original
   /// (null en las vacías).
   static Future<List<String?>> _byLines(List<String> lines, Future<List<String>> Function(List<String>) run) async {
-    final indexes = [for (var i = 0; i < lines.length; i++) if (lines[i].trim().isNotEmpty) i];
+    final indexes = [
+      for (var i = 0; i < lines.length; i++)
+        if (lines[i].trim().isNotEmpty) i,
+    ];
     if (indexes.isEmpty) return List.filled(lines.length, null);
     final translated = await run([for (final i in indexes) lines[i]]);
     final out = List<String?>.filled(lines.length, null);

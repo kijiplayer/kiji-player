@@ -205,7 +205,7 @@ class _ExtractorTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            _Heading('Ahora suena'),
+            const _Heading('Ahora suena'),
             _KeyValue('Canción', playback.track?.title ?? '—'),
             _KeyValue('Video', playback.track?.youtubeVideoId ?? '—'),
             _KeyValue(
@@ -311,7 +311,7 @@ class _CacheTabState extends ConsumerState<_CacheTab> {
               _KeyValue('Ocupa', '${formatBytes(total)} de ${formatBytes(limit)}'),
               _KeyValue('Archivos', '${info.files.length - partial} enteros, $partial a medias'),
               _KeyValue('Carpeta', info.path),
-              _Heading('Archivos (el más nuevo primero)'),
+              const _Heading('Archivos (el más nuevo primero)'),
               for (final (name, stat) in info.files)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3),
@@ -358,7 +358,7 @@ class _DownloadsTab extends ConsumerWidget {
         _KeyValue('Solo con WiFi', state.settings.wifiOnly ? 'sí' : 'no'),
         _KeyValue('Límite', state.settings.limitBytes == null ? 'sin límite' : formatBytes(state.settings.limitBytes!)),
         _KeyValue('Carpeta', state.directoryPath ?? '—'),
-        _Heading('Cola de descargas'),
+        const _Heading('Cola de descargas'),
         if (active.isEmpty) const Text('Vacía.', style: TextStyle(color: KijiColors.muted)),
         for (final d in active)
           Padding(

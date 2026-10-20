@@ -5,7 +5,7 @@ import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/playback_automation.dart';
 import 'features/extractor/data/auto_tests.dart';
 import 'features/reports/data/error_reporter.dart';
-import 'l10n/app_localizations.dart';
+import 'l10n/l10n.dart';
 import 'features/reports/data/kiji_logs.dart';
 import 'features/reports/presentation/error_report_dialog.dart';
 import 'features/settings/data/settings_store.dart';
@@ -27,12 +27,13 @@ class KijiApp extends ConsumerStatefulWidget {
   ConsumerState<KijiApp> createState() => _KijiAppState();
 }
 
-class _KijiAppState extends ConsumerState<KijiApp> {
+class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   final _routes = MiniPlayerRouteObserver();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Actualizaciones (Tarea W1): como mucho una consulta por día, si está prendido.
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
     // Salud del Extractor (Tarea Z8): pruebas automáticas con canciones de control.
@@ -63,6 +64,7 @@ class _KijiAppState extends ConsumerState<KijiApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     ErrorReporter.instance.pending.removeListener(_offerReport);
     super.dispose();
   }
@@ -90,21 +92,45 @@ class _KijiAppState extends ConsumerState<KijiApp> {
     });
   }
 
+  /// El idioma del teléfono cambió (importa si Kiji sigue al del sistema).
+  @override
+  void didChangeLocales(List<Locale>? locales) => setState(() {});
+
+  /// Idioma de la app (Configuración → Idioma): se aplica sin reiniciar. Los textos salen de
+  /// [tx], así que después de cambiarlo se vuelve a dibujar todo.
+  Locale _applyLanguage() {
+    final language = ref.watch(settingsProvider.select((s) => s.language));
+    final locale = resolveKijiLocale(language, WidgetsBinding.instance.platformDispatcher.locale);
+    if (locale.languageCode != kijiLanguage) {
+      setKijiLocale(locale);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        void rebuild(Element element) {
+          element.markNeedsBuild();
+          element.visitChildren(rebuild);
+        }
+
+        (context as Element).visitChildren(rebuild);
+      });
+    }
+    return locale;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final locale = _applyLanguage();
     // Pausar al silenciar y retomar con el Bluetooth (Tarea K). Vive aquí y no
     // en el reproductor porque escucha al reproductor.
     ref.watch(playbackAutomationProvider);
     // Copia de seguridad diaria (Tarea U): se revisa al abrir Kiji.
     ref.watch(backupProvider);
     return MaterialApp(
-      title: 'Kiji Player',
+      title: 'Kiji Player', // l10n-ignore
       debugShowCheckedModeBanner: false,
-      // Textos en ARB (Tarea T5). Por ahora siempre en español: el inglés se activa cuando
-      // estén traducidos todos los textos (los de Material, como "Cancelar", ya salen en español).
+      // Textos en ARB (español e inglés); los de Material siguen el mismo idioma.
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('es'),
+      locale: locale,
       theme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       darkTheme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       themeMode: ThemeMode.dark,

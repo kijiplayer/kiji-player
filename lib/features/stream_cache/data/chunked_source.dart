@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 // Inspirado en Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivo de referencia: app/src/main/kotlin/.../playback/ChunkedDataSource.kt (pedir el audio
 // en rangos acotados y renovar la URL cuando googlevideo la rechaza). Código propio en Dart.
@@ -16,6 +17,8 @@ import 'package:just_audio/just_audio.dart';
 
 import '../../extractor/domain/resolved_stream.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Pide otra URL para la misma canción (después de un rechazo). null si no hay.
 typedef StreamRefresher = Future<ResolvedStream?> Function(ResolvedStream refused);
 
@@ -33,9 +36,11 @@ class ChunkedYtSource extends StreamAudioSource {
     this.cacheFile,
     Dio? dio,
     this.maxRefreshes = 2,
-  })  : _stream = stream,
-        _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 30))),
-        super(tag: stream.videoId);
+  }) : _stream = stream,
+       _dio =
+           dio ??
+           Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 30))),
+       super(tag: stream.videoId);
 
   /// Tamaño de pedazo si la forma no pide uno propio.
   static const defaultChunk = 2 * 1024 * 1024;
@@ -68,18 +73,18 @@ class ChunkedYtSource extends StreamAudioSource {
     final response = await _get(0, 0);
     final range = response.headers.value('content-range') ?? '';
     final total = int.tryParse(range.split('/').last);
-    if (total == null) throw HttpException('YouTube no dijo el tamaño del audio');
+    if (total == null) throw HttpException(tx.youtubeNoDijoElTamanoDel2);
     return _length = total;
   }
 
   Future<Response<List<int>>> _get(int from, int to) => _dio.get<List<int>>(
-        _stream.url,
-        options: Options(
-          responseType: ResponseType.bytes,
-          headers: {..._stream.headers, 'Range': 'bytes=$from-$to'},
-          validateStatus: (_) => true,
-        ),
-      );
+    _stream.url,
+    options: Options(
+      responseType: ResponseType.bytes,
+      headers: {..._stream.headers, 'Range': 'bytes=$from-$to'},
+      validateStatus: (_) => true,
+    ),
+  );
 
   /// Un pedazo [from]..[to] (inclusive), renovando la URL si la rechazan.
   @visibleForTesting
@@ -95,12 +100,12 @@ class ChunkedYtSource extends StreamAudioSource {
         return data.length > to - from + 1 ? data.sublist(0, to - from + 1) : data;
       }
       if (refreshes >= maxRefreshes) {
-        throw HttpException('YouTube rechazó el audio (HTTP $status) y no hubo otra URL');
+        throw HttpException(tx.youtubeRechazoElAudioHttpY(status));
       }
       refreshes++;
       debugPrint('=== AUDIO: ${_stream.path} rechazada en el byte $from (HTTP $status); se pide otra URL ===');
       final next = await refresh(_stream);
-      if (next == null) throw HttpException('YouTube rechazó el audio (HTTP $status)');
+      if (next == null) throw HttpException(tx.youtubeRechazoElAudioHttp(status));
       _stream = next;
     }
   }

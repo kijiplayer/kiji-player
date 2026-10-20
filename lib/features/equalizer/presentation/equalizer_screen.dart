@@ -10,13 +10,14 @@ import '../../../widgets/nocturne/glass.dart';
 import '../data/equalizer_notifier.dart';
 import '../domain/equalizer_model.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Configuración → Reproductor → Ecualizador (Tarea J).
 class EqualizerScreen extends ConsumerStatefulWidget {
   const EqualizerScreen({super.key});
 
-  static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const EqualizerScreen()),
-      );
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const EqualizerScreen()));
 
   @override
   ConsumerState<EqualizerScreen> createState() => _EqualizerScreenState();
@@ -39,18 +40,14 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
     final profile = settings.profileFor(editing);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ecualizador')),
+      appBar: AppBar(title: Text(tx.ecualizador2)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
           if (!eq.supported)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: Text(
-                'En la PC todavía no hay ecualizador: por ahora funciona solo en Android. '
-                'Lo que elijas aquí se guarda igual.',
-                style: TextStyle(color: KijiColors.muted),
-              ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(tx.enLaPcTodaviaNoHay, style: const TextStyle(color: KijiColors.muted)),
             ),
           Glass(
             blur: false,
@@ -60,19 +57,16 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
               child: Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('Ecualizador'),
-                    subtitle: Text(settings.enabled
-                        ? 'Encendido: ${eq.activeProfile.label}'
-                        : 'Apagado: el sonido no cambia.'),
+                    title: Text(tx.ecualizador2),
+                    subtitle: Text(
+                      settings.enabled ? tx.encendidoPerfil(eq.activeProfile.label) : tx.apagadoElSonidoNoCambia,
+                    ),
                     value: settings.enabled,
                     onChanged: notifier.setEnabled,
                   ),
                   SwitchListTile(
-                    title: const Text('Un perfil por dispositivo'),
-                    subtitle: Text(
-                      'El parlante, los auriculares con cable y el Bluetooth recuerdan cada uno su '
-                      'perfil y cambia solo al conectarlos. Ahora suena: ${eq.output.label}.',
-                    ),
+                    title: Text(tx.unPerfilPorDispositivo),
+                    subtitle: Text(tx.elParlanteLosAuricularesConCable(eq.output.label)),
                     value: settings.perDevice,
                     onChanged: notifier.setPerDevice,
                   ),
@@ -87,7 +81,7 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
                 for (final kind in AudioOutputKind.values)
                   ButtonSegment(
                     value: kind,
-                    label: Text(kind == AudioOutputKind.headphones ? 'Cable' : kind.label),
+                    label: Text(kind == AudioOutputKind.headphones ? tx.cable : kind.label),
                     icon: Icon(_icon(kind)),
                   ),
               ],
@@ -101,7 +95,7 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
           ],
           const SizedBox(height: 16),
           Text(
-            settings.perDevice ? 'PERFIL: ${editing.label.toUpperCase()}' : 'PERFIL',
+            settings.perDevice ? tx.perfilDe(editing.label.toUpperCase()) : tx.perfil,
             style: KijiText.mono(size: 11),
           ),
           const SizedBox(height: 8),
@@ -119,11 +113,11 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
                   },
                 ),
               if (profile.presetId == EqProfile.custom)
-                const ChoiceChip(label: Text('Personalizado'), selected: true, onSelected: null),
+                ChoiceChip(label: Text(tx.personalizado), selected: true, onSelected: null),
             ],
           ),
           const SizedBox(height: 20),
-          Text('BANDAS', style: KijiText.mono(size: 11)),
+          Text(tx.bandas, style: KijiText.mono(size: 11)),
           const SizedBox(height: 8),
           _bands(eq, profile, editing),
         ],
@@ -135,9 +129,7 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
     final bands = eq.bands;
     if (bands == null) {
       return Text(
-        eq.supported
-            ? 'Las bandas aparecen cuando empieza a sonar algo.'
-            : 'En la PC no hay bandas para ajustar todavía.',
+        eq.supported ? tx.lasBandasAparecenCuandoSuena : tx.enLaPcNoHayBandas,
         style: const TextStyle(color: KijiColors.muted),
       );
     }
@@ -182,13 +174,12 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
   }
 
   static IconData _icon(AudioOutputKind kind) => switch (kind) {
-        AudioOutputKind.speaker => Icons.speaker_rounded,
-        AudioOutputKind.headphones => Icons.headphones_rounded,
-        AudioOutputKind.bluetooth => Icons.bluetooth_audio_rounded,
-      };
+    AudioOutputKind.speaker => Icons.speaker_rounded,
+    AudioOutputKind.headphones => Icons.headphones_rounded,
+    AudioOutputKind.bluetooth => Icons.bluetooth_audio_rounded,
+  };
 
   static String _db(double db) => '${db > 0 ? '+' : ''}${db.toStringAsFixed(1)}';
 
-  static String _hz(double hz) =>
-      hz >= 1000 ? '${(hz / 1000).toStringAsFixed(hz >= 10000 ? 0 : 1)}k' : '${hz.round()}';
+  static String _hz(double hz) => hz >= 1000 ? '${(hz / 1000).toStringAsFixed(hz >= 10000 ? 0 : 1)}k' : '${hz.round()}';
 }

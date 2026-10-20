@@ -14,6 +14,8 @@ import '../data/ytm_client.dart';
 import '../domain/yt_track_mapper.dart';
 import '../../customize/presentation/track_text.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Cliente compartido para las páginas de artista y álbum.
 final ytMusicClientProvider = Provider<YtMusicClient>((ref) => YtMusicClient());
 
@@ -27,12 +29,12 @@ final albumPageProvider = FutureProvider.autoDispose.family<AlbumPage?, String>(
 
 /// Abre la página que corresponde a [collection].
 Future<void> openCollection(BuildContext context, YtCollection collection) => Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => collection.kind == YtCollectionKind.artist
-            ? ArtistScreen(browseId: collection.browseId, title: collection.title)
-            : AlbumScreen(browseId: collection.browseId, title: collection.title),
-      ),
-    );
+  MaterialPageRoute<void>(
+    builder: (_) => collection.kind == YtCollectionKind.artist
+        ? ArtistScreen(browseId: collection.browseId, title: collection.title)
+        : AlbumScreen(browseId: collection.browseId, title: collection.title),
+  ),
+);
 
 /// Fila de un artista o álbum en los resultados.
 class CollectionTile extends StatelessWidget {
@@ -46,16 +48,22 @@ class CollectionTile extends StatelessWidget {
     final thumb = collection.thumbnailUrl;
     final image = thumb == null
         ? Icon(isArtist ? Icons.person_rounded : Icons.album_rounded, color: KijiColors.muted)
-        : Image.network(largerThumbnailUrl(thumb), fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => const Icon(Icons.music_note_rounded));
+        : Image.network(
+            largerThumbnailUrl(thumb),
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => const Icon(Icons.music_note_rounded),
+          );
     return ListTile(
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(isArtist ? 28 : 8),
-        child: SizedBox.square(dimension: 52, child: ColoredBox(color: KijiColors.surfaceHigh, child: image)),
+        child: SizedBox.square(
+          dimension: 52,
+          child: ColoredBox(color: KijiColors.surfaceHigh, child: image),
+        ),
       ),
       title: Text(collection.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
-        isArtist ? 'Artista' : (collection.subtitle.isEmpty ? 'Álbum' : collection.subtitle),
+        isArtist ? tx.artista : (collection.subtitle.isEmpty ? tx.album : collection.subtitle),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(color: KijiColors.muted),
@@ -107,15 +115,24 @@ class _Art extends StatelessWidget {
         dimension: 44,
         child: url == null
             ? ColoredBox(color: track.coverColor)
-            : Image.network(largerThumbnailUrl(url), fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => ColoredBox(color: track.coverColor)),
+            : Image.network(
+                largerThumbnailUrl(url),
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => ColoredBox(color: track.coverColor),
+              ),
       ),
     );
   }
 }
 
 class _Header extends ConsumerWidget {
-  const _Header({required this.title, required this.subtitle, required this.thumbnailUrl, required this.tracks, this.round = false});
+  const _Header({
+    required this.title,
+    required this.subtitle,
+    required this.thumbnailUrl,
+    required this.tracks,
+    this.round = false,
+  });
 
   final String title;
   final String subtitle;
@@ -137,8 +154,13 @@ class _Header extends ConsumerWidget {
               if (thumb != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(round ? 48 : 16),
-                  child: Image.network(largerThumbnailUrl(thumb), width: 96, height: 96, fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const SizedBox(width: 96, height: 96)),
+                  child: Image.network(
+                    largerThumbnailUrl(thumb),
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const SizedBox(width: 96, height: 96),
+                  ),
                 ),
               const SizedBox(width: 16),
               Expanded(
@@ -147,8 +169,12 @@ class _Header extends ConsumerWidget {
                   children: [
                     Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 22)),
                     if (subtitle.isNotEmpty)
-                      Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: KijiColors.muted)),
+                      Text(
+                        subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: KijiColors.muted),
+                      ),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
@@ -159,12 +185,12 @@ class _Header extends ConsumerWidget {
                               ? null
                               : () => ref.read(playbackProvider.notifier).playQueue(tracks),
                           icon: const Icon(Icons.play_arrow_rounded),
-                          label: const Text('Reproducir'),
+                          label: Text(tx.reproducir),
                         ),
                         OutlinedButton.icon(
                           onPressed: tracks.isEmpty ? null : () => showAddToPlaylistSheet(context, ref, tracks),
                           icon: const Icon(Icons.library_add_rounded),
-                          label: const Text('A playlist'),
+                          label: Text(tx.aPlaylist),
                         ),
                       ],
                     ),
@@ -186,9 +212,9 @@ Widget _loadingOrError(AsyncValue<Object?> value, VoidCallback retry) => value.h
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('No se pudo abrir. Revisa tu conexión.', style: TextStyle(color: KijiColors.muted)),
+              Text(tx.noSePudoAbrirRevisaTu, style: const TextStyle(color: KijiColors.muted)),
               const SizedBox(height: 12),
-              FilledButton(onPressed: retry, child: const Text('Reintentar')),
+              FilledButton(onPressed: retry, child: Text(tx.reintentar)),
             ],
           ),
         ),
@@ -214,7 +240,7 @@ class ArtistScreen extends ConsumerWidget {
               children: [
                 _Header(
                   title: page.value!.name,
-                  subtitle: 'Artista',
+                  subtitle: tx.artista,
                   thumbnailUrl: page.value!.thumbnailUrl,
                   tracks: [for (final s in page.value!.songs) ytTrackFromResult(s, audioUrl: '')],
                   round: true,
@@ -222,14 +248,14 @@ class ArtistScreen extends ConsumerWidget {
                 if (page.value!.songs.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Text('CANCIONES', style: KijiText.mono(size: 11)),
+                    child: Text(tx.canciones3, style: KijiText.mono(size: 11)),
                   ),
                   _SongsList(songs: page.value!.songs),
                 ],
                 if (page.value!.albums.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                    child: Text('ÁLBUMES Y SINGLES', style: KijiText.mono(size: 11)),
+                    child: Text(tx.albumesYSingles, style: KijiText.mono(size: 11)),
                   ),
                   for (final album in page.value!.albums) CollectionTile(collection: album),
                 ],

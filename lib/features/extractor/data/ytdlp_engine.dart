@@ -13,14 +13,18 @@ import '../domain/extraction_failure.dart';
 import '../domain/resolved_stream.dart';
 import '../../settings/data/settings_store.dart';
 import 'engines.dart';
+import 'package:kiji_player/l10n/l10n.dart';
+
 
 /// Motor C (Tarea Z8): yt-dlp, solo en la PC y SOLO si el usuario lo aceptó. Se baja de las
 /// releases oficiales de GitHub, se verifica con su `SHA2-256SUMS` y se busca actualización una
 /// vez por semana. Nada se baja sin aviso.
 class YtDlpEngine extends ExtractionEngine {
   YtDlpEngine({Dio? dio, Future<Directory> Function()? directory, this.accepted = _never})
-      : _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(minutes: 3))),
-        _directory = directory ?? getApplicationSupportDirectory;
+    : _dio =
+          dio ??
+          Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(minutes: 3))),
+      _directory = directory ?? getApplicationSupportDirectory;
 
   static bool _never() => false;
 
@@ -102,24 +106,40 @@ class YtDlpEngine extends ExtractionEngine {
   }
 
   @override
-  Future<EngineResult> resolve(String videoId, {bool lowQuality = false, Set<String> skip = const {}, List<String>? order}) async {
+  Future<EngineResult> resolve(
+    String videoId, {
+    bool lowQuality = false,
+    Set<String> skip = const {},
+    List<String>? order,
+  }) async {
     if (!isSupported || skip.contains('YTDLP')) return const EngineResult.failed([]);
     try {
       final result = await Process.run(
         (await binary()).path,
-        ['-J', '--no-playlist', '--no-warnings', '-f', lowQuality ? 'worstaudio' : 'bestaudio', 'https://www.youtube.com/watch?v=$videoId'],
+        [
+          '-J',
+          '--no-playlist',
+          '--no-warnings',
+          '-f',
+          lowQuality ? 'worstaudio' : 'bestaudio',
+          'https://www.youtube.com/watch?v=$videoId',
+        ],
         stdoutEncoding: utf8,
         stderrEncoding: utf8,
       ).timeout(const Duration(seconds: 60));
       if (result.exitCode != 0) {
-        final err = '${result.stderr}'.split('\n').firstWhere((l) => l.contains('ERROR'), orElse: () => '${result.stderr}');
+        final err = '${result.stderr}'
+            .split('\n')
+            .firstWhere((l) => l.contains('ERROR'), orElse: () => '${result.stderr}');
         return EngineResult.failed([('YTDLP', classifyFailure(err.trim()))]);
       }
       return ytDlpResult(videoId, jsonDecode('${result.stdout}'));
     } on TimeoutException {
-      return EngineResult.failed([('YTDLP', const ExtractionFailure(FailureScope.form, 'yt-dlp tardó demasiado'))]);
+      return EngineResult.failed([('YTDLP', ExtractionFailure(FailureScope.form, tx.ytDlpTardoDemasiado))]);
     } catch (error) {
-      return EngineResult.failed([('YTDLP', ExtractionFailure(FailureScope.form, 'yt-dlp falló (${error.runtimeType})'))]);
+      return EngineResult.failed([
+        ('YTDLP', ExtractionFailure(FailureScope.form, tx.ytDlpFallo(error.runtimeType))),
+      ]);
     }
   }
 }
@@ -137,25 +157,33 @@ String? expectedChecksum(String sums, String asset) {
 /// Convierte la salida `-J` de yt-dlp (con el formato ya elegido) en un [EngineResult].
 @visibleForTesting
 EngineResult ytDlpResult(String videoId, Object? json) {
-  if (json is! Map) return EngineResult.failed([('YTDLP', const ExtractionFailure(FailureScope.form, 'yt-dlp respondió algo raro'))]);
+  if (json is! Map) {
+    return EngineResult.failed([('YTDLP', ExtractionFailure(FailureScope.form, tx.ytDlpRespondioAlgoRaro))]);
+  }
   final formats = json['requested_formats'] as List? ?? [json];
   final f = formats.whereType<Map>().firstWhere((m) => m['url'] != null, orElse: () => const {});
   final url = f['url'] as String?;
-  if (url == null) return EngineResult.failed([('YTDLP', const ExtractionFailure(FailureScope.form, 'yt-dlp no dio URL'))]);
-  final headers = <String, String>{for (final e in ((f['http_headers'] as Map?) ?? const {}).entries) '${e.key}': '${e.value}'};
+  if (url == null) {
+    return EngineResult.failed([('YTDLP', ExtractionFailure(FailureScope.form, tx.ytDlpNoDioUrl))]);
+  }
+  final headers = <String, String>{
+    for (final e in ((f['http_headers'] as Map?) ?? const {}).entries) '${e.key}': '${e.value}',
+  };
   final ext = '${f['ext'] ?? ''}';
   final acodec = '${f['acodec'] ?? ''}';
-  return EngineResult.ok(ResolvedStream(
-    videoId: videoId,
-    url: url,
-    engine: EngineId.c,
-    form: 'YTDLP',
-    headers: headers,
-    mime: ext == 'webm' ? 'audio/webm; codecs="$acodec"' : 'audio/mp4; codecs="$acodec"',
-    kbps: (f['abr'] as num?)?.round(),
-    contentLength: (f['filesize'] as num?)?.toInt(),
-    isHls: '${f['protocol'] ?? ''}'.contains('m3u8'),
-  ));
+  return EngineResult.ok(
+    ResolvedStream(
+      videoId: videoId,
+      url: url,
+      engine: EngineId.c,
+      form: 'YTDLP',
+      headers: headers,
+      mime: ext == 'webm' ? 'audio/webm; codecs="$acodec"' : 'audio/mp4; codecs="$acodec"', // l10n-ignore
+      kbps: (f['abr'] as num?)?.round(),
+      contentLength: (f['filesize'] as num?)?.toInt(),
+      isHls: '${f['protocol'] ?? ''}'.contains('m3u8'),
+    ),
+  );
 }
 
 /// El motor C de la app: usa el ajuste "aceptado" y se revisa (instalado, actualización semanal)

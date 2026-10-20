@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 // Inspirado en Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivo de referencia: app/src/main/kotlin/.../playback/DownloadUtil.kt (`playerCache`:
 // caché de lo escuchado, separada de las descargas, con límite de espacio).

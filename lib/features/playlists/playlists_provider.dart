@@ -11,11 +11,12 @@ import '../../models/track.dart';
 import '../../utils/json_file.dart';
 import 'domain/playlist.dart';
 
+
 /// Playlists de Kiji, guardadas en `<appSupportDir>/playlists.json`.
 class PlaylistsNotifier extends Notifier<List<Playlist>> {
   PlaylistsNotifier({Future<Directory> Function()? directory, DateTime Function()? clock})
-      : _directory = directory ?? getApplicationSupportDirectory,
-        _clock = clock ?? DateTime.now;
+    : _directory = directory ?? getApplicationSupportDirectory,
+      _clock = clock ?? DateTime.now;
 
   final Future<Directory> Function() _directory;
   final DateTime Function() _clock;
@@ -131,15 +132,17 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     } else {
       newDescription = description.trim().isEmpty ? null : description.trim();
     }
-    _replace(playlist.copyWith(
-      name: name == null || name.trim().isEmpty || name.trim() == playlist.name
-          ? null
-          : PlaylistOps.uniqueName(name, others),
-      description: newDescription,
-      colorValue: colorValue ?? playlist.colorValue,
-      coverFile: coverFile ?? playlist.coverFile,
-      updatedAt: _clock(),
-    ));
+    _replace(
+      playlist.copyWith(
+        name: name == null || name.trim().isEmpty || name.trim() == playlist.name
+            ? null
+            : PlaylistOps.uniqueName(name, others),
+        description: newDescription,
+        colorValue: colorValue ?? playlist.colorValue,
+        coverFile: coverFile ?? playlist.coverFile,
+        updatedAt: _clock(),
+      ),
+    );
   }
 
   /// "Restaurar original": nombre con el que se creó, sin foto, descripción
@@ -149,13 +152,15 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     if (playlist == null) return null;
     final others = state.where((pl) => pl.id != id).map((pl) => pl.name);
     final original = playlist.originalName;
-    _replace(playlist.copyWith(
-      name: original == null ? null : PlaylistOps.uniqueName(original, others),
-      description: null,
-      colorValue: null,
-      coverFile: null,
-      updatedAt: _clock(),
-    ));
+    _replace(
+      playlist.copyWith(
+        name: original == null ? null : PlaylistOps.uniqueName(original, others),
+        description: null,
+        colorValue: null,
+        coverFile: null,
+        updatedAt: _clock(),
+      ),
+    );
     return playlist.coverFile;
   }
 
@@ -188,7 +193,10 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     for (var i = 0; i < state.length; i++) {
       if (ids.contains(state[i].id)) removed.add((state[i], i));
     }
-    state = [for (final pl in state) if (!ids.contains(pl.id)) pl];
+    state = [
+      for (final pl in state)
+        if (!ids.contains(pl.id)) pl,
+    ];
     unawaited(_save());
     return removed;
   }
@@ -223,5 +231,4 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
   }
 }
 
-final playlistsProvider =
-    NotifierProvider<PlaylistsNotifier, List<Playlist>>(PlaylistsNotifier.new);
+final playlistsProvider = NotifierProvider<PlaylistsNotifier, List<Playlist>>(PlaylistsNotifier.new);

@@ -9,6 +9,8 @@ import '../../account/domain/yt_session.dart';
 import '../../account/presentation/account_screens.dart';
 import '../../extractor/domain/extraction_failure.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Color del aviso de una descarga con error.
 const downloadWarningColor = Color(0xFFFFB84D);
 
@@ -24,9 +26,9 @@ enum DownloadMark { none, done, queued, downloading, failed }
     ActiveDownloadStatus.failed => (DownloadMark.failed, null),
     ActiveDownloadStatus.queued => (DownloadMark.queued, null),
     ActiveDownloadStatus.downloading => (
-        DownloadMark.downloading,
-        active.progress == null ? null : (active.progress! * 100).round().clamp(0, 100),
-      ),
+      DownloadMark.downloading,
+      active.progress == null ? null : (active.progress! * 100).round().clamp(0, 100),
+    ),
   };
 }
 
@@ -43,56 +45,59 @@ class DownloadStateOverlay extends ConsumerWidget {
     final (mark, percent) = ref.watch(downloadsProvider.select((s) => downloadMarkOf(s, videoId)));
     final badge = size * 0.36;
     Widget corner(Color color, IconData icon, String label) => Positioned(
-          right: -2,
-          bottom: -2,
-          child: Semantics(
-            label: label,
-            child: Container(
-              width: badge,
-              height: badge,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: Border.all(color: KijiColors.background, width: 1.5),
-              ),
-              child: Icon(icon, size: badge * 0.68, color: KijiColors.background),
-            ),
+      right: -2,
+      bottom: -2,
+      child: Semantics(
+        label: label,
+        child: Container(
+          width: badge,
+          height: badge,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: KijiColors.background, width: 1.5),
           ),
-        );
+          child: Icon(icon, size: badge * 0.68, color: KijiColors.background),
+        ),
+      ),
+    );
     return switch (mark) {
       DownloadMark.none => const SizedBox.shrink(),
-      DownloadMark.done => corner(KijiColors.cyan, Icons.check_rounded, 'Descargada'),
-      DownloadMark.queued => corner(KijiColors.muted, Icons.schedule_rounded, 'En espera para descargar'),
-      DownloadMark.failed => corner(downloadWarningColor, Icons.priority_high_rounded, 'La descarga falló'),
+      DownloadMark.done => corner(KijiColors.cyan, Icons.check_rounded, tx.descargada),
+      DownloadMark.queued => corner(KijiColors.muted, Icons.schedule_rounded, tx.enEsperaParaDescargar),
+      DownloadMark.failed => corner(downloadWarningColor, Icons.priority_high_rounded, tx.laDescargaFallo),
       DownloadMark.downloading => Positioned.fill(
-          child: Semantics(
-            label: 'Descargando${percent == null ? '' : ' $percent por ciento'}',
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(size * 0.18),
-              ),
-              alignment: Alignment.center,
-              child: SizedBox(
-                width: size * 0.7,
-                height: size * 0.7,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: KijiColors.cyan,
-                      backgroundColor: KijiColors.waveRest,
-                      value: percent == null ? null : percent / 100,
+        child: Semantics(
+          label: tx.descargando2(percent == null ? '' : tx.porCiento(percent)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(size * 0.18),
+            ),
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: size * 0.7,
+              height: size * 0.7,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: KijiColors.cyan,
+                    backgroundColor: KijiColors.waveRest,
+                    value: percent == null ? null : percent / 100,
+                  ),
+                  if (percent != null && size >= 40)
+                    Text(
+                      '$percent',
+                      style: KijiText.mono(size: size * 0.22, color: Colors.white),
                     ),
-                    if (percent != null && size >= 40)
-                      Text('$percent', style: KijiText.mono(size: size * 0.22, color: Colors.white)),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
         ),
+      ),
     };
   }
 }
@@ -109,7 +114,7 @@ Future<void> showDownloadFailureSheet(BuildContext context, WidgetRef ref, Strin
           final done = ref.read(downloadsProvider).completed.containsKey(videoId);
           return Padding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-            child: Text(done ? '¡Listo! Ya está descargada.' : 'Descargando otra vez…'),
+            child: Text(done ? tx.listoYaEstaDescargada : tx.descargandoOtraVez),
           );
         }
         return SafeArea(
@@ -119,7 +124,12 @@ Future<void> showDownloadFailureSheet(BuildContext context, WidgetRef ref, Strin
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(download.track.title, style: KijiText.title(size: 18), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(
+                  download.track.title,
+                  style: KijiText.title(size: 18),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 4),
                 Text(download.track.artist, style: const TextStyle(color: KijiColors.muted)),
                 const SizedBox(height: 14),
@@ -151,18 +161,18 @@ List<Widget> _failureActions(
 
   return [
     if (download.searching)
-      const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
+      const Center(
+        child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()),
+      )
     else ...[
       if (failure?.canSearchAlternative ?? true)
         FilledButton.icon(
           icon: const Icon(Icons.manage_search_rounded),
-          label: const Text('Buscar otra versión'),
+          label: Text(tx.buscarOtraVersion),
           onPressed: () async {
             final found = await notifier.searchAlternative(videoId);
             if (!found && context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No hay otra versión de esta canción en YouTube Music.')),
-              );
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.noHayOtraVersionDeEsta)));
             } else {
               close();
             }
@@ -173,7 +183,7 @@ List<Widget> _failureActions(
         const SizedBox(height: 8),
         OutlinedButton.icon(
           icon: const Icon(Icons.login_rounded),
-          label: const Text('Iniciar sesión para bajarla'),
+          label: Text(tx.iniciarSesionParaBajarla),
           onPressed: () async {
             close();
             if (await LoginScreen.open(context)) notifier.retry(videoId);
@@ -183,7 +193,7 @@ List<Widget> _failureActions(
       const SizedBox(height: 8),
       OutlinedButton.icon(
         icon: const Icon(Icons.refresh_rounded),
-        label: Text(contentOnly ? 'Reintentar igual' : 'Reintentar (prueba otras formas)'),
+        label: Text(contentOnly ? tx.reintentarIgual : tx.reintentarPruebaOtrasFormas),
         onPressed: () {
           notifier.retry(videoId);
           close();
@@ -191,7 +201,7 @@ List<Widget> _failureActions(
       ),
       TextButton.icon(
         icon: const Icon(Icons.close_rounded),
-        label: const Text('Quitar de la lista'),
+        label: Text(tx.quitarDeLaLista),
         onPressed: () {
           notifier.cancel(videoId);
           close();
@@ -245,18 +255,18 @@ Future<void> showFailedDownloadsSheet(BuildContext context, WidgetRef ref, {Iter
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
             children: [
               Text(
-                failed.isEmpty ? 'No queda ninguna con error. 🎉' : '${failed.length} no se pudieron descargar',
+                failed.isEmpty ? tx.noQuedaNingunaConError : tx.noSePudieronDescargar(failed.length),
                 style: KijiText.title(size: 20),
               ),
               if (failed.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 FilledButton.icon(
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Reintentar todas'),
+                  label: Text(tx.reintentarTodas),
                   onPressed: () {
                     final n = ref.read(downloadsProvider.notifier).retryAll(failed.map((e) => e.key));
                     Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Reintentando $n')));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.reintentando(n))));
                   },
                 ),
               ],
@@ -291,8 +301,18 @@ class _FailedCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(download.track.title, style: const TextStyle(fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
-          Text(download.track.artist, style: const TextStyle(color: KijiColors.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(
+            download.track.title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            download.track.artist,
+            style: const TextStyle(color: KijiColors.muted),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 10),
           _FailureReason(download: download),
           const SizedBox(height: 10),

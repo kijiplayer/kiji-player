@@ -8,16 +8,15 @@ import 'package:path_provider/path_provider.dart';
 import '../../models/track.dart';
 import '../../utils/json_file.dart';
 
+
 /// Canciones con "me gusta", por id. Se guardan solo en el teléfono
 /// (`<appSupportDir>/favorites.json`). La Tarea M (playlists) las usará como
 /// lista automática.
 class FavoritesNotifier extends Notifier<Map<String, Track>> {
   JsonFile? _file;
 
-  Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join((await getApplicationSupportDirectory()).path, 'favorites.json'),
-        logTag: 'FAVORITAS',
-      );
+  Future<JsonFile> _jsonFile() async =>
+      _file ??= JsonFile(p.join((await getApplicationSupportDirectory()).path, 'favorites.json'), logTag: 'FAVORITAS');
 
   @override
   Map<String, Track> build() {
@@ -41,9 +40,7 @@ class FavoritesNotifier extends Notifier<Map<String, Track>> {
   bool isLiked(String trackId) => state.containsKey(trackId);
 
   void toggle(Track track) {
-    state = state.containsKey(track.id)
-        ? (Map.of(state)..remove(track.id))
-        : {...state, track.id: track};
+    state = state.containsKey(track.id) ? (Map.of(state)..remove(track.id)) : {...state, track.id: track};
     unawaited(_save());
   }
 
@@ -68,7 +65,10 @@ class FavoritesNotifier extends Notifier<Map<String, Track>> {
   /// Deshacer una importación: quita solo estas.
   void removeIds(Iterable<String> ids) {
     final remove = ids.toSet();
-    state = {for (final e in state.entries) if (!remove.contains(e.key)) e.key: e.value};
+    state = {
+      for (final e in state.entries)
+        if (!remove.contains(e.key)) e.key: e.value,
+    };
     unawaited(_save());
   }
 
@@ -81,5 +81,4 @@ class FavoritesNotifier extends Notifier<Map<String, Track>> {
   }
 }
 
-final favoritesProvider =
-    NotifierProvider<FavoritesNotifier, Map<String, Track>>(FavoritesNotifier.new);
+final favoritesProvider = NotifierProvider<FavoritesNotifier, Map<String, Track>>(FavoritesNotifier.new);

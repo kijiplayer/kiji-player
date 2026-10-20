@@ -15,6 +15,8 @@ import '../../../widgets/album_cover.dart';
 import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/kiji_logo.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Texto para compartir unas líneas: entre comillas y con la canción.
 String lyricsShareText(List<String> lines, Track track) =>
     '${lines.map((l) => '“$l”').join('\n')}\n— ${track.title}, ${track.artist}';
@@ -29,14 +31,21 @@ Future<void> shareLyricsText(List<String> lines, Track track) async {
 
 /// Formatos de la imagen para compartir.
 enum CardFormat {
-  story('Historia 9:16', 360, 640),
-  square('Cuadrado 1:1', 360, 360),
-  portrait('Vertical 4:5', 360, 450),
-  landscape('Horizontal 16:9', 480, 270),
-  minimal('Solo texto', 360, null);
+  story(360, 640),
+  square(360, 360),
+  portrait(360, 450),
+  landscape(480, 270),
+  minimal(360, null);
 
-  const CardFormat(this.label, this.width, this.height);
-  final String label;
+  const CardFormat(this.width, this.height);
+  String get label => switch (this) {
+    CardFormat.story => tx.historia916,
+    CardFormat.square => tx.cuadrado11,
+    CardFormat.portrait => tx.vertical45,
+    CardFormat.landscape => tx.horizontal169,
+    CardFormat.minimal => tx.soloTexto,
+  };
+
   final double width;
 
   /// null: se ajusta al texto.
@@ -45,22 +54,28 @@ enum CardFormat {
 
 /// Fondo de la tarjeta.
 enum CardBackground {
-  blurred('Portada difuminada'),
-  solid('Color de la canción'),
-  dark('Oscuro');
+  blurred,
+  solid,
+  dark;
 
-  const CardBackground(this.label);
-  final String label;
+  String get label => switch (this) {
+    CardBackground.blurred => tx.portadaDifuminada,
+    CardBackground.solid => tx.colorDeLaCancion,
+    CardBackground.dark => tx.oscuro,
+  };
 }
 
 /// Qué texto lleva la tarjeta.
 enum CardText {
-  original('Original'),
-  translation('Traducción'),
-  both('Ambas');
+  original,
+  translation,
+  both;
 
-  const CardText(this.label);
-  final String label;
+  String get label => switch (this) {
+    CardText.original => 'Original', // l10n-ignore
+    CardText.translation => tx.traduccion,
+    CardText.both => tx.ambas,
+  };
 }
 
 /// La tarjeta para compartir unas líneas de la letra.
@@ -124,8 +139,10 @@ class LyricsCard extends ConsumerWidget {
           ),
         if (minimal) ...[
           const SizedBox(height: 14),
-          Text('— ${track.title}, ${track.artist}',
-              style: const TextStyle(color: Colors.white70, fontSize: 13, fontStyle: FontStyle.italic)),
+          Text(
+            '— ${track.title}, ${track.artist}',
+            style: const TextStyle(color: Colors.white70, fontSize: 13, fontStyle: FontStyle.italic),
+          ),
         ],
         if (showLogo) ...[
           const SizedBox(height: 14),
@@ -133,7 +150,7 @@ class LyricsCard extends ConsumerWidget {
             children: [
               const KijiLogo(size: 18),
               const SizedBox(width: 6),
-              Text('KIJI PLAYER', style: KijiText.mono(size: 10, color: Colors.white70)),
+              Text('KIJI PLAYER', style: KijiText.mono(size: 10, color: Colors.white70)), // l10n-ignore
             ],
           ),
         ],
@@ -148,7 +165,10 @@ class LyricsCard extends ConsumerWidget {
         child: Stack(
           fit: minimal ? StackFit.loose : StackFit.expand,
           children: [
-            if (!minimal) Positioned.fill(child: _Background(background: background, accent: accent, image: image)),
+            if (!minimal)
+              Positioned.fill(
+                child: _Background(background: background, accent: accent, image: image),
+              ),
             if (minimal) Positioned.fill(child: ColoredBox(color: _flat(background, accent))),
             Padding(padding: const EdgeInsets.all(24), child: body),
           ],
@@ -167,14 +187,22 @@ class _Names extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(track.title,
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 17, weight: FontWeight.w700)),
-          Text(track.artist,
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 14)),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        track.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: KijiText.title(size: 17, weight: FontWeight.w700),
+      ),
+      Text(
+        track.artist,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(color: Colors.white70, fontSize: 14),
+      ),
+    ],
+  );
 }
 
 class _Lines extends StatelessWidget {
@@ -265,11 +293,13 @@ Future<void> showLyricsCardDialog(
   Track track, {
   List<String?>? translations,
 }) {
-  return Navigator.of(context).push(MaterialPageRoute<void>(
-    fullscreenDialog: true,
-    settings: const RouteSettings(name: KijiRoutes.share),
-    builder: (_) => _ShareCardScreen(lines: lines, track: track, translations: translations),
-  ));
+  return Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      fullscreenDialog: true,
+      settings: const RouteSettings(name: KijiRoutes.share),
+      builder: (_) => _ShareCardScreen(lines: lines, track: track, translations: translations),
+    ),
+  );
 }
 
 class _ShareCardScreen extends StatefulWidget {
@@ -300,16 +330,19 @@ class _ShareCardScreenState extends State<_ShareCardScreen> {
     setState(() => _sharing = false);
     if (file == null) return;
     try {
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'image/png')],
-        text: '${widget.track.title} — ${widget.track.artist}',
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'image/png')],
+          text: '${widget.track.title} — ${widget.track.artist}',
+        ),
+      );
     } catch (error) {
       debugPrint('=== LETRAS: no se pudo compartir la imagen: $error ===');
     }
   }
 
-  Widget _chips<T>(String title, List<T> values, T selected, String Function(T) label, ValueChanged<T> onPick) => Column(
+  Widget _chips<T>(String title, List<T> values, T selected, String Function(T) label, ValueChanged<T> onPick) =>
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title.toUpperCase(), style: KijiText.mono(size: 11, color: KijiColors.cyan)),
@@ -329,7 +362,7 @@ class _ShareCardScreenState extends State<_ShareCardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Compartir como imagen')),
+      appBar: AppBar(title: Text(tx.compartirComoImagen)),
       body: SafeArea(
         child: Column(
           children: [
@@ -360,14 +393,19 @@ class _ShareCardScreenState extends State<_ShareCardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _chips('Formato', CardFormat.values, _format, (f) => f.label, (f) => setState(() => _format = f)),
-                    _chips('Fondo', CardBackground.values, _background, (b) => b.label,
-                        (b) => setState(() => _background = b)),
+                    _chips(tx.formato, CardFormat.values, _format, (f) => f.label, (f) => setState(() => _format = f)),
+                    _chips(
+                      tx.fondo,
+                      CardBackground.values,
+                      _background,
+                      (b) => b.label,
+                      (b) => setState(() => _background = b),
+                    ),
                     if (_hasTranslation)
-                      _chips('Texto', CardText.values, _text, (t) => t.label, (t) => setState(() => _text = t)),
+                      _chips(tx.texto, CardText.values, _text, (t) => t.label, (t) => setState(() => _text = t)),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Logo de Kiji'),
+                      title: Text(tx.logoDeKiji),
                       value: _logo,
                       onChanged: (v) => setState(() => _logo = v),
                     ),
@@ -382,7 +420,7 @@ class _ShareCardScreenState extends State<_ShareCardScreen> {
                 child: FilledButton.icon(
                   onPressed: _sharing ? null : _share,
                   icon: const Icon(Icons.ios_share_rounded),
-                  label: const Text('Compartir imagen'),
+                  label: Text(tx.compartirImagen),
                 ),
               ),
             ),
@@ -401,7 +439,9 @@ Future<File?> renderToPng(GlobalKey key, String name) async {
     final image = await boundary.toImage(pixelRatio: 3);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     if (bytes == null) return null;
-    final file = File(p.join((await getTemporaryDirectory()).path, '$name-${DateTime.now().millisecondsSinceEpoch}.png'));
+    final file = File(
+      p.join((await getTemporaryDirectory()).path, '$name-${DateTime.now().millisecondsSinceEpoch}.png'),
+    );
     await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
     return file;
   } catch (error) {

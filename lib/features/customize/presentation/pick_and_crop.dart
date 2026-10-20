@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/kiji_tokens.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Elegir una imagen (galería o archivo) y recortarla cuadrada (Tarea Z3).
 /// Devuelve los bytes recortados, o null si el usuario cancela.
 Future<Uint8List?> pickAndCropImage(BuildContext context) async {
-  final picked = await FilePicker.pickFiles(type: FileType.image, dialogTitle: 'Elige una foto');
+  final picked = await FilePicker.pickFiles(type: FileType.image, dialogTitle: tx.eligeUnaFoto);
   if (picked.isEmpty || !context.mounted) return null;
   final Uint8List bytes;
   try {
@@ -16,14 +18,13 @@ Future<Uint8List?> pickAndCropImage(BuildContext context) async {
   } catch (error) {
     debugPrint('=== PERSONALIZAR: no se pudo leer la imagen: $error ===');
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudo abrir esa imagen.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.noSePudoAbrirEsaImagen)));
     }
     return null;
   }
   if (!context.mounted) return null;
-  return Navigator.of(context).push<Uint8List>(
-    MaterialPageRoute(builder: (_) => CropScreen(image: bytes), fullscreenDialog: true),
-  );
+  return Navigator.of(context)
+      .push<Uint8List>(MaterialPageRoute(builder: (_) => CropScreen(image: bytes), fullscreenDialog: true));
 }
 
 /// Pantalla de recorte cuadrado.
@@ -44,7 +45,7 @@ class _CropScreenState extends State<CropScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recortar'),
+        title: Text(tx.recortar),
         actions: [
           TextButton(
             onPressed: _cropping
@@ -53,7 +54,7 @@ class _CropScreenState extends State<CropScreen> {
                     setState(() => _cropping = true);
                     _controller.crop();
                   },
-            child: const Text('Listo'),
+            child: Text(tx.listo),
           ),
         ],
       ),
@@ -74,8 +75,7 @@ class _CropScreenState extends State<CropScreen> {
               case CropFailure(:final cause):
                 debugPrint('=== PERSONALIZAR: no se pudo recortar: $cause ===');
                 setState(() => _cropping = false);
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('No se pudo recortar esa imagen.')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.noSePudoRecortarEsaImagen)));
             }
           },
         ),

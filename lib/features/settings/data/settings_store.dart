@@ -13,10 +13,11 @@ import 'package:path_provider/path_provider.dart';
 import '../../../utils/json_file.dart';
 import '../domain/app_settings.dart';
 
+
 /// Preferencias guardadas en `<appSupportDir>/settings.json`.
 class SettingsNotifier extends Notifier<AppSettings> {
   SettingsNotifier({Future<Directory> Function()? directory})
-      : _directory = directory ?? getApplicationSupportDirectory;
+    : _directory = directory ?? getApplicationSupportDirectory;
 
   final Future<Directory> Function() _directory;
   JsonFile? _file;

@@ -1,3 +1,5 @@
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Respuestas del solver: valor original → valor resuelto.
 class ChallengeAnswers {
   const ChallengeAnswers({this.n = const {}, this.sig = const {}, this.error});
@@ -38,6 +40,5 @@ class UnsupportedChallengeSolver implements JsChallengeSolver {
     required Future<String> Function() playerJs,
     List<String> n = const [],
     List<String> sig = const [],
-  }) async =>
-      const ChallengeAnswers(error: 'En este dispositivo no hay WebView para descifrar');
+  }) async => ChallengeAnswers(error: tx.enEsteDispositivoNoHayWebview);
 }

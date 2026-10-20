@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 import 'dart:ui';
 
 import 'package:flutter/material.dart';

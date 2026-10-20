@@ -21,6 +21,8 @@ import 'lrclib_client.dart';
 import 'lyrics_repository.dart' show LyricsRequest;
 import '../../../version.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Una fuente de letras.
 abstract class LyricsFetcher {
   LyricsSource get source;
@@ -32,13 +34,15 @@ abstract class LyricsFetcher {
 
 String? videoIdOf(LyricsRequest request) => request.id.startsWith('yt-') ? request.id.substring(3) : null;
 
-const kijiUserAgent = 'Kiji Player $kijiVersion (software libre, GPL-3.0)';
+const kijiUserAgent = 'Kiji Player $kijiVersion (free software, GPL-3.0)'; // l10n-ignore
 
-Dio lyricsDio() => Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 8),
-      receiveTimeout: const Duration(seconds: 12),
-      headers: {'User-Agent': kijiUserAgent},
-    ));
+Dio lyricsDio() => Dio(
+  BaseOptions(
+    connectTimeout: const Duration(seconds: 8),
+    receiveTimeout: const Duration(seconds: 12),
+    headers: {'User-Agent': kijiUserAgent},
+  ),
+);
 
 /// Convierte errores de red en [LyricsUnavailableException] y el resto en
 /// "no hay letra" (null).
@@ -49,7 +53,7 @@ Future<Lyrics?> _guard(LyricsSource source, Future<Lyrics?> Function() run) asyn
     final status = error.response?.statusCode;
     if (status == 404) return null;
     debugPrint('=== LETRAS: ${source.label} no respondió: ${error.type} $status ===');
-    throw LyricsUnavailableException('${source.label} no respondió');
+    throw LyricsUnavailableException(tx.noRespondio(source.label));
   } on LyricsUnavailableException {
     rethrow;
   } catch (error) {
@@ -100,20 +104,27 @@ class YouLyPlusFetcher implements LyricsFetcher {
     var pending = servers.length;
     var failures = 0;
     for (final server in servers) {
-      unawaited(_one(server, r).then((lyrics) {
-        if (lyrics != null && !done.isCompleted) done.complete(lyrics);
-      }, onError: (Object _) {
-        failures++;
-        return null;
-      }).whenComplete(() {
-        if (--pending == 0 && !done.isCompleted) {
-          if (failures == servers.length) {
-            done.completeError(const LyricsUnavailableException('YouLyPlus no respondió'));
-          } else {
-            done.complete(null);
-          }
-        }
-      }));
+      unawaited(
+        _one(server, r)
+            .then(
+              (lyrics) {
+                if (lyrics != null && !done.isCompleted) done.complete(lyrics);
+              },
+              onError: (Object _) {
+                failures++;
+                return null;
+              },
+            )
+            .whenComplete(() {
+              if (--pending == 0 && !done.isCompleted) {
+                if (failures == servers.length) {
+                  done.completeError(LyricsUnavailableException(tx.youlyplusNoRespondio));
+                } else {
+                  done.complete(null);
+                }
+              }
+            }),
+      );
     }
     return done.future;
   }
@@ -157,41 +168,41 @@ class PaxSenixFetcher implements LyricsFetcher {
 
   @override
   Future<Lyrics?> fetch(LyricsRequest r) => _guard(source, () async {
-        final search = await _dio.get<List<dynamic>>(
-          '$base/apple-music/search',
-          queryParameters: {'q': '${r.title} ${r.artist}'},
-        );
-        final results = (search.data ?? const []).whereType<Map>().toList();
-        if (results.isEmpty) return null;
-        final wanted = r.durationMs ~/ 1000;
-        Map? best;
-        var bestScore = double.infinity;
-        for (final result in results.take(8)) {
-          final raw = (result['duration'] as num?)?.toInt() ?? 0;
-          final seconds = raw > 10000 ? raw ~/ 1000 : raw;
-          if (wanted > 0 && seconds > 0 && (seconds - wanted).abs() > 8) continue;
-          final score = wanted > 0 && seconds > 0 ? (seconds - wanted).abs().toDouble() : 5.0;
-          if (score < bestScore) {
-            bestScore = score;
-            best = result;
-          }
-        }
-        if (best == null) return null;
-        final lyrics = await _dio.get<Map<String, dynamic>>(
-          '$base/apple-music/lyrics',
-          queryParameters: {'id': best['id']},
-        );
-        final data = lyrics.data;
-        if (data == null) return null;
-        final ttml = data['ttmlContent'] as String?;
-        if (ttml != null && ttml.isNotEmpty) {
-          final lines = parseTtml(ttml);
-          if (lines.isNotEmpty) return Lyrics(synced: lines, source: source);
-        }
-        return lyricsFromText(data['elrc'] as String?, source) ??
-            lyricsFromText(_contentToLrc(data['content']), source) ??
-            lyricsFromText(data['plain'] as String?, source);
-      });
+    final search = await _dio.get<List<dynamic>>(
+      '$base/apple-music/search',
+      queryParameters: {'q': '${r.title} ${r.artist}'},
+    );
+    final results = (search.data ?? const []).whereType<Map>().toList();
+    if (results.isEmpty) return null;
+    final wanted = r.durationMs ~/ 1000;
+    Map? best;
+    var bestScore = double.infinity;
+    for (final result in results.take(8)) {
+      final raw = (result['duration'] as num?)?.toInt() ?? 0;
+      final seconds = raw > 10000 ? raw ~/ 1000 : raw;
+      if (wanted > 0 && seconds > 0 && (seconds - wanted).abs() > 8) continue;
+      final score = wanted > 0 && seconds > 0 ? (seconds - wanted).abs().toDouble() : 5.0;
+      if (score < bestScore) {
+        bestScore = score;
+        best = result;
+      }
+    }
+    if (best == null) return null;
+    final lyrics = await _dio.get<Map<String, dynamic>>(
+      '$base/apple-music/lyrics',
+      queryParameters: {'id': best['id']},
+    );
+    final data = lyrics.data;
+    if (data == null) return null;
+    final ttml = data['ttmlContent'] as String?;
+    if (ttml != null && ttml.isNotEmpty) {
+      final lines = parseTtml(ttml);
+      if (lines.isNotEmpty) return Lyrics(synced: lines, source: source);
+    }
+    return lyricsFromText(data['elrc'] as String?, source) ??
+        lyricsFromText(_contentToLrc(data['content']), source) ??
+        lyricsFromText(data['plain'] as String?, source);
+  });
 
   static String? _contentToLrc(Object? content) {
     if (content is! List || content.isEmpty) return null;
@@ -213,27 +224,27 @@ class UnisonFetcher implements LyricsFetcher {
 
   @override
   Future<Lyrics?> fetch(LyricsRequest r) => _guard(source, () async {
-        Future<Lyrics?> ask(Map<String, dynamic> query) async {
-          final response = await _dio.get<Map<String, dynamic>>(
-            '$base/lyrics',
-            queryParameters: query,
-            options: Options(validateStatus: (s) => s != null && s < 500),
-          );
-          final data = response.data;
-          if (response.statusCode != 200 || data == null || data['success'] != true) return null;
-          final entry = data['data'];
-          return entry is Map ? lyricsFromText(entry['lyrics'] as String?, source) : null;
-        }
+    Future<Lyrics?> ask(Map<String, dynamic> query) async {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '$base/lyrics',
+        queryParameters: query,
+        options: Options(validateStatus: (s) => s != null && s < 500),
+      );
+      final data = response.data;
+      if (response.statusCode != 200 || data == null || data['success'] != true) return null;
+      final entry = data['data'];
+      return entry is Map ? lyricsFromText(entry['lyrics'] as String?, source) : null;
+    }
 
-        final videoId = videoIdOf(r);
-        return (videoId == null ? null : await ask({'v': videoId})) ??
-            await ask({
-              'song': r.title,
-              'artist': r.artist,
-              'album': ?r.album,
-              if (r.durationMs > 0) 'duration': r.durationMs ~/ 1000,
-            });
-      });
+    final videoId = videoIdOf(r);
+    return (videoId == null ? null : await ask({'v': videoId})) ??
+        await ask({
+          'song': r.title,
+          'artist': r.artist,
+          'album': ?r.album,
+          if (r.durationMs > 0) 'duration': r.durationMs ~/ 1000,
+        });
+  });
 }
 
 /// Better Lyrics: TTML por título y artista.
@@ -245,21 +256,16 @@ class BetterLyricsFetcher implements LyricsFetcher {
 
   @override
   Future<Lyrics?> fetch(LyricsRequest r) => _guard(source, () async {
-        final response = await _dio.get<Map<String, dynamic>>(
-          'https://lyrics-api.boidu.dev/getLyrics',
-          queryParameters: {
-            's': r.title,
-            'a': r.artist,
-            if (r.durationMs > 0) 'd': r.durationMs ~/ 1000,
-            'al': ?r.album,
-          },
-          options: Options(validateStatus: (s) => s != null && s < 500),
-        );
-        final ttml = response.statusCode == 200 ? (response.data?['ttml'] as String?) : null;
-        if (ttml == null || ttml.isEmpty) return null;
-        final lines = parseTtml(ttml);
-        return lines.isEmpty ? null : Lyrics(synced: lines, source: source);
-      });
+    final response = await _dio.get<Map<String, dynamic>>(
+      'https://lyrics-api.boidu.dev/getLyrics',
+      queryParameters: {'s': r.title, 'a': r.artist, if (r.durationMs > 0) 'd': r.durationMs ~/ 1000, 'al': ?r.album},
+      options: Options(validateStatus: (s) => s != null && s < 500),
+    );
+    final ttml = response.statusCode == 200 ? (response.data?['ttml'] as String?) : null;
+    if (ttml == null || ttml.isEmpty) return null;
+    final lines = parseTtml(ttml);
+    return lines.isEmpty ? null : Lyrics(synced: lines, source: source);
+  });
 }
 
 // SimpMusic (que Echo usa) no está: su API responde "This API is only available to
@@ -310,58 +316,58 @@ class KuGouFetcher implements LyricsFetcher {
 
   @override
   Future<Lyrics?> fetch(LyricsRequest r) => _guard(source, () async {
-        final keyword = '${_cleanTitle(r.title)} - ${_cleanArtist(r.artist)}';
-        final seconds = r.durationMs > 0 ? r.durationMs ~/ 1000 : -1;
-        Future<Map?> firstCandidate(Map<String, dynamic> query) async {
-          final response = await _dio.get<String>(
-            'https://lyrics.kugou.com/search',
-            queryParameters: {'ver': 1, 'man': 'yes', 'client': 'pc', ...query},
-            options: Options(responseType: ResponseType.plain),
-          );
-          final candidates = (jsonDecode(response.data ?? '{}') as Map)['candidates'];
-          return candidates is List && candidates.isNotEmpty ? candidates.first as Map : null;
-        }
+    final keyword = '${_cleanTitle(r.title)} - ${_cleanArtist(r.artist)}';
+    final seconds = r.durationMs > 0 ? r.durationMs ~/ 1000 : -1;
+    Future<Map?> firstCandidate(Map<String, dynamic> query) async {
+      final response = await _dio.get<String>(
+        'https://lyrics.kugou.com/search',
+        queryParameters: {'ver': 1, 'man': 'yes', 'client': 'pc', ...query},
+        options: Options(responseType: ResponseType.plain),
+      );
+      final candidates = (jsonDecode(response.data ?? '{}') as Map)['candidates'];
+      return candidates is List && candidates.isNotEmpty ? candidates.first as Map : null;
+    }
 
-        Map? candidate;
-        final songs = await _dio.get<String>(
-          'https://mobileservice.kugou.com/api/v3/search/song',
-          queryParameters: {'version': 9108, 'plat': 0, 'pagesize': 8, 'showtype': 0, 'keyword': keyword},
-          options: Options(responseType: ResponseType.plain),
-        );
-        final info = ((jsonDecode(songs.data ?? '{}') as Map)['data'] as Map?)?['info'];
-        for (final song in info is List ? info.whereType<Map>() : const <Map>[]) {
-          final d = (song['duration'] as num?)?.toInt() ?? 0;
-          if (seconds != -1 && (d - seconds).abs() > 8) continue;
-          candidate = await firstCandidate({'hash': song['hash']});
-          if (candidate != null) break;
-        }
-        candidate ??= await firstCandidate({'keyword': keyword, if (seconds != -1) 'duration': seconds * 1000});
-        if (candidate == null) return null;
-        final download = await _dio.get<String>(
-          'https://lyrics.kugou.com/download',
-          queryParameters: {
-            'fmt': 'lrc',
-            'charset': 'utf8',
-            'client': 'pc',
-            'ver': 1,
-            'id': candidate['id'],
-            'accesskey': candidate['accesskey'],
-          },
-          options: Options(responseType: ResponseType.plain),
-        );
-        final content = (jsonDecode(download.data ?? '{}') as Map)['content'] as String?;
-        if (content == null || content.isEmpty) return null;
-        final text = normalizeKuGou(utf8.decode(base64Decode(content)));
-        // "纯音乐，请欣赏" = "música instrumental": KuGou no tiene la letra.
-        if (text.contains('纯音乐')) return null;
-        return lyricsFromText(text, source);
-      });
+    Map? candidate;
+    final songs = await _dio.get<String>(
+      'https://mobileservice.kugou.com/api/v3/search/song',
+      queryParameters: {'version': 9108, 'plat': 0, 'pagesize': 8, 'showtype': 0, 'keyword': keyword},
+      options: Options(responseType: ResponseType.plain),
+    );
+    final info = ((jsonDecode(songs.data ?? '{}') as Map)['data'] as Map?)?['info'];
+    for (final song in info is List ? info.whereType<Map>() : const <Map>[]) {
+      final d = (song['duration'] as num?)?.toInt() ?? 0;
+      if (seconds != -1 && (d - seconds).abs() > 8) continue;
+      candidate = await firstCandidate({'hash': song['hash']});
+      if (candidate != null) break;
+    }
+    candidate ??= await firstCandidate({'keyword': keyword, if (seconds != -1) 'duration': seconds * 1000});
+    if (candidate == null) return null;
+    final download = await _dio.get<String>(
+      'https://lyrics.kugou.com/download',
+      queryParameters: {
+        'fmt': 'lrc',
+        'charset': 'utf8',
+        'client': 'pc',
+        'ver': 1,
+        'id': candidate['id'],
+        'accesskey': candidate['accesskey'],
+      },
+      options: Options(responseType: ResponseType.plain),
+    );
+    final content = (jsonDecode(download.data ?? '{}') as Map)['content'] as String?;
+    if (content == null || content.isEmpty) return null;
+    final text = normalizeKuGou(utf8.decode(base64Decode(content)));
+    // "纯音乐，请欣赏" = "música instrumental": KuGou no tiene la letra.
+    if (text.contains('纯音乐')) return null;
+    return lyricsFromText(text, source);
+  });
 }
 
-const _ytmKey = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL47NlEVNIeM';
+const _ytmKey = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL47NlEVNIeM'; // l10n-ignore
 Map<String, dynamic> _webRemix() => {
-      'client': {'clientName': 'WEB_REMIX', 'clientVersion': '1.20260213.01.00', 'hl': 'es', 'gl': 'US'},
-    };
+  'client': {'clientName': 'WEB_REMIX', 'clientVersion': '1.20260213.01.00', 'hl': 'es', 'gl': 'US'},
+};
 
 /// Subtítulos del video de YouTube (con tiempos). `get_transcript`, el que
 /// usa Echo, hoy responde "Precondition check failed"; las pistas de
@@ -375,21 +381,21 @@ class YouTubeSubtitlesFetcher implements LyricsFetcher {
 
   @override
   Future<Lyrics?> fetch(LyricsRequest r) => _guard(source, () async {
-        final videoId = videoIdOf(r);
-        if (videoId == null) return null;
-        final player = await _youtube.rawPlayer(videoId, clientByLabel('ANDROID_VR')!);
-        if (player == null) throw const LyricsUnavailableException('YouTube no respondió');
-        final tracks = _dig(player, ['captions', 'playerCaptionsTracklistRenderer', 'captionTracks']);
-        if (tracks is! List || tracks.isEmpty) return null;
-        final track = pickCaptionTrack(tracks.whereType<Map>().toList());
-        if (track == null) return null;
-        final base = Uri.parse('${track['baseUrl']}');
-        final response = await _dio.get<String>(
-          base.replace(queryParameters: {...base.queryParameters, 'fmt': 'json3'}).toString(),
-          options: Options(responseType: ResponseType.plain),
-        );
-        return lyricsFromText(captionsToLrc(response.data ?? ''), source);
-      });
+    final videoId = videoIdOf(r);
+    if (videoId == null) return null;
+    final player = await _youtube.rawPlayer(videoId, clientByLabel('ANDROID_VR')!);
+    if (player == null) throw LyricsUnavailableException(tx.youtubeNoRespondio);
+    final tracks = _dig(player, ['captions', 'playerCaptionsTracklistRenderer', 'captionTracks']);
+    if (tracks is! List || tracks.isEmpty) return null;
+    final track = pickCaptionTrack(tracks.whereType<Map>().toList());
+    if (track == null) return null;
+    final base = Uri.parse('${track['baseUrl']}');
+    final response = await _dio.get<String>(
+      base.replace(queryParameters: {...base.queryParameters, 'fmt': 'json3'}).toString(),
+      options: Options(responseType: ResponseType.plain),
+    );
+    return lyricsFromText(captionsToLrc(response.data ?? ''), source);
+  });
 
   /// La pista en el idioma en que se canta: el de los subtítulos
   /// automáticos (reconocen la voz); de ese idioma, mejor la hecha a mano.
@@ -399,9 +405,7 @@ class YouTubeSubtitlesFetcher implements LyricsFetcher {
     final auto = tracks.where((t) => t['kind'] == 'asr').firstOrNull;
     if (auto == null) return tracks.first;
     final language = '${auto['languageCode']}'.split('-').first;
-    return tracks
-            .where((t) => t['kind'] != 'asr' && '${t['languageCode']}'.split('-').first == language)
-            .firstOrNull ??
+    return tracks.where((t) => t['kind'] != 'asr' && '${t['languageCode']}'.split('-').first == language).firstOrNull ??
         auto;
   }
 
@@ -437,33 +441,41 @@ class YouTubeMusicFetcher implements LyricsFetcher {
 
   @override
   Future<Lyrics?> fetch(LyricsRequest r) => _guard(source, () async {
-        final videoId = videoIdOf(r);
-        if (videoId == null) return null;
-        final next = await _dio.post<Map<String, dynamic>>(
-          'https://music.youtube.com/youtubei/v1/next',
-          queryParameters: {'key': _ytmKey, 'prettyPrint': 'false'},
-          data: {'context': _webRemix(), 'videoId': videoId},
-        );
-        final browseId = _dig(next.data, [
-          'contents', 'singleColumnMusicWatchNextResultsRenderer', 'tabbedRenderer', 'watchNextTabbedResultsRenderer',
-          'tabs', 1, 'tabRenderer', 'endpoint', 'browseEndpoint', 'browseId',
-        ]);
-        if (browseId is! String) return null;
-        final browse = await _dio.post<Map<String, dynamic>>(
-          'https://music.youtube.com/youtubei/v1/browse',
-          queryParameters: {'key': _ytmKey, 'prettyPrint': 'false'},
-          data: {'context': _webRemix(), 'browseId': browseId},
-        );
-        final sections = _dig(browse.data, ['contents', 'sectionListRenderer', 'contents']);
-        if (sections is! List) return null;
-        for (final section in sections) {
-          final runs = _dig(section, ['musicDescriptionShelfRenderer', 'description', 'runs']);
-          if (runs is List) {
-            return lyricsFromText(runs.whereType<Map>().map((run) => '${run['text'] ?? ''}').join(), source);
-          }
-        }
-        return null;
-      });
+    final videoId = videoIdOf(r);
+    if (videoId == null) return null;
+    final next = await _dio.post<Map<String, dynamic>>(
+      'https://music.youtube.com/youtubei/v1/next',
+      queryParameters: {'key': _ytmKey, 'prettyPrint': 'false'},
+      data: {'context': _webRemix(), 'videoId': videoId},
+    );
+    final browseId = _dig(next.data, [
+      'contents',
+      'singleColumnMusicWatchNextResultsRenderer',
+      'tabbedRenderer',
+      'watchNextTabbedResultsRenderer',
+      'tabs',
+      1,
+      'tabRenderer',
+      'endpoint',
+      'browseEndpoint',
+      'browseId',
+    ]);
+    if (browseId is! String) return null;
+    final browse = await _dio.post<Map<String, dynamic>>(
+      'https://music.youtube.com/youtubei/v1/browse',
+      queryParameters: {'key': _ytmKey, 'prettyPrint': 'false'},
+      data: {'context': _webRemix(), 'browseId': browseId},
+    );
+    final sections = _dig(browse.data, ['contents', 'sectionListRenderer', 'contents']);
+    if (sections is! List) return null;
+    for (final section in sections) {
+      final runs = _dig(section, ['musicDescriptionShelfRenderer', 'description', 'runs']);
+      if (runs is List) {
+        return lyricsFromText(runs.whereType<Map>().map((run) => '${run['text'] ?? ''}').join(), source);
+      }
+    }
+    return null;
+  });
 }
 
 /// Recorre un JSON por claves e índices; null si algo no está.

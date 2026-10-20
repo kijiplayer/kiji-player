@@ -7,8 +7,10 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../dev_tools/dev_build.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Nombre de la carpeta de las copias: Kiji Dev guarda las suyas aparte, nunca junto a las de Kiji.
-const backupFolderName = isDevBuild ? 'Kiji Dev' : 'Kiji';
+const backupFolderName = isDevBuild ? 'Kiji Dev' : 'Kiji'; // l10n-ignore
 
 /// Carpeta de las copias por defecto: `Documentos/Kiji` (o `Documentos/Kiji Dev`), fuera de la app,
 /// para que sobreviva si se desinstala Kiji (una ruta por
@@ -33,7 +35,7 @@ Future<Directory> defaultBackupFolder() async {
 Future<String?> checkWritable(Directory folder) async {
   // Kiji Dev nunca escribe en la carpeta de Kiji (se mezclarían las copias de las dos apps).
   if (isDevBuild && p.basename(folder.path) == 'Kiji') {
-    return 'Esa es la carpeta de Kiji. Kiji Dev guarda sus copias aparte: elige otra.';
+    return tx.esaEsLaCarpetaDeKiji;
   }
   try {
     await folder.create(recursive: true);
@@ -43,6 +45,6 @@ Future<String?> checkWritable(Directory folder) async {
     return null;
   } catch (error) {
     debugPrint('=== COPIA: no se puede escribir en ${folder.path}: $error ===');
-    return 'Kiji no puede guardar en esa carpeta. Elige otra.';
+    return tx.kijiNoPuedeGuardarEnEsa;
   }
 }

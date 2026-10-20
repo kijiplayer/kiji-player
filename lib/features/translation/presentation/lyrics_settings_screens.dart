@@ -12,11 +12,10 @@ import '../data/gemini_client.dart';
 import '../data/translation_service.dart';
 import '../domain/languages.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Texto del apartado 1, tal como se definió.
-const localTranslationNotice =
-    'La letra se traduce dentro de tu teléfono. No se envía a nadie y no pierdes anonimato. Solo una vez '
-    'por idioma se descarga el modelo de traducción (el servidor solo sabe que alguien bajó ese idioma, no '
-    'qué canción). Es buena para entender la letra, aunque a veces suena literal.';
+String get localTranslationNotice => tx.laLetraSeTraduceDentroDe;
 
 /// Configuración → Letras → Fuentes: una por una, se pueden apagar.
 class LyricsSourcesScreen extends ConsumerWidget {
@@ -25,15 +24,15 @@ class LyricsSourcesScreen extends ConsumerWidget {
   static Future<void> open(BuildContext context) =>
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LyricsSourcesScreen()));
 
-  static const _sends = {
-    LyricsSource.lrclib: 'título, artista, álbum y duración',
-    LyricsSource.youlyplus: 'título, artista, álbum, duración e id del video',
-    LyricsSource.paxsenix: 'título y artista',
-    LyricsSource.unison: 'id del video, o título, artista y duración',
-    LyricsSource.betterlyrics: 'título, artista, álbum y duración',
-    LyricsSource.kugou: 'título, artista y duración',
-    LyricsSource.youtubeSubtitles: 'id del video (a YouTube)',
-    LyricsSource.youtubeMusic: 'id del video (a YouTube Music)',
+  static Map<LyricsSource, String> get _sends => {
+    LyricsSource.lrclib: tx.tituloArtistaAlbumYDuracion,
+    LyricsSource.youlyplus: tx.tituloArtistaAlbumDuracionEId,
+    LyricsSource.paxsenix: tx.tituloYArtista,
+    LyricsSource.unison: tx.idDelVideoOTituloArtista,
+    LyricsSource.betterlyrics: tx.tituloArtistaAlbumYDuracion,
+    LyricsSource.kugou: tx.tituloArtistaYDuracion,
+    LyricsSource.youtubeSubtitles: tx.idDelVideoAYoutube,
+    LyricsSource.youtubeMusic: tx.idDelVideoAYoutubeMusic,
   };
 
   @override
@@ -42,18 +41,13 @@ class LyricsSourcesScreen extends ConsumerWidget {
     final order = ref.watch(settingsProvider.select((s) => s.lyricsSourceOrder));
     final notifier = ref.read(settingsProvider.notifier);
     return Scaffold(
-      appBar: AppBar(title: const Text('Fuentes de letras')),
+      appBar: AppBar(title: Text(tx.fuentesDeLetras)),
       body: ReorderableListView(
         buildDefaultDragHandles: false,
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
-        header: const Padding(
-          padding: EdgeInsets.only(bottom: 12),
-          child: Text(
-            'Kiji busca la letra primero en el archivo (sin internet) y después en estas fuentes, en este '
-            'orden, hasta que una la tenga. Arrastra para cambiar el orden. Solo se busca cuando abres la '
-            'letra, y cada fuente recibe únicamente lo que dice abajo; nada tuyo.',
-            style: TextStyle(color: KijiColors.muted),
-          ),
+        header: Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(tx.kijiBuscaLaLetraPrimeroEn, style: const TextStyle(color: KijiColors.muted)),
         ),
         onReorderItem: (from, to) {
           final next = [...order];
@@ -67,20 +61,22 @@ class LyricsSourcesScreen extends ConsumerWidget {
               contentPadding: const EdgeInsets.only(left: 4),
               leading: ReorderableDragStartListener(
                 index: index,
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.drag_indicator_rounded, semanticLabel: 'Arrastrar para cambiar el orden'),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(Icons.drag_indicator_rounded, semanticLabel: tx.arrastrarParaCambiarElOrden),
                 ),
               ),
               title: Text('${index + 1}. ${source.label}'),
-              subtitle: Text('Recibe: ${_sends[source] ?? '—'}'),
+              subtitle: Text(tx.recibe(_sends[source] ?? '—')),
               trailing: Switch(
                 value: !disabled.contains(source),
-                onChanged: (on) => notifier.update((s) => s.copyWith(
-                      disabledLyricsSources: on
-                          ? ({...s.disabledLyricsSources}..remove(source))
-                          : {...s.disabledLyricsSources, source},
-                    )),
+                onChanged: (on) => notifier.update(
+                  (s) => s.copyWith(
+                    disabledLyricsSources: on
+                        ? ({...s.disabledLyricsSources}..remove(source))
+                        : {...s.disabledLyricsSources, source},
+                  ),
+                ),
               ),
             ),
         ],
@@ -127,34 +123,34 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
     final settings = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
     Widget section(String title, List<Widget> children) => Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Glass(
-            blur: false,
-            radius: KijiRadii.tile,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [Text(title, style: KijiText.title(size: 17)), const SizedBox(height: 8), ...children],
-              ),
-            ),
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Glass(
+        blur: false,
+        radius: KijiRadii.tile,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: KijiText.title(size: 17)),
+              const SizedBox(height: 8),
+              ...children,
+            ],
           ),
-        );
+        ),
+      ),
+    );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Traducción de letras')),
+      appBar: AppBar(title: Text(tx.traduccionDeLetras)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
-          const Text(
-            'Original y traducción se ven línea por línea (en la letra: ⋮ → Traducir la letra). Cada '
-            'traducción se guarda para no repetirla.',
-            style: TextStyle(color: KijiColors.muted),
-          ),
+          Text(tx.originalYTraduccionSeVenLinea, style: const TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: settings.translationTarget,
-            decoration: const InputDecoration(labelText: 'Traducir al'),
+            decoration: InputDecoration(labelText: tx.traducirAl),
             items: [
               for (final entry in translationLanguages.entries)
                 DropdownMenuItem(value: entry.key, child: Text(entry.value)),
@@ -164,20 +160,19 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
             },
           ),
           const SizedBox(height: 16),
-          section('1 · En tu teléfono (anónimo)', [
-            const Text(localTranslationNotice),
+          section(tx.n1EnTuTelefonoAnonimo, [
+            Text(localTranslationNotice),
             const SizedBox(height: 8),
-            const Text(
-              'Motor y modelos de Firefox Translations (Mozilla, licencia MPL-2.0).',
+            Text(
+              tx.motorYModelosDeFirefox,
               style: TextStyle(color: KijiColors.muted, fontSize: 12),
             ),
             const SizedBox(height: 8),
-            Text('IDIOMAS BAJADOS', style: KijiText.mono(size: 11)),
+            Text(tx.idiomasBajados, style: KijiText.mono(size: 11)),
             if (_installed == null)
               const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator())
             else if (_installed!.isEmpty)
-              const Text('Ninguno todavía: se bajan solos (avisando el tamaño) la primera vez que traduces.',
-                  style: TextStyle(color: KijiColors.muted))
+              Text(tx.ningunoTodaviaSeBajanSolosAvisando, style: const TextStyle(color: KijiColors.muted))
             else
               for (final entry in _installed!.entries)
                 ListTile(
@@ -185,7 +180,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
                   title: Text(entry.key.split('-').map(languageName).join(' → ')),
                   subtitle: Text(formatBytes(entry.value)),
                   trailing: IconButton(
-                    tooltip: 'Borrar',
+                    tooltip: tx.borrar,
                     icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () async {
                       await ref.read(translationServiceProvider).models.delete(entry.key);
@@ -194,22 +189,23 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
                   ),
                 ),
           ]),
-          section('2 · Con IA (Gemini)', [
+          section(tx.n2ConIaGemini, [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Traducir con Gemini'),
-              subtitle: Text(settings.geminiEnabled
-                  ? 'Activado. Pierdes parte del anonimato al usarlo.'
-                  : 'Apagado. Antes de activarlo vas a ver qué implica.'),
+              title: Text(tx.traducirConGemini),
+              subtitle: Text(
+                settings.geminiEnabled
+                    ? tx.activadoPierdesAnonimato
+                    : tx.apagadoAntesDeActivarloVasA,
+              ),
               value: settings.geminiEnabled,
               onChanged: (on) async {
                 if (!on) {
                   await notifier.update((s) => s.copyWith(geminiEnabled: false, useGemini: false));
                   return;
                 }
-                final accepted = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(builder: (_) => const GeminiConsentScreen()),
-                );
+                final accepted = await Navigator.of(context)
+                    .push<bool>(MaterialPageRoute(builder: (_) => const GeminiConsentScreen()));
                 if (accepted == true) await notifier.update((s) => s.copyWith(geminiEnabled: true));
               },
             ),
@@ -219,8 +215,8 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
               if (_hasKey && settings.geminiModel != null)
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Usar Gemini para traducir'),
-                  subtitle: const Text('Si lo apagas, se traduce en el teléfono.'),
+                  title: Text(tx.usarGeminiParaTraducir),
+                  subtitle: Text(tx.siLoApagasSeTraduceEn),
                   value: settings.useGemini,
                   onChanged: (on) => notifier.update((s) => s.copyWith(useGemini: on)),
                 ),
@@ -236,25 +232,21 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
 class GeminiConsentScreen extends StatelessWidget {
   const GeminiConsentScreen({super.key});
 
-  static const points = [
-    'Pierdes parte del anonimato: las líneas de la letra se envían a Google, asociadas a tu cuenta de '
-        'Google (por la clave).',
-    'En el nivel gratuito, Google usa ese contenido para mejorar sus productos y personas de Google pueden '
-        'leerlo (Google dice que lo separa de tu cuenta antes).',
-    'Kiji NO envía tu nombre, tu historial ni tu biblioteca: solo las líneas de la letra y el idioma de '
-        'destino.',
-    'Requisitos de Google: tener 18 años o más. En Europa, Reino Unido y Suiza el nivel gratuito no está '
-        'permitido para esto.',
+  static List<String> get points => [
+    tx.pierdesParteDelAnonimatoLasLineas,
+    tx.enElNivelGratuitoGoogleUsa,
+    tx.kijiNoEnviaTuNombreTu,
+    tx.requisitosDeGoogleTener18Anos,
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Antes de usar Gemini')),
+      appBar: AppBar(title: Text(tx.antesDeUsarGemini)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
-          const Text('Qué cambia si activas la traducción con Gemini', style: TextStyle(fontSize: 18)),
+          Text(tx.queCambiaSiActivasLaTraduccion, style: const TextStyle(fontSize: 18)),
           const SizedBox(height: 16),
           for (final point in points)
             Padding(
@@ -271,13 +263,10 @@ class GeminiConsentScreen extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 8),
-          const Text(
-            'Si no quieres nada de esto, la traducción en tu teléfono sigue disponible y es anónima.',
-            style: TextStyle(color: KijiColors.muted),
-          ),
+          Text(tx.siNoQuieresNadaDeEsto, style: const TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 24),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Entiendo, activar')),
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Mejor no')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.entiendoActivar)),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.mejorNo)),
         ],
       ),
     );
@@ -312,7 +301,7 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
     final typed = _key.text.trim();
     final key = typed.isNotEmpty ? typed : await service.secrets.read(geminiKeySecret);
     if (key == null || key.isEmpty) {
-      setState(() => _status = 'Pega la clave primero.');
+      setState(() => _status = tx.pegaLaClavePrimero);
       return;
     }
     setState(() {
@@ -323,7 +312,7 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
       final models = await service.gemini.models(key);
       if (typed.isNotEmpty) {
         final saved = await service.secrets.write(geminiKeySecret, typed);
-        if (!saved) throw const GeminiException('No se pudo guardar la clave cifrada en este dispositivo.');
+        if (!saved) throw GeminiException(tx.noSePudoGuardarLaClave);
         _key.clear();
       }
       final settings = ref.read(settingsProvider);
@@ -332,11 +321,11 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
       }
       setState(() {
         _models = models;
-        _status = models.isEmpty ? 'La clave anda, pero no hay modelos de texto.' : 'La clave anda. Guardada cifrada.';
+        _status = models.isEmpty ? tx.laClaveAndaSinModelos : tx.laClaveAndaGuardadaCifrada;
       });
       await widget.onChanged();
     } on GeminiException catch (error) {
-      setState(() => _status = '${error.message} Mientras tanto puedes traducir en el teléfono.');
+      setState(() => _status = tx.mientrasTantoPuedesTraducirEnEl(error.message));
     } finally {
       if (mounted) setState(() => _testing = false);
     }
@@ -349,22 +338,22 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('CÓMO CONSEGUIR TU CLAVE', style: KijiText.mono(size: 11)),
+        Text(tx.comoConseguirTuClave, style: KijiText.mono(size: 11)),
         const SizedBox(height: 6),
         Row(
           children: [
-            const Expanded(child: Text('1. Entra a aistudio.google.com con tu cuenta de Google.')),
+            Expanded(child: Text(tx.n1EntraAAistudioGoogleCom)),
             TextButton(
-              onPressed: () => launchUrl(Uri.parse('https://aistudio.google.com/apikey'),
-                  mode: LaunchMode.externalApplication),
-              child: const Text('Abrir'),
+              onPressed: () =>
+                  launchUrl(Uri.parse('https://aistudio.google.com/apikey'), mode: LaunchMode.externalApplication),
+              child: Text(tx.abrir),
             ),
           ],
         ),
-        const Text('2. Toca "Get API key" → "Create API key" (no pide tarjeta).'),
-        const Text('3. Copia la clave y pégala aquí abajo.'),
-        const Text('4. Toca "Probar".'),
-        const Text('5. Elige el modelo (Kiji recomienda el más liviano, Flash-Lite).'),
+        Text(tx.n2TocaGetApiKeyCreate),
+        Text(tx.n3CopiaLaClaveYPegala),
+        Text(tx.n4TocaProbar),
+        Text(tx.n5EligeElModeloKijiRecomienda),
         const SizedBox(height: 10),
         TextField(
           controller: _key,
@@ -372,9 +361,9 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
           autocorrect: false,
           enableSuggestions: false,
           decoration: InputDecoration(
-            labelText: widget.hasKey ? 'Clave guardada (pega otra para cambiarla)' : 'Clave de Gemini',
+            labelText: widget.hasKey ? tx.claveGuardadaPegaOtra : tx.claveDeGemini,
             suffixIcon: IconButton(
-              tooltip: 'Pegar',
+              tooltip: tx.pegar,
               icon: const Icon(Icons.content_paste_rounded),
               onPressed: () async {
                 final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -390,19 +379,19 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
               onPressed: _testing ? null : _test,
               child: _testing
                   ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Probar'),
+                  : Text(tx.probar),
             ),
             const SizedBox(width: 8),
             if (widget.hasKey)
               TextButton.icon(
                 icon: const Icon(Icons.delete_outline_rounded),
-                label: const Text('Borrar clave'),
+                label: Text(tx.borrarClave),
                 onPressed: () async {
                   await ref.read(translationServiceProvider).secrets.delete(geminiKeySecret);
                   await ref.read(settingsProvider.notifier).update((s) => s.copyWith(useGemini: false));
                   setState(() {
                     _models = null;
-                    _status = 'Clave borrada de este dispositivo.';
+                    _status = tx.claveBorradaDeEsteDispositivo;
                   });
                   await widget.onChanged();
                 },
@@ -415,13 +404,15 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
           DropdownButtonFormField<String>(
             initialValue: models.any((m) => m.name == settings.geminiModel) ? settings.geminiModel : models.first.name,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Modelo'),
+            decoration: InputDecoration(labelText: tx.modelo),
             items: [
               for (final m in models)
                 DropdownMenuItem(
                   value: m.name,
-                  child: Text('${m.displayName}${identical(m, models.first) && m.isLite ? ' (recomendado)' : ''}',
-                      overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    '${m.displayName}${identical(m, models.first) && m.isLite ? tx.recomendadoSufijo : ''}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
             ],
             onChanged: (value) {
@@ -429,8 +420,10 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
             },
           ),
         ] else if (settings.geminiModel != null)
-          Text('Modelo: ${settings.geminiModel!.replaceFirst('models/', '')}',
-              style: const TextStyle(color: KijiColors.muted)),
+          Text(
+            tx.modelo2(settings.geminiModel!.replaceFirst('models/', '')),
+            style: const TextStyle(color: KijiColors.muted),
+          ),
       ],
     );
   }

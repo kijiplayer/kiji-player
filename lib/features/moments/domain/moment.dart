@@ -1,6 +1,8 @@
 import '../../../models/track.dart';
 import '../../../utils/duration_formatter.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Un "Momento" (propio de Kiji): un segundo exacto de una canción ("aquí empieza el solo") o un
 /// tramo ("de 1:12 a 1:40, la parte que me gusta").
 class Moment {
@@ -19,12 +21,12 @@ class Moment {
   bool get isInterval => end != null;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'track': track.toJson(),
-        'positionMs': position.inMilliseconds,
-        if (end != null) 'endMs': end!.inMilliseconds,
-        'createdAt': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'track': track.toJson(),
+    'positionMs': position.inMilliseconds,
+    if (end != null) 'endMs': end!.inMilliseconds,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
   static Moment? fromJson(Object? json) {
     if (json is! Map<String, dynamic>) return null;
@@ -47,8 +49,8 @@ String momentShareText(Moment moment) {
   final at = formatDuration(moment.position);
   final end = moment.end;
   final base = end == null
-      ? '«${moment.track.title}» de ${moment.track.artist}, desde el $at'
-      : '«${moment.track.title}» de ${moment.track.artist}, de $at a ${formatDuration(end)}';
+      ? tx.momentoDesde(moment.track.title, moment.track.artist, at)
+      : tx.deDeA(moment.track.title, moment.track.artist, at, formatDuration(end));
   final id = moment.track.youtubeVideoId;
   if (id == null) return base;
   return '$base\nhttps://youtu.be/$id?t=${moment.position.inSeconds}';

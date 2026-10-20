@@ -97,7 +97,7 @@ class DownloadService {
       // Si el motor vuelve a dar la misma forma, se saltea el motor entero.
       if (!tried.add(found.path)) tried.add('${found.engine.name.toUpperCase()}/AUTO');
     }
-    if (stream == null) return const EstimateOutcome.failed(DownloadFailure.allFormsFailed);
+    if (stream == null) return EstimateOutcome.failed(DownloadFailure.allFormsFailed);
 
     final url = stream.url;
     final uri = Uri.parse(url);

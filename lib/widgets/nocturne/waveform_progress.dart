@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../theme/kiji_tokens.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Alturas (0..1) de las barras de la onda para [seed] (el id de la canción).
 /// Son siempre las mismas para la misma canción, sin analizar el audio:
 /// es una firma visual, no un espectro real.
@@ -62,8 +64,11 @@ class WaveformProgress extends StatefulWidget {
 
 class _WaveformProgressState extends State<WaveformProgress> with TickerProviderStateMixin {
   double? _drag;
-  late final AnimationController _reveal =
-      AnimationController(vsync: this, duration: KijiMotion.waveReveal, value: widget.animateIn ? 0 : 1);
+  late final AnimationController _reveal = AnimationController(
+    vsync: this,
+    duration: KijiMotion.waveReveal,
+    value: widget.animateIn ? 0 : 1,
+  );
   late final AnimationController _live = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
 
   @override
@@ -104,15 +109,13 @@ class _WaveformProgressState extends State<WaveformProgress> with TickerProvider
 
         return Semantics(
           slider: true,
-          label: 'Progreso de la canción',
+          label: tx.progresoDeLaCancion,
           value: '${(progress * 100).round()} %',
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapUp: (details) => widget.onSeek(_fraction(details.localPosition, width)),
-            onHorizontalDragStart: (details) =>
-                setState(() => _drag = _fraction(details.localPosition, width)),
-            onHorizontalDragUpdate: (details) =>
-                setState(() => _drag = _fraction(details.localPosition, width)),
+            onHorizontalDragStart: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
+            onHorizontalDragUpdate: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
             onHorizontalDragEnd: (_) {
               final value = _drag;
               setState(() => _drag = null);
@@ -144,12 +147,12 @@ class _WaveformProgressState extends State<WaveformProgress> with TickerProvider
                     Positioned(
                       left: (widget.marker!.clamp(0.0, 1.0) * width) - 9,
                       top: -16,
-                      child: const Icon(
+                      child: Icon(
                         Icons.bedtime_rounded,
-                        key: Key('waveform-moon'),
+                        key: const Key('waveform-moon'),
                         size: 18,
                         color: KijiColors.cyan,
-                        semanticLabel: 'Pausa del temporizador',
+                        semanticLabel: tx.pausaDelTemporizador,
                       ),
                     ),
                 ],
@@ -187,8 +190,7 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final played = Paint()
-      ..shader = KijiColors.accentGradient.createShader(Offset.zero & size);
+    final played = Paint()..shader = KijiColors.accentGradient.createShader(Offset.zero & size);
     final rest = Paint()..color = KijiColors.waveRest;
     final step = size.width / bars.length;
     final radius = Radius.circular(barWidth / 2);
@@ -198,10 +200,7 @@ class _WaveformPainter extends CustomPainter {
       final wobble = phase == null ? 1.0 : 0.88 + 0.12 * sin(2 * pi * (phase! + i / 14));
       final h = max(barWidth, bars[i] * wobble * size.height);
       final x = i * step + (step - barWidth) / 2;
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, (size.height - h) / 2, barWidth, h),
-        radius,
-      );
+      final rect = RRect.fromRectAndRadius(Rect.fromLTWH(x, (size.height - h) / 2, barWidth, h), radius);
       canvas.drawRRect(rect, (i + 0.5) / bars.length <= progress ? played : rest);
     }
     final mark = marker;

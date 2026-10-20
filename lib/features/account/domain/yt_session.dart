@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 // Inspirado en Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivos de referencia: ui/screens/LoginScreen.kt (qué guardar al iniciar sesión) e
 // innertube/.../InnerTube.kt (encabezado `SAPISIDHASH`).

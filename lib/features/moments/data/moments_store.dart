@@ -9,6 +9,7 @@ import '../../../models/track.dart';
 import '../../../utils/json_file.dart';
 import '../domain/moment.dart';
 
+
 /// Los Momentos guardados, el más nuevo primero. Solo en este dispositivo
 /// (`<appSupport>/moments.json`).
 class MomentsNotifier extends Notifier<List<Moment>> {
@@ -18,9 +19,9 @@ class MomentsNotifier extends Notifier<List<Moment>> {
   JsonFile? _file;
 
   Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'moments.json'),
-        logTag: 'MOMENTOS',
-      );
+    p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'moments.json'),
+    logTag: 'MOMENTOS',
+  );
 
   @override
   List<Moment> build() {

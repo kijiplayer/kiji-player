@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 // Traducción en el dispositivo con Bergamot (Firefox Translations, MPL-2.0). La forma de
 // armar los modelos y traducir sigue a Firefox: toolkit/components/translations/content/
 // translations-engine.worker.js (alineación de memoria, configuración de Marian y pivote

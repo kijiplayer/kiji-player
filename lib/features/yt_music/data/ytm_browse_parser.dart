@@ -1,5 +1,6 @@
 import '../domain/subtitle_parser.dart';
 import 'ytm_client.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 
 /// Un artista o un álbum de YouTube Music (resultado de búsqueda o carrusel).
 enum YtCollectionKind { artist, album }
@@ -133,7 +134,7 @@ List<YtMusicSearchResult> _songRows(Object? root, {String? fallbackArtist, Strin
           final artist = parsed?.artist ?? fallbackArtist ?? unknownArtist;
           songs.add(YtMusicSearchResult(
             videoId: id,
-            title: texts.isEmpty || texts.first.isEmpty ? 'Sin título' : texts.first,
+            title: texts.isEmpty || texts.first.isEmpty ? tx.sinTitulo : texts.first,
             artist: artist,
             album: album ?? (texts.length > 3 && texts[3].isNotEmpty ? texts[3] : parsed?.album),
             durationMs: parsed?.durationMs ?? (fixed.isEmpty ? null : _durationMs(fixed.first)),
@@ -170,7 +171,7 @@ List<YtCollection> parseCollectionResults(Map<String, dynamic> json, YtCollectio
           final texts = _flexTexts(r);
           results.add(YtCollection(
             browseId: id,
-            title: texts.isEmpty ? 'Sin título' : texts.first,
+            title: texts.isEmpty ? tx.sinTitulo : texts.first,
             kind: kind,
             // "Álbum · Daft Punk · 2001" → "Daft Punk · 2001" (sin el tipo).
             subtitle: kind == YtCollectionKind.album && texts.length > 1
@@ -254,7 +255,7 @@ AlbumPage parseAlbumPage(Map<String, dynamic> json) {
   final artist = strapline.isNotEmpty ? strapline : (extractArtist(_runsText(header?['subtitle'])) ?? unknownArtist);
   final thumbnail = _lastThumbnail(header?['thumbnail']);
   return AlbumPage(
-    title: title.isEmpty ? 'Sin título' : title,
+    title: title.isEmpty ? tx.sinTitulo : title,
     artist: artist,
     subtitle: _runsText(header?['subtitle']).replaceAll(' • ', ' · '),
     thumbnailUrl: thumbnail,
@@ -290,7 +291,7 @@ List<YtMusicSearchResult> parseNextTracks(Map<String, dynamic> json) {
           final first = runs.isEmpty ? '' : '${runs.first['text']}'.trim();
           tracks.add(YtMusicSearchResult(
             videoId: id,
-            title: _runsText(r['title']).isEmpty ? 'Sin título' : _runsText(r['title']),
+            title: _runsText(r['title']).isEmpty ? tx.sinTitulo : _runsText(r['title']),
             artist: linked('MUSIC_PAGE_TYPE_ARTIST') ?? (first.isEmpty ? unknownArtist : first),
             album: linked('MUSIC_PAGE_TYPE_ALBUM'),
             durationMs: _durationMs(_runsText(r['lengthText'])),

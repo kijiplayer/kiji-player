@@ -20,16 +20,22 @@ import '../../stream_cache/data/stream_cache.dart';
 import '../domain/local_library_source.dart';
 import '../../customize/presentation/track_text.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 enum _LibraryStatus { loading, denied, empty, ready, error }
 
 enum LibraryTab {
-  songs('Canciones'),
-  downloads('Descargadas'),
-  playlists('Playlists'),
-  folders('Carpetas');
+  songs,
+  downloads,
+  playlists,
+  folders;
 
-  const LibraryTab(this.label);
-  final String label;
+  String get label => switch (this) {
+    LibraryTab.songs => tx.canciones,
+    LibraryTab.downloads => tx.descargadas,
+    LibraryTab.playlists => tx.playlists,
+    LibraryTab.folders => tx.carpetas,
+  };
 }
 
 /// Biblioteca (§7): pestañas segmentadas, tarjeta de espacio usado/libre con
@@ -61,8 +67,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     // En PC no se abre el selector de carpetas solo: se espera a que el
     // usuario toque "Elegir carpeta" (Cero Sorpresas).
     final alreadyGranted = await _source.hasAccess();
-    final granted =
-        alreadyGranted || (!_source.usesFolders && await _source.requestAccess());
+    final granted = alreadyGranted || (!_source.usesFolders && await _source.requestAccess());
 
     if (!granted) {
       if (mounted) setState(() => _status = _LibraryStatus.denied);
@@ -108,50 +113,48 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
       child: StaggerScope(
         generation: _source,
         child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            sliver: SliverList.list(children: [
-              Text('Biblioteca', style: KijiText.title(size: 28)),
-              const SizedBox(height: 14),
-              _StorageCard(
-                songCount: songs.length,
-                onPlayAll: songs.isEmpty
-                    ? null
-                    : () => ref.read(playbackProvider.notifier).playQueue(songs),
-              ),
-              const SizedBox(height: 14),
-              SegmentedButton<LibraryTab>(
-                segments: [
-                  for (final tab in LibraryTab.values)
-                    ButtonSegment(value: tab, label: Text(tab.label, maxLines: 1)),
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              sliver: SliverList.list(
+                children: [
+                  Text(tx.navLibrary, style: KijiText.title(size: 28)),
+                  const SizedBox(height: 14),
+                  _StorageCard(
+                    songCount: songs.length,
+                    onPlayAll: songs.isEmpty ? null : () => ref.read(playbackProvider.notifier).playQueue(songs),
+                  ),
+                  const SizedBox(height: 14),
+                  SegmentedButton<LibraryTab>(
+                    segments: [
+                      for (final tab in LibraryTab.values)
+                        ButtonSegment(value: tab, label: Text(tab.label, maxLines: 1)),
+                    ],
+                    selected: {_tab},
+                    showSelectedIcon: false,
+                    style: SegmentedButton.styleFrom(
+                      selectedBackgroundColor: KijiColors.violet,
+                      selectedForegroundColor: Colors.white,
+                      foregroundColor: KijiColors.muted,
+                      side: const BorderSide(color: KijiColors.glassBorder),
+                      visualDensity: VisualDensity.compact,
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    onSelectionChanged: (selection) => setState(() => _tab = selection.first),
+                  ),
                 ],
-                selected: {_tab},
-                showSelectedIcon: false,
-                style: SegmentedButton.styleFrom(
-                  selectedBackgroundColor: KijiColors.violet,
-                  selectedForegroundColor: Colors.white,
-                  foregroundColor: KijiColors.muted,
-                  side: const BorderSide(color: KijiColors.glassBorder),
-                  visualDensity: VisualDensity.compact,
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-                onSelectionChanged: (selection) => setState(() => _tab = selection.first),
               ),
-            ]),
-          ),
-          ...switch (_tab) {
-            LibraryTab.songs => _songsSlivers(songs),
-            LibraryTab.downloads => [
-                const SliverFillRemaining(child: DownloadsView(bottomPadding: 180)),
-              ],
-            LibraryTab.playlists => [const SliverToBoxAdapter(child: PlaylistsView())],
-            LibraryTab.folders => _foldersSlivers(),
-          },
-          const SliverToBoxAdapter(child: SizedBox(height: 180)),
-        ],
-      ),
+            ),
+            ...switch (_tab) {
+              LibraryTab.songs => _songsSlivers(songs),
+              LibraryTab.downloads => [const SliverFillRemaining(child: DownloadsView(bottomPadding: 180))],
+              LibraryTab.playlists => [const SliverToBoxAdapter(child: PlaylistsView())],
+              LibraryTab.folders => _foldersSlivers(),
+            },
+            const SliverToBoxAdapter(child: SizedBox(height: 180)),
+          ],
+        ),
       ),
     );
   }
@@ -159,33 +162,30 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   List<Widget> _songsSlivers(List<Track> songs) {
     final localMessage = switch (_status) {
       _LibraryStatus.loading => const Padding(
-          padding: EdgeInsets.all(24),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      _LibraryStatus.denied => _source.usesFolders
-          ? _InfoCard(
-              icon: Icons.folder_open_rounded,
-              message: 'Elige la carpeta donde guardas tu música. '
-                  'Kiji solo lee las carpetas que tú elijas.',
-              actionLabel: 'Elegir carpeta',
-              onAction: _chooseFolder,
-            )
-          : _InfoCard(
-              icon: Icons.lock_outline_rounded,
-              message: 'Kiji necesita permiso para leer tu música local.',
-              actionLabel: 'Conceder permiso',
-              onAction: _load,
-            ),
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      _LibraryStatus.denied =>
+        _source.usesFolders
+            ? _InfoCard(
+                icon: Icons.folder_open_rounded,
+                message: tx.eligeLaCarpetaDondeGuardasTu,
+                actionLabel: tx.elegirCarpeta,
+                onAction: _chooseFolder,
+              )
+            : _InfoCard(
+                icon: Icons.lock_outline_rounded,
+                message: tx.kijiNecesitaPermisoParaLeerTu,
+                actionLabel: tx.concederPermiso,
+                onAction: _load,
+              ),
       _LibraryStatus.error => _InfoCard(
-          icon: Icons.error_outline_rounded,
-          message: 'No se pudo leer la biblioteca local.',
-          actionLabel: 'Reintentar',
-          onAction: _load,
-        ),
-      _LibraryStatus.empty => const _InfoCard(
-          icon: Icons.music_off_rounded,
-          message: 'No se encontró música en este dispositivo.',
-        ),
+        icon: Icons.error_outline_rounded,
+        message: tx.noSePudoLeerLaBiblioteca,
+        actionLabel: tx.reintentar,
+        onAction: _load,
+      ),
+      _LibraryStatus.empty => _InfoCard(icon: Icons.music_off_rounded, message: tx.noSeEncontroMusicaEnEste),
       _LibraryStatus.ready => null,
     };
 
@@ -214,17 +214,14 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
               final folders = snapshot.data ?? const <String>[];
               return Column(
                 children: [
-                  const ListTile(
-                    title: Text('Carpetas que lee Kiji'),
-                    subtitle: Text('Quitar una carpeta no borra ningún archivo.'),
-                  ),
+                  ListTile(title: Text(tx.carpetasQueLeeKiji), subtitle: Text(tx.quitarUnaCarpetaNoBorraNingun)),
                   for (final folder in folders)
                     ListTile(
                       leading: const Icon(Icons.folder_outlined, color: KijiColors.violet),
                       title: Text(folder, maxLines: 2, overflow: TextOverflow.ellipsis),
                       trailing: IconButton(
                         icon: const Icon(Icons.close_rounded),
-                        tooltip: 'Dejar de leer esta carpeta',
+                        tooltip: tx.dejarDeLeerEstaCarpeta,
                         onPressed: () async {
                           await _source.removeFolder(folder);
                           await _load();
@@ -233,7 +230,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                     ),
                   ListTile(
                     leading: const Icon(Icons.create_new_folder_outlined, color: KijiColors.cyan),
-                    title: const Text('Agregar carpeta'),
+                    title: Text(tx.agregarCarpeta),
                     onTap: _chooseFolder,
                   ),
                 ],
@@ -259,7 +256,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
             leading: const Icon(Icons.folder_outlined, color: KijiColors.violet),
             title: Text(p.basename(entry.key), maxLines: 1, overflow: TextOverflow.ellipsis),
             subtitle: Text(
-              '${entry.value.length} ${entry.value.length == 1 ? 'canción' : 'canciones'}',
+              tx.nCanciones(entry.value.length),
               style: const TextStyle(color: KijiColors.muted),
             ),
             trailing: const Icon(Icons.play_arrow_rounded),
@@ -278,8 +275,7 @@ Map<String, List<Track>> groupByFolder(List<Track> tracks) {
     if (track.source != TrackSource.local) continue;
     groups.putIfAbsent(p.dirname(track.audioUrl), () => []).add(track);
   }
-  final keys = groups.keys.toList()
-    ..sort((a, b) => p.basename(a).toLowerCase().compareTo(p.basename(b).toLowerCase()));
+  final keys = groups.keys.toList()..sort((a, b) => p.basename(a).toLowerCase().compareTo(p.basename(b).toLowerCase()));
   return {for (final key in keys) key: groups[key]!};
 }
 
@@ -307,21 +303,17 @@ class _StorageCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('ESPACIO', style: KijiText.mono(size: 10)),
+                    Text(tx.espacio, style: KijiText.mono(size: 10)),
                     const SizedBox(height: 4),
-                    Text('${formatBytes(used)} usados por Kiji', style: KijiText.title(size: 16)),
+                    Text(tx.usadosPorKiji(formatBytes(used)), style: KijiText.title(size: 16)),
                     Text(
-                      free == null ? '$songCount canciones' : '${formatBytes(free)} libres · $songCount canciones',
+                      free == null ? tx.nCanciones(songCount) : tx.libresCanciones(formatBytes(free), songCount),
                       style: const TextStyle(color: KijiColors.muted, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-              FilledButton.icon(
-                onPressed: onPlayAll,
-                icon: const Icon(Icons.play_arrow_rounded),
-                label: const Text('Todo'),
-              ),
+              FilledButton.icon(onPressed: onPlayAll, icon: const Icon(Icons.play_arrow_rounded), label: Text(tx.todo)),
             ],
           );
         },
@@ -398,18 +390,13 @@ class SourceTag extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.7)),
         color: color.withValues(alpha: 0.12),
       ),
-      child: Text(youtube ? 'YT ↓' : 'LOCAL', style: KijiText.mono(size: 9, color: color)),
+      child: Text(youtube ? 'YT ↓' : tx.local, style: KijiText.mono(size: 9, color: color)), // l10n-ignore
     );
   }
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({
-    required this.icon,
-    required this.message,
-    this.actionLabel,
-    this.onAction,
-  });
+  const _InfoCard({required this.icon, required this.message, this.actionLabel, this.onAction});
 
   final IconData icon;
   final String message;

@@ -49,7 +49,7 @@ class BackupManifest {
     this.reason = 'manual',
   });
 
-  static const app = 'Kiji';
+  static const app = 'Kiji'; // l10n-ignore
   static const version = 1;
 
   final DateTime createdAt;

@@ -7,6 +7,8 @@ import '../../settings/data/settings_store.dart';
 import '../data/translation_service.dart';
 import '../domain/languages.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Si la letra se muestra traducida (se prende desde la pantalla de letras).
 final lyricsTranslationOnProvider = StateProvider<bool>((ref) => false);
 
@@ -74,9 +76,12 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
             return;
           }
           if (plan.missingBytes > 0) {
-            await service.models.install(plan.route, onProgress: (done, total) {
-              if (mounted) setState(() => _progress = total == 0 ? null : done / total);
-            });
+            await service.models.install(
+              plan.route,
+              onProgress: (done, total) {
+                if (mounted) setState(() => _progress = total == 0 ? null : done / total);
+              },
+            );
           }
           result = await service.translateLocal(widget.trackId, widget.lines, plan, target);
         }
@@ -95,7 +100,7 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
         });
       }
     } catch (error) {
-      if (mounted) setState(() => _message = 'No se pudo traducir: $error');
+      if (mounted) setState(() => _message = tx.noSePudoTraducir(error));
     } finally {
       if (mounted) {
         setState(() {
@@ -119,42 +124,37 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
 
   Widget? _bar(BuildContext context) {
     Widget card(List<Widget> children) => Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            // Vidrio sobre el fondo de la letra (no una tarjeta de formulario).
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(KijiRadii.tile),
-              border: Border.all(color: KijiColors.glassBorder),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
-          ),
-        );
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        // Vidrio sobre el fondo de la letra (no una tarjeta de formulario).
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.28),
+          borderRadius: BorderRadius.circular(KijiRadii.tile),
+          border: Border.all(color: KijiColors.glassBorder),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+      ),
+    );
     final plan = _needsDownload;
     if (plan != null) {
       return card([
         Text(
-          'Para traducir del ${languageName(plan.source).toLowerCase()} en tu teléfono hace falta bajar '
-          '${formatBytes(plan.missingBytes)} (una sola vez). El servidor solo sabe que alguien bajó ese idioma, '
-          'no qué canción.',
+          tx.paraTraducirDelEnTuTelefono(languageName(plan.source).toLowerCase(), formatBytes(plan.missingBytes)),
           style: const TextStyle(color: KijiColors.muted),
         ),
-        if (_progress != null) ...[
-          const SizedBox(height: 8),
-          LinearProgressIndicator(value: _progress),
-        ],
+        if (_progress != null) ...[const SizedBox(height: 8), LinearProgressIndicator(value: _progress)],
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             TextButton(
               onPressed: _busy ? null : () => ref.read(lyricsTranslationOnProvider.notifier).state = false,
-              child: const Text('Ahora no'),
+              child: Text(tx.ahoraNo),
             ),
             FilledButton(
               onPressed: _busy ? null : () => _run(download: true),
-              child: Text('Bajar ${formatBytes(plan.missingBytes)}'),
+              child: Text(tx.bajar(formatBytes(plan.missingBytes))),
             ),
           ],
         ),
@@ -171,7 +171,7 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
                 _forceLocal = true;
                 _run();
               },
-              child: const Text('Traducir en el teléfono'),
+              child: Text(tx.traducirEnElTelefono),
             ),
           ),
       ]);

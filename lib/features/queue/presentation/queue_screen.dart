@@ -14,14 +14,15 @@ import '../../sleep_timer/sleep_timer_provider.dart';
 import '../../../widgets/album_cover.dart';
 import '../../customize/presentation/track_text.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// "Qué suena después": reordenar arrastrando, quitar (con Deshacer) y
 /// saltar a una canción. El orden se guarda solo (memoria de la Tarea A).
 class QueueScreen extends ConsumerWidget {
   const QueueScreen({super.key});
 
-  static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const QueueScreen()),
-      );
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const QueueScreen()));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +32,7 @@ class QueueScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cola'),
+        title: Text(tx.cola),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(24),
           child: Padding(
@@ -40,10 +41,10 @@ class QueueScreen extends ConsumerWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 queue.isEmpty
-                    ? 'La cola está vacía'
+                    ? tx.laColaEstaVacia
                     : upNext <= 0
-                        ? 'Es la última canción de la cola'
-                        : '$upNext ${upNext == 1 ? 'canción' : 'canciones'} después de esta',
+                    ? tx.esLaUltimaCancionDeLaCola
+                    : tx.despuesDeEstaN(upNext),
                 style: const TextStyle(color: AppColors.onSurfaceMuted),
               ),
             ),
@@ -69,44 +70,40 @@ class QueueList extends ConsumerWidget {
     final queue = playback.queue;
     final notifier = ref.read(playbackProvider.notifier);
     final timer = ref.watch(sleepTimerProvider);
-    final pauseAfterId =
-        timer?.mode == SleepTimerMode.untilTrack ? timer?.targetTrackId : null;
+    final pauseAfterId = timer?.mode == SleepTimerMode.untilTrack ? timer?.targetTrackId : null;
 
     return queue.isEmpty
-          ? const Center(
-              child: Text(
-                'Elige una canción para empezar.',
-                style: TextStyle(color: AppColors.onSurfaceMuted),
-              ),
-            )
-          : ReorderableListView.builder(
-              // Agarradera propia: funciona igual con el dedo y con el mouse.
-              // Mantener presionado en cualquier parte también.
-              buildDefaultDragHandles: false,
-              padding: padding,
-              itemCount: queue.length,
-              // onReorderItem ya da el destino ajustado (sin el elemento movido).
-              onReorderItem: notifier.moveInQueue,
-              itemBuilder: (context, index) {
-                final track = queue[index];
-                final isCurrent = index == playback.currentIndex;
-                return _QueueTile(
-                  // La misma canción puede repetirse en la cola: la clave
-                  // combina id y posición.
-                  key: ValueKey('${track.id}#$index'),
-                  index: index,
-                  track: track,
-                  isCurrent: isCurrent,
-                  isPlaying: isCurrent && playback.isPlaying,
-                  onTap: () => notifier.playFromQueue(index),
-                  onRemove: () => _remove(context, ref, index),
-                  pauseAfter: track.id == pauseAfterId,
-                  onTogglePauseAfter: () => track.id == pauseAfterId
-                      ? ref.read(sleepTimerProvider.notifier).cancel()
-                      : ref.read(sleepTimerProvider.notifier).startUntilTrack(track),
-                );
-              },
-            );
+        ? Center(
+            child: Text(tx.eligeUnaCancionParaEmpezar, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+          )
+        : ReorderableListView.builder(
+            // Agarradera propia: funciona igual con el dedo y con el mouse.
+            // Mantener presionado en cualquier parte también.
+            buildDefaultDragHandles: false,
+            padding: padding,
+            itemCount: queue.length,
+            // onReorderItem ya da el destino ajustado (sin el elemento movido).
+            onReorderItem: notifier.moveInQueue,
+            itemBuilder: (context, index) {
+              final track = queue[index];
+              final isCurrent = index == playback.currentIndex;
+              return _QueueTile(
+                // La misma canción puede repetirse en la cola: la clave
+                // combina id y posición.
+                key: ValueKey('${track.id}#$index'),
+                index: index,
+                track: track,
+                isCurrent: isCurrent,
+                isPlaying: isCurrent && playback.isPlaying,
+                onTap: () => notifier.playFromQueue(index),
+                onRemove: () => _remove(context, ref, index),
+                pauseAfter: track.id == pauseAfterId,
+                onTogglePauseAfter: () => track.id == pauseAfterId
+                    ? ref.read(sleepTimerProvider.notifier).cancel()
+                    : ref.read(sleepTimerProvider.notifier).startUntilTrack(track),
+              );
+            },
+          );
   }
 
   Future<void> _remove(BuildContext context, WidgetRef ref, int index) async {
@@ -116,16 +113,15 @@ class QueueList extends ConsumerWidget {
     if (removed == null) return;
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text('Se quitó «${removed.track.title}» de la cola'),
-        // Tiempo de sobra para arrepentirse (Cero Sorpresas: todo es reversible).
-        duration: const Duration(seconds: 10),
-        persist: false,
-        action: SnackBarAction(
-          label: 'Deshacer',
-          onPressed: () => notifier.undoRemove(removed),
+      ..showSnackBar(
+        SnackBar(
+          content: Text(tx.seQuitoDeLaCola(removed.track.title)),
+          // Tiempo de sobra para arrepentirse (Cero Sorpresas: todo es reversible).
+          duration: const Duration(seconds: 10),
+          persist: false,
+          action: SnackBarAction(label: tx.deshacer, onPressed: () => notifier.undoRemove(removed)),
         ),
-      ));
+      );
   }
 }
 
@@ -175,11 +171,7 @@ class _QueueTile extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 TrackArtwork(track: track, size: 44, radius: 8, showDownloadState: false),
-                if (isCurrent)
-                  Icon(
-                    isPlaying ? Icons.graphic_eq_rounded : Icons.pause_rounded,
-                    color: Colors.white,
-                  ),
+                if (isCurrent) Icon(isPlaying ? Icons.graphic_eq_rounded : Icons.pause_rounded, color: Colors.white),
               ],
             ),
             title: TrackTitleText(
@@ -204,7 +196,7 @@ class _QueueTile extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 PopupMenuButton<String>(
-                  tooltip: 'Más opciones',
+                  tooltip: tx.masOpciones,
                   icon: Icon(
                     pauseAfter ? Icons.bedtime_rounded : Icons.more_vert_rounded,
                     color: pauseAfter ? KijiColors.cyan : AppColors.onSurfaceMuted,
@@ -216,26 +208,24 @@ class _QueueTile extends StatelessWidget {
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Icon(pauseAfter ? Icons.bedtime_off_outlined : Icons.bedtime_outlined),
-                        title: Text(pauseAfter
-                            ? 'Quitar la pausa programada'
-                            : 'Pausar al terminar esta'),
+                        title: Text(pauseAfter ? tx.quitarLaPausaProgramada : tx.pausarAlTerminarEsta),
                       ),
                     ),
                   ],
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),
-                  tooltip: 'Quitar de la cola',
+                  tooltip: tx.quitarDeLaCola,
                   color: AppColors.onSurfaceMuted,
                   onPressed: onRemove,
                 ),
                 ReorderableDragStartListener(
                   index: index,
-                  child: const MouseRegion(
+                  child: MouseRegion(
                     cursor: SystemMouseCursors.grab,
                     child: Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Icon(Icons.drag_handle_rounded, semanticLabel: 'Arrastrar para mover'),
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(Icons.drag_handle_rounded, semanticLabel: tx.arrastrarParaMover),
                     ),
                   ),
                 ),

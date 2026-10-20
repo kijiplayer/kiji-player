@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/json_file.dart';
 
+
 /// Búsquedas recientes (Tarea Z5). Se guardan solo en este dispositivo
 /// (`<appSupport>/search_history.json`).
 class SearchHistoryNotifier extends Notifier<List<String>> {
@@ -18,9 +19,12 @@ class SearchHistoryNotifier extends Notifier<List<String>> {
   JsonFile? _file;
 
   Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'search_history.json'),
-        logTag: 'BUSQUEDAS',
-      );
+    p.join(
+      await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(),
+      'search_history.json',
+    ),
+    logTag: 'BUSQUEDAS',
+  );
 
   @override
   List<String> build() {
@@ -31,7 +35,12 @@ class SearchHistoryNotifier extends Notifier<List<String>> {
   Future<void> _load() async {
     try {
       final json = await (await _jsonFile()).read();
-      if (json is List) state = [for (final q in json) if (q is String && q.trim().isNotEmpty) q];
+      if (json is List) {
+        state = [
+          for (final q in json)
+            if (q is String && q.trim().isNotEmpty) q,
+        ];
+      }
     } catch (error) {
       debugPrint('=== BUSQUEDAS: no se pudieron leer: $error ===');
     }
@@ -46,7 +55,10 @@ class SearchHistoryNotifier extends Notifier<List<String>> {
   }
 
   void remove(String query) {
-    state = [for (final s in state) if (s != query) s];
+    state = [
+      for (final s in state)
+        if (s != query) s,
+    ];
     unawaited(_save());
   }
 
@@ -58,5 +70,4 @@ class SearchHistoryNotifier extends Notifier<List<String>> {
   Future<void> _save() async => (await _jsonFile()).write(state);
 }
 
-final searchHistoryProvider =
-    NotifierProvider<SearchHistoryNotifier, List<String>>(SearchHistoryNotifier.new);
+final searchHistoryProvider = NotifierProvider<SearchHistoryNotifier, List<String>>(SearchHistoryNotifier.new);

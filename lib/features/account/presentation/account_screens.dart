@@ -14,15 +14,13 @@ import '../../settings/data/settings_store.dart';
 import '../data/account_store.dart';
 import '../domain/yt_session.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Advertencia que se muestra siempre antes de iniciar sesión.
-const accountWarning =
-    'YouTube puede limitar o suspender cuentas que se usan en apps que no son oficiales. Te recomendamos '
-    'usar una cuenta secundaria, no la principal.';
+String get accountWarning => tx.youtubePuedeLimitarOSuspenderCuentas;
 
 /// Qué pasa con tu sesión (y qué no).
-const accountPrivacy =
-    'Tu sesión se guarda cifrada solo en este dispositivo y solo se envía a YouTube. No se escribe en el '
-    'registro de Kiji. Al cerrar sesión se borra todo. Kiji no recopila ningún dato tuyo, con o sin sesión.';
+String get accountPrivacy => tx.tuSesionSeGuardaCifradaSolo;
 
 /// Configuración → Cuenta: iniciar o cerrar sesión con Google (opcional).
 class AccountScreen extends ConsumerWidget {
@@ -35,7 +33,7 @@ class AccountScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(accountProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Cuenta')),
+      appBar: AppBar(title: Text(tx.cuenta)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
@@ -48,12 +46,17 @@ class AccountScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded,
-                        color: session == null ? KijiColors.muted : KijiColors.cyan, size: 32),
+                    Icon(
+                      session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded,
+                      color: session == null ? KijiColors.muted : KijiColors.cyan,
+                      size: 32,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        session == null ? 'Sin sesión' : 'Sesión iniciada${session.name == null ? '' : ': ${session.name}'}',
+                        session == null
+                            ? tx.sinSesion
+                            : tx.sesionIniciada(session.name == null ? '' : ': ${session.name}'),
                         style: KijiText.title(size: 18),
                       ),
                     ),
@@ -62,9 +65,8 @@ class AccountScreen extends ConsumerWidget {
                 const SizedBox(height: 10),
                 Text(
                   session == null
-                      ? 'Kiji funciona entero sin cuenta. Iniciar sesión es opcional y solo sirve para las canciones '
-                          'que YouTube entrega únicamente a cuentas (por ejemplo, con restricción de edad).'
-                      : 'Las canciones con restricción de edad se piden con tu cuenta.',
+                      ? tx.kijiFuncionaSinCuenta
+                      : tx.lasCancionesConRestriccionDeEdad,
                   style: const TextStyle(color: KijiColors.muted, height: 1.4),
                 ),
               ],
@@ -73,30 +75,30 @@ class AccountScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           _Notice(icon: Icons.warning_amber_rounded, color: const Color(0xFFFFB84D), text: accountWarning),
           const SizedBox(height: 10),
-          const _Notice(icon: Icons.lock_outline_rounded, color: KijiColors.cyan, text: accountPrivacy),
+          _Notice(icon: Icons.lock_outline_rounded, color: KijiColors.cyan, text: accountPrivacy),
           const SizedBox(height: 20),
           if (session == null)
             FilledButton.icon(
               icon: const Icon(Icons.login_rounded),
-              label: const Text('Iniciar sesión con Google'),
+              label: Text(tx.iniciarSesionConGoogle),
               onPressed: () => LoginScreen.open(context),
             )
           else
             OutlinedButton.icon(
               icon: const Icon(Icons.logout_rounded),
-              label: const Text('Cerrar sesión y borrarla'),
+              label: Text(tx.cerrarSesionYBorrarla),
               onPressed: () async {
                 await ref.read(accountProvider.notifier).signOut();
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sesión cerrada y borrada.')));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.sesionCerradaYBorrada)));
                 }
               },
             ),
           const SizedBox(height: 16),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Ofrecer iniciar sesión cuando una canción lo necesite'),
-            subtitle: const Text('Como mucho una vez por canción.'),
+            title: Text(tx.ofrecerIniciarSesionCuandoUnaCancion),
+            subtitle: Text(tx.comoMuchoUnaVezPorCancion),
             value: !ref.watch(settingsProvider.select((s) => s.accountPromptsOff)),
             onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(accountPromptsOff: !v)),
           ),
@@ -115,13 +117,13 @@ class _Notice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 10),
-          Expanded(child: Text(text, style: const TextStyle(height: 1.4))),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(icon, color: color, size: 22),
+      const SizedBox(width: 10),
+      Expanded(child: Text(text, style: const TextStyle(height: 1.4))),
+    ],
+  );
 }
 
 /// Inicio de sesión de Google en una WebView, como en el navegador. Al llegar a YouTube Music,
@@ -139,7 +141,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   static final _start = WebUri(
-      'https://accounts.google.com/ServiceLogin?continue=${Uri.encodeComponent('https://music.youtube.com')}');
+    'https://accounts.google.com/ServiceLogin?continue=${Uri.encodeComponent('https://music.youtube.com')}',
+  );
   bool _done = false;
   bool _ready = false;
   String? _error;
@@ -160,7 +163,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final cookies = await CookieManager.instance().getCookies(url: WebUri('https://music.youtube.com'));
       final cookie = [for (final c in cookies) '${c.name}=${c.value}'].join('; ');
       final config = await controller.evaluateJavascript(
-        source: 'JSON.stringify(window.yt && yt.config_ ? [yt.config_.VISITOR_DATA, yt.config_.DATASYNC_ID] : [])',
+        source: 'JSON.stringify(window.yt && yt.config_ ? [yt.config_.VISITOR_DATA, yt.config_.DATASYNC_ID] : [])', // l10n-ignore
       );
       final values = config is String ? jsonDecode(config) : null;
       final session = YtSession(
@@ -177,7 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       } else {
         setState(() {
           _done = false;
-          _error = 'No se pudo completar el inicio de sesión. Prueba de nuevo.';
+          _error = tx.noSePudoCompletarElInicio;
         });
       }
     } catch (error) {
@@ -185,7 +188,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         setState(() {
           _done = false;
-          _error = 'No se pudo completar el inicio de sesión. Prueba de nuevo.';
+          _error = tx.noSePudoCompletarElInicio;
         });
       }
     }
@@ -194,7 +197,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar sesión con Google')),
+      appBar: AppBar(title: Text(tx.iniciarSesionConGoogle)),
       body: Column(
         children: [
           Container(
@@ -225,16 +228,13 @@ Future<bool> showAccountOfferDialog(BuildContext context, WidgetRef ref, Account
     context: context,
     builder: (context) => AlertDialog(
       icon: const Icon(Icons.lock_person_outlined),
-      title: const Text('Esta canción necesita una cuenta'),
-      content: Text(
-        'YouTube marcó «${offer.title}» con restricción de edad y solo la entrega a cuentas que iniciaron '
-        'sesión. Si quieres, puedes iniciar sesión con Google para reproducirla. Es opcional.\n\n$accountWarning',
-      ),
+      title: Text(tx.estaCancionNecesitaUnaCuenta),
+      content: Text(tx.youtubeMarcoConRestriccionDeEdad(offer.title, accountWarning)),
       actionsOverflowDirection: VerticalDirection.down,
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, 'never'), child: const Text('No volver a preguntar')),
-        TextButton(onPressed: () => Navigator.pop(context, 'no'), child: const Text('No, gracias')),
-        FilledButton(onPressed: () => Navigator.pop(context, 'login'), child: const Text('Iniciar sesión')),
+        TextButton(onPressed: () => Navigator.pop(context, 'never'), child: Text(tx.noVolverAPreguntar)),
+        TextButton(onPressed: () => Navigator.pop(context, 'no'), child: Text(tx.errorReportNoThanks)),
+        FilledButton(onPressed: () => Navigator.pop(context, 'login'), child: Text(tx.iniciarSesion)),
       ],
     ),
   );

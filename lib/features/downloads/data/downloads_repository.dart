@@ -13,12 +13,13 @@ import '../../yt_music/domain/subtitle_parser.dart';
 import '../domain/download_settings.dart';
 import '../domain/downloaded_track.dart';
 
+
 /// Índice de descargas y preferencias, guardados en
 /// `<appSupportDir>/downloads/`. Todo en almacenamiento privado de la app:
 /// no hacen falta permisos y nada queda suelto en la carpeta Música.
 class DownloadsRepository {
   DownloadsRepository({Future<Directory> Function()? baseDirectory})
-      : _baseDirectory = baseDirectory ?? getApplicationSupportDirectory;
+    : _baseDirectory = baseDirectory ?? getApplicationSupportDirectory;
 
   final Future<Directory> Function() _baseDirectory;
 
@@ -101,8 +102,7 @@ class DownloadsRepository {
     await _saveIndex();
   }
 
-  Future<int> totalBytes() async =>
-      (await all()).values.fold<int>(0, (sum, track) => sum + track.sizeBytes);
+  Future<int> totalBytes() async => (await all()).values.fold<int>(0, (sum, track) => sum + track.sizeBytes);
 
   Future<void> _saveIndex() async {
     final entries = await all();

@@ -7,6 +7,8 @@ import 'package:path/path.dart' as p;
 
 import '../domain/backup_manifest.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Archivos de Kiji que van en la copia (relativos a la carpeta de datos).
 /// La cola que suena, las cachés y el audio descargado no van.
 const backedUpFiles = [
@@ -31,7 +33,13 @@ const coversFolder = 'covers';
 
 /// Una canción de la lista de descargas de la copia.
 class BackupDownload {
-  const BackupDownload({required this.videoId, required this.title, required this.artist, this.album, this.durationMs = 0});
+  const BackupDownload({
+    required this.videoId,
+    required this.title,
+    required this.artist,
+    this.album,
+    this.durationMs = 0,
+  });
   final String videoId;
   final String title;
   final String artist;
@@ -137,8 +145,7 @@ class BackupService {
     final files = [
       await for (final entity in folder.list())
         if (entity is File && backupDateFromName(p.basename(entity.path)) != null) entity,
-    ]..sort((a, b) =>
-        backupDateFromName(p.basename(b.path))!.compareTo(backupDateFromName(p.basename(a.path))!));
+    ]..sort((a, b) => backupDateFromName(p.basename(b.path))!.compareTo(backupDateFromName(p.basename(a.path))!));
     return files;
   }
 
@@ -146,10 +153,8 @@ class BackupService {
   Future<BackupPreview> preview(File file) async {
     final archive = await _read(file);
     final manifestFile = archive.findFile('manifest.json');
-    final manifest = manifestFile == null
-        ? null
-        : BackupManifest.tryParse(_json(manifestFile.content as List<int>));
-    if (manifest == null) throw const BackupException('El archivo no es una copia de Kiji (o es de una versión más nueva).');
+    final manifest = manifestFile == null ? null : BackupManifest.tryParse(_json(manifestFile.content as List<int>));
+    if (manifest == null) throw BackupException(tx.elArchivoNoEsUnaCopia);
     final list = archive.findFile(downloadsListEntry);
     return BackupPreview(
       file: file,
@@ -197,7 +202,7 @@ class BackupService {
       return ZipDecoder().decodeBytes(await file.readAsBytes());
     } catch (error) {
       debugPrint('=== COPIA: no se pudo abrir ${file.path}: $error ===');
-      throw const BackupException('El archivo está dañado o no es una copia de Kiji.');
+      throw BackupException(tx.elArchivoEstaDanadoONo);
     }
   }
 

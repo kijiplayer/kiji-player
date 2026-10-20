@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../../../theme/kiji_tokens.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Un bloque de `CREDITS.md`, ya simplificado para mostrarlo en pantalla.
 sealed class CreditsBlock {
   const CreditsBlock(this.text);
@@ -70,19 +72,18 @@ class CreditsScreen extends StatelessWidget {
   /// Para tests; si es null usa el de la app.
   final AssetBundle? bundle;
 
-  static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const CreditsScreen()),
-      );
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CreditsScreen()));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Créditos')),
+      appBar: AppBar(title: Text(tx.creditos)),
       body: FutureBuilder<String>(
         future: (bundle ?? rootBundle).loadString('CREDITS.md'),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('No se pudieron leer los créditos.'));
+            return Center(child: Text(tx.noSePudieronLeerLosCreditos));
           }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final blocks = parseCredits(snapshot.data!);
@@ -106,39 +107,40 @@ class _CreditsBlockView extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (block) {
       CreditsHeading(:final text, :final level) => Padding(
-          padding: EdgeInsets.only(top: level == 1 ? 8 : 20, bottom: 8),
-          child: Text(text, style: KijiText.title(size: level == 1 ? 26 : 18)),
-        ),
+        padding: EdgeInsets.only(top: level == 1 ? 8 : 20, bottom: 8),
+        child: Text(text, style: KijiText.title(size: level == 1 ? 26 : 18)),
+      ),
       CreditsParagraph(:final text) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(text, style: const TextStyle(color: KijiColors.muted, height: 1.4)),
-        ),
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text, style: const TextStyle(color: KijiColors.muted, height: 1.4)),
+      ),
       CreditsBullet(:final text) => Padding(
-          padding: const EdgeInsets.only(bottom: 6, left: 8),
-          child: Text('•  $text', style: const TextStyle(color: KijiColors.muted, height: 1.4)),
-        ),
-      CreditsRow(:final cells, :final header) => header
-          ? const SizedBox.shrink() // los encabezados de tabla no aportan en pantalla angosta
-          : Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: KijiColors.glassFill,
-                borderRadius: BorderRadius.circular(KijiRadii.tile),
-                border: Border.all(color: KijiColors.glassBorder),
+        padding: const EdgeInsets.only(bottom: 6, left: 8),
+        child: Text('•  $text', style: const TextStyle(color: KijiColors.muted, height: 1.4)),
+      ),
+      CreditsRow(:final cells, :final header) =>
+        header
+            ? const SizedBox.shrink() // los encabezados de tabla no aportan en pantalla angosta
+            : Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: KijiColors.glassFill,
+                  borderRadius: BorderRadius.circular(KijiRadii.tile),
+                  border: Border.all(color: KijiColors.glassBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(cells.first, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    for (final cell in cells.skip(1))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(cell, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
+                      ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(cells.first, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  for (final cell in cells.skip(1))
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(cell, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
-                    ),
-                ],
-              ),
-            ),
     };
   }
 }

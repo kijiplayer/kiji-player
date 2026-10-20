@@ -14,6 +14,8 @@ import '../data/playlist_export.dart';
 import '../domain/import_matcher.dart';
 import '../domain/imported.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 enum _Step { idle, reading, searching, preview, done }
 
 /// Configuración → Copia de seguridad → "Importar desde otra app" (Tarea Y).
@@ -22,9 +24,8 @@ enum _Step { idle, reading, searching, preview, done }
 class ImportScreen extends ConsumerStatefulWidget {
   const ImportScreen({super.key});
 
-  static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const ImportScreen()),
-      );
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ImportScreen()));
 
   @override
   ConsumerState<ImportScreen> createState() => _ImportScreenState();
@@ -41,7 +42,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
   Future<void> _pickAndRead() async {
     final files = await FilePicker.pickFiles(
-      dialogTitle: 'Elige el archivo de la otra app',
+      dialogTitle: tx.eligeElArchivoDeLaOtra,
       // "backup" no es un tipo conocido en Android: se acepta cualquiera y se
       // valida al leerlo.
       type: FileType.any,
@@ -62,7 +63,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         tempDir: await getTemporaryDirectory(),
         baseDir: file.path == null ? null : _parentOf(file.path!),
       );
-      if (bundle.isEmpty) throw const ImportFormatException('El archivo no tiene canciones para importar.');
+      if (bundle.isEmpty) throw ImportFormatException(tx.elArchivoNoTieneCancionesPara);
       setState(() => _step = _Step.searching);
       final local = await ref.read(localTracksProvider.future);
       final plan = await prepareImport(
@@ -85,14 +86,14 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       if (mounted) _fail(error.message);
     } catch (error) {
       debugPrint('=== IMPORTAR: error inesperado: $error ===');
-      if (mounted) _fail('No se pudo leer el archivo.');
+      if (mounted) _fail(tx.noSePudoLeerElArchivo);
     }
   }
 
   void _fail(String message) => setState(() {
-        _step = _Step.idle;
-        _error = message;
-      });
+    _step = _Step.idle;
+    _error = message;
+  });
 
   String _parentOf(String path) {
     final i = path.replaceAll('\\', '/').lastIndexOf('/');
@@ -112,41 +113,32 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   void _undo(ImportRecord record) {
     ref.read(importsProvider.notifier).undo(record);
     if (_record?.id == record.id) setState(() => _step = _Step.idle);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Importación deshecha: se quitó todo lo que había agregado.')),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.importacionDeshechaSeQuitoTodoLo)));
   }
 
   @override
   Widget build(BuildContext context) {
     final history = ref.watch(importsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Importar y exportar')),
+      appBar: AppBar(title: Text(tx.importarYExportar)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
-          const Text(
-            'Trae tus playlists, me gusta e historial desde Echo Music, Metrolist, InnerTune u '
-            'OuterTune (.backup), listas .m3u/.m3u8, o CSV de Exportify (Spotify) y de Google '
-            'Takeout (YouTube Music). Antes de importar vas a ver qué se agrega; nada de lo que ya '
-            'tienes se borra ni se cambia.',
-            style: TextStyle(color: KijiColors.muted),
-          ),
+          Text(tx.traeTusPlaylistsMeGustaE, style: const TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 16),
           ..._stepWidgets(),
           if (history.isNotEmpty) ...[
             const SizedBox(height: 28),
-            Text('IMPORTACIONES ANTERIORES', style: KijiText.mono(size: 11)),
+            Text(tx.importacionesAnteriores, style: KijiText.mono(size: 11)),
             for (final record in history)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(record.source),
                 subtitle: Text(
-                  '${_date(record.date)} · ${record.playlistIds.length} playlists · '
-                  '${record.missing.length} sin encontrar',
+                  tx.playlistsSinEncontrar(_date(record.date), record.playlistIds.length, record.missing.length),
                   style: const TextStyle(color: KijiColors.muted),
                 ),
-                trailing: TextButton(onPressed: () => _confirmUndo(record), child: const Text('Deshacer')),
+                trailing: TextButton(onPressed: () => _confirmUndo(record), child: Text(tx.deshacer)),
               ),
           ],
           const SizedBox(height: 28),
@@ -168,14 +160,14 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           FilledButton.icon(
             onPressed: _pickAndRead,
             icon: const Icon(Icons.file_open_outlined),
-            label: const Text('Elegir archivo'),
+            label: Text(tx.elegirArchivo),
           ),
         ];
       case _Step.reading:
-        return [Text('Leyendo «$_fileName»…'), const SizedBox(height: 8), const LinearProgressIndicator()];
+        return [Text(tx.leyendo(_fileName)), const SizedBox(height: 8), const LinearProgressIndicator()];
       case _Step.searching:
         return [
-          Text('Buscando las canciones en Kiji: $_done de $_total'),
+          Text(tx.buscandoLasCancionesEnKijiDe(_done, _total)),
           const SizedBox(height: 8),
           LinearProgressIndicator(value: _total == 0 ? null : _done / _total),
         ];
@@ -189,29 +181,25 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('VISTA PREVIA · ${plan.bundle.source.toUpperCase()}', style: KijiText.mono(size: 10)),
+                  Text(tx.vistaPrevia(plan.bundle.source.toUpperCase()), style: KijiText.mono(size: 10)),
                   const SizedBox(height: 8),
                   Text(previewText(plan), style: KijiText.title(size: 17, weight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   for (final pl in plan.bundle.playlists.take(8))
-                    Text('• ${pl.name} (${pl.songs.where((s) => plan.resolved.containsKey(s.key)).length})',
-                        style: const TextStyle(color: KijiColors.muted)),
+                    Text(
+                      '• ${pl.name} (${pl.songs.where((s) => plan.resolved.containsKey(s.key)).length})',
+                      style: const TextStyle(color: KijiColors.muted),
+                    ),
                   if (plan.bundle.playlists.length > 8)
-                    Text('• y ${plan.bundle.playlists.length - 8} más', style: const TextStyle(color: KijiColors.muted)),
+                    Text(tx.yMas(plan.bundle.playlists.length - 8), style: const TextStyle(color: KijiColors.muted)),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Si ya tienes una playlist con el mismo nombre, la nueva se llama "(importada)".',
-                    style: TextStyle(color: KijiColors.muted, fontSize: 12),
-                  ),
+                  Text(tx.siYaTienesUnaPlaylistCon, style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 10,
                     children: [
-                      FilledButton(onPressed: plan.isEmpty ? null : _apply, child: const Text('Importar')),
-                      TextButton(
-                        onPressed: () => setState(() => _step = _Step.idle),
-                        child: const Text('Cancelar'),
-                      ),
+                      FilledButton(onPressed: plan.isEmpty ? null : _apply, child: Text(tx.importar2)),
+                      TextButton(onPressed: () => setState(() => _step = _Step.idle), child: Text(tx.cancelar)),
                     ],
                   ),
                 ],
@@ -228,17 +216,20 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Listo', style: KijiText.title(size: 20)),
+                Text(tx.listo, style: KijiText.title(size: 20)),
                 const SizedBox(height: 6),
                 Text(
-                  '${record.playlistIds.length} playlists creadas, ${record.likedIds.length} me gusta y '
-                  '${record.historyIds.length} canciones nuevas en el historial.',
+                  tx.playlistsCreadasMeGustaYCanciones(
+                    record.playlistIds.length,
+                    record.likedIds.length,
+                    record.historyIds.length,
+                  ),
                 ),
                 if (record.missing.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   ExpansionTile(
                     tilePadding: EdgeInsets.zero,
-                    title: Text('${record.missing.length} sin encontrar'),
+                    title: Text(tx.sinEncontrar(record.missing.length)),
                     children: [
                       for (final m in record.missing)
                         Align(
@@ -252,7 +243,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                 OutlinedButton.icon(
                   onPressed: () => _confirmUndo(record),
                   icon: const Icon(Icons.undo_rounded),
-                  label: const Text('Deshacer la importación'),
+                  label: Text(tx.deshacerLaImportacion),
                 ),
               ],
             ),
@@ -265,22 +256,18 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Deshacer la importación?'),
-        content: const Text(
-          'Se quitan las playlists, me gusta e historial que agregó esa importación. '
-          'Lo que ya tenías no se toca.',
-        ),
+        title: Text(tx.deshacerLaImportacion2),
+        content: Text(tx.seQuitanLasPlaylistsMeGusta),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Deshacer')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.deshacer)),
         ],
       ),
     );
     if (ok == true) _undo(record);
   }
 
-  String _date(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  String _date(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
 
 /// Exportar las playlists de Kiji a .m3u8 y .csv.
@@ -293,17 +280,17 @@ class _ExportSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('EXPORTAR TUS PLAYLISTS', style: KijiText.mono(size: 11)),
+        Text(tx.exportarTusPlaylists, style: KijiText.mono(size: 11)),
         if (playlists.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Text('Todavía no tienes playlists.', style: TextStyle(color: KijiColors.muted)),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(tx.todaviaNoTienesPlaylists, style: const TextStyle(color: KijiColors.muted)),
           ),
         for (final playlist in playlists)
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(playlist.name),
-            subtitle: Text('${playlist.tracks.length} canciones', style: const TextStyle(color: KijiColors.muted)),
+            subtitle: Text(tx.nCanciones(playlist.tracks.length), style: const TextStyle(color: KijiColors.muted)),
             trailing: Wrap(
               spacing: 4,
               children: [
@@ -321,5 +308,4 @@ class _ExportSection extends ConsumerWidget {
       ],
     );
   }
-
 }

@@ -12,6 +12,8 @@ import '../data/moments_store.dart';
 import '../domain/moment.dart';
 import 'moment_marks.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Guarda el segundo que suena como Momento y lo avisa (botón del reproductor).
 void saveCurrentMoment(BuildContext context, WidgetRef ref) {
   final playback = ref.read(playbackProvider);
@@ -20,11 +22,13 @@ void saveCurrentMoment(BuildContext context, WidgetRef ref) {
   final moment = ref.read(momentsProvider.notifier).add(track, playback.position);
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(
-      content: Text('Momento guardado en ${formatDuration(moment.position)}'),
-      persist: false,
-      action: SnackBarAction(label: 'Ver', onPressed: () => MomentsScreen.open(context)),
-    ));
+    ..showSnackBar(
+      SnackBar(
+        content: Text(tx.momentoGuardadoEn(formatDuration(moment.position))),
+        persist: false,
+        action: SnackBarAction(label: tx.ver, onPressed: () => MomentsScreen.open(context)),
+      ),
+    );
 }
 
 /// Ir a un Momento: la canción arranca en ese segundo.
@@ -49,15 +53,11 @@ class MomentsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final moments = ref.watch(momentsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Momentos')),
+      appBar: AppBar(title: Text(tx.momentos2)),
       body: moments.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(24),
-              child: Text(
-                'Guarda el segundo exacto de una canción (el solo, el estribillo) con el botón '
-                '"Momento" del reproductor. Aparecen aquí para volver a ellos con un toque.',
-                style: TextStyle(color: KijiColors.muted),
-              ),
+          ? Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(tx.guardaElSegundoExactoDeUna, style: const TextStyle(color: KijiColors.muted)),
             )
           : ListView.builder(
               padding: const EdgeInsets.only(bottom: 24),
@@ -97,7 +97,7 @@ class _MomentTile extends ConsumerWidget {
         children: [
           if (moment.isInterval)
             IconButton(
-              tooltip: 'Repetir este tramo',
+              tooltip: tx.repetirEsteTramo,
               icon: Icon(
                 Icons.repeat_one_rounded,
                 color: ref.watch(momentLoopProvider)?.id == moment.id ? KijiColors.cyan : null,
@@ -105,7 +105,7 @@ class _MomentTile extends ConsumerWidget {
               onPressed: () => toggleMomentLoop(context, ref, moment),
             ),
           IconButton(
-            tooltip: 'Compartir',
+            tooltip: tx.compartir,
             icon: const Icon(Icons.share_outlined),
             onPressed: () async {
               try {
@@ -116,7 +116,7 @@ class _MomentTile extends ConsumerWidget {
             },
           ),
           IconButton(
-            tooltip: 'Borrar',
+            tooltip: tx.borrar,
             icon: const Icon(Icons.delete_outline_rounded),
             onPressed: () {
               final notifier = ref.read(momentsProvider.notifier);
@@ -124,11 +124,16 @@ class _MomentTile extends ConsumerWidget {
               if (removed == null) return;
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(
-                  content: const Text('Se borró el Momento'),
-                  persist: false,
-                  action: SnackBarAction(label: 'Deshacer', onPressed: () => notifier.restore(removed.$1, removed.$2)),
-                ));
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(tx.seBorroElMomento),
+                    persist: false,
+                    action: SnackBarAction(
+                      label: tx.deshacer,
+                      onPressed: () => notifier.restore(removed.$1, removed.$2),
+                    ),
+                  ),
+                );
             },
           ),
         ],

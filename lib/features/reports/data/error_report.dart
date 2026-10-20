@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../utils/app_log.dart';
 import '../../updates/update_checker.dart';
 import 'log_scrubber.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 
 /// Repositorio donde llegan los informes (Tarea T3).
 const kijiRepoUrl = 'https://github.com/kijiplayer/kiji-player';
@@ -47,26 +48,26 @@ String buildReportText(ErrorReport? report, {String? log, int logLines = 120, St
       .toList();
   final tail = lines.length > logLines ? lines.sublist(lines.length - logLines) : lines;
   final b = StringBuffer()
-    ..writeln('Informe de Kiji Player')
-    ..writeln('Versión: $kijiVersion')
-    ..writeln('Sistema: ${scrubPersonalData(platform ?? _platform())}')
-    ..writeln('Fecha: ${(report?.at ?? DateTime.now()).toIso8601String().substring(0, 19)}');
+    ..writeln(tx.informeDeKijiPlayer)
+    ..writeln(tx.informeVersion(kijiVersion))
+    ..writeln(tx.informeSistema(scrubPersonalData(platform ?? _platform())))
+    ..writeln(tx.informeFecha((report?.at ?? DateTime.now()).toIso8601String().substring(0, 19)));
   if (report != null) {
     b
       ..writeln()
-      ..writeln('Qué pasó: ${report.summary}')
-      ..writeln('Dónde: ${report.where}');
-    if (report.detail.isNotEmpty) b.writeln('Detalle: ${scrubPersonalData(report.detail)}');
+      ..writeln(tx.informeQuePaso(report.summary))
+      ..writeln(tx.informeDonde(report.where));
+    if (report.detail.isNotEmpty) b.writeln(tx.informeDetalle(scrubPersonalData(report.detail)));
     if (report.stack.isNotEmpty) {
       b
         ..writeln()
-        ..writeln('Pila:')
+        ..writeln(tx.informePila)
         ..writeln(scrubPersonalData(report.stack));
     }
   }
   b
     ..writeln()
-    ..writeln('Registro (últimas ${tail.length} líneas, sin datos personales):');
+    ..writeln(tx.informeRegistro(tail.length));
   for (final line in tail) {
     b.writeln(scrubPersonalData(line));
   }
@@ -77,7 +78,7 @@ String buildReportText(ErrorReport? report, {String? log, int logLines = 120, St
 /// en GitHub y decide si lo manda. Se recorta el registro para que el enlace no sea demasiado
 /// largo (los navegadores cortan cerca de 8000 caracteres).
 Uri githubIssueUri(ErrorReport? report, {String? log, int maxLength = 7500}) {
-  final title = report == null ? 'Informe de Kiji' : 'Error: ${report.summary}';
+  final title = report == null ? tx.informeDeKiji : tx.informeError(report.summary);
   for (var lines = 120; lines >= 0; lines = lines > 20 ? lines - 20 : lines - 5) {
     final uri = Uri.parse('$kijiRepoUrl/issues/new').replace(queryParameters: {
       'template': 'error.yml',

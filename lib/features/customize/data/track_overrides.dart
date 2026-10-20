@@ -10,6 +10,7 @@ import '../../../models/track.dart';
 import '../../../utils/json_file.dart';
 import 'cover_store.dart';
 
+
 /// Lo que el usuario cambió de una canción (Tarea Z3). Solo dentro de Kiji:
 /// el archivo de música no se toca.
 class TrackOverride {
@@ -24,19 +25,17 @@ class TrackOverride {
   bool get isEmpty => title == null && artist == null && coverFile == null;
 
   /// La canción como se muestra.
-  Track applyTo(Track track) =>
-      title == null && artist == null ? track : track.copyWith(title: title, artist: artist);
+  Track applyTo(Track track) => title == null && artist == null ? track : track.copyWith(title: title, artist: artist);
 
   Map<String, dynamic> toJson() => {
-        if (title != null) 'title': title,
-        if (artist != null) 'artist': artist,
-        if (coverFile != null) 'coverFile': coverFile,
-      };
+    if (title != null) 'title': title,
+    if (artist != null) 'artist': artist,
+    if (coverFile != null) 'coverFile': coverFile,
+  };
 
   factory TrackOverride.fromJson(Object? json) {
-    String? read(String key) => json is Map && json[key] is String && (json[key] as String).isNotEmpty
-        ? json[key] as String
-        : null;
+    String? read(String key) =>
+        json is Map && json[key] is String && (json[key] as String).isNotEmpty ? json[key] as String : null;
     return TrackOverride(title: read('title'), artist: read('artist'), coverFile: read('coverFile'));
   }
 }
@@ -45,7 +44,7 @@ class TrackOverride {
 /// (entra en la copia de seguridad).
 class TrackOverridesNotifier extends Notifier<Map<String, TrackOverride>> {
   TrackOverridesNotifier({Future<Directory> Function()? directory})
-      : _directory = directory ?? getApplicationSupportDirectory;
+    : _directory = directory ?? getApplicationSupportDirectory;
 
   final Future<Directory> Function() _directory;
   JsonFile? _file;
@@ -127,8 +126,11 @@ class TrackOverridesNotifier extends Notifier<Map<String, TrackOverride>> {
   }
 }
 
-final trackOverridesProvider =
-    NotifierProvider<TrackOverridesNotifier, Map<String, TrackOverride>>(TrackOverridesNotifier.new);
+final trackOverridesProvider = NotifierProvider<TrackOverridesNotifier, Map<String, TrackOverride>>(
+  TrackOverridesNotifier.new,
+);
 
 /// Carpeta de las fotos personalizadas, resuelta una vez (para dibujarlas).
-final coversFolderProvider = FutureProvider<Directory>((ref) => ref.read(trackOverridesProvider.notifier).covers.folder());
+final coversFolderProvider = FutureProvider<Directory>(
+  (ref) => ref.read(trackOverridesProvider.notifier).covers.folder(),
+);

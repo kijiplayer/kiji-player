@@ -27,6 +27,8 @@ import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_share.dart';
 import 'lyrics_sources_sheet.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Desfase que se está ajustando ahora (null = no se está ajustando).
 final _adjustingOffsetProvider = StateProvider.autoDispose<bool>((ref) => false);
 
@@ -35,26 +37,27 @@ class LyricsScreen extends ConsumerWidget {
   const LyricsScreen({super.key});
 
   static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        PageRouteBuilder<void>(
-          settings: const RouteSettings(name: KijiRoutes.lyrics),
-          transitionDuration: KijiMotion.emphasized,
-          reverseTransitionDuration: KijiMotion.normal,
-          pageBuilder: (_, _, _) => const LyricsScreen(),
-          // Sube desde abajo, como si la letra estuviera debajo del reproductor.
-          transitionsBuilder: (context, animation, _, child) => SlideTransition(
-            position: Tween(begin: const Offset(0, 1), end: Offset.zero)
-                .chain(CurveTween(curve: KijiMotion.emphasizedCurve))
-                .animate(animation),
-            child: child,
-          ),
-        ),
-      );
+    PageRouteBuilder<void>(
+      settings: const RouteSettings(name: KijiRoutes.lyrics),
+      transitionDuration: KijiMotion.emphasized,
+      reverseTransitionDuration: KijiMotion.normal,
+      pageBuilder: (_, _, _) => const LyricsScreen(),
+      // Sube desde abajo, como si la letra estuviera debajo del reproductor.
+      transitionsBuilder: (context, animation, _, child) => SlideTransition(
+        position: Tween(
+          begin: const Offset(0, 1),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: KijiMotion.emphasizedCurve)).animate(animation),
+        child: child,
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final track = ref.watch(playbackProvider.select((p) => p.track));
     if (track == null) {
-      return const Scaffold(body: Center(child: Text('Elige una canción')));
+      return Scaffold(body: Center(child: Text(tx.eligeUnaCancion)));
     }
     final request = _requestFor(ref, track);
     final lyrics = ref.watch(lyricsProvider(request));
@@ -75,20 +78,20 @@ class LyricsScreen extends ConsumerWidget {
                     error: (error, _) => _Message(
                       icon: Icons.cloud_off_rounded,
                       text: error is LyricsUnavailableException
-                          ? 'No se pudo buscar la letra (${error.reason}). Prueba de nuevo en un rato.'
-                          : 'No se pudo buscar la letra.',
-                      actionLabel: 'Reintentar',
+                          ? tx.noSePudoBuscarLaLetraPorque(error.reason)
+                          : tx.noSePudoBuscarLaLetra,
+                      actionLabel: tx.reintentar,
                       onAction: () => ref.invalidate(lyricsProvider(request)),
                     ),
                     data: (value) {
                       if (value.instrumental) {
-                        return const _Message(icon: Icons.piano_rounded, text: 'Instrumental ♪');
+                        return _Message(icon: Icons.piano_rounded, text: tx.instrumental);
                       }
                       if (value.isEmpty) {
                         return _Message(
                           icon: Icons.lyrics_outlined,
-                          text: 'No encontramos la letra de esta canción en ninguna fuente.',
-                          actionLabel: 'Buscar a mano',
+                          text: tx.noEncontramosLaLetraDeEsta,
+                          actionLabel: tx.buscarAMano,
                           onAction: () => searchLyricsManually(context, ref, request),
                         );
                       }
@@ -149,59 +152,62 @@ Future<void> searchLyricsManually(BuildContext context, WidgetRef ref, LyricsReq
   final go = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Buscar la letra a mano'),
+      title: Text(tx.buscarLaLetraAMano),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextField(controller: title, decoration: const InputDecoration(labelText: 'Título')),
-          TextField(controller: artist, decoration: const InputDecoration(labelText: 'Artista')),
+          TextField(
+            controller: title,
+            decoration: InputDecoration(labelText: tx.titulo),
+          ),
+          TextField(
+            controller: artist,
+            decoration: InputDecoration(labelText: tx.artista),
+          ),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Buscar')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.navSearch)),
       ],
     ),
   );
   if (go != true || !context.mounted) return;
-  _say(context, 'Buscando en todas las fuentes…');
+  _say(context, tx.buscandoEnTodasLasFuentes);
   try {
-    final found = await ref.read(lyricsRepositoryProvider).search(
-          (
-            id: request.id,
-            title: title.text.trim(),
-            artist: artist.text.trim(),
-            album: null,
-            durationMs: request.durationMs,
-            localPath: null,
-          ),
-          disabled: ref.read(settingsProvider).disabledLyricsSources,
-        );
+    final found = await ref.read(lyricsRepositoryProvider).search((
+      id: request.id,
+      title: title.text.trim(),
+      artist: artist.text.trim(),
+      album: null,
+      durationMs: request.durationMs,
+      localPath: null,
+    ), disabled: ref.read(settingsProvider).disabledLyricsSources);
     if (!context.mounted) return;
     if (found.isEmpty) {
-      _say(context, 'Tampoco se encontró con esos datos.');
+      _say(context, tx.tampocoSeEncontroConEsosDatos);
     } else {
       ref.invalidate(lyricsProvider(request));
       ref.invalidate(lyricsOffsetProvider(request.id));
-      _say(context, 'Encontrada en ${found.source?.label ?? 'una fuente'}.');
+      _say(context, tx.encontradaEn(found.source?.label ?? tx.unaFuente));
     }
   } on LyricsUnavailableException catch (error) {
-    if (context.mounted) _say(context, 'No se pudo buscar (${error.reason}).');
+    if (context.mounted) _say(context, tx.noSePudoBuscar(error.reason));
   }
 }
 
 /// "Importar un .lrc" para la canción que suena.
 Future<void> importLrc(BuildContext context, WidgetRef ref, LyricsRequest request) async {
-  final picked = await FilePicker.pickFiles(dialogTitle: 'Elige un archivo .lrc', type: FileType.any);
+  final picked = await FilePicker.pickFiles(dialogTitle: tx.eligeUnArchivoLrc, type: FileType.any);
   if (picked.isEmpty || !context.mounted) return;
   try {
     final text = utf8.decode(await picked.first.readAsBytes(), allowMalformed: true);
     await ref.read(lyricsRepositoryProvider).importText(request.id, text);
     ref.invalidate(lyricsProvider(request));
     ref.invalidate(lyricsOffsetProvider(request.id));
-    if (context.mounted) _say(context, 'Letra importada.');
+    if (context.mounted) _say(context, tx.letraImportada);
   } catch (error) {
-    if (context.mounted) _say(context, 'Ese archivo no tiene una letra que Kiji entienda.');
+    if (context.mounted) _say(context, tx.eseArchivoNoTieneUnaLetra);
   }
 }
 
@@ -220,7 +226,7 @@ class _Header extends ConsumerWidget {
         children: [
           GlassIconButton(
             icon: Icons.keyboard_arrow_down_rounded,
-            tooltip: 'Cerrar la letra',
+            tooltip: tx.cerrarLaLetra,
             onPressed: () => Navigator.of(context).pop(),
           ),
           const SizedBox(width: 12),
@@ -229,13 +235,17 @@ class _Header extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 18)),
-                TrackArtistText(track,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
+                TrackArtistText(
+                  track,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70),
+                ),
               ],
             ),
           ),
           PopupMenuButton<String>(
-            tooltip: 'Opciones de la letra',
+            tooltip: tx.opcionesDeLaLetra,
             icon: const Icon(Icons.more_horiz_rounded, color: Colors.white70),
             onSelected: (action) {
               switch (action) {
@@ -258,19 +268,31 @@ class _Header extends ConsumerWidget {
             },
             itemBuilder: (context) {
               PopupMenuItem<String> item(String value, IconData icon, String text) => PopupMenuItem(
-                    value: value,
-                    child: Row(children: [Icon(icon, size: 20), const SizedBox(width: 12), Flexible(child: Text(text))]),
-                  );
+                value: value,
+                child: Row(
+                  children: [
+                    Icon(icon, size: 20),
+                    const SizedBox(width: 12),
+                    Flexible(child: Text(text)),
+                  ],
+                ),
+              );
               final hasLyrics = !(lyrics?.isEmpty ?? true);
               return [
                 if (hasLyrics)
-                  item('translate', Icons.translate_rounded,
-                      ref.read(lyricsTranslationOnProvider) ? 'Quitar la traducción' : 'Traducir'),
-                if (lyrics?.isSynced ?? false) item('offset', Icons.sync_rounded, 'Sincronizar (adelantar o atrasar)'),
-                if (hasLyrics) item('share', Icons.ios_share_rounded, 'Compartir líneas'),
+                  item(
+                    'translate',
+                    Icons.translate_rounded,
+                    ref.read(lyricsTranslationOnProvider) ? tx.quitarLaTraduccion : tx.traducir,
+                  ),
+                if (lyrics?.isSynced ?? false) item('offset', Icons.sync_rounded, tx.sincronizarAdelantarOAtrasar),
+                if (hasLyrics) item('share', Icons.ios_share_rounded, tx.compartirLineas),
                 const PopupMenuDivider(),
-                item('source', Icons.library_books_outlined,
-                    lyrics?.source == null ? 'Elegir la fuente' : 'Fuente: ${lyrics!.source!.label}'),
+                item(
+                  'source',
+                  Icons.library_books_outlined,
+                  lyrics?.source == null ? tx.elegirLaFuente : tx.fuente(lyrics!.source!.label),
+                ),
               ];
             },
           ),
@@ -305,20 +327,20 @@ class _OffsetBar extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             children: [
-              IconButton(onPressed: () => move(-500), icon: const Text('−0,5 s'), tooltip: 'La letra va después'),
+              IconButton(onPressed: () => move(-500), icon: const Text('−0,5 s'), tooltip: tx.laLetraVaDespues),
               Expanded(
                 child: Text(
                   offset == Duration.zero
-                      ? 'Sin desfase'
-                      : '${seconds > 0 ? '+' : ''}${seconds.toStringAsFixed(1).replaceAll('.', ',')} s',
+                      ? tx.sinDesfase
+                      : '${seconds > 0 ? '+' : ''}${seconds.toStringAsFixed(1).replaceAll('.', kijiLanguage == 'es' ? ',' : '.')} s',
                   textAlign: TextAlign.center,
                   style: KijiText.mono(size: 13, color: KijiColors.cyan),
                 ),
               ),
-              IconButton(onPressed: () => move(500), icon: const Text('+0,5 s'), tooltip: 'La letra va antes'),
+              IconButton(onPressed: () => move(500), icon: const Text('+0,5 s'), tooltip: tx.laLetraVaAntes),
               TextButton(
                 onPressed: () => ref.read(_adjustingOffsetProvider.notifier).state = false,
-                child: const Text('Listo'),
+                child: Text(tx.listo),
               ),
             ],
           ),
@@ -336,13 +358,7 @@ final lyricsSelectionModeProvider = StateProvider.autoDispose<bool>((ref) => fal
 /// seguir y aparece "Volver a la canción" (Tarea Z4). Mantener presionada una
 /// línea entra en el modo de elegir líneas para compartir.
 class SyncedLyricsView extends ConsumerStatefulWidget {
-  const SyncedLyricsView({
-    super.key,
-    required this.lines,
-    this.track,
-    this.trackId,
-    this.translations,
-  });
+  const SyncedLyricsView({super.key, required this.lines, this.track, this.trackId, this.translations});
 
   final List<LyricLine> lines;
   final Track? track;
@@ -506,7 +522,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                         ).copyWith(height: 1.2),
                         child: Text(
                           line.text.isEmpty ? '♪' : line.text,
-                          semanticsLabel: isCurrent ? 'Ahora: ${line.text}' : line.text,
+                          semanticsLabel: isCurrent ? tx.ahoraLinea(line.text) : line.text,
                         ),
                       ),
                       if (translation != null && translation.isNotEmpty)
@@ -538,7 +554,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                 key: const Key('back-to-song'),
                 onPressed: () => _backToSong(current, calm),
                 icon: const Icon(Icons.my_location_rounded),
-                label: const Text('Volver a la canción'),
+                label: Text(tx.volverALaCancion),
               ),
             ),
           ),
@@ -553,9 +569,9 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
             translations: widget.translations == null
                 ? null
                 : () => [
-                      for (final i in (_selected.toList()..sort()))
-                        i < widget.translations!.length ? widget.translations![i] : null,
-                    ],
+                    for (final i in (_selected.toList()..sort()))
+                      i < widget.translations!.length ? widget.translations![i] : null,
+                  ],
             track: widget.track!,
           ),
       ],
@@ -594,7 +610,9 @@ class _SelectionBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                count == 0 ? 'Toca las líneas que quieres compartir' : '$count ${count == 1 ? 'línea elegida' : 'líneas elegidas'}',
+                count == 0
+                    ? tx.tocaLasLineasQueQuieresCompartir
+                    : tx.nLineasElegidas(count),
                 style: const TextStyle(color: KijiColors.muted),
               ),
               const SizedBox(height: 8),
@@ -606,14 +624,16 @@ class _SelectionBar extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: count == 0 ? null : () => shareLyricsText(lines(), track),
                     icon: const Icon(Icons.text_snippet_outlined),
-                    label: const Text('Como texto'),
+                    label: Text(tx.comoTexto),
                   ),
                   FilledButton.icon(
-                    onPressed: count == 0 ? null : () => showLyricsCardDialog(context, lines(), track, translations: translations?.call()),
+                    onPressed: count == 0
+                        ? null
+                        : () => showLyricsCardDialog(context, lines(), track, translations: translations?.call()),
                     icon: const Icon(Icons.image_outlined),
-                    label: const Text('Como imagen'),
+                    label: Text(tx.comoImagen),
                   ),
-                  TextButton(onPressed: onCancel, child: const Text('Cancelar')),
+                  TextButton(onPressed: onCancel, child: Text(tx.cancelar)),
                 ],
               ),
             ],
@@ -654,7 +674,7 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
             if (index == 0) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text('LETRA SIN SINCRONIZAR', style: KijiText.mono(size: 10)),
+                child: Text(tx.letraSinSincronizar, style: KijiText.mono(size: 10)),
               );
             }
             final i = index - 1;
@@ -678,8 +698,10 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
                     if (widget.translations != null &&
                         i < widget.translations!.length &&
                         (widget.translations![i]?.isNotEmpty ?? false))
-                      Text(widget.translations![i]!,
-                          style: const TextStyle(color: Colors.white60, fontSize: 16, fontStyle: FontStyle.italic)),
+                      Text(
+                        widget.translations![i]!,
+                        style: const TextStyle(color: Colors.white60, fontSize: 16, fontStyle: FontStyle.italic),
+                      ),
                   ],
                 ),
               ),
@@ -697,9 +719,9 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
             translations: widget.translations == null
                 ? null
                 : () => [
-                      for (final i in (_selected.toList()..sort()))
-                        i < widget.translations!.length ? widget.translations![i] : null,
-                    ],
+                    for (final i in (_selected.toList()..sort()))
+                      i < widget.translations!.length ? widget.translations![i] : null,
+                  ],
             track: widget.track,
           ),
       ],
@@ -725,7 +747,11 @@ class _Message extends StatelessWidget {
           children: [
             Icon(icon, size: 44, color: KijiColors.muted),
             const SizedBox(height: 12),
-            Text(text, textAlign: TextAlign.center, style: const TextStyle(color: KijiColors.muted)),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: KijiColors.muted),
+            ),
             if (actionLabel != null) ...[
               const SizedBox(height: 16),
               FilledButton(onPressed: onAction, child: Text(actionLabel!)),

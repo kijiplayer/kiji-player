@@ -8,6 +8,8 @@ import '../../yt_music/data/ytm_client.dart';
 import '../../yt_music/domain/yt_track_mapper.dart';
 import 'imported.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Lo que el buscador necesita de YouTube Music (reemplazable en tests).
 abstract interface class OnlineSongLookup {
   Future<YtMusicSearchResult?> videoDetails(String videoId);
@@ -58,9 +60,9 @@ double matchScore(ImportedSong wanted, {required String title, required String a
   final artistScore = wantedArtist == null
       ? 0.5
       : (normalizeTitle(artist).contains(normalizeTitle(wantedArtist)) ||
-              normalizeTitle(wantedArtist).contains(normalizeTitle(artist)))
-          ? 1.0
-          : _similarity(wantedArtist, artist);
+            normalizeTitle(wantedArtist).contains(normalizeTitle(artist)))
+      ? 1.0
+      : _similarity(wantedArtist, artist);
   var score = titleScore * 0.6 + artistScore * 0.4;
   final a = wanted.durationMs;
   if (a != null && durationMs != null && durationMs > 0) {
@@ -102,7 +104,7 @@ class ImportMatcher {
           YtMusicSearchResult(
             videoId: videoId,
             title: song.title!,
-            artist: song.artist ?? 'Artista desconocido',
+            artist: song.artist ?? tx.artistaDesconocido,
             album: song.album,
             durationMs: song.durationMs,
             thumbnailUrl: song.thumbnailUrl != null && song.thumbnailUrl!.startsWith('http') ? song.thumbnailUrl : null,
@@ -113,7 +115,8 @@ class ImportMatcher {
       // Sin título (Google Takeout): se piden los datos del video.
       final details = await online.videoDetails(videoId);
       return ytTrackFromResult(
-        details ?? YtMusicSearchResult(videoId: videoId, title: 'Canción de YouTube ($videoId)', artist: 'Artista desconocido'),
+        details ??
+            YtMusicSearchResult(videoId: videoId, title: tx.cancionDeYoutube(videoId), artist: tx.artistaDesconocido),
         audioUrl: '',
       );
     }
@@ -126,7 +129,7 @@ class ImportMatcher {
         return Track(
           id: 'local-file-${path.hashCode.toUnsigned(32).toRadixString(16)}',
           title: song.title ?? p.basenameWithoutExtension(path),
-          artist: song.artist ?? 'Artista desconocido',
+          artist: song.artist ?? tx.artistaDesconocido,
           coverColor: const Color(0xFF7C5CFF),
           audioUrl: path,
           source: TrackSource.local,

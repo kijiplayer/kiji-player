@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 import '../../../models/track.dart';
 import '../../playlists/domain/playlist.dart';
 

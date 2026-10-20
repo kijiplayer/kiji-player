@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 
 import '../domain/languages.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Un error de Gemini en palabras simples (para el usuario).
 class GeminiException implements Exception {
   const GeminiException(this.message, {this.offline = false});
@@ -66,12 +68,15 @@ String? responseText(Object? json) {
 /// va en un header y nunca se escribe en los logs.
 class GeminiClient {
   GeminiClient({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
               baseUrl: 'https://generativelanguage.googleapis.com/v1beta/',
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 60),
-            ));
+            ),
+          );
 
   final Dio _dio;
 
@@ -80,16 +85,16 @@ class GeminiClient {
       final status = error.response?.statusCode;
       final body = '${error.response?.data}';
       if (error.type == DioExceptionType.connectionError || error.type == DioExceptionType.connectionTimeout) {
-        return const GeminiException('Sin conexión a internet.', offline: true);
+        return GeminiException(tx.sinConexionAInternet, offline: true);
       }
-      if (status == 429) return const GeminiException('Llegaste al límite gratuito de Gemini por hoy. Prueba mañana.');
-      if (status == 400 && body.contains('API_KEY')) return const GeminiException('La clave no es válida. Revisala.');
+      if (status == 429) return GeminiException(tx.llegasteAlLimiteGratuitoDeGemini);
+      if (status == 400 && body.contains('API_KEY')) return GeminiException(tx.laClaveNoEsValidaRevisala);
       if (status == 401 || status == 403) {
-        return const GeminiException('Google rechazó la clave (o el nivel gratuito no está disponible en tu país).');
+        return GeminiException(tx.googleRechazoLaClaveOEl);
       }
-      return GeminiException('Gemini no respondió (HTTP ${status ?? '?'}).');
+      return GeminiException(tx.geminiNoRespondioHttp(status ?? '?'));
     }
-    return const GeminiException('Gemini respondió algo que Kiji no entiende.');
+    return GeminiException(tx.geminiRespondioAlgoQueKijiNo);
   }
 
   /// Modelos disponibles con esa clave (sirve también para "Probar").
@@ -109,12 +114,14 @@ class GeminiClient {
 
   /// Traduce [lines] al idioma [target]. Devuelve una línea por cada una.
   Future<List<String>> translate(String key, String model, List<String> lines, String target) async {
-    final prompt = 'Traduce estas líneas de una canción al idioma "${languageName(target)}" ($target). '
-        'Mantén el sentido y el tono, una traducción por línea. Responde SOLO con un array JSON de '
-        'strings, con exactamente ${lines.length} elementos, en el mismo orden.\n\n${jsonEncode(lines)}';
+    // El pedido a Gemini es técnico: no cambia con el idioma de la app.
+    final prompt =
+        'Traduce estas líneas de una canción al idioma "${languageName(target)}" ($target). ' // l10n-ignore
+        'Mantén el sentido y el tono, una traducción por línea. Responde SOLO con un array JSON de ' // l10n-ignore
+        'strings, con exactamente ${lines.length} elementos, en el mismo orden.\n\n${jsonEncode(lines)}'; // l10n-ignore
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '$model:generateContent',
+        '$model:generateContent', // l10n-ignore
         options: Options(headers: {'x-goog-api-key': key}),
         data: {
           'contents': [
@@ -131,7 +138,7 @@ class GeminiClient {
       final text = responseText(response.data);
       final decoded = text == null ? null : jsonDecode(text);
       if (decoded is! List || decoded.length != lines.length) {
-        throw const GeminiException('Gemini devolvió otra cantidad de líneas. Prueba de nuevo.');
+        throw GeminiException(tx.geminiDevolvioOtraCantidadDeLineas);
       }
       return [for (final line in decoded) '$line'];
     } on GeminiException {

@@ -23,11 +23,13 @@ import '../../widgets/nocturne/staggered.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Saludo según la hora (5–12 mañana, 12–20 tarde, resto noche).
 String greetingFor(DateTime now) {
-  if (now.hour >= 5 && now.hour < 12) return 'Buenos días';
-  if (now.hour >= 12 && now.hour < 20) return 'Buenas tardes';
-  return 'Buenas noches';
+  if (now.hour >= 5 && now.hour < 12) return tx.buenosDias;
+  if (now.hour >= 12 && now.hour < 20) return tx.buenasTardes;
+  return tx.buenasNoches;
 }
 
 /// Pestaña Inicio (§7): saludo, "Sigue donde quedaste", tus playlists,
@@ -78,9 +80,9 @@ class InicioTab extends ConsumerWidget {
               const StartHereSection(),
             ] else
               const RecommendationSections(),
-            TrackShelf(title: 'Escuchado recientemente', tracks: recent),
+            TrackShelf(title: tx.escuchadoRecientemente, tracks: recent),
             if (top.isNotEmpty) ...[
-              const SectionTitle('Tus más escuchadas', note: 'calculado en tu teléfono'),
+              SectionTitle(tx.tusMasEscuchadas, note: tx.calculadoEnTuTelefono),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -98,7 +100,7 @@ class InicioTab extends ConsumerWidget {
               ),
               const SizedBox(height: 28),
             ],
-            TrackShelf(title: 'Descargadas', note: 'sin internet', tracks: downloaded),
+            TrackShelf(title: tx.descargadas, note: tx.sinInternet, tracks: downloaded),
           ]),
         ),
       ),
@@ -154,7 +156,7 @@ class _GreetingState extends State<_Greeting> {
         ),
         GlassIconButton(
           icon: Icons.settings_outlined,
-          tooltip: 'Configuración',
+          tooltip: tx.settingsTitle,
           onPressed: () => SettingsScreen.open(context),
         ),
       ],
@@ -183,7 +185,7 @@ class _ContinueCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('SIGUE DONDE QUEDASTE', style: KijiText.mono(size: 10)),
+                  Text(tx.sigueDondeQuedaste, style: KijiText.mono(size: 10)),
                   const SizedBox(height: 6),
                   TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 17)),
                   TrackArtistText(
@@ -207,7 +209,7 @@ class _ContinueCard extends ConsumerWidget {
                 child: InkWell(
                   onTap: () => ref.read(playbackProvider.notifier).togglePlayPause(),
                   child: Tooltip(
-                    message: isPlaying ? 'Pausar' : 'Reproducir',
+                    message: isPlaying ? tx.pausar : tx.reproducir,
                     child: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: KijiColors.onAccent),
                   ),
                 ),
@@ -269,18 +271,11 @@ class _EmptyHome extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Elige una canción', style: KijiText.title(size: 20)),
+          Text(tx.eligeUnaCancion, style: KijiText.title(size: 20)),
           const SizedBox(height: 6),
-          const Text(
-            'Lo que escuches aparece aquí. Todo se calcula en tu teléfono; nada sale de él.',
-            style: TextStyle(color: KijiColors.muted),
-          ),
+          Text(tx.loQueEscuchesApareceAquiTodo, style: const TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: onSearch,
-            icon: const Icon(Icons.search_rounded),
-            label: const Text('Buscar música'),
-          ),
+          FilledButton.icon(onPressed: onSearch, icon: const Icon(Icons.search_rounded), label: Text(tx.buscarMusica)),
         ],
       ),
     );
@@ -301,17 +296,18 @@ class _PlaylistsRow extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tus playlists', style: KijiText.title(size: 18)),
+        Text(tx.tusPlaylists2, style: KijiText.title(size: 18)),
         const SizedBox(height: 12),
         SizedBox(
-          height: _cover + 44,
+          // Debajo de la portada van dos líneas de texto: crecen con la letra del teléfono.
+          height: _cover + MediaQuery.textScalerOf(context).scale(48),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: playlists.length + 1,
             separatorBuilder: (_, _) => const SizedBox(width: 14),
             itemBuilder: (context, index) {
               if (index == playlists.length) {
-                return _NewPlaylistCard(size: _cover);
+                return const _NewPlaylistCard(size: _cover);
               }
               final playlist = playlists[index];
               return GestureDetector(
@@ -325,14 +321,14 @@ class _PlaylistsRow extends ConsumerWidget {
                         children: [
                           PlaylistCover(playlist: playlist, size: _cover, radius: KijiRadii.card),
                           if (playlist.pinned)
-                            const Positioned(
+                            Positioned(
                               top: 8,
                               right: 8,
                               child: Icon(
                                 Icons.push_pin_rounded,
                                 size: 18,
                                 color: KijiColors.cyan,
-                                semanticLabel: 'Fijada',
+                                semanticLabel: tx.fijada,
                               ),
                             ),
                         ],
@@ -345,7 +341,7 @@ class _PlaylistsRow extends ConsumerWidget {
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        '${playlist.tracks.length} ${playlist.tracks.length == 1 ? 'canción' : 'canciones'}',
+                        tx.nCanciones(playlist.tracks.length),
                         style: KijiText.mono(size: 11),
                       ),
                     ],
@@ -390,7 +386,7 @@ class _NewPlaylistCard extends ConsumerWidget {
               child: const Icon(Icons.add_rounded, size: 44, color: KijiColors.cyan),
             ),
             const SizedBox(height: 8),
-            const Text('+ Nueva', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(tx.nueva2, style: const TextStyle(fontWeight: FontWeight.w600)),
           ],
         ),
       ),

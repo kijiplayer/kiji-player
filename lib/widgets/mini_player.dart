@@ -11,6 +11,8 @@ import 'nocturne/glass.dart';
 import '../features/customize/presentation/track_text.dart';
 import '../features/playlists/presentation/playlist_screens.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Mini-reproductor de vidrio (§7): radio 20, borde 1 px blanco 12 %, y una
 /// línea de progreso degradada de 2 px abajo. Sin canción elegida, no ocupa
 /// lugar.
@@ -50,29 +52,34 @@ class MiniPlayer extends ConsumerWidget {
                     if (useAppNavigator)
                       TrackArtwork(track: track, size: 44, radius: 12)
                     else
-                      Hero(tag: coverHeroTag(track), child: TrackArtwork(track: track, size: 44, radius: 12)),
+                      Hero(
+                        tag: coverHeroTag(track),
+                        child: TrackArtwork(track: track, size: 44, radius: 12),
+                      ),
                     const SizedBox(width: 12),
+                    // El mini-reproductor tiene alto fijo: con letra muy grande, el título y el artista
+                    // crecen hasta un límite (en el reproductor completo se ven enteros).
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TrackTitleText(
-                            track,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                      child: MediaQuery.withClampedTextScaling(
+                        maxScaleFactor: 1.1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TrackTitleText(
+                              track,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          TrackArtistText(
-                            track,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: KijiColors.muted, fontSize: 13),
-                          ),
-                        ],
+                            const SizedBox(height: 2),
+                            TrackArtistText(
+                              track,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: KijiColors.muted, fontSize: 13),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     // "Agregar a playlist" a un toque (Tarea Z3).
@@ -80,16 +87,14 @@ class MiniPlayer extends ConsumerWidget {
                       onPressed: () => showAddToPlaylistSheet(nav(), ref, [track]),
                       icon: const Icon(Icons.playlist_add_rounded),
                       color: Colors.white,
-                      tooltip: 'Agregar a playlist',
+                      tooltip: tx.agregarAPlaylist,
                     ),
                     IconButton(
                       onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),
-                      icon: Icon(
-                        playback.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      ),
+                      icon: Icon(playback.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
                       iconSize: 32,
                       color: Colors.white,
-                      tooltip: playback.isPlaying ? 'Pausar' : 'Reproducir',
+                      tooltip: playback.isPlaying ? tx.pausar : tx.reproducir,
                     ),
                   ],
                 ),

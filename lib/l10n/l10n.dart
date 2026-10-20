@@ -19,5 +19,12 @@ void setKijiLocale(Locale locale) {
   _current = lookupAppLocalizations(supported ? Locale(locale.languageCode) : const Locale('en'));
 }
 
+/// El idioma que corresponde a la opción de Configuración: 'es', 'en' o el del teléfono
+/// ('system'; si no es español ni inglés, inglés).
+Locale resolveKijiLocale(String language, Locale system) => switch (language) {
+  'es' || 'en' => Locale(language),
+  _ => Locale(system.languageCode == 'es' ? 'es' : 'en'),
+};
+
 /// Compatibilidad: lo mismo que [tx].
 AppLocalizations tr(BuildContext context) => tx;

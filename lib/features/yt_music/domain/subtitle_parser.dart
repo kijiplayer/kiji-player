@@ -1,3 +1,5 @@
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Lo que se puede sacar del subtítulo de un resultado de YouTube Music,
 /// que viene todo junto: "Canción • Daft Punk • Discovery • 5:20" o
 /// "Vídeo • Will Clarke • 927 visualizaciones • 4:01".
@@ -16,8 +18,8 @@ const _separator = ' • ';
 /// Tipos de resultado que YouTube antepone al artista (pedimos con `hl=es`,
 /// pero dejamos también los nombres en inglés por si cambia el idioma).
 const _resultTypes = {
-  'canción', 'vídeo', 'video', 'episodio', 'pódcast', 'podcast', 'álbum', 'sencillo', 'ep',
-  'artista', 'perfil', 'lista de reproducción',
+  'canción', 'vídeo', 'video', 'episodio', 'pódcast', 'podcast', 'álbum', 'sencillo', 'ep', // l10n-ignore
+  'artista', 'perfil', 'lista de reproducción', // l10n-ignore
   'song', 'episode', 'album', 'single', 'artist', 'profile', 'playlist',
 };
 
@@ -30,7 +32,7 @@ bool _isNoise(String segment) =>
     _durationPattern.hasMatch(segment) ||
     _playsPattern.hasMatch(segment);
 
-const unknownArtist = 'Artista desconocido';
+String get unknownArtist => tx.artistaDesconocido;
 
 /// Saca el artista: sin el tipo ("Canción"), sin visualizaciones y sin
 /// duración. "Canción • Daft Punk • Discovery • 5:20" → "Daft Punk".

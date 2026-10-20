@@ -27,11 +27,13 @@ import '../../features/customize/presentation/track_text.dart';
 import '../../features/playlists/presentation/playlist_screens.dart';
 import '../../features/moments/presentation/moment_marks.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// De dónde sale la canción, para "REPRODUCIENDO DESDE".
 String playingFromLabel(Track track, {required bool downloaded}) {
-  if (track.source == TrackSource.local) return 'TU BIBLIOTECA';
-  if (downloaded) return 'DESCARGADAS';
-  return 'YOUTUBE MUSIC';
+  if (track.source == TrackSource.local) return tx.tuBiblioteca;
+  if (downloaded) return tx.descargadas2;
+  return 'YOUTUBE MUSIC'; // l10n-ignore
 }
 
 /// Reproductor a pantalla completa (Kiji Nocturne, §7).
@@ -64,7 +66,7 @@ class PlayerScreen extends ConsumerWidget {
     final playback = ref.watch(playbackProvider);
     final track = playback.track;
     if (track == null) {
-      return const Scaffold(body: Center(child: Text('Elige una canción')));
+      return Scaffold(body: Center(child: Text(tx.eligeUnaCancion)));
     }
     final downloaded =
         track.youtubeVideoId != null && ref.watch(downloadsProvider).completed.containsKey(track.youtubeVideoId);
@@ -134,13 +136,13 @@ class _TopBar extends StatelessWidget {
         children: [
           GlassIconButton(
             icon: Icons.keyboard_arrow_down_rounded,
-            tooltip: 'Minimizar',
+            tooltip: tx.minimizar,
             onPressed: () => Navigator.of(context).pop(),
           ),
           Expanded(
             child: Column(
               children: [
-                Text('REPRODUCIENDO DESDE', style: KijiText.mono(size: 10)),
+                Text(tx.reproduciendoDesde, style: KijiText.mono(size: 10)),
                 const SizedBox(height: 2),
                 Text(
                   playingFromLabel(track, downloaded: downloaded),
@@ -151,7 +153,7 @@ class _TopBar extends StatelessWidget {
           ),
           GlassIconButton(
             icon: Icons.more_horiz_rounded,
-            tooltip: 'Más opciones',
+            tooltip: tx.masOpciones,
             onPressed: () => _showMenu(context, track),
           ),
         ],
@@ -170,21 +172,21 @@ class _TopBar extends StatelessWidget {
             if (track.youtubeVideoId != null)
               ListTile(
                 leading: const Icon(Icons.download_for_offline_outlined),
-                title: const Text('Escuchar sin conexión'),
-                subtitle: const Text('Descargar dentro de Kiji'),
+                title: Text(tx.escucharSinConexion),
+                subtitle: Text(tx.descargarDentroDeKiji),
                 trailing: DownloadButton(track: track),
               )
             else
-              const ListTile(
-                leading: Icon(Icons.phone_android_rounded),
-                title: Text('Canción guardada en el dispositivo'),
-                subtitle: Text('Ya suena sin conexión'),
+              ListTile(
+                leading: const Icon(Icons.phone_android_rounded),
+                title: Text(tx.cancionGuardadaEnElDispositivo),
+                subtitle: Text(tx.yaSuenaSinConexion),
               ),
             if (track.youtubeVideoId != null)
               ListTile(
                 leading: const Icon(Icons.health_and_safety_outlined),
-                title: const Text('Salud del Extractor'),
-                subtitle: const Text('Cómo está funcionando YouTube hoy'),
+                title: Text(tx.saludDelExtractor),
+                subtitle: Text(tx.comoEstaFuncionandoYoutubeHoy2),
                 onTap: () {
                   Navigator.pop(context);
                   navigator.push(MaterialPageRoute<void>(builder: (_) => const ExtractorHealthScreen()));
@@ -254,9 +256,9 @@ class _TitleRow extends ConsumerWidget {
         ),
         if (track.youtubeVideoId != null)
           downloaded
-              ? const Tooltip(
-                  message: 'Descargada: suena sin conexión',
-                  child: Padding(
+              ? Tooltip(
+                  message: tx.descargadaSuenaSinConexion,
+                  child: const Padding(
                     padding: EdgeInsets.all(12),
                     child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
                   ),
@@ -264,12 +266,12 @@ class _TitleRow extends ConsumerWidget {
               : DownloadButton(track: track),
         // "Agregar a playlist" a un toque (Tarea Z3).
         IconButton(
-          tooltip: 'Agregar a playlist',
+          tooltip: tx.agregarAPlaylist,
           onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
           icon: const Icon(Icons.playlist_add_rounded, color: Colors.white),
         ),
         IconButton(
-          tooltip: liked ? 'Quitar de me gusta' : 'Me gusta',
+          tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
           onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
           icon: Icon(
             liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
@@ -325,9 +327,9 @@ class PlaybackControlsRow extends ConsumerWidget {
       _ => Icons.repeat_rounded,
     };
     final repeatTooltip = switch (playback.repeatMode) {
-      PlaybackRepeatMode.off => 'Repetir: apagado',
-      PlaybackRepeatMode.all => 'Repetir: toda la cola',
-      PlaybackRepeatMode.one => 'Repetir: esta canción',
+      PlaybackRepeatMode.off => tx.repetirApagado,
+      PlaybackRepeatMode.all => tx.repetirTodaLaCola,
+      PlaybackRepeatMode.one => tx.repetirEstaCancion,
     };
 
     return Row(
@@ -335,14 +337,15 @@ class PlaybackControlsRow extends ConsumerWidget {
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
         IconButton(
-          tooltip: playback.shuffleEnabled ? 'Aleatorio: activado' : 'Aleatorio: apagado',
+          tooltip: playback.shuffleEnabled ? tx.aleatorioActivado : tx.aleatorioApagado,
           onPressed: notifier.toggleShuffle,
           icon: const Icon(Icons.shuffle_rounded),
           iconSize: iconSize * 0.85,
+          visualDensity: VisualDensity.compact,
           color: playback.shuffleEnabled ? KijiColors.cyan : KijiColors.muted,
         ),
         IconButton(
-          tooltip: 'Anterior',
+          tooltip: tx.anterior,
           onPressed: notifier.previousTrack,
           icon: const Icon(Icons.skip_previous_rounded),
           iconSize: iconSize * 1.2,
@@ -355,7 +358,7 @@ class PlaybackControlsRow extends ConsumerWidget {
           size: compact ? 52 : KijiSizes.playButton,
         ),
         IconButton(
-          tooltip: 'Siguiente',
+          tooltip: tx.siguiente,
           onPressed: notifier.nextTrack,
           icon: const Icon(Icons.skip_next_rounded),
           iconSize: iconSize * 1.2,
@@ -366,6 +369,7 @@ class PlaybackControlsRow extends ConsumerWidget {
           onPressed: notifier.toggleRepeatMode,
           icon: Icon(repeatIcon),
           iconSize: iconSize * 0.85,
+          visualDensity: VisualDensity.compact,
           color: playback.repeatMode == PlaybackRepeatMode.off ? KijiColors.muted : KijiColors.cyan,
         ),
       ],
@@ -387,21 +391,21 @@ class _BottomActions extends ConsumerWidget {
       children: [
         GlassIconButton(
           icon: Icons.lyrics_outlined,
-          label: 'Letra',
-          tooltip: 'Letra',
+          label: tx.letra,
+          tooltip: tx.letra,
           onPressed: () => LyricsScreen.open(context),
         ),
         GlassIconButton(
           icon: Icons.queue_music_rounded,
-          label: 'Cola',
-          tooltip: 'Cola',
+          label: tx.cola,
+          tooltip: tx.cola,
           onPressed: () => QueueScreen.open(context),
         ),
         GlassIconButton(
           icon: timer == null ? Icons.bedtime_outlined : Icons.bedtime_rounded,
           // Activo: muestra cuánto falta, en cian.
           label: sleepTimerButtonLabel(timer),
-          tooltip: timer == null ? 'Temporizador' : 'Temporizador activo: ${timer.mode.label}',
+          tooltip: timer == null ? tx.temporizador : tx.temporizadorActivo(timer.mode.label),
           active: timer != null,
           onPressed: () => showSleepTimerSheet(context),
         ),
@@ -409,8 +413,8 @@ class _BottomActions extends ConsumerWidget {
         // aviso ("Ver") o desde Biblioteca → Playlists → Momentos.
         GlassIconButton(
           icon: Icons.bookmark_add_outlined,
-          label: 'Momento',
-          tooltip: 'Guardar este momento',
+          label: tx.momento,
+          tooltip: tx.guardarEsteMomento,
           onPressed: () => showNewMomentSheet(context, ref),
         ),
       ],

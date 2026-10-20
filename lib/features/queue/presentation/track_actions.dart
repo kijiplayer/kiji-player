@@ -13,6 +13,8 @@ import '../../playlists/presentation/playlist_screens.dart';
 import '../../sleep_timer/sleep_timer_provider.dart';
 import '../../customize/presentation/track_text.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Menú de una canción (mantener presionado en el celular, clic derecho en la
 /// PC): "Reproducir a continuación" y "Agregar a la cola".
 Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) {
@@ -39,25 +41,25 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.playlist_play_rounded),
-            title: const Text('Reproducir a continuación'),
+            title: Text(tx.reproducirAContinuacion),
             onTap: () {
               Navigator.pop(context);
               notifier.playNext(track);
-              done('«${track.title}» suena después de esta');
+              done(tx.suenaDespuesDeEsta(track.title));
             },
           ),
           ListTile(
             leading: const Icon(Icons.playlist_add_rounded),
-            title: const Text('Agregar a la cola'),
+            title: Text(tx.agregarALaCola),
             onTap: () {
               Navigator.pop(context);
               notifier.addToQueue(track);
-              done('«${track.title}» se agregó al final de la cola');
+              done(tx.seAgregoAlFinalDeLa(track.title));
             },
           ),
           ListTile(
             leading: const Icon(Icons.library_add_rounded),
-            title: const Text('Agregar a playlist'),
+            title: Text(tx.agregarAPlaylist),
             onTap: () {
               Navigator.pop(context);
               showAddToPlaylistSheet(context, ref, [track]);
@@ -65,8 +67,8 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
           ),
           ListTile(
             leading: const Icon(Icons.edit_outlined),
-            title: const Text('Personalizar'),
-            subtitle: const Text('Foto, título y artista (solo en Kiji)'),
+            title: Text(tx.personalizar2),
+            subtitle: Text(tx.fotoTituloYArtistaSoloEn),
             onTap: () {
               Navigator.pop(context);
               showCustomizeTrackSheet(context, ref, track);
@@ -74,10 +76,12 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
           ),
           ListTile(
             leading: const Icon(Icons.share_rounded),
-            title: const Text('Compartir'),
-            subtitle: Text(track.youtubeVideoId != null
-                ? 'Con un enlace de song.link que abre en cualquier app de música'
-                : 'El título y el artista (es un archivo de este dispositivo)'),
+            title: Text(tx.compartir),
+            subtitle: Text(
+              track.youtubeVideoId != null
+                  ? tx.conUnEnlaceDeSongLink
+                  : tx.elTituloYElArtistaEs,
+            ),
             onTap: () {
               Navigator.pop(context);
               shareTrack(track);
@@ -86,12 +90,12 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
           if (inQueue)
             ListTile(
               leading: const Icon(Icons.bedtime_outlined),
-              title: const Text('Pausar al terminar esta'),
-              subtitle: const Text('El temporizador para cuando termine esta canción'),
+              title: Text(tx.pausarAlTerminarEsta),
+              subtitle: Text(tx.elTemporizadorParaCuandoTermineEsta),
               onTap: () {
                 Navigator.pop(context);
                 ref.read(sleepTimerProvider.notifier).startUntilTrack(track);
-                done('La música se va a pausar al terminar «${track.title}»');
+                done(tx.laMusicaSeVaAPausar(track.title));
               },
             ),
         ],

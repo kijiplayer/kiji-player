@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 import 'package:flutter/material.dart';
 
 /// Tokens de diseño de **Kiji Nocturne** (mockup aprobado el

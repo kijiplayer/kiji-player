@@ -19,6 +19,8 @@ import '../features/yt_music/data/ytm_client.dart';
 import '../features/downloads/domain/storage_info.dart';
 import '../models/track.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 final downloadsRepositoryProvider = Provider<DownloadsRepository>((ref) => DownloadsRepository());
 
 final storageInfoProvider = Provider<StorageInfo>((ref) => createStorageInfo());
@@ -81,32 +83,31 @@ class ActiveDownload {
     String? Function()? sourceId,
     Set<String>? refusedPaths,
     bool? searching,
-  }) =>
-      ActiveDownload(
-        track: track,
-        status: status ?? this.status,
-        estimate: estimate == null ? this.estimate : estimate(),
-        received: received ?? this.received,
-        total: total ?? this.total,
-        failure: failure == null ? this.failure : failure(),
-        sourceId: sourceId == null ? this.sourceId : sourceId(),
-        refusedPaths: refusedPaths ?? this.refusedPaths,
-        searching: searching ?? this.searching,
-      );
+  }) => ActiveDownload(
+    track: track,
+    status: status ?? this.status,
+    estimate: estimate == null ? this.estimate : estimate(),
+    received: received ?? this.received,
+    total: total ?? this.total,
+    failure: failure == null ? this.failure : failure(),
+    sourceId: sourceId == null ? this.sourceId : sourceId(),
+    refusedPaths: refusedPaths ?? this.refusedPaths,
+    searching: searching ?? this.searching,
+  );
 
   /// Lo que se guarda de una descarga fallida (para verla al volver a abrir Kiji).
   Map<String, dynamic> toFailedJson() => {
-        'track': track.toJson(),
-        if (failure != null) 'failure': failure!.toJson(),
-        if (sourceId != null) 'sourceId': sourceId,
-      };
+    'track': track.toJson(),
+    if (failure != null) 'failure': failure!.toJson(),
+    if (sourceId != null) 'sourceId': sourceId,
+  };
 
   static ActiveDownload fromFailedJson(Map<String, dynamic> json) => ActiveDownload(
-        track: Track.fromJson(json['track'] as Map<String, dynamic>),
-        status: ActiveDownloadStatus.failed,
-        failure: json['failure'] is Map ? DownloadFailure.fromJson(json['failure'] as Map<String, dynamic>) : null,
-        sourceId: json['sourceId'] as String?,
-      );
+    track: Track.fromJson(json['track'] as Map<String, dynamic>),
+    status: ActiveDownloadStatus.failed,
+    failure: json['failure'] is Map ? DownloadFailure.fromJson(json['failure'] as Map<String, dynamic>) : null,
+    sourceId: json['sourceId'] as String?,
+  );
 }
 
 class DownloadsState {
@@ -137,26 +138,19 @@ class DownloadsState {
     DownloadSettings? settings,
     bool? loaded,
     String? directoryPath,
-  }) =>
-      DownloadsState(
-        completed: completed ?? this.completed,
-        active: active ?? this.active,
-        settings: settings ?? this.settings,
-        loaded: loaded ?? this.loaded,
-        directoryPath: directoryPath ?? this.directoryPath,
-      );
+  }) => DownloadsState(
+    completed: completed ?? this.completed,
+    active: active ?? this.active,
+    settings: settings ?? this.settings,
+    loaded: loaded ?? this.loaded,
+    directoryPath: directoryPath ?? this.directoryPath,
+  );
 }
 
 /// Resultado de revisar una descarga antes de empezarla. La UI lo muestra
 /// en el diálogo de confirmación.
 class DownloadCheck {
-  const DownloadCheck({
-    this.estimate,
-    this.freeBytes,
-    this.blockedReason,
-    this.waitingForWifi = false,
-    this.failure,
-  });
+  const DownloadCheck({this.estimate, this.freeBytes, this.blockedReason, this.waitingForWifi = false, this.failure});
 
   final DownloadEstimate? estimate;
 
@@ -216,8 +210,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   Future<bool> _onWifiOrEthernet() async {
     try {
       final result = await Connectivity().checkConnectivity();
-      return result.contains(ConnectivityResult.wifi) ||
-          result.contains(ConnectivityResult.ethernet);
+      return result.contains(ConnectivityResult.wifi) || result.contains(ConnectivityResult.ethernet);
     } catch (error) {
       debugPrint('=== DESCARGAS: no se pudo saber el tipo de conexión: $error ===');
       // Sin datos para decidir: no bloqueamos.
@@ -230,14 +223,10 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   Future<DownloadCheck> check(Track track) async {
     final videoId = track.youtubeVideoId;
     if (videoId == null) {
-      return const DownloadCheck(blockedReason: 'Solo se pueden descargar canciones de YouTube.');
+      return DownloadCheck(blockedReason: tx.soloSePuedenDescargarCancionesDe);
     }
     if (state.settings.wifiOnly && !await _onWifiOrEthernet()) {
-      return const DownloadCheck(
-        blockedReason: 'Estás sin WiFi y elegiste descargar solo con WiFi. '
-            'Puedes cambiarlo en Biblioteca → Descargadas.',
-        waitingForWifi: true,
-      );
+      return DownloadCheck(blockedReason: tx.estasSinWifiYElegisteDescargar, waitingForWifi: true);
     }
 
     final DownloadEstimate estimate;
@@ -254,19 +243,16 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       return DownloadCheck(blockedReason: failure.message, failure: failure);
     }
 
-    final freeBytes = await ref
-        .read(storageInfoProvider)
-        .freeBytes((await _repository.directory()).path);
+    final freeBytes = await ref.read(storageInfoProvider).freeBytes((await _repository.directory()).path);
     final size = estimate.sizeBytes;
 
     String? blocked;
     if (size != null && freeBytes != null && size > freeBytes) {
-      blocked = 'No hay espacio suficiente en el dispositivo.';
+      blocked = tx.noHayEspacioSuficienteEnEl;
     }
     final limit = state.settings.limitBytes;
     if (size != null && limit != null && state.usedBytes + size > limit) {
-      blocked = 'Superaría el límite de espacio para descargas que elegiste. '
-          'Puedes cambiarlo o borrar descargas en Biblioteca → Descargadas.';
+      blocked = tx.superariaElLimiteDeEspacioPara;
     }
     return DownloadCheck(estimate: estimate, freeBytes: freeBytes, blockedReason: blocked);
   }
@@ -276,16 +262,18 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     final videoId = track.youtubeVideoId;
     if (videoId == null || state.completed.containsKey(videoId)) return;
     final previous = state.active[videoId];
-    state = state.copyWith(active: {
-      ...state.active,
-      videoId: ActiveDownload(
-        track: track,
-        status: ActiveDownloadStatus.queued,
-        estimate: estimate,
-        total: estimate.sizeBytes,
-        sourceId: previous?.sourceId,
-      ),
-    });
+    state = state.copyWith(
+      active: {
+        ...state.active,
+        videoId: ActiveDownload(
+          track: track,
+          status: ActiveDownloadStatus.queued,
+          estimate: estimate,
+          total: estimate.sizeBytes,
+          sourceId: previous?.sourceId,
+        ),
+      },
+    );
     _pump();
   }
 
@@ -295,15 +283,17 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     final videoId = track.youtubeVideoId;
     if (videoId == null || state.completed.containsKey(videoId)) return;
     final previous = state.active[videoId];
-    state = state.copyWith(active: {
-      ...state.active,
-      videoId: ActiveDownload(
-        track: track,
-        status: ActiveDownloadStatus.failed,
-        failure: failure,
-        sourceId: previous?.sourceId,
-      ),
-    });
+    state = state.copyWith(
+      active: {
+        ...state.active,
+        videoId: ActiveDownload(
+          track: track,
+          status: ActiveDownloadStatus.failed,
+          failure: failure,
+          sourceId: previous?.sourceId,
+        ),
+      },
+    );
     _saveFailed();
   }
 
@@ -323,12 +313,9 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
 
   /// Arranca descargas en cola mientras haya lugar.
   void _pump() {
-    final running =
-        state.active.values.where((d) => d.status == ActiveDownloadStatus.downloading).length;
+    final running = state.active.values.where((d) => d.status == ActiveDownloadStatus.downloading).length;
     if (running >= _maxParallel) return;
-    final next = state.active.entries
-        .where((e) => e.value.status == ActiveDownloadStatus.queued)
-        .firstOrNull;
+    final next = state.active.entries.where((e) => e.value.status == ActiveDownloadStatus.queued).firstOrNull;
     if (next == null) return;
     unawaited(_run(next.key));
     _pump();
@@ -416,10 +403,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       videoId,
       estimate,
       cancelToken: token,
-      onProgress: (received, total) => _updateActive(
-        videoId,
-        (d) => d.copyWith(received: received, total: total),
-      ),
+      onProgress: (received, total) => _updateActive(videoId, (d) => d.copyWith(received: received, total: total)),
     );
   }
 
@@ -428,18 +412,20 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     final current = state.active[videoId];
     if (current == null) return;
     debugPrint('=== DESCARGAS: $videoId quedó con error: ${failure.kind.name} ===');
-    state = state.copyWith(active: {
-      ...state.active,
-      videoId: ActiveDownload(
-        track: current.track,
-        status: ActiveDownloadStatus.failed,
-        received: current.received,
-        total: current.total,
-        failure: failure,
-        sourceId: current.sourceId,
-        refusedPaths: refusedPaths ?? current.refusedPaths,
-      ),
-    });
+    state = state.copyWith(
+      active: {
+        ...state.active,
+        videoId: ActiveDownload(
+          track: current.track,
+          status: ActiveDownloadStatus.failed,
+          received: current.received,
+          total: current.total,
+          failure: failure,
+          sourceId: current.sourceId,
+          refusedPaths: refusedPaths ?? current.refusedPaths,
+        ),
+      },
+    );
     _saveFailed();
   }
 
@@ -449,9 +435,11 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       for (final e in state.active.entries)
         if (e.value.status == ActiveDownloadStatus.failed) e.key: e.value.toFailedJson(),
     };
-    unawaited(_repository.saveFailed(failed).catchError((Object error) {
-      debugPrint('=== DESCARGAS: no se pudo guardar la lista de fallidas: ${error.runtimeType} ===');
-    }));
+    unawaited(
+      _repository.saveFailed(failed).catchError((Object error) {
+        debugPrint('=== DESCARGAS: no se pudo guardar la lista de fallidas: ${error.runtimeType} ===');
+      }),
+    );
   }
 
   /// Reintenta una descarga fallida, sin perder lo que ya se bajó. Pide el audio otra vez
@@ -558,8 +546,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
 
   Future<void> setWifiOnly(bool value) => _saveSettings(state.settings.copyWith(wifiOnly: value));
 
-  Future<void> setLimit(int? bytes) =>
-      _saveSettings(state.settings.copyWith(limitBytes: () => bytes));
+  Future<void> setLimit(int? bytes) => _saveSettings(state.settings.copyWith(limitBytes: () => bytes));
 
   Future<void> _saveSettings(DownloadSettings settings) async {
     state = state.copyWith(settings: settings);
@@ -567,5 +554,4 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   }
 }
 
-final downloadsProvider =
-    NotifierProvider<DownloadsNotifier, DownloadsState>(DownloadsNotifier.new);
+final downloadsProvider = NotifierProvider<DownloadsNotifier, DownloadsState>(DownloadsNotifier.new);

@@ -27,14 +27,18 @@ import '../domain/playlist.dart';
 import 'playlist_actions.dart';
 import '../../downloads/presentation/download_status.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Datos de las listas inteligentes, calculados en el teléfono.
-final smartListInputsProvider = Provider<SmartListInputs>((ref) => SmartListInputs(
-      now: DateTime.now(),
-      liked: ref.watch(favoritesProvider).values.toList(),
-      history: ref.watch(listeningHistoryProvider),
-      downloaded: [for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack()],
-      local: ref.watch(localTracksProvider).value ?? const [],
-    ));
+final smartListInputsProvider = Provider<SmartListInputs>(
+  (ref) => SmartListInputs(
+    now: DateTime.now(),
+    liked: ref.watch(favoritesProvider).values.toList(),
+    history: ref.watch(listeningHistoryProvider),
+    downloaded: [for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack()],
+    local: ref.watch(localTracksProvider).value ?? const [],
+  ),
+);
 
 /// Reproduce [tracks]; con [shuffle], activa el aleatorio y empieza por una al azar.
 void _play(WidgetRef ref, List<Track> tracks, {bool shuffle = false}) {
@@ -45,27 +49,27 @@ void _play(WidgetRef ref, List<Track> tracks, {bool shuffle = false}) {
 }
 
 /// Pide un nombre (crear o renombrar).
-Future<String?> promptPlaylistName(BuildContext context, {String initial = '', String title = 'Nueva playlist'}) {
+Future<String?> promptPlaylistName(BuildContext context, {String initial = '', String? title}) {
   final controller = TextEditingController(text: initial);
   return showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(title),
+      title: Text(title ?? tx.nuevaPlaylist),
       content: TextField(
         controller: controller,
         autofocus: true,
         textCapitalization: TextCapitalization.sentences,
-        decoration: const InputDecoration(hintText: 'Nombre de la playlist'),
+        decoration: InputDecoration(hintText: tx.nombreDeLaPlaylist),
         onSubmitted: (value) => Navigator.pop(context, value.trim().isEmpty ? null : value.trim()),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(tx.cancelar)),
         FilledButton(
           onPressed: () {
             final value = controller.text.trim();
             Navigator.pop(context, value.isEmpty ? null : value);
           },
-          child: const Text('Guardar'),
+          child: Text(tx.guardar),
         ),
       ],
     ),
@@ -92,16 +96,16 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
             child: ListView(
               shrinkWrap: true,
               children: [
-                const ListTile(title: Text('Agregar a playlist')),
+                ListTile(title: Text(tx.agregarAPlaylist)),
                 ListTile(
                   leading: const Icon(Icons.add_rounded, color: KijiColors.cyan),
-                  title: const Text('Nueva playlist'),
+                  title: Text(tx.nuevaPlaylist),
                   onTap: () async {
                     final name = await promptPlaylistName(context);
                     if (name == null) return;
                     final created = notifier.create(name, tracks: tracks);
                     if (sheetContext.mounted) Navigator.pop(sheetContext);
-                    done('Se creó «${created.name}»');
+                    done(tx.seCreo(created.name));
                   },
                 ),
                 for (final playlist in playlists)
@@ -112,9 +116,7 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
                     onTap: () {
                       final added = notifier.addTracks(playlist.id, tracks);
                       Navigator.pop(sheetContext);
-                      done(added == 0
-                          ? 'Ya estaba en «${playlist.name}»'
-                          : 'Se agregó a «${playlist.name}»');
+                      done(added == 0 ? tx.yaEstabaEn(playlist.name) : tx.seAgregoA(playlist.name));
                     },
                   ),
               ],
@@ -126,7 +128,7 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
   );
 }
 
-String _count(int n) => '$n ${n == 1 ? 'canción' : 'canciones'}';
+String _count(int n) => tx.nCanciones(n);
 
 /// Pestaña Playlists de la Biblioteca: listas inteligentes y tus playlists.
 class PlaylistsView extends ConsumerWidget {
@@ -144,25 +146,22 @@ class PlaylistsView extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Row(
             children: [
-              Expanded(child: Text('TUS PLAYLISTS', style: KijiText.mono(size: 11))),
+              Expanded(child: Text(tx.tusPlaylists, style: KijiText.mono(size: 11))),
               TextButton.icon(
                 onPressed: () async {
                   final name = await promptPlaylistName(context);
                   if (name != null) ref.read(playlistsProvider.notifier).create(name);
                 },
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Nueva'),
+                label: Text(tx.nueva),
               ),
             ],
           ),
         ),
         if (playlists.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Todavía no creaste ninguna. Mantén presionada una canción → "Agregar a playlist".',
-              style: TextStyle(color: KijiColors.muted),
-            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(tx.todaviaNoCreasteNingunaMantenPresionada, style: const TextStyle(color: KijiColors.muted)),
           ),
         for (final playlist in PlaylistOps.pinnedFirst(playlists))
           ListTile(
@@ -170,7 +169,7 @@ class PlaylistsView extends ConsumerWidget {
             title: Row(
               children: [
                 if (playlist.pinned) ...[
-                  const Icon(Icons.push_pin_rounded, size: 14, color: KijiColors.cyan, semanticLabel: 'Fijada'),
+                  Icon(Icons.push_pin_rounded, size: 14, color: KijiColors.cyan, semanticLabel: tx.fijada),
                   const SizedBox(width: 4),
                 ],
                 Expanded(child: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
@@ -182,9 +181,9 @@ class PlaylistsView extends ConsumerWidget {
           ),
         ListTile(
           leading: const Icon(Icons.bookmarks_outlined, color: KijiColors.cyan),
-          title: const Text('Momentos'),
+          title: Text(tx.momentos2),
           subtitle: Text(
-            '${ref.watch(momentsProvider).length} segundos guardados de tus canciones',
+            tx.segundosGuardadosDeTusCanciones(ref.watch(momentsProvider).length),
             style: const TextStyle(color: KijiColors.muted),
           ),
           trailing: const Icon(Icons.chevron_right_rounded),
@@ -192,7 +191,7 @@ class PlaylistsView extends ConsumerWidget {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-          child: Text('LISTAS INTELIGENTES · CALCULADAS EN TU TELÉFONO', style: KijiText.mono(size: 11)),
+          child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
         ),
         for (final list in SmartList.values)
           ListTile(
@@ -257,28 +256,25 @@ class _ListHeader extends ConsumerWidget {
                   ),
                 ],
               ),
-              if (description != null) ...[
-                const SizedBox(height: 10),
-                Text(description!),
-              ],
+              if (description != null) ...[const SizedBox(height: 10), Text(description!)],
               const SizedBox(height: 12),
               Row(
                 children: [
                   FilledButton.icon(
                     onPressed: tracks.isEmpty ? null : () => _play(ref, tracks),
                     icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Reproducir'),
+                    label: Text(tx.reproducir),
                   ),
                   const SizedBox(width: 10),
                   OutlinedButton.icon(
                     onPressed: tracks.isEmpty ? null : () => _play(ref, tracks, shuffle: true),
                     icon: const Icon(Icons.shuffle_rounded),
-                    label: const Text('Aleatorio'),
+                    label: Text(tx.aleatorio),
                   ),
                   if (onMore != null) ...[
                     const Spacer(),
                     IconButton.filledTonal(
-                      tooltip: 'Más opciones',
+                      tooltip: tx.masOpciones,
                       iconSize: 28,
                       onPressed: onMore,
                       icon: const Icon(Icons.more_horiz_rounded),
@@ -303,9 +299,8 @@ class PlaylistScreen extends ConsumerStatefulWidget {
 
   final String playlistId;
 
-  static Future<void> open(BuildContext context, String id) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => PlaylistScreen(playlistId: id)),
-      );
+  static Future<void> open(BuildContext context, String id) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => PlaylistScreen(playlistId: id)));
 
   @override
   ConsumerState<PlaylistScreen> createState() => _PlaylistScreenState();
@@ -320,7 +315,10 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     final playlist = ref.watch(playlistsProvider.select((list) => list.where((pl) => pl.id == playlistId).firstOrNull));
     final notifier = ref.read(playlistsProvider.notifier);
     if (playlist == null) {
-      return Scaffold(appBar: AppBar(), body: const Center(child: Text('Esta playlist ya no existe.')));
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text(tx.estaPlaylistYaNoExiste)),
+      );
     }
 
     void delete() {
@@ -328,24 +326,27 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
       final removed = notifier.delete(playlist.id);
       Navigator.of(context).pop();
       if (removed != null) {
-        messenger.showSnackBar(SnackBar(
-          content: Text('Se borró «${playlist.name}»'),
-          duration: const Duration(seconds: 10),
-          persist: false,
-          action: SnackBarAction(
-            label: 'Deshacer',
-            onPressed: () => notifier.restore(removed.$1, removed.$2),
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(tx.seBorro(playlist.name)),
+            duration: const Duration(seconds: 10),
+            persist: false,
+            action: SnackBarAction(label: tx.deshacer, onPressed: () => notifier.restore(removed.$1, removed.$2)),
           ),
-        ));
+        );
       }
     }
 
     // Estado de descarga de cada canción (Tarea T4): para el "142 de 150" y los filtros.
     // Como texto (un carácter por canción) para que la pantalla solo se redibuje si algo cambió.
-    final code = ref.watch(downloadsProvider.select((s) => String.fromCharCodes([
+    final code = ref.watch(
+      downloadsProvider.select(
+        (s) => String.fromCharCodes([
           for (final t in playlist.tracks)
             48 + (t.youtubeVideoId == null ? DownloadMark.none : downloadMarkOf(s, t.youtubeVideoId!).$1).index,
-        ])));
+        ]),
+      ),
+    );
     final marks = [for (final c in code.codeUnits) DownloadMark.values[c - 48]];
     final fromYouTube = playlist.tracks.where((t) => t.youtubeVideoId != null).length;
     final downloaded = marks.where((m) => m == DownloadMark.done).length;
@@ -353,12 +354,15 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     var filter = _filter;
     if (filter == _TrackFilter.failed && failed == 0) filter = _TrackFilter.all;
     bool matches(int i) => switch (filter) {
-          _TrackFilter.all => true,
-          _TrackFilter.downloaded => marks[i] == DownloadMark.done,
-          _TrackFilter.missing => playlist.tracks[i].youtubeVideoId != null && marks[i] != DownloadMark.done,
-          _TrackFilter.failed => marks[i] == DownloadMark.failed,
-        };
-    final visible = [for (var i = 0; i < playlist.tracks.length; i++) if (matches(i)) i];
+      _TrackFilter.all => true,
+      _TrackFilter.downloaded => marks[i] == DownloadMark.done,
+      _TrackFilter.missing => playlist.tracks[i].youtubeVideoId != null && marks[i] != DownloadMark.done,
+      _TrackFilter.failed => marks[i] == DownloadMark.failed,
+    };
+    final visible = [
+      for (var i = 0; i < playlist.tracks.length; i++)
+        if (matches(i)) i,
+    ];
 
     Widget tile(int index, {required bool reorderable}) {
       final track = playlist.tracks[index];
@@ -369,7 +373,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
         title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: marks[index] == DownloadMark.failed
             ? Text(
-                ref.read(downloadsProvider).active[videoId]?.errorMessage ?? 'No se pudo descargar',
+                ref.read(downloadsProvider).active[videoId]?.errorMessage ?? tx.noSePudoDescargar2,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: downloadWarningColor),
@@ -382,35 +386,37 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           children: [
             if (marks[index] == DownloadMark.failed && videoId != null)
               IconButton(
-                tooltip: 'Por qué no se descargó',
+                tooltip: tx.porQueNoSeDescargo,
                 icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
                 onPressed: () => showDownloadFailureSheet(context, ref, videoId),
               ),
             IconButton(
-              tooltip: 'Quitar de la playlist',
+              tooltip: tx.quitarDeLaPlaylist,
               icon: const Icon(Icons.close_rounded, color: KijiColors.muted),
               onPressed: () {
                 final removed = notifier.removeTrackAt(playlist.id, index);
                 if (removed == null) return;
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
-                  ..showSnackBar(SnackBar(
-                    content: Text('Se quitó «${removed.title}»'),
-                    duration: const Duration(seconds: 10),
-                    persist: false,
-                    action: SnackBarAction(
-                      label: 'Deshacer',
-                      onPressed: () => notifier.insertTrack(playlist.id, index, removed),
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(tx.seQuito(removed.title)),
+                      duration: const Duration(seconds: 10),
+                      persist: false,
+                      action: SnackBarAction(
+                        label: tx.deshacer,
+                        onPressed: () => notifier.insertTrack(playlist.id, index, removed),
+                      ),
                     ),
-                  ));
+                  );
               },
             ),
             if (reorderable)
               ReorderableDragStartListener(
                 index: index,
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.drag_handle_rounded, semanticLabel: 'Arrastrar para mover'),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(Icons.drag_handle_rounded, semanticLabel: tx.arrastrarParaMover),
                 ),
               ),
           ],
@@ -428,7 +434,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
             title: playlist.name,
             subtitle: playlist.importedFrom == null
                 ? _count(playlist.tracks.length)
-                : '${_count(playlist.tracks.length)} · importada de ${playlist.importedFrom}',
+                : tx.importadaDe(_count(playlist.tracks.length), playlist.importedFrom),
             tracks: playlist.tracks,
             onMore: () => showPlaylistOptions(
               context,
@@ -458,12 +464,14 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                     itemBuilder: (context, index) => tile(index, reorderable: true),
                   )
                 : visible.isEmpty
-                    ? const Center(child: Text('Ninguna canción con este filtro.', style: TextStyle(color: KijiColors.muted)))
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 120),
-                        itemCount: visible.length,
-                        itemBuilder: (context, i) => tile(visible[i], reorderable: false),
-                      ),
+                ? Center(
+                    child: Text(tx.ningunaCancionConEsteFiltro, style: const TextStyle(color: KijiColors.muted)),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    itemCount: visible.length,
+                    itemBuilder: (context, i) => tile(visible[i], reorderable: false),
+                  ),
           ),
         ],
       ),
@@ -490,13 +498,9 @@ class _DownloadFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget chip(_TrackFilter value, String label) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: ChoiceChip(
-            label: Text(label),
-            selected: filter == value,
-            onSelected: (_) => onFilter(value),
-          ),
-        );
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(label: Text(label), selected: filter == value, onSelected: (_) => onFilter(value)),
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
       child: Column(
@@ -510,10 +514,10 @@ class _DownloadFilterBar extends StatelessWidget {
                 color: KijiColors.cyan,
               ),
               const SizedBox(width: 6),
-              Text('$downloaded de $total descargadas', style: KijiText.mono(size: 13, color: KijiColors.text)),
+              Text(tx.deDescargadas(downloaded, total), style: KijiText.mono(size: 13, color: KijiColors.text)),
               if (failed > 0) ...[
                 const SizedBox(width: 10),
-                Text('· $failed con error', style: KijiText.mono(size: 13, color: downloadWarningColor)),
+                Text(tx.conError(failed), style: KijiText.mono(size: 13, color: downloadWarningColor)),
               ],
             ],
           ),
@@ -522,10 +526,10 @@ class _DownloadFilterBar extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                chip(_TrackFilter.all, 'Todas'),
-                chip(_TrackFilter.downloaded, 'Descargadas'),
-                chip(_TrackFilter.missing, 'Sin descargar'),
-                if (failed > 0) chip(_TrackFilter.failed, 'Con error'),
+                chip(_TrackFilter.all, tx.todas),
+                chip(_TrackFilter.downloaded, tx.descargadas),
+                chip(_TrackFilter.missing, tx.sinDescargar),
+                if (failed > 0) chip(_TrackFilter.failed, tx.conError2),
               ],
             ),
           ),
@@ -541,9 +545,8 @@ class SmartListScreen extends ConsumerWidget {
 
   final SmartList list;
 
-  static Future<void> open(BuildContext context, SmartList list) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => SmartListScreen(list: list)),
-      );
+  static Future<void> open(BuildContext context, SmartList list) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => SmartListScreen(list: list)));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -553,14 +556,14 @@ class SmartListScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 120),
         children: [
-          _ListHeader(title: list.title, subtitle: 'Regla: ${list.rule}', tracks: tracks),
+          _ListHeader(title: list.title, subtitle: tx.regla(list.rule), tracks: tracks),
           if (tracks.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
+            Padding(
+              padding: const EdgeInsets.all(24),
               child: Text(
-                'Por ahora no hay canciones que cumplan la regla.',
+                tx.porAhoraNoHayCancionesQue,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: KijiColors.muted),
+                style: const TextStyle(color: KijiColors.muted),
               ),
             ),
           for (final (index, track) in tracks.indexed)

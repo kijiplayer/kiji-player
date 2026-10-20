@@ -1,6 +1,9 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 import 'package:flutter/foundation.dart';
 
 import 'error_report.dart';
+
+import 'package:kiji_player/l10n/l10n.dart';
 
 /// Junta los errores de Kiji para ofrecer mandar un informe (Tarea T3).
 ///
@@ -24,8 +27,16 @@ class ErrorReporter {
   bool _offeredThisSession = false;
 
   static const _noise = [
-    'Socket', 'Http', 'Timeout', 'Handshake', 'Connection', 'ClientException', 'Interrupted', 'Dio',
-    'PlatformException(abort', 'Loading interrupted',
+    'Socket',
+    'Http',
+    'Timeout',
+    'Handshake',
+    'Connection',
+    'ClientException',
+    'Interrupted',
+    'Dio',
+    'PlatformException(abort',
+    'Loading interrupted',
   ];
 
   /// true si [error] es de red o de un corte esperado (no es una falla de Kiji).
@@ -58,8 +69,10 @@ class ErrorReporter {
         for (var i = 0; i < text.length; i++)
           if (text[i].contains('error-causing widget') || text[i].contains('creator:')) ...text.skip(i).take(4),
       ];
-      debugPrint('=== REGISTRO: error de dibujo (sin aviso): ${'${details.exception}'.split('\n').first} '
-          '${culprit.map((l) => l.trim()).join(' ')} ===');
+      debugPrint(
+        '=== REGISTRO: error de dibujo (sin aviso): ${'${details.exception}'.split('\n').first} '
+        '${culprit.map((l) => l.trim()).join(' ')} ===',
+      );
       return;
     }
     capture(details.exception, details.stack, where: 'interfaz');
@@ -75,7 +88,7 @@ class ErrorReporter {
     final lines = '${stack ?? ''}'.split('\n').where((l) => l.trim().isNotEmpty).take(12).join('\n');
     _offer(
       ErrorReport(
-        summary: 'Algo falló en ${where == 'interfaz' ? 'la pantalla' : where}',
+        summary: tx.algoFalloEn(where == 'interfaz' ? tx.laPantalla : where),
         where: where,
         detail: '${error.runtimeType}: $error'.split('\n').first,
         stack: lines,
@@ -85,12 +98,12 @@ class ErrorReporter {
 
   /// Una canción de YouTube no sonó con ninguna forma, con internet (Modo de Gracia).
   void unplayable(String videoId) => _offer(
-        ErrorReport(
-          summary: 'Una canción no se pudo reproducir con ninguna forma',
-          where: 'reproducción',
-          detail: 'video $videoId: caminos agotados',
-        ),
-      );
+    ErrorReport(
+      summary: tx.unaCancionNoSePudoReproducir,
+      where: tx.reproduccion,
+      detail: tx.videoCaminosAgotados(videoId),
+    ),
+  );
 
   void _offer(ErrorReport report) {
     debugPrint('=== INFORME: ${report.summary} (${report.where}) ${report.detail} ===');

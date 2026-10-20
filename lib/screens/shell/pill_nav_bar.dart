@@ -52,16 +52,18 @@ class PillNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(shellTabProvider);
     final duration = reduceMotion(context, ref) ? Duration.zero : KijiMotion.normal;
-    final widths = [
-      for (final d in ShellDestination.all) widthOf(context, d, selected: d.tab == current),
-    ];
+    final widths = [for (final d in ShellDestination.all) widthOf(context, d, selected: d.tab == current)];
     final index = ShellDestination.all.indexWhere((d) => d.tab == current);
     final left = widths.take(index).fold(0.0, (a, b) => a + b);
 
     return Glass(
       radius: KijiRadii.pill,
       padding: const EdgeInsets.all(6),
-      child: SizedBox(
+      // El ancho total se anima igual que cada pestaña: así la fila nunca queda más ancha que
+      // la píldora a mitad del cambio (pasaba con textos largos, como en inglés).
+      child: AnimatedContainer(
+        duration: duration,
+        curve: Curves.easeOutCubic,
         height: 48,
         width: widths.fold<double>(0, (a, b) => a + b),
         child: Stack(
@@ -80,17 +82,26 @@ class PillNavBar extends ConsumerWidget {
                 ),
               ),
             ),
-            Row(
-              children: [
-                for (final (i, destination) in ShellDestination.all.indexed)
-                  _PillItem(
-                    destination: destination,
-                    selected: destination.tab == current,
-                    width: widths[i],
-                    duration: duration,
-                    onTap: () => ref.read(shellTabProvider.notifier).state = destination.tab,
-                  ),
-              ],
+            // A mitad del cambio de pestaña la fila puede ser un poco más ancha que la píldora:
+            // se recorta en vez de avisar un desborde.
+            ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.centerLeft,
+                maxWidth: double.infinity,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final (i, destination) in ShellDestination.all.indexed)
+                      _PillItem(
+                        destination: destination,
+                        selected: destination.tab == current,
+                        width: widths[i],
+                        duration: duration,
+                        onTap: () => ref.read(shellTabProvider.notifier).state = destination.tab,
+                      ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -135,11 +146,7 @@ class _PillItem extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  destination.icon,
-                  color: selected ? KijiColors.onAccent : KijiColors.muted,
-                  size: 22,
-                ),
+                Icon(destination.icon, color: selected ? KijiColors.onAccent : KijiColors.muted, size: 22),
                 if (selected) ...[
                   const SizedBox(width: 8),
                   Text(destination.labelOf(context), style: PillNavBar._labelStyle),

@@ -29,6 +29,7 @@ class AppSettings {
     this.offerErrorReports = true,
     this.lyricsSourceOrder = LyricsSource.online,
     this.accountPromptsOff = false,
+    this.language = 'system',
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -39,6 +40,9 @@ class AppSettings {
 
   /// Opciones del límite de la caché de lo escuchado.
   static const cacheLimitOptions = [100 * _mb, 300 * _mb, 1024 * _mb, 2048 * _mb];
+
+  /// Idiomas de la app: 'system' sigue al del teléfono.
+  static const languages = ['system', 'es', 'en'];
 
   /// Duración mínima para no ser "audio corto" (sonidos de juegos, avisos).
   static const shortAudioMs = 30 * 1000;
@@ -114,6 +118,9 @@ class AppSettings {
   /// "No volver a preguntar" si iniciar sesión (Configuración → Cuenta).
   final bool accountPromptsOff;
 
+  /// Idioma de la app (Configuración → Idioma): 'system', 'es' o 'en'.
+  final String language;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -138,6 +145,7 @@ class AppSettings {
     bool? offerErrorReports,
     List<LyricsSource>? lyricsSourceOrder,
     bool? accountPromptsOff,
+    String? language,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -162,6 +170,7 @@ class AppSettings {
         offerErrorReports: offerErrorReports ?? this.offerErrorReports,
         lyricsSourceOrder: lyricsSourceOrder ?? this.lyricsSourceOrder,
         accountPromptsOff: accountPromptsOff ?? this.accountPromptsOff,
+        language: language ?? this.language,
       );
 
   Map<String, dynamic> toJson() => {
@@ -188,6 +197,7 @@ class AppSettings {
         'offerErrorReports': offerErrorReports,
         'lyricsSourceOrder': [for (final s in lyricsSourceOrder) s.name],
         'accountPromptsOff': accountPromptsOff,
+        'language': language,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -225,6 +235,7 @@ class AppSettings {
       offerErrorReports: read('offerErrorReports', d.offerErrorReports),
       lyricsSourceOrder: lyricsOrderFrom(json['lyricsSourceOrder']),
       accountPromptsOff: read('accountPromptsOff', d.accountPromptsOff),
+      language: languages.contains(json['language']) ? json['language'] as String : d.language,
     );
   }
 

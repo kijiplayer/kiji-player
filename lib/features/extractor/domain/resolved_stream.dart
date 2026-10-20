@@ -1,18 +1,23 @@
 import 'extraction_failure.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Los motores de extracción (Tarea Z8).
 enum EngineId {
   /// InnerTubeX, solo Android (principal ahí).
-  a('Motor A · InnerTubeX'),
+  a,
 
   /// El de Kiji, en todas las plataformas (principal en PC, respaldo en Android).
-  b('Motor B · Kiji'),
+  b,
 
   /// yt-dlp, solo PC y a pedido.
-  c('Motor C · yt-dlp');
+  c;
 
-  const EngineId(this.label);
-  final String label;
+  String get label => switch (this) {
+    EngineId.a => tx.motorAInnertubex,
+    EngineId.b => tx.motorBKiji,
+    EngineId.c => tx.motorCYtDlp,
+  };
 }
 
 /// Un audio listo para reproducir, con la identidad que tiene que usar al pedirlo.
@@ -54,7 +59,7 @@ class ResolvedStream {
 
   /// Nunca la URL ni los encabezados (van firmados).
   @override
-  String toString() => 'ResolvedStream($path, ${kbps ?? '?'} kbps${isHls ? ', HLS' : ''})';
+  String toString() => tx.resolvedstreamKbps(path, kbps ?? '?', isHls ? ', HLS' : ''); // l10n-ignore
 }
 
 /// Lo que devuelve un motor: el audio, o por qué no.

@@ -10,8 +10,9 @@ import '../../utils/json_file.dart';
 import '../settings/data/settings_store.dart';
 import '../../version.dart';
 
-export '../../version.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 
+export '../../version.dart';
 
 /// Repositorio oficial. Solo se abre su página; Kiji nunca baja ni instala nada.
 const kijiRepo = 'kijiplayer/kiji-player';
@@ -97,14 +98,17 @@ class UpdateState {
 /// y un botón a la página oficial.
 class UpdateNotifier extends Notifier<UpdateState> {
   UpdateNotifier({Dio? dio, Future<String> Function()? directory, DateTime Function()? now})
-      : _dio = dio ??
-            Dio(BaseOptions(
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 15),
               headers: {'Accept': 'application/vnd.github+json', 'User-Agent': 'KijiPlayer/$kijiVersion'},
-            )),
-        _directoryPath = directory,
-        _now = now ?? DateTime.now;
+            ),
+          ),
+      _directoryPath = directory,
+      _now = now ?? DateTime.now;
 
   final Dio _dio;
   final Future<String> Function()? _directoryPath;
@@ -114,9 +118,9 @@ class UpdateNotifier extends Notifier<UpdateState> {
   static const interval = Duration(days: 1);
 
   Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'updates.json'),
-        logTag: 'ACTUALIZACIONES',
-      );
+    p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'updates.json'),
+    logTag: 'ACTUALIZACIONES',
+  );
 
   @override
   UpdateState build() => const UpdateState();
@@ -150,7 +154,7 @@ class UpdateNotifier extends Notifier<UpdateState> {
       final now = _now();
       unawaited((await _jsonFile()).write({'lastCheck': now.toIso8601String()}));
       if (response.statusCode == 404) {
-        state = UpdateState(lastCheck: now, message: 'Todavía no hay versiones publicadas.');
+        state = UpdateState(lastCheck: now, message: tx.todaviaNoHayVersionesPublicadas);
         return;
       }
       final release = Release.fromJson(response.data);
@@ -158,12 +162,12 @@ class UpdateNotifier extends Notifier<UpdateState> {
       state = UpdateState(
         lastCheck: now,
         latest: newer ? release : null,
-        message: newer ? 'Hay una versión nueva: ${release.version}.' : 'Tienes la última versión ($kijiVersion).',
+        message: newer ? tx.hayVersionNuevaPunto(release.version) : tx.tienesLaUltimaVersion(kijiVersion),
       );
       debugPrint('=== ACTUALIZACIONES: última ${release?.version ?? '?'}, esta $kijiVersion ===');
     } catch (error) {
       debugPrint('=== ACTUALIZACIONES: no se pudo consultar (${error.runtimeType}) ===');
-      state = UpdateState(lastCheck: state.lastCheck, latest: state.latest, message: 'No se pudo consultar. Revisa tu conexión.');
+      state = UpdateState(lastCheck: state.lastCheck, latest: state.latest, message: tx.noSePudoConsultarRevisaTu);
     }
   }
 }

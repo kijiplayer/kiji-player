@@ -6,6 +6,8 @@ import '../../models/track.dart';
 import '../../providers/playback_provider.dart';
 import 'domain/sleep_timer_logic.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Temporizador activo: cómo termina y cuánto falta.
 class SleepTimerState {
   const SleepTimerState({
@@ -44,17 +46,16 @@ class SleepTimerState {
   /// repite) y recién ahí cuenta. Así nunca pausa de golpe.
   final bool waitingForTarget;
 
-  SleepTimerState copyWith({Duration? remaining, Duration? fadeWindow, bool? waitingForTarget}) =>
-      SleepTimerState(
-        mode: mode,
-        endsAt: endsAt,
-        remaining: remaining,
-        targetTrackId: targetTrackId,
-        targetTitle: targetTitle,
-        targetPosition: targetPosition,
-        fadeWindow: fadeWindow ?? this.fadeWindow,
-        waitingForTarget: waitingForTarget ?? this.waitingForTarget,
-      );
+  SleepTimerState copyWith({Duration? remaining, Duration? fadeWindow, bool? waitingForTarget}) => SleepTimerState(
+    mode: mode,
+    endsAt: endsAt,
+    remaining: remaining,
+    targetTrackId: targetTrackId,
+    targetTitle: targetTitle,
+    targetPosition: targetPosition,
+    fadeWindow: fadeWindow ?? this.fadeWindow,
+    waitingForTarget: waitingForTarget ?? this.waitingForTarget,
+  );
 }
 
 /// Temporizador de apagado (Tareas H y H2). null = apagado.
@@ -74,18 +75,17 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
 
   void start(SleepTimerMode mode, {int minutes = 30}) {
     final clamped = minutes.clamp(SleepTimerLogic.minMinutes, SleepTimerLogic.maxMinutes);
-    _begin(SleepTimerState(
-      mode: mode,
-      endsAt: mode == SleepTimerMode.minutes ? clock().add(Duration(minutes: clamped)) : null,
-    ));
+    _begin(
+      SleepTimerState(
+        mode: mode,
+        endsAt: mode == SleepTimerMode.minutes ? clock().add(Duration(minutes: clamped)) : null,
+      ),
+    );
   }
 
   /// "Pausar al terminar esta" (Tarea H2): [track] tiene que estar en la cola.
-  void startUntilTrack(Track track) => _begin(SleepTimerState(
-        mode: SleepTimerMode.untilTrack,
-        targetTrackId: track.id,
-        targetTitle: track.title,
-      ));
+  void startUntilTrack(Track track) =>
+      _begin(SleepTimerState(mode: SleepTimerMode.untilTrack, targetTrackId: track.id, targetTitle: track.title));
 
   /// "En un momento exacto" de la canción que suena (Tarea H2).
   /// Cualquier punto de 0:00 al final (Tarea Z2); si ya pasó, espera a que
@@ -95,13 +95,15 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     final track = playback.track;
     if (track == null) return;
     ref.read(sleepTimerMarkingProvider.notifier).state = false;
-    _begin(SleepTimerState(
-      mode: SleepTimerMode.atPosition,
-      targetTrackId: track.id,
-      targetTitle: track.title,
-      targetPosition: position,
-      waitingForTarget: SleepTimerLogic.alreadyPassed(position, playback.position),
-    ));
+    _begin(
+      SleepTimerState(
+        mode: SleepTimerMode.atPosition,
+        targetTrackId: track.id,
+        targetTitle: track.title,
+        targetPosition: position,
+        waitingForTarget: SleepTimerLogic.alreadyPassed(position, playback.position),
+      ),
+    );
   }
 
   void _begin(SleepTimerState timer) {
@@ -146,18 +148,17 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     final remaining = waiting
         ? null
         : SleepTimerLogic.remaining(
-      mode: timer.mode,
-      now: clock(),
-      endsAt: timer.endsAt,
-      position: playback.position,
-      duration: playback.duration,
-      isLastInQueue: playback.queue.isEmpty || playback.currentIndex >= playback.queue.length - 1,
-      currentTrackId: playback.track?.id,
-      targetTrackId: timer.targetTrackId,
-      targetPosition: timer.targetPosition,
-    );
-    final window = timer.fadeWindow ??
-        (remaining == null ? null : SleepTimerLogic.fadeWindowFor(remaining));
+            mode: timer.mode,
+            now: clock(),
+            endsAt: timer.endsAt,
+            position: playback.position,
+            duration: playback.duration,
+            isLastInQueue: playback.queue.isEmpty || playback.currentIndex >= playback.queue.length - 1,
+            currentTrackId: playback.track?.id,
+            targetTrackId: timer.targetTrackId,
+            targetPosition: timer.targetPosition,
+          );
+    final window = timer.fadeWindow ?? (remaining == null ? null : SleepTimerLogic.fadeWindowFor(remaining));
     state = timer.copyWith(remaining: remaining, fadeWindow: window, waitingForTarget: waiting);
 
     if (SleepTimerLogic.shouldStop(timer.mode, remaining)) {
@@ -168,21 +169,17 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
       await player.pause();
       await player.setFadeFactor(1);
       if (wasPlaying) {
-        ref.read(playbackNoticeProvider.notifier).state =
-            const PlaybackNotice('Temporizador: la música quedó en pausa. Que descanses.');
+        ref.read(playbackNoticeProvider.notifier).state = PlaybackNotice(tx.temporizadorLaMusicaQuedoEnPausa);
       }
       return;
     }
     if (playback.isPlaying) {
-      await player.setFadeFactor(
-        SleepTimerLogic.fadeFactor(remaining, window: window ?? SleepTimerLogic.fadeDuration),
-      );
+      await player.setFadeFactor(SleepTimerLogic.fadeFactor(remaining, window: window ?? SleepTimerLogic.fadeDuration));
     }
   }
 }
 
-final sleepTimerProvider =
-    NotifierProvider<SleepTimerNotifier, SleepTimerState?>(SleepTimerNotifier.new);
+final sleepTimerProvider = NotifierProvider<SleepTimerNotifier, SleepTimerState?>(SleepTimerNotifier.new);
 
 /// "Marcar en la onda" (Tarea Z2): mientras es true, tocar la onda del
 /// reproductor elige el momento de la pausa en vez de saltar a ese punto.

@@ -9,12 +9,14 @@ import '../domain/resolved_stream.dart';
 import 'engines.dart';
 import 'path_health.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Canciones de CONTROL (Tarea Z8): normales, públicas y disponibles en todo el mundo. Las
 /// pruebas nunca usan el historial ni nada del usuario.
 const controlVideos = <(String id, String name)>[
-  ('BSTsnWoslP4', 'Bohemian Rhapsody · Queen'),
-  ('8Xv_Hg8o1fw', 'Clocks · Coldplay'),
-  ('BycLmWI97Nc', 'La Bamba · Ritchie Valens'),
+  ('BSTsnWoslP4', 'Bohemian Rhapsody · Queen'), // l10n-ignore
+  ('8Xv_Hg8o1fw', 'Clocks · Coldplay'), // l10n-ignore
+  ('BycLmWI97Nc', 'La Bamba · Ritchie Valens'), // l10n-ignore
 ];
 
 /// Formas del motor A que se prueban una por una (las automáticas de InnerTubeX que sirven sin
@@ -41,10 +43,12 @@ class ExtractorTester {
     PathHealth? health,
     Dio? dio,
     DateTime Function()? now,
-  })  : engineA = engineA ?? InnerTubeXEngine(),
-        health = health ?? PathHealth.instance,
-        _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 20))),
-        _now = now ?? DateTime.now;
+  }) : engineA = engineA ?? InnerTubeXEngine(),
+       health = health ?? PathHealth.instance,
+       _dio =
+           dio ??
+           Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 20))),
+       _now = now ?? DateTime.now;
 
   final YtMusicClient client;
   final InnerTubeXEngine engineA;
@@ -59,28 +63,35 @@ class ExtractorTester {
   Future<String?> lastByteCheck(ResolvedStream stream) async {
     try {
       if (stream.isHls) {
-        final r = await _dio.get<String>(stream.url, options: Options(headers: stream.headers, validateStatus: (_) => true));
-        return r.statusCode == 200 ? null : 'La lista HLS no responde (HTTP ${r.statusCode})';
+        final r = await _dio.get<String>(
+          stream.url,
+          options: Options(headers: stream.headers, validateStatus: (_) => true),
+        );
+        return r.statusCode == 200 ? null : tx.laListaHlsNoRespondeHttp(r.statusCode);
       }
       var length = stream.contentLength;
       if (length == null || length <= 0) {
         final first = await _get(stream, 'bytes=0-0');
         length = int.tryParse((first.headers.value('content-range') ?? '').split('/').last);
-        if (length == null) return 'YouTube no dijo el tamaño del audio (HTTP ${first.statusCode})';
+        if (length == null) return tx.youtubeNoDijoElTamanoDel(first.statusCode);
       }
       final last = await _get(stream, 'bytes=${length - 1}-${length - 1}');
       final status = last.statusCode ?? 0;
       if ((status == 206 || status == 200) && (last.data?.isNotEmpty ?? false)) return null;
-      return status == 403 ? 'Corta antes del final (HTTP 403 en el último byte)' : 'El último byte no llegó (HTTP $status)';
+      return status == 403 ? tx.cortaAntesDelFinal : tx.elUltimoByteNoLlegoHttp(status);
     } catch (error) {
-      return 'No se pudo pedir el último byte (${error.runtimeType})';
+      return tx.noSePudoPedirElUltimo(error.runtimeType);
     }
   }
 
   Future<Response<List<int>>> _get(ResolvedStream s, String range) => _dio.get<List<int>>(
-        s.url,
-        options: Options(responseType: ResponseType.bytes, headers: {...s.headers, 'Range': range}, validateStatus: (_) => true),
-      );
+    s.url,
+    options: Options(
+      responseType: ResponseType.bytes,
+      headers: {...s.headers, 'Range': range},
+      validateStatus: (_) => true,
+    ),
+  );
 
   /// Prueba todos los caminos (A en Android, B siempre) y lo anota en la Salud.
   Future<List<PathTestResult>> runAll({void Function(PathTestResult)? onResult}) async {
@@ -88,7 +99,7 @@ class ExtractorTester {
     void add(PathTestResult r) {
       results.add(r);
       // Con una canción de control cualquier falla es de la forma (la canción sí se puede escuchar).
-      r.ok ? health.recordSuccess(r.path) : health.recordFormFailure(r.path, r.reason ?? 'Falló la prueba');
+      r.ok ? health.recordSuccess(r.path) : health.recordFormFailure(r.path, r.reason ?? tx.falloLaPrueba);
       onResult?.call(r);
     }
 
@@ -101,7 +112,15 @@ class ExtractorTester {
         final stream = result.stream;
         if (stream == null) {
           final f = result.failures.isEmpty ? null : result.failures.first.$2;
-          add(PathTestResult('A/$form', ok: false, reason: f?.message ?? 'Sin audio', elapsed: watch.elapsed, control: name));
+          add(
+            PathTestResult(
+              'A/$form',
+              ok: false,
+              reason: f?.message ?? tx.sinAudio,
+              elapsed: watch.elapsed,
+              control: name,
+            ),
+          );
           continue;
         }
         final problem = await lastByteCheck(stream);
@@ -115,16 +134,20 @@ class ExtractorTester {
       final (videoId, name) = controlFor(i++);
       final attempt = await client.tryClient(videoId, c);
       // tryClient ya pide el final del archivo (y el último segmento en HLS).
-      add(PathTestResult(
-        'B/${c.label}',
-        ok: attempt.ok,
-        reason: attempt.ok ? null : (attempt.offline ? 'Sin conexión' : attempt.reason),
-        elapsed: attempt.elapsed,
-        control: name,
-      ));
+      add(
+        PathTestResult(
+          'B/${c.label}',
+          ok: attempt.ok,
+          reason: attempt.ok ? null : (attempt.offline ? tx.sinConexion : attempt.reason),
+          elapsed: attempt.elapsed,
+          control: name,
+        ),
+      );
     }
     health.markTested();
-    debugPrint('=== SALUD: prueba completa, ${results.where((r) => r.ok).length} de ${results.length} caminos andan ===');
+    debugPrint(
+      '=== SALUD: prueba completa, ${results.where((r) => r.ok).length} de ${results.length} caminos andan ===',
+    );
     return results;
   }
 }
@@ -132,10 +155,10 @@ class ExtractorTester {
 /// Resumen en palabras simples para arriba de la Salud del Extractor.
 String healthSummary(List<PathTestResult> results) {
   final ok = results.where((r) => r.ok).length;
-  if (results.isEmpty) return 'Todavía no se probó.';
-  if (ok == 0) return 'Canciones normales: ✗ ninguna forma funciona ahora';
-  return 'Canciones normales: ✓ $ok ${ok == 1 ? 'forma funcionando' : 'formas funcionando'}';
+  if (results.isEmpty) return tx.todaviaNoSeProbo;
+  if (ok == 0) return tx.cancionesNormalesNingunaFormaFuncionaAho;
+  return tx.cancionesNormalesFormas(ok);
 }
 
 /// El problema de contenido nunca baja el contador de formas.
-const ageSummary = 'Con restricción de edad: necesitan cuenta (no cuentan como falla)';
+String get ageSummary => tx.conRestriccionDeEdadNecesitanCuenta;

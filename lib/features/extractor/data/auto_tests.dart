@@ -14,6 +14,8 @@ import '../../yt_music/presentation/collection_screens.dart';
 import 'extractor_tester.dart';
 import 'path_health.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Pruebas automáticas del extractor (Tarea Z8):
 /// - al abrir Kiji, si pasaron más de 12 h desde la última;
 /// - en PC, cada 12 h mientras está abierta;
@@ -62,10 +64,8 @@ class ExtractorAutoTests {
     _running = true;
     try {
       final results = await ExtractorTester(client: ref.read(ytMusicClientProvider)).runAll();
-      if (results.isNotEmpty && results.every((r) => !r.ok) && !results.every((r) => r.reason == 'Sin conexión')) {
-        ref.read(playbackNoticeProvider.notifier).state = const PlaybackNotice(
-          'Ninguna forma está pudiendo bajar canciones de YouTube ahora. Revisa la Salud del Extractor.',
-        );
+      if (results.isNotEmpty && results.every((r) => !r.ok) && !results.every((r) => r.reason == tx.sinConexion)) {
+        ref.read(playbackNoticeProvider.notifier).state = PlaybackNotice(tx.ningunaFormaEstaPudiendoBajarCanciones);
       }
     } catch (error) {
       debugPrint('=== SALUD: la prueba automática falló: $error ===');
@@ -87,7 +87,9 @@ class ExtractorAutoTests {
       for (final r in (json['results'] as List? ?? const [])) {
         if (r is! Map) continue;
         final path = '${r['path']}';
-        r['ok'] == true ? health.recordSuccess(path) : health.recordFormFailure(path, '${r['reason'] ?? 'Falló la prueba diaria'}');
+        r['ok'] == true
+            ? health.recordSuccess(path)
+            : health.recordFormFailure(path, '${r['reason'] ?? tx.falloLaPruebaDiaria}');
         count++;
       }
       final at = json['at'];

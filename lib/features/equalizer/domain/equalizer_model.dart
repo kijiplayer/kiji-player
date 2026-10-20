@@ -5,14 +5,19 @@
 
 import 'dart:math' as math;
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Por dónde sale el sonido. Cada salida puede tener su propio perfil.
 enum AudioOutputKind {
-  speaker('Parlante'),
-  headphones('Auriculares con cable'),
-  bluetooth('Bluetooth');
+  speaker,
+  headphones,
+  bluetooth;
 
-  const AudioOutputKind(this.label);
-  final String label;
+  String get label => switch (this) {
+    AudioOutputKind.speaker => tx.parlante,
+    AudioOutputKind.headphones => tx.auricularesConCable,
+    AudioOutputKind.bluetooth => 'Bluetooth', // l10n-ignore
+  };
 }
 
 /// Un preset: la curva en dB sobre las 5 frecuencias típicas de Android.
@@ -29,16 +34,16 @@ const _f = [60, 230, 910, 3600, 14000];
 Map<int, double> _curve(List<double> db) => {for (var i = 0; i < _f.length; i++) _f[i]: db[i]};
 
 final eqPresets = <EqPreset>[
-  EqPreset('flat', 'Plano', _curve([0, 0, 0, 0, 0])),
-  EqPreset('bass', 'Más graves', _curve([6, 4, 0, 0, 0])),
-  EqPreset('treble', 'Más agudos', _curve([0, 0, 0, 3, 6])),
-  EqPreset('vocal', 'Voces', _curve([-2, -1, 3, 4, 1])),
-  EqPreset('rock', 'Rock', _curve([5, 3, -1, 3, 5])),
-  EqPreset('pop', 'Pop', _curve([-1, 2, 4, 2, -1])),
-  EqPreset('electronic', 'Electrónica', _curve([5, 3, 0, 2, 4])),
-  EqPreset('acoustic', 'Acústica', _curve([3, 1, 1, 2, 3])),
-  EqPreset('classical', 'Clásica', _curve([4, 2, -1, 2, 4])),
-  EqPreset('night', 'Noche (suave)', _curve([-3, -1, 1, 0, -3])),
+  EqPreset('flat', tx.plano, _curve([0, 0, 0, 0, 0])),
+  EqPreset('bass', tx.masGraves, _curve([6, 4, 0, 0, 0])),
+  EqPreset('treble', tx.masAgudos, _curve([0, 0, 0, 3, 6])),
+  EqPreset('vocal', tx.voces, _curve([-2, -1, 3, 4, 1])),
+  EqPreset('rock', 'Rock', _curve([5, 3, -1, 3, 5])), // l10n-ignore
+  EqPreset('pop', 'Pop', _curve([-1, 2, 4, 2, -1])), // l10n-ignore
+  EqPreset('electronic', tx.electronica, _curve([5, 3, 0, 2, 4])),
+  EqPreset('acoustic', tx.acustica, _curve([3, 1, 1, 2, 3])),
+  EqPreset('classical', tx.clasica, _curve([4, 2, -1, 2, 4])),
+  EqPreset('night', tx.nocheSuave, _curve([-3, -1, 1, 0, -3])),
 ];
 
 EqPreset? presetById(String? id) {
@@ -77,29 +82,26 @@ class EqProfile {
   /// Solo para [custom]: dB por frecuencia (Hz) de cada banda movida.
   final Map<int, double> points;
 
-  Map<int, double> get curve =>
-      presetId == custom ? points : (presetById(presetId)?.points ?? const {});
+  Map<int, double> get curve => presetId == custom ? points : (presetById(presetId)?.points ?? const {});
 
-  String get label => presetId == custom ? 'Personalizado' : (presetById(presetId)?.label ?? 'Plano');
+  String get label => presetId == custom ? tx.personalizado : (presetById(presetId)?.label ?? tx.plano);
 
   /// Ganancias para las bandas reales del teléfono, dentro de su rango.
-  List<double> gainsFor(List<double> centers, {double min = -15, double max = 15}) =>
-      [for (final hz in centers) double.parse(gainAt(curve, hz).clamp(min, max).toStringAsFixed(1))];
+  List<double> gainsFor(List<double> centers, {double min = -15, double max = 15}) => [
+    for (final hz in centers) double.parse(gainAt(curve, hz).clamp(min, max).toStringAsFixed(1)),
+  ];
 
   /// El perfil con la banda [index] en [db] y las demás como suenan ahora.
   EqProfile withBand(List<double> centers, int index, double db) {
     final gains = gainsFor(centers);
     gains[index] = db;
-    return EqProfile(
-      presetId: custom,
-      points: {for (var i = 0; i < centers.length; i++) centers[i].round(): gains[i]},
-    );
+    return EqProfile(presetId: custom, points: {for (var i = 0; i < centers.length; i++) centers[i].round(): gains[i]});
   }
 
   Map<String, dynamic> toJson() => {
-        'preset': presetId,
-        if (presetId == custom) 'points': {for (final e in points.entries) '${e.key}': e.value},
-      };
+    'preset': presetId,
+    if (presetId == custom) 'points': {for (final e in points.entries) '${e.key}': e.value},
+  };
 
   factory EqProfile.fromJson(Object? json) {
     if (json is! Map) return const EqProfile();
@@ -136,38 +138,36 @@ class EqualizerSettings {
   final Map<AudioOutputKind, EqProfile> byOutput;
 
   /// El perfil que suena con la salida [output].
-  EqProfile profileFor(AudioOutputKind output) =>
-      perDevice ? (byOutput[output] ?? const EqProfile()) : general;
+  EqProfile profileFor(AudioOutputKind output) => perDevice ? (byOutput[output] ?? const EqProfile()) : general;
 
   /// Cambia el perfil que se está editando: el de [output] si hay perfil por
   /// dispositivo, o el general.
-  EqualizerSettings withProfile(AudioOutputKind output, EqProfile profile) => perDevice
-      ? copyWith(byOutput: {...byOutput, output: profile})
-      : copyWith(general: profile);
+  EqualizerSettings withProfile(AudioOutputKind output, EqProfile profile) =>
+      perDevice ? copyWith(byOutput: {...byOutput, output: profile}) : copyWith(general: profile);
 
   EqualizerSettings copyWith({
     bool? enabled,
     bool? perDevice,
     EqProfile? general,
     Map<AudioOutputKind, EqProfile>? byOutput,
-  }) =>
-      EqualizerSettings(
-        enabled: enabled ?? this.enabled,
-        perDevice: perDevice ?? this.perDevice,
-        general: general ?? this.general,
-        byOutput: byOutput ?? this.byOutput,
-      );
+  }) => EqualizerSettings(
+    enabled: enabled ?? this.enabled,
+    perDevice: perDevice ?? this.perDevice,
+    general: general ?? this.general,
+    byOutput: byOutput ?? this.byOutput,
+  );
 
   Map<String, dynamic> toJson() => {
-        'version': 1,
-        'enabled': enabled,
-        'perDevice': perDevice,
-        'general': general.toJson(),
-        'byOutput': {for (final e in byOutput.entries) e.key.name: e.value.toJson()},
-      };
+    'version': 1,
+    'enabled': enabled,
+    'perDevice': perDevice,
+    'general': general.toJson(),
+    'byOutput': {for (final e in byOutput.entries) e.key.name: e.value.toJson()},
+  };
 
   factory EqualizerSettings.fromJson(Map<String, dynamic> json) {
     final byOutput = <AudioOutputKind, EqProfile>{};
+
     final raw = json['byOutput'];
     if (raw is Map) {
       for (final kind in AudioOutputKind.values) {

@@ -21,7 +21,13 @@ const bergamotEngineVersion = '3.0';
 
 /// Un archivo para bajar (modelo, léxico, vocabulario o el motor).
 class ModelFile {
-  const ModelFile({required this.fileType, required this.url, required this.size, required this.sha256, required this.name});
+  const ModelFile({
+    required this.fileType,
+    required this.url,
+    required this.size,
+    required this.sha256,
+    required this.name,
+  });
 
   /// model, lex, vocab, srcvocab, trgvocab o engine.
   final String fileType;
@@ -33,12 +39,12 @@ class ModelFile {
   Map<String, dynamic> toJson() => {'fileType': fileType, 'url': url, 'size': size, 'sha256': sha256, 'name': name};
 
   factory ModelFile.fromJson(Map json) => ModelFile(
-        fileType: '${json['fileType']}',
-        url: '${json['url']}',
-        size: (json['size'] as num).toInt(),
-        sha256: '${json['sha256']}',
-        name: '${json['name']}',
-      );
+    fileType: '${json['fileType']}',
+    url: '${json['url']}',
+    size: (json['size'] as num).toInt(),
+    sha256: '${json['sha256']}',
+    name: '${json['name']}',
+  );
 }
 
 /// Un par de idiomas (por ejemplo, en→es).
@@ -54,8 +60,8 @@ bool recordFitsPlatform(String? expression, {required bool android}) {
   final e = (expression ?? '').trim();
   if (e.isEmpty) return true;
   if (e.contains('nightly') || e.contains('beta')) return false;
-  if (e.contains("env.appinfo.OS == 'Android'")) return android;
-  if (e.contains("env.appinfo.OS != 'Android'")) return !android;
+  if (e.contains("env.appinfo.OS == 'Android'")) return android; // l10n-ignore
+  if (e.contains("env.appinfo.OS != 'Android'")) return !android; // l10n-ignore
   return false;
 }
 
@@ -83,7 +89,9 @@ List<ModelFile>? pickModelFiles(List<Map> records, String from, String to, {requ
   for (final version in versions) {
     final files = byVersion[version]!;
     final types = {for (final f in files) '${f['fileType']}'};
-    final complete = types.contains('model') && (types.contains('vocab') || (types.contains('srcvocab') && types.contains('trgvocab')));
+    final complete =
+        types.contains('model') &&
+        (types.contains('vocab') || (types.contains('srcvocab') && types.contains('trgvocab')));
     if (!complete) continue;
     return [
       for (final f in files)
@@ -103,9 +111,9 @@ List<ModelFile>? pickModelFiles(List<Map> records, String from, String to, {requ
 /// Catálogo, descargas y archivos instalados.
 class BergamotModels {
   BergamotModels({Dio? dio, Future<Directory> Function()? directory, bool? android})
-      : _dio = dio ?? Dio(BaseOptions(receiveTimeout: const Duration(minutes: 5))),
-        _directory = directory ?? getApplicationSupportDirectory,
-        _android = android ?? (!kIsWeb && Platform.isAndroid);
+    : _dio = dio ?? Dio(BaseOptions(receiveTimeout: const Duration(minutes: 5))),
+      _directory = directory ?? getApplicationSupportDirectory,
+      _android = android ?? (!kIsWeb && Platform.isAndroid);
 
   final Dio _dio;
   final Future<Directory> Function() _directory;
@@ -141,7 +149,8 @@ class BergamotModels {
     if (from == to) return const [];
     final records = _records ??= await _collection('translations-models');
     if (pickModelFiles(records, from, to, android: _android) != null) return [(from: from, to: to)];
-    if (from != 'en' && to != 'en' &&
+    if (from != 'en' &&
+        to != 'en' &&
         pickModelFiles(records, from, 'en', android: _android) != null &&
         pickModelFiles(records, 'en', to, android: _android) != null) {
       return [(from: from, to: 'en'), (from: 'en', to: to)];
@@ -172,8 +181,9 @@ class BergamotModels {
     );
   }
 
-  Future<File> _target(String folderName, ModelFile file) async =>
-      File(p.join((await folder()).path, folderName, file.fileType == 'engine' ? 'engine.wasm' : '${file.fileType}.bin'));
+  Future<File> _target(String folderName, ModelFile file) async => File(
+    p.join((await folder()).path, folderName, file.fileType == 'engine' ? 'engine.wasm' : '${file.fileType}.bin'),
+  );
 
   Future<bool> isInstalled(String folderName, List<ModelFile> files) async {
     for (final f in files) {

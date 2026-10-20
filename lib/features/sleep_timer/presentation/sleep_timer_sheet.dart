@@ -7,6 +7,8 @@ import '../../../theme/kiji_tokens.dart';
 import '../domain/sleep_timer_logic.dart';
 import '../sleep_timer_provider.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Hoja del temporizador: elegir cómo termina, o ver cuál está activo,
 /// cuánto falta y apagarlo.
 Future<void> showSleepTimerSheet(BuildContext context) {
@@ -20,7 +22,7 @@ Future<void> showSleepTimerSheet(BuildContext context) {
 /// Texto corto del botón Temporizador: cuánto falta o, si todavía no se
 /// sabe, qué modo está activo.
 String sleepTimerButtonLabel(SleepTimerState? timer) {
-  if (timer == null) return 'Temporizador';
+  if (timer == null) return tx.temporizador;
   final remaining = timer.remaining;
   return remaining == null ? timer.mode.shortLabel : SleepTimerLogic.format(remaining);
 }
@@ -60,13 +62,9 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Temporizador', style: KijiText.title(size: 22)),
+          Text(tx.temporizador, style: KijiText.title(size: 22)),
           const SizedBox(height: 4),
-          const Text(
-            'La música baja de a poco durante los últimos 30 segundos (o menos, si falta poco) '
-            'y queda en pausa.',
-            style: TextStyle(color: KijiColors.muted),
-          ),
+          Text(tx.laMusicaBajaDeAPoco, style: const TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 16),
           if (timer != null) ..._active(timer, notifier) else ..._choices(notifier),
         ],
@@ -76,22 +74,24 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
 
   List<Widget> _active(SleepTimerState timer, SleepTimerNotifier notifier) {
     final detail = switch (timer.mode) {
-      SleepTimerMode.untilTrack => 'Al terminar «${timer.targetTitle}»',
-      SleepTimerMode.atPosition =>
-        'En el ${SleepTimerLogic.format(timer.targetPosition ?? Duration.zero)} de «${timer.targetTitle}»',
+      SleepTimerMode.untilTrack => tx.alTerminar(timer.targetTitle),
+      SleepTimerMode.atPosition => tx.enElDe(
+        SleepTimerLogic.format(timer.targetPosition ?? Duration.zero),
+        timer.targetTitle,
+      ),
       _ => timer.mode.label,
     };
     return [
-      Text('ACTIVO', style: KijiText.mono(size: 11)),
+      Text(tx.activo, style: KijiText.mono(size: 11)),
       const SizedBox(height: 4),
       Text(detail, style: KijiText.title(size: 16, weight: FontWeight.w600)),
       const SizedBox(height: 8),
       Text(
         timer.waitingForTarget
-            ? 'Ya pasó: pausa cuando vuelva ahí'
+            ? tx.yaPasoPausaCuandoVuelva
             : timer.remaining == null
-                ? 'Esperando esa canción'
-                : 'Faltan ${SleepTimerLogic.format(timer.remaining!)}',
+            ? tx.esperandoEsaCancion
+            : tx.faltan(SleepTimerLogic.format(timer.remaining!)),
         style: KijiText.mono(size: 28, color: KijiColors.cyan, weight: FontWeight.w600),
       ),
       const SizedBox(height: 16),
@@ -101,7 +101,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
           Navigator.pop(context);
         },
         icon: const Icon(Icons.timer_off_outlined),
-        label: const Text('Apagar el temporizador'),
+        label: Text(tx.apagarElTemporizador),
       ),
     ];
   }
@@ -109,7 +109,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   List<Widget> _choices(SleepTimerNotifier notifier) {
     final playback = ref.watch(playbackProvider);
     return [
-      Text('EN UNOS MINUTOS', style: KijiText.mono(size: 11)),
+      Text(tx.enUnosMinutos2, style: KijiText.mono(size: 11)),
       const SizedBox(height: 8),
       Wrap(
         spacing: 8,
@@ -117,9 +117,9 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         children: [
           for (final minutes in SleepTimerLogic.minuteOptions)
             ActionChip(
-              label: Text(minutes < 60
-                  ? '$minutes min'
-                  : '${minutes ~/ 60} h${minutes % 60 == 0 ? '' : ' ${minutes % 60}'}'),
+              label: Text(
+                minutes < 60 ? tx.nMin(minutes) : '${minutes ~/ 60} h${minutes % 60 == 0 ? '' : ' ${minutes % 60}'}',
+              ),
               onPressed: () {
                 notifier.start(SleepTimerMode.minutes, minutes: minutes);
                 Navigator.pop(context);
@@ -136,10 +136,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(3)],
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                labelText: 'Otro número de minutos',
-                helperText: 'De 1 a 600',
-              ),
+              decoration: InputDecoration(labelText: tx.otroNumeroDeMinutos, helperText: tx.de1A600),
             ),
           ),
           const SizedBox(width: 12),
@@ -150,7 +147,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
                     notifier.start(SleepTimerMode.minutes, minutes: _customMinutes!);
                     Navigator.pop(context);
                   },
-            child: const Text('Iniciar'),
+            child: Text(tx.iniciar),
           ),
         ],
       ),
@@ -168,7 +165,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.queue_music_rounded, color: KijiColors.cyan),
         title: Text(SleepTimerMode.endOfQueue.label),
-        subtitle: const Text('Para "hasta una canción", elígela en la Cola (menú ⋮ → luna).'),
+        subtitle: Text(tx.paraHastaUnaCancionEligelaEn),
         onTap: () {
           notifier.start(SleepTimerMode.endOfQueue);
           Navigator.pop(context);
@@ -178,7 +175,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.timer_outlined, color: KijiColors.cyan),
         title: Text(SleepTimerMode.atPosition.label),
-        subtitle: const Text('Elige el segundo de la canción que suena'),
+        subtitle: Text(tx.eligeElSegundoDeLaCancion),
         enabled: playback.track != null && playback.duration > Duration.zero,
         onTap: () async {
           final position = await showExactMomentDialog(context, playback.duration, playback.position);
@@ -190,8 +187,8 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.bedtime_outlined, color: KijiColors.cyan),
-        title: const Text('Marcar en la onda'),
-        subtitle: const Text('Toca la onda del reproductor donde quieres que se pause'),
+        title: Text(tx.marcarEnLaOnda),
+        subtitle: Text(tx.tocaLaOndaDelReproductorDonde),
         enabled: playback.track != null && playback.duration > Duration.zero,
         onTap: () {
           ref.read(sleepTimerMarkingProvider.notifier).state = true;
@@ -212,11 +209,11 @@ Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
         void move(int seconds) => setState(() {
-              final next = selected + Duration(seconds: seconds);
-              selected = next < Duration.zero ? Duration.zero : (next > duration ? duration : next);
-            });
+          final next = selected + Duration(seconds: seconds);
+          selected = next < Duration.zero ? Duration.zero : (next > duration ? duration : next);
+        });
         return AlertDialog(
-          title: const Text('Pausar en este momento'),
+          title: Text(tx.pausarEnEsteMomento),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -224,23 +221,21 @@ Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration,
                 SleepTimerLogic.format(selected),
                 style: KijiText.mono(size: 36, color: KijiColors.cyan, weight: FontWeight.w600),
               ),
-              Text('de ${SleepTimerLogic.format(duration)}', style: KijiText.mono(size: 12)),
+              Text(tx.deDuracion(SleepTimerLogic.format(duration)), style: KijiText.mono(size: 12)),
               Slider(
                 value: selected.inSeconds.toDouble(),
                 min: 0,
                 max: duration.inSeconds.toDouble(),
                 onChanged: (value) => setState(() => selected = Duration(seconds: value.round())),
-                semanticFormatterCallback: (value) =>
-                    SleepTimerLogic.format(Duration(seconds: value.round())),
+                semanticFormatterCallback: (value) => SleepTimerLogic.format(Duration(seconds: value.round())),
               ),
               if (SleepTimerLogic.alreadyPassed(selected, position))
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Ese momento ya pasó: la música se pausa cuando vuelva ahí (si vuelves atrás o la '
-                    'canción se repite).',
+                    tx.eseMomentoYaPasoLaMusica,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: KijiColors.muted, fontSize: 12),
+                    style: const TextStyle(color: KijiColors.muted, fontSize: 12),
                   ),
                 ),
               Row(
@@ -254,8 +249,8 @@ Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration,
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-            FilledButton(onPressed: () => Navigator.pop(context, selected), child: const Text('Listo')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(tx.cancelar)),
+            FilledButton(onPressed: () => Navigator.pop(context, selected), child: Text(tx.listo)),
           ],
         );
       },

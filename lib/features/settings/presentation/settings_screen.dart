@@ -38,21 +38,35 @@ import '../../../version_label.dart';
 
 /// Secciones de Configuración, en el orden del plan (Tarea G).
 enum SettingsSection {
-  player('Reproductor y audio', Icons.play_circle_outline_rounded),
-  content('Contenido', Icons.library_music_outlined),
-  lyrics('Letras', Icons.lyrics_outlined),
-  appearance('Apariencia', Icons.palette_outlined),
-  storage('Almacenamiento', Icons.sd_storage_outlined),
-  account('Cuenta', Icons.account_circle_outlined),
-  privacy('Privacidad', Icons.shield_outlined),
-  backup('Copia de seguridad', Icons.backup_outlined),
-  updates('Actualizaciones', Icons.system_update_alt_rounded),
-  reports('Registros e informes', Icons.bug_report_outlined),
-  about('Acerca de', Icons.info_outline_rounded),
-  developer('Kiji Dev', Icons.developer_mode_rounded);
+  player(Icons.play_circle_outline_rounded),
+  content(Icons.library_music_outlined),
+  lyrics(Icons.lyrics_outlined),
+  appearance(Icons.palette_outlined),
+  storage(Icons.sd_storage_outlined),
+  account(Icons.account_circle_outlined),
+  privacy(Icons.shield_outlined),
+  backup(Icons.backup_outlined),
+  updates(Icons.system_update_alt_rounded),
+  reports(Icons.bug_report_outlined),
+  about(Icons.info_outline_rounded),
+  developer(Icons.developer_mode_rounded);
 
-  const SettingsSection(this.label, this.icon);
-  final String label;
+  const SettingsSection(this.icon);
+  String get label => switch (this) {
+    SettingsSection.player => tx.reproductorYAudio,
+    SettingsSection.content => tx.contenido,
+    SettingsSection.lyrics => tx.letras2,
+    SettingsSection.appearance => tx.apariencia,
+    SettingsSection.storage => tx.almacenamiento,
+    SettingsSection.account => tx.cuenta,
+    SettingsSection.privacy => tx.privacidad,
+    SettingsSection.backup => tx.copiaDeSeguridad,
+    SettingsSection.updates => tx.actualizaciones,
+    SettingsSection.reports => tx.registrosEInformes,
+    SettingsSection.about => tx.acercaDe,
+    SettingsSection.developer => tx.kijiDev,
+  };
+
   final IconData icon;
 }
 
@@ -72,22 +86,16 @@ class SettingOption {
   final List<String> keywords;
   final Widget Function(BuildContext context, WidgetRef ref) builder;
 
-  bool matches(String query) => settingMatches(
-        query,
-        title: title,
-        subtitle: subtitle,
-        section: section.label,
-        keywords: keywords,
-      );
+  bool matches(String query) =>
+      settingMatches(query, title: title, subtitle: subtitle, section: section.label, keywords: keywords);
 }
 
 /// Pantalla de Configuración con buscador de opciones desde el primer día.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
-  static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
-      );
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen()));
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -125,7 +133,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 suffixIcon: query.isEmpty
                     ? null
                     : IconButton(
-                        tooltip: 'Borrar la búsqueda',
+                        tooltip: tx.borrarLaBusqueda,
                         icon: const Icon(Icons.close_rounded),
                         onPressed: () => setState(_query.clear),
                       ),
@@ -136,12 +144,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           if (visible.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
+            Padding(
+              padding: const EdgeInsets.all(24),
               child: Text(
-                'No hay ninguna opción con ese nombre.',
+                tx.noHayNingunaOpcionConEse,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: KijiColors.muted),
+                style: const TextStyle(color: KijiColors.muted),
               ),
             ),
           for (final section in SettingsSection.values)
@@ -152,7 +160,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     Icon(section.icon, size: 18, color: KijiColors.cyan),
                     const SizedBox(width: 8),
-                    Text(section.label.toUpperCase(), style: KijiText.mono(size: 11)),
+                    Expanded(child: Text(section.label.toUpperCase(), style: KijiText.mono(size: 11))),
                   ],
                 ),
               ),
@@ -163,8 +171,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   type: MaterialType.transparency,
                   child: Column(
                     children: [
-                      for (final option in visible.where((o) => o.section == section))
-                        option.builder(context, ref),
+                      for (final option in visible.where((o) => o.section == section)) option.builder(context, ref),
                     ],
                   ),
                 ),
@@ -180,12 +187,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Reproductor y audio
       SettingOption(
         section: SettingsSection.player,
-        title: 'Recordar la cola al cerrar',
-        subtitle: 'Al abrir Kiji, volver a la canción y al segundo donde quedó (en pausa).',
-        keywords: const ['memoria', 'reanudar', 'continuar', 'guardar cola'],
+        title: tx.recordarLaColaAlCerrar,
+        subtitle: tx.alAbrirKijiVolverALa,
+        keywords: ['memoria', 'reanudar', 'continuar', tx.guardarCola],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Recordar la cola al cerrar'),
-          subtitle: const Text('Al abrir Kiji, vuelve a la canción y al segundo donde quedó, en pausa.'),
+          title: Text(tx.recordarLaColaAlCerrar),
+          subtitle: Text(tx.alAbrirKijiVuelveALa),
           value: ref.watch(settingsProvider).rememberQueue,
           onChanged: (value) async {
             await ref.read(settingsProvider.notifier).update((s) => s.copyWith(rememberQueue: value));
@@ -196,39 +203,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
-        title: 'Ecualizador',
-        subtitle: 'Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).',
+        title: tx.ecualizador2,
+        subtitle: tx.presetsBandasAManoYUn,
         keywords: const ['eq', 'graves', 'agudos', 'bajos', 'sonido', 'auriculares', 'bluetooth'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.equalizer_rounded),
-          title: const Text('Ecualizador'),
-          subtitle: Text(ref.watch(equalizerProvider.select((e) => e.settings.enabled))
-              ? 'Encendido: ${ref.watch(equalizerProvider.select((e) => e.activeProfile.label))}'
-              : 'Apagado'),
+          title: Text(tx.ecualizador2),
+          subtitle: Text(
+            ref.watch(equalizerProvider.select((e) => e.settings.enabled))
+                ? tx.encendidoPerfil(ref.watch(equalizerProvider.select((e) => e.activeProfile.label)))
+                : tx.apagado,
+          ),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => EqualizerScreen.open(context),
         ),
       ),
       SettingOption(
         section: SettingsSection.player,
-        title: 'Transición suave entre canciones',
-        subtitle: 'El final de una canción y el principio de la siguiente suenan a la vez.',
+        title: tx.transicionSuaveEntreCanciones,
+        subtitle: tx.elFinalDeUnaCancionY,
         keywords: const ['crossfade', 'fundido', 'mezcla', 'fade', 'transicion'],
         builder: (context, ref) {
           final seconds = ref.watch(settingsProvider.select((s) => s.crossfadeSeconds));
           return ListTile(
             leading: const Icon(Icons.swap_horiz_rounded),
-            title: const Text('Transición suave entre canciones'),
-            subtitle: Text(seconds == 0
-                ? 'Apagada'
-                : '$seconds s: el final de una canción y el principio de la siguiente suenan a la vez.'),
-            trailing: Text(seconds == 0 ? 'No' : '$seconds s', style: KijiText.mono(size: 13)),
+            title: Text(tx.transicionSuaveEntreCanciones),
+            subtitle: Text(seconds == 0 ? tx.apagada : tx.sElFinalDeUnaCancion(seconds)),
+            trailing: Text(seconds == 0 ? tx.no : '$seconds s', style: KijiText.mono(size: 13)),
             // Toda la fila abre la lista (antes solo respondía el texto chico de la derecha).
             onTap: () async {
               final value = await showDialog<int>(
                 context: context,
                 builder: (context) => SimpleDialog(
-                  title: const Text('Transición suave'),
+                  title: Text(tx.transicionSuave),
                   children: [
                     RadioGroup<int>(
                       groupValue: seconds,
@@ -238,7 +245,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           for (final option in AppSettings.crossfadeOptions)
                             RadioListTile<int>(
                               value: option,
-                              title: Text(option == 0 ? 'Apagada' : '$option segundos'),
+                              title: Text(option == 0 ? tx.apagada : tx.nSegundos(option)),
                             ),
                         ],
                       ),
@@ -255,78 +262,77 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
-        title: 'Pausar al silenciar',
-        subtitle: 'Si bajas el volumen a cero, la música se pausa; al subirlo, sigue.',
-        keywords: const ['mute', 'silencio', 'volumen cero', 'pausa'],
+        title: tx.pausarAlSilenciar,
+        subtitle: tx.siBajasElVolumenACero,
+        keywords: ['mute', 'silencio', tx.volumenCero, 'pausa'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Pausar al silenciar'),
-          subtitle: const Text(
-            'Si bajas el volumen del teléfono a cero, la música se pausa; al subirlo, sigue. Solo en Android.',
-          ),
+          title: Text(tx.pausarAlSilenciar),
+          subtitle: Text(tx.siBajasElVolumenDelTelefono),
           value: ref.watch(settingsProvider).pauseOnMute,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).update((s) => s.copyWith(pauseOnMute: value)),
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(pauseOnMute: value)),
         ),
       ),
       SettingOption(
         section: SettingsSection.player,
-        title: 'Retomar al conectar el Bluetooth',
-        subtitle: 'Al conectar auriculares o un parlante Bluetooth, la canción en pausa sigue sola.',
+        title: tx.retomarAlConectarElBluetooth,
+        subtitle: tx.alConectarAuricularesOUnParlante,
         keywords: const ['auriculares', 'bluetooth', 'reanudar', 'auto', 'coche'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Retomar al conectar el Bluetooth'),
-          subtitle: const Text(
-            'Al conectar auriculares o un parlante Bluetooth, la canción que estaba en pausa sigue sola '
-            '(como en Echo).',
-          ),
+          title: Text(tx.retomarAlConectarElBluetooth),
+          subtitle: Text(tx.alConectarAuricularesOUnParlante2),
           value: ref.watch(settingsProvider).resumeOnBluetooth,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).update((s) => s.copyWith(resumeOnBluetooth: value)),
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(resumeOnBluetooth: value)),
         ),
       ),
       // Contenido
       SettingOption(
         section: SettingsSection.content,
-        title: 'Ocultar audios cortos',
-        subtitle: 'No mostrar en la Biblioteca los audios de menos de 30 segundos.',
+        title: tx.ocultarAudiosCortos,
+        subtitle: tx.noMostrarEnLaBibliotecaLos,
         keywords: const ['sonidos', 'notificaciones', 'juegos', 'tonos', 'filtrar'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Ocultar audios cortos'),
-          subtitle: const Text(
-            'No muestra en la Biblioteca los audios de menos de 30 segundos (avisos, sonidos de juegos). '
-            'No borra nada.',
-          ),
+          title: Text(tx.ocultarAudiosCortos),
+          subtitle: Text(tx.noMuestraEnLaBibliotecaLos),
           value: ref.watch(settingsProvider).hideShortAudios,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).update((s) => s.copyWith(hideShortAudios: value)),
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(hideShortAudios: value)),
         ),
       ),
       // Letras
       SettingOption(
         section: SettingsSection.lyrics,
-        title: 'Fuentes de letras',
-        subtitle: 'Dónde busca Kiji las letras; cada fuente se puede apagar.',
+        title: tx.fuentesDeLetras,
+        subtitle: tx.dondeBuscaKijiLasLetrasCada,
         keywords: const ['letra', 'lrclib', 'kugou', 'karaoke', 'sincronizada'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.travel_explore_rounded),
-          title: const Text('Fuentes de letras'),
-          subtitle: Text(ref.watch(settingsProvider).disabledLyricsSources.isEmpty
-              ? 'Todas prendidas.'
-              : '${ref.watch(settingsProvider).disabledLyricsSources.length} apagadas.'),
+          title: Text(tx.fuentesDeLetras),
+          subtitle: Text(
+            ref.watch(settingsProvider).disabledLyricsSources.isEmpty
+                ? tx.todasPrendidas
+                : tx.nApagadas(ref.watch(settingsProvider).disabledLyricsSources.length),
+          ),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => LyricsSourcesScreen.open(context),
         ),
       ),
       SettingOption(
         section: SettingsSection.lyrics,
-        title: 'Traducción de letras',
-        subtitle: 'En tu teléfono (anónima) o con Gemini (opcional).',
+        title: tx.traduccionDeLetras,
+        subtitle: tx.enTuTelefonoAnonimaOCon,
         keywords: const ['traducir', 'idioma', 'gemini', 'ia', 'ingles'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.translate_rounded),
-          title: const Text('Traducción de letras'),
-          subtitle: Text('Al ${languageName(ref.watch(settingsProvider).translationTarget).toLowerCase()} · '
-              '${ref.watch(settingsProvider).useGemini && ref.watch(settingsProvider).geminiEnabled ? 'con Gemini' : 'en tu teléfono'}'),
+          title: Text(tx.traduccionDeLetras),
+          subtitle: Text(
+            tx.al(
+              kijiLanguage == 'es'
+                  ? languageName(ref.watch(settingsProvider).translationTarget).toLowerCase()
+                  : languageName(ref.watch(settingsProvider).translationTarget),
+              ref.watch(settingsProvider).useGemini && ref.watch(settingsProvider).geminiEnabled
+                  ? tx.conGemini
+                  : tx.enTuTelefono,
+            ),
+          ),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => TranslationSettingsScreen.open(context),
         ),
@@ -334,48 +340,86 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Apariencia
       SettingOption(
         section: SettingsSection.appearance,
-        title: 'Reducir animaciones',
-        subtitle: 'Sin animaciones decorativas, como el anillo que respira del botón play.',
+        title: tx.idioma,
+        subtitle: tx.idiomaDescripcion,
+        keywords: const ['idioma', 'language', 'english', 'español', 'ingles', 'espanol'], // l10n-ignore
+        builder: (context, ref) {
+          final language = ref.watch(settingsProvider.select((s) => s.language));
+          String name(String option) => switch (option) {
+            'es' => 'Español', // l10n-ignore
+            'en' => 'English', // l10n-ignore
+            _ => tx.idiomaDelSistema,
+          };
+          return ListTile(
+            leading: const Icon(Icons.language_rounded),
+            title: Text(tx.idioma),
+            subtitle: Text(name(language)),
+            onTap: () async {
+              final value = await showDialog<String>(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  title: Text(tx.idioma),
+                  children: [
+                    RadioGroup<String>(
+                      groupValue: language,
+                      onChanged: (value) => Navigator.pop(context, value),
+                      child: Column(
+                        children: [
+                          for (final option in AppSettings.languages)
+                            RadioListTile<String>(value: option, title: Text(name(option))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (value != null) {
+                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(language: value));
+              }
+            },
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.reducirAnimaciones,
+        subtitle: tx.sinAnimacionesDecorativasComoElAnillo,
         keywords: const ['movimiento', 'accesibilidad', 'mareo', 'animacion'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Reducir animaciones'),
-          subtitle: const Text('Sin animaciones decorativas (por ejemplo, el anillo que respira del botón play).'),
+          title: Text(tx.reducirAnimaciones),
+          subtitle: Text(tx.sinAnimacionesDecorativasPorEjemploEl),
           value: ref.watch(settingsProvider).reduceMotion,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).update((s) => s.copyWith(reduceMotion: value)),
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(reduceMotion: value)),
         ),
       ),
       // Almacenamiento
       SettingOption(
         section: SettingsSection.storage,
-        title: 'Descargar solo con WiFi',
-        subtitle: 'No usa los datos móviles para descargar.',
+        title: tx.descargarSoloConWifi,
+        subtitle: tx.noUsaLosDatosMovilesPara,
         keywords: const ['datos', 'movil', 'descargas'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Descargar solo con WiFi'),
-          subtitle: const Text('No usa los datos móviles para descargar.'),
+          title: Text(tx.descargarSoloConWifi),
+          subtitle: Text(tx.noUsaLosDatosMovilesPara),
           value: ref.watch(downloadsProvider).settings.wifiOnly,
           onChanged: ref.read(downloadsProvider.notifier).setWifiOnly,
         ),
       ),
       SettingOption(
         section: SettingsSection.storage,
-        title: 'Límite de espacio para descargas',
+        title: tx.limiteDeEspacioParaDescargas,
         keywords: const ['descargas', 'espacio', 'gb'],
         builder: (context, ref) {
           final downloads = ref.watch(downloadsProvider);
           return ListTile(
-            title: const Text('Límite de espacio para descargas'),
-            subtitle: Text('Usado: ${formatBytes(downloads.usedBytes)}'),
+            title: Text(tx.limiteDeEspacioParaDescargas),
+            subtitle: Text(tx.usado(formatBytes(downloads.usedBytes))),
             trailing: DropdownButton<int?>(
               value: downloads.settings.limitBytes,
               underline: const SizedBox.shrink(),
               items: [
                 for (final option in DownloadSettings.limitOptions)
-                  DropdownMenuItem(
-                    value: option,
-                    child: Text(option == null ? 'Sin límite' : formatBytes(option)),
-                  ),
+                  DropdownMenuItem(value: option, child: Text(option == null ? tx.sinLimite : formatBytes(option))),
               ],
               onChanged: ref.read(downloadsProvider.notifier).setLimit,
             ),
@@ -384,12 +428,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.storage,
-        title: 'Límite de la caché',
-        subtitle: 'Lo que ya escuchaste se guarda para no bajarlo otra vez.',
+        title: tx.limiteDeLaCache,
+        subtitle: tx.loQueYaEscuchasteSeGuarda,
         keywords: const ['cache', 'espacio', 'escuchado', 'streaming'],
         builder: (context, ref) => ListTile(
-          title: const Text('Límite de la caché'),
-          subtitle: const Text('Lo ya escuchado se guarda para no bajarlo otra vez. Lo más viejo se borra solo.'),
+          title: Text(tx.limiteDeLaCache),
+          subtitle: Text(tx.loYaEscuchadoSeGuardaPara),
           trailing: DropdownButton<int>(
             value: ref.watch(settingsProvider).streamCacheLimitBytes,
             underline: const SizedBox.shrink(),
@@ -406,49 +450,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.storage,
-        title: 'Vaciar la caché',
-        subtitle: 'Libera espacio. Las descargas no se tocan.',
+        title: tx.vaciarLaCache,
+        subtitle: tx.liberaEspacioLasDescargasNoSe,
         keywords: const ['cache', 'borrar', 'liberar', 'espacio'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.cleaning_services_outlined),
-          title: const Text('Vaciar la caché'),
-          subtitle: const Text('Libera espacio. Las descargas no se tocan.'),
+          title: Text(tx.vaciarLaCache),
+          subtitle: Text(tx.liberaEspacioLasDescargasNoSe),
           onTap: () => _confirm(
             context,
-            title: '¿Vaciar la caché?',
-            message: 'Las canciones que ya escuchaste se van a volver a bajar la próxima vez. '
-                'Las descargas no se tocan.',
-            action: 'Vaciar',
+            title: tx.vaciarLaCache2,
+            message: tx.lasCancionesQueYaEscuchasteSe,
+            action: tx.vaciar,
             onConfirm: () async {
               await ref.read(playbackProvider.notifier).clearStreamCache();
-              if (context.mounted) _done(context, 'Caché vaciada');
+              if (context.mounted) _done(context, tx.cacheVaciada);
             },
           ),
         ),
       ),
       SettingOption(
         section: SettingsSection.storage,
-        title: 'Ahorro de datos',
-        subtitle: 'Con datos móviles, YouTube suena en calidad baja. Con WiFi, en la mejor.',
+        title: tx.ahorroDeDatos,
+        subtitle: tx.conDatosMovilesYoutubeSuenaEn,
         keywords: const ['datos', 'movil', 'calidad', 'consumo', 'megas'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Ahorro de datos'),
-          subtitle: const Text(
-            'Con datos móviles, YouTube suena en la calidad más baja (gasta unas 4 veces menos). '
-            'Con WiFi, siempre en la mejor.',
-          ),
+          title: Text(tx.ahorroDeDatos),
+          subtitle: Text(tx.conDatosMovilesYoutubeSuenaEn2),
           value: ref.watch(settingsProvider).dataSaver,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).update((s) => s.copyWith(dataSaver: value)),
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(dataSaver: value)),
         ),
       ),
       SettingOption(
         section: SettingsSection.storage,
-        title: 'Ver y borrar descargas',
-        keywords: const ['descargadas', 'borrar', 'sin conexion'],
+        title: tx.verYBorrarDescargas,
+        keywords: ['descargadas', 'borrar', tx.sinConexion3],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.download_for_offline_outlined),
-          title: const Text('Ver y borrar descargas'),
+          title: Text(tx.verYBorrarDescargas),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => DownloadsScreen.open(context),
         ),
@@ -456,128 +495,103 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Privacidad
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Qué guarda Kiji',
-        subtitle: 'Sin cuentas, sin anuncios y sin telemetría.',
+        title: tx.queGuardaKiji,
+        subtitle: tx.sinCuentasSinAnunciosYSin,
         keywords: const ['datos', 'telemetria', 'cuenta', 'transparencia'],
-        builder: (context, ref) => const ListTile(
-          leading: Icon(Icons.verified_user_outlined, color: KijiColors.cyan),
-          title: Text('Qué guarda Kiji'),
-          subtitle: Text(
-            'Sin cuentas, sin anuncios y sin telemetría. Tu cola, tus descargas, tu historial y tus '
-            'me gusta se guardan solo en este dispositivo.',
-          ),
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.verified_user_outlined, color: KijiColors.cyan),
+          title: Text(tx.queGuardaKiji),
+          subtitle: Text(tx.sinCuentasSinAnunciosYSin2),
         ),
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Letras y traducción',
-        subtitle: 'Qué se envía al buscar o traducir una letra.',
+        title: tx.letrasYTraduccion,
+        subtitle: tx.queSeEnviaAlBuscarO,
         keywords: const ['letras', 'traduccion', 'gemini', 'clave'],
-        builder: (context, ref) => const ListTile(
-          leading: Icon(Icons.lyrics_outlined),
-          title: Text('Letras y traducción'),
-          subtitle: Text(
-            'Al abrir una letra, cada fuente recibe solo título, artista, álbum, duración o el id del video. '
-            'La traducción en el teléfono no envía nada (solo se baja el modelo del idioma, una vez). '
-            'Gemini es opcional y está apagado: si lo activas, las líneas de la letra van a Google con tu '
-            'clave, que queda cifrada solo en este dispositivo.',
-          ),
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.lyrics_outlined),
+          title: Text(tx.letrasYTraduccion),
+          subtitle: Text(tx.alAbrirUnaLetraCadaFuente),
         ),
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Actualizaciones y GitHub',
-        subtitle: 'Qué ve GitHub cuando Kiji busca una versión nueva.',
+        title: tx.actualizacionesYGithub,
+        subtitle: tx.queVeGithubCuandoKijiBusca,
         keywords: const ['github', 'actualizaciones', 'version'],
-        builder: (context, ref) => const ListTile(
-          leading: Icon(Icons.system_update_alt_rounded),
-          title: Text('Actualizaciones y GitHub'),
-          subtitle: Text(
-            'Si "Buscar actualizaciones" está prendido, una vez por día Kiji le pide a GitHub cuál es la '
-            'última versión publicada. GitHub ve esa consulta como una visita a una página (tu IP y que es '
-            'Kiji); no se manda nada tuyo. Se apaga en Configuración → Actualizaciones.',
-          ),
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.system_update_alt_rounded),
+          title: Text(tx.actualizacionesYGithub),
+          subtitle: Text(tx.privacidadActualizaciones),
         ),
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Recomendaciones de Inicio',
-        subtitle: 'Qué se le pide a YouTube Music para "Porque escuchaste", "Mezcla" y "Descubre".',
+        title: tx.recomendacionesDeInicio,
+        subtitle: tx.queSeLePideAYoutube,
         keywords: const ['recomendaciones', 'descubri', 'mezcla', 'relacionadas', 'youtube'],
-        builder: (context, ref) => const ListTile(
-          leading: Icon(Icons.auto_awesome_outlined),
-          title: Text('Recomendaciones de Inicio'),
-          subtitle: Text(
-            'Tu gusto se calcula en este teléfono. A YouTube Music solo se le piden, sin cuenta, las '
-            'canciones relacionadas con hasta 5 que escuchaste (solo su id). Tu historial no sale de aquí.',
-          ),
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.auto_awesome_outlined),
+          title: Text(tx.recomendacionesDeInicio),
+          subtitle: Text(tx.tuGustoSeCalculaEnEste),
         ),
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Borrar las búsquedas recientes',
-        subtitle: 'Las que aparecen en Buscar antes de escribir.',
+        title: tx.borrarLasBusquedasRecientes,
+        subtitle: tx.lasQueAparecenEnBuscarAntes,
         keywords: const ['busquedas', 'recientes', 'borrar', 'buscar'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.manage_search_rounded),
-          title: const Text('Borrar las búsquedas recientes'),
-          subtitle: Text('${ref.watch(searchHistoryProvider).length} guardadas en este dispositivo'),
+          title: Text(tx.borrarLasBusquedasRecientes),
+          subtitle: Text(tx.guardadasEnEsteDispositivo(ref.watch(searchHistoryProvider).length)),
           onTap: () {
             ref.read(searchHistoryProvider.notifier).clear();
-            _done(context, 'Búsquedas borradas');
+            _done(context, tx.busquedasBorradas);
           },
         ),
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Borrar el historial de escucha',
-        subtitle: 'Vacía "Escuchado recientemente" y "Para ti".',
+        title: tx.borrarElHistorialDeEscucha,
+        subtitle: tx.vaciaEscuchadoRecientementeYParaTi,
         keywords: const ['historial', 'recientes', 'borrar'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.history_toggle_off_rounded),
-          title: const Text('Borrar el historial de escucha'),
-          subtitle: Text('${ref.watch(listeningHistoryProvider).length} canciones recordadas'),
+          title: Text(tx.borrarElHistorialDeEscucha),
+          subtitle: Text(tx.cancionesRecordadas(ref.watch(listeningHistoryProvider).length)),
           onTap: () => _confirm(
             context,
-            title: '¿Borrar el historial?',
-            message: 'Inicio deja de mostrar "Escuchado recientemente" y "Para ti" hasta que vuelvas '
-                'a escuchar música. No borra canciones ni descargas.',
-            action: 'Borrar',
+            title: tx.borrarElHistorial,
+            message: tx.inicioDejaDeMostrarEscuchadoRecientement,
+            action: tx.borrar,
             onConfirm: () async {
               await ref.read(listeningHistoryProvider.notifier).clear();
-              if (context.mounted) _done(context, 'Historial borrado');
+              if (context.mounted) _done(context, tx.historialBorrado);
             },
           ),
         ),
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Datos del reproductor de YouTube (GitHub)',
-        subtitle: 'Qué se consulta para poder descifrar el audio.',
+        title: tx.datosDelReproductorDeYoutubeGithub,
+        subtitle: tx.queSeConsultaParaPoderDescifrar,
         keywords: const ['github', 'zemer', 'cipher', 'reproductor', 'extractor'],
-        builder: (context, ref) => const ListTile(
-          leading: Icon(Icons.memory_rounded),
-          title: Text('Datos del reproductor de YouTube (GitHub)'),
-          subtitle: Text(
-            'YouTube cambia su reproductor cada pocos días. Para seguir descifrando el audio, Kiji baja '
-            'como mucho cada 6 horas una tabla pública (player_configs.json del proyecto libre '
-            'zemer-cipher, en GitHub), igual que Echo y Metrolist. GitHub ve esa consulta como una visita '
-            'a una página; no se manda nada tuyo.',
-          ),
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.memory_rounded),
+          title: Text(tx.datosDelReproductorDeYoutubeGithub),
+          subtitle: Text(tx.youtubeCambiaSuReproductorCadaPocos),
         ),
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Pruebas automáticas del extractor',
-        subtitle: 'Cada 12 h prueba las formas con canciones de control; solo avisa si fallan todas.',
+        title: tx.pruebasAutomaticasDelExtractor,
+        subtitle: tx.cada12HPruebaLasFormas,
         keywords: const ['extractor', 'salud', 'pruebas', 'youtube', 'automatico'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Pruebas automáticas del extractor'),
-          subtitle: const Text(
-            'Al abrir Kiji (si pasaron 12 h), cada 12 h en la PC y una vez por día en Android (solo con '
-            'WiFi y batería no baja). Usa 3 canciones de control, nunca tus datos. Solo avisa si no '
-            'funciona ninguna forma.',
-          ),
+          title: Text(tx.pruebasAutomaticasDelExtractor),
+          subtitle: Text(tx.alAbrirKijiSiPasaron12),
           value: ref.watch(settingsProvider).autoExtractorTests,
           onChanged: (value) =>
               ref.read(settingsProvider.notifier).update((s) => s.copyWith(autoExtractorTests: value)),
@@ -585,13 +599,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.privacy,
-        title: 'Salud del Extractor',
-        subtitle: 'Cómo está funcionando YouTube hoy.',
+        title: tx.saludDelExtractor,
+        subtitle: tx.comoEstaFuncionandoYoutubeHoy,
         keywords: const ['youtube', 'extractor', 'diagnostico'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.health_and_safety_outlined),
-          title: const Text('Salud del Extractor'),
-          subtitle: const Text('Cómo está funcionando YouTube hoy.'),
+          title: Text(tx.saludDelExtractor),
+          subtitle: Text(tx.comoEstaFuncionandoYoutubeHoy),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => ExtractorHealthScreen.open(context),
         ),
@@ -599,17 +613,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Cuenta de Google opcional.
       SettingOption(
         section: SettingsSection.account,
-        title: 'Cuenta de Google (opcional)',
-        subtitle: 'Solo para canciones que YouTube entrega únicamente a cuentas.',
-        keywords: const ['cuenta', 'google', 'iniciar sesion', 'login', 'edad', 'cerrar sesion'],
+        title: tx.cuentaDeGoogleOpcional,
+        subtitle: tx.soloParaCancionesQueYoutubeEntrega,
+        keywords: ['cuenta', 'google', tx.iniciarSesion2, 'login', 'edad', tx.cerrarSesion],
         builder: (context, ref) {
           final session = ref.watch(accountProvider);
           return ListTile(
             leading: Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded),
-            title: Text(session == null ? 'Cuenta de Google (opcional)' : 'Sesión iniciada'),
-            subtitle: Text(session == null
-                ? 'Solo para canciones que YouTube entrega únicamente a cuentas.'
-                : 'Toca para ver o cerrar la sesión.'),
+            title: Text(session == null ? tx.cuentaDeGoogleOpcional : tx.sesionIniciada2),
+            subtitle: Text(
+              session == null
+                  ? tx.soloParaCancionesConCuenta
+                  : tx.tocaParaVerOCerrarLa,
+            ),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => AccountScreen.open(context),
           );
@@ -618,39 +634,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Registros e informes (Tarea T3).
       SettingOption(
         section: SettingsSection.reports,
-        title: 'Guardar un registro en este dispositivo',
-        subtitle: 'Ayuda a entender una falla. Sin datos personales, ocupa como mucho 1 MB y '
-            'nunca sale del dispositivo si tú no lo mandas.',
+        title: tx.guardarUnRegistroEnEsteDispositivo,
+        subtitle: tx.ayudaAEntenderUnaFallaSin,
         keywords: const ['registro', 'log', 'errores', 'fallas', 'informe'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Guardar un registro en este dispositivo'),
-          subtitle: const Text('Ayuda a entender una falla. Sin datos personales, ocupa como mucho 1 MB y '
-              'nunca sale del dispositivo si tú no lo mandas.'),
+          title: Text(tx.guardarUnRegistroEnEsteDispositivo),
+          subtitle: Text(tx.ayudaAEntenderUnaFallaSin),
           value: ref.watch(settingsProvider.select((s) => s.saveLogs)),
           onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(saveLogs: v)),
         ),
       ),
       SettingOption(
         section: SettingsSection.reports,
-        title: 'Ofrecer un informe cuando algo falla',
-        subtitle: 'Kiji pregunta si quieres avisar al desarrollador. Nunca manda nada solo.',
+        title: tx.ofrecerUnInformeCuandoAlgoFalla,
+        subtitle: tx.kijiPreguntaSiQuieresAvisarAl,
         keywords: const ['error', 'informe', 'github', 'reportar', 'fallas'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Ofrecer un informe cuando algo falla'),
-          subtitle: const Text('Kiji pregunta si quieres avisar al desarrollador. Nunca manda nada solo.'),
+          title: Text(tx.ofrecerUnInformeCuandoAlgoFalla),
+          subtitle: Text(tx.kijiPreguntaSiQuieresAvisarAl),
           value: ref.watch(settingsProvider.select((s) => s.offerErrorReports)),
           onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(offerErrorReports: v)),
         ),
       ),
       SettingOption(
         section: SettingsSection.reports,
-        title: 'Ver el registro y los informes',
-        subtitle: 'Leer el registro, descargar un informe (.txt) o mandarlo al desarrollador.',
+        title: tx.verElRegistroYLosInformes,
+        subtitle: tx.leerElRegistroDescargarUnInforme,
         keywords: const ['registro', 'log', 'informe', 'txt', 'github', 'issue'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.description_outlined),
-          title: const Text('Ver el registro y los informes'),
-          subtitle: const Text('Leer el registro, descargar un informe (.txt) o mandarlo al desarrollador.'),
+          title: Text(tx.verElRegistroYLosInformes),
+          subtitle: Text(tx.leerElRegistroDescargarUnInforme),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => ReportsScreen.open(context),
         ),
@@ -659,13 +673,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (isDevBuild)
         SettingOption(
           section: SettingsSection.developer,
-          title: 'Herramientas de desarrollo',
-          subtitle: 'Registro en vivo, extractor, caché y descargas.',
+          title: tx.herramientasDeDesarrollo,
+          subtitle: tx.registroEnVivoExtractorCacheY,
           keywords: const ['dev', 'registro', 'log', 'diagnostico', 'cache'],
           builder: (context, ref) => ListTile(
             leading: const Icon(Icons.terminal_rounded),
-            title: const Text('Herramientas de desarrollo'),
-            subtitle: const Text('Registro en vivo, extractor, caché y descargas.'),
+            title: Text(tx.herramientasDeDesarrollo),
+            subtitle: Text(tx.registroEnVivoExtractorCacheY),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => DevToolsScreen.open(context),
           ),
@@ -673,58 +687,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Actualizaciones (Tarea W1)
       SettingOption(
         section: SettingsSection.updates,
-        title: 'Buscar actualizaciones',
-        subtitle: 'Una vez por día pregunta a GitHub si hay una versión nueva. Nunca baja ni instala nada.',
+        title: tx.buscarActualizaciones,
+        subtitle: tx.unaVezPorDiaPreguntaA,
         keywords: const ['version', 'nueva', 'github', 'novedades', 'actualizar'],
         builder: (context, ref) => SwitchListTile(
-          title: const Text('Buscar actualizaciones'),
-          subtitle: const Text(
-            'Una vez por día pregunta a GitHub si hay una versión nueva y te muestra sus novedades. '
-            'Nunca baja ni instala nada por su cuenta.',
-          ),
+          title: Text(tx.buscarActualizaciones),
+          subtitle: Text(tx.unaVezPorDiaPreguntaA2),
           value: ref.watch(settingsProvider).checkUpdates,
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(checkUpdates: value)),
         ),
       ),
       SettingOption(
         section: SettingsSection.updates,
-        title: 'Versión de Kiji',
-        subtitle: 'Buscar ahora y ver las novedades.',
-        keywords: const ['version', 'buscar ahora', 'novedades'],
+        title: tx.versionDeKiji,
+        subtitle: tx.buscarAhoraYVerLasNovedades,
+        keywords: ['version', tx.buscarAhora, 'novedades'],
         builder: (context, ref) => const UpdateStatusTile(),
       ),
       // Copia de seguridad
       SettingOption(
         section: SettingsSection.backup,
-        title: 'Importar desde otra app',
-        subtitle: 'Echo, Metrolist, InnerTune, OuterTune, .m3u, Exportify y Google Takeout.',
+        title: tx.importarDesdeOtraApp,
+        subtitle: tx.echoMetrolistInnertuneOutertuneM3uExport,
         keywords: const ['backup', 'respaldo', 'importar', 'exportar', 'spotify', 'csv', 'm3u', 'metrolist', 'echo'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.download_rounded),
-          title: const Text('Importar desde otra app'),
-          subtitle: const Text(
-            'Playlists, me gusta e historial de Echo, Metrolist, InnerTune u OuterTune (.backup), '
-            '.m3u, y CSV de Exportify o Google Takeout. También exportar tus playlists.',
-          ),
+          title: Text(tx.importarDesdeOtraApp),
+          subtitle: Text(tx.playlistsMeGustaEHistorialDe),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => ImportScreen.open(context),
         ),
       ),
       SettingOption(
         section: SettingsSection.backup,
-        title: 'Copia de seguridad de Kiji',
-        subtitle: 'Copia diaria automática en Documentos/Kiji; restaurar con vista previa.',
+        title: tx.copiaDeSeguridadDeKiji,
+        subtitle: tx.copiaDiariaAutomaticaEnDocumentosKiji,
         keywords: const ['backup', 'respaldo', 'copia', 'restaurar', 'recuperar'],
         builder: (context, ref) {
           final last = ref.watch(backupProvider.select((b) => b.lastBackup));
           final auto = ref.watch(settingsProvider.select((s) => s.autoBackup));
           return ListTile(
             leading: const Icon(Icons.backup_outlined),
-            title: const Text('Copia de seguridad de Kiji'),
-            subtitle: Text([
-              auto ? 'Copia automática diaria' : 'Copia automática apagada',
-              last == null ? 'todavía sin copias' : 'última: ${describeDate(last, DateTime.now())}',
-            ].join(' · ')),
+            title: Text(tx.copiaDeSeguridadDeKiji),
+            subtitle: Text(
+              [
+                auto ? tx.copiaAutomaticaDiaria : tx.copiaAutomaticaApagada,
+                last == null ? tx.todaviaSinCopias : tx.ultima(describeDate(last, DateTime.now())),
+              ].join(' · '),
+            ),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => BackupScreen.open(context),
           );
@@ -733,26 +743,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Acerca de
       SettingOption(
         section: SettingsSection.about,
-        title: 'Kiji Player',
-        subtitle: 'Software libre (GPL-3.0).',
+        title: 'Kiji Player', // l10n-ignore
+        subtitle: tx.softwareLibreGpl30,
         keywords: const ['version', 'licencia', 'gpl'],
         builder: (context, ref) => ListTile(
           leading: const KijiLogo(size: 40),
-          title: Text('${isDevBuild ? 'Kiji Dev' : 'Kiji Player'} $kijiVersionLabel'),
-          subtitle: Text('Canal $kijiChannel · compilada el $kijiBuildDateLabel\n'
-              'Software libre (GPL-3.0). Sin pagos, sin anuncios y sin telemetría.'),
+          title: Text('${isDevBuild ? 'Kiji Dev' : 'Kiji Player'} $kijiVersionLabel'), // l10n-ignore
+          subtitle: Text(tx.canalCompiladaElSoftwareLibreGpl(kijiChannel, kijiBuildDateLabel)),
           isThreeLine: true,
         ),
       ),
       SettingOption(
         section: SettingsSection.about,
-        title: 'Créditos',
-        subtitle: 'Los proyectos libres en los que se basa Kiji.',
+        title: tx.creditos,
+        subtitle: tx.losProyectosLibresEnLosQue,
         keywords: const ['echo', 'metrolist', 'licencias', 'agradecimientos'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.favorite_outline_rounded),
-          title: const Text('Créditos'),
-          subtitle: const Text('Los proyectos libres en los que se basa Kiji.'),
+          title: Text(tx.creditos),
+          subtitle: Text(tx.losProyectosLibresEnLosQue),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => CreditsScreen.open(context),
         ),
@@ -773,7 +782,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: Text(title),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
           FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(action)),
         ],
       ),

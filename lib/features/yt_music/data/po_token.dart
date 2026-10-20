@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 // Adaptado de Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0, que a su
 // vez lo toma de NewPipe (GPL-3.0) y de BgUtils (LuanRT, MIT).
 // Archivos originales: app/.../utils/potoken/PoTokenWebView.kt, PoTokenGenerator.kt,

@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';

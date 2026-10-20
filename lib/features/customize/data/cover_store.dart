@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../backup/data/backup_service.dart' show coversFolder;
+import 'package:kiji_player/l10n/l10n.dart';
+
 
 /// Fotos personalizadas (Tarea Z3): se guardan en `<datos>/covers/`, la misma
 /// carpeta que entra en la copia de seguridad (Tarea U). Nunca se toca el
@@ -49,12 +51,12 @@ class CoverStore {
 
 Uint8List _toJpeg(Uint8List bytes) {
   final decoded = img.decodeImage(bytes);
-  if (decoded == null) throw const FormatException('No es una imagen que Kiji pueda leer');
+  if (decoded == null) throw FormatException(tx.noEsUnaImagenQueKijiPuedaLeer);
   final big = decoded.width > CoverStore.maxSide || decoded.height > CoverStore.maxSide;
   final resized = !big
       ? decoded
       : decoded.width >= decoded.height
-          ? img.copyResize(decoded, width: CoverStore.maxSide)
-          : img.copyResize(decoded, height: CoverStore.maxSide);
+      ? img.copyResize(decoded, width: CoverStore.maxSide)
+      : img.copyResize(decoded, height: CoverStore.maxSide);
   return Uint8List.fromList(img.encodeJpg(resized, quality: 88));
 }

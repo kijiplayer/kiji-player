@@ -16,6 +16,8 @@ import '../domain/lyrics.dart';
 import 'lrclib_client.dart';
 import 'lyrics_sources.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Lo necesario para buscar una letra. Es un registro: dos pedidos con los
 /// mismos datos son iguales (sirve de clave para Riverpod).
 typedef LyricsRequest = ({
@@ -47,9 +49,9 @@ class LyricsRepository {
     List<LyricsFetcher>? fetchers,
     Future<Directory> Function()? baseDirectory,
     DateTime Function()? clock,
-  })  : _fetchers = fetchers ?? defaultLyricsFetchers(lrclib: client),
-        _baseDirectory = baseDirectory ?? getApplicationSupportDirectory,
-        _clock = clock ?? DateTime.now;
+  }) : _fetchers = fetchers ?? defaultLyricsFetchers(lrclib: client),
+       _baseDirectory = baseDirectory ?? getApplicationSupportDirectory,
+       _clock = clock ?? DateTime.now;
 
   /// "No encontrada" se vuelve a preguntar pasado este tiempo (LRCLIB suma
   /// letras todo el tiempo).
@@ -61,10 +63,7 @@ class LyricsRepository {
 
   Future<JsonFile> _fileFor(String id) async {
     final safe = id.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
-    return JsonFile(
-      p.join((await _baseDirectory()).path, 'lyrics', '$safe.json'),
-      logTag: 'LETRAS',
-    );
+    return JsonFile(p.join((await _baseDirectory()).path, 'lyrics', '$safe.json'), logTag: 'LETRAS');
   }
 
   /// La letra de [request]: la guardada; si no, la incluida en el archivo;
@@ -148,7 +147,7 @@ class LyricsRepository {
     }
     // Ninguna respondió: probablemente sin conexión. No se guarda "no hay".
     if (answered == 0 && failures.isNotEmpty) {
-      throw LyricsUnavailableException(failures.length == 1 ? failures.first : 'sin conexión');
+      throw LyricsUnavailableException(failures.length == 1 ? failures.first : tx.sinConexion2);
     }
     return Lyrics.none;
   }
@@ -192,7 +191,7 @@ class LyricsRepository {
   /// Importar un `.lrc` (o texto) para la canción [id].
   Future<Lyrics> importText(String id, String text) async {
     final lyrics = lyricsFromText(text, LyricsSource.imported);
-    if (lyrics == null) throw const FormatException('El archivo no tiene una letra que Kiji entienda');
+    if (lyrics == null) throw FormatException(tx.elArchivoNoTieneUnaLetra);
     await _save(await _fileFor(id), lyrics);
     return lyrics;
   }

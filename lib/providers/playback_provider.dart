@@ -36,6 +36,8 @@ import 'system_media_provider.dart';
 import '../features/account/data/account_store.dart';
 import '../features/account/domain/yt_session.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Nombrado "PlaybackRepeatMode" (no "RepeatMode" a secas) porque Flutter
 /// ya expone su propio `RepeatMode` en material.dart (usado por animaciones
 /// repetitivas) — usar el mismo nombre genera un import ambiguo.
@@ -89,8 +91,7 @@ class PlaybackState {
     );
   }
 
-  double get progress =>
-      duration.inMilliseconds == 0 ? 0 : position.inMilliseconds / duration.inMilliseconds;
+  double get progress => duration.inMilliseconds == 0 ? 0 : position.inMilliseconds / duration.inMilliseconds;
 
   PlaybackState copyWith({
     Track? track,
@@ -118,7 +119,7 @@ class PlaybackState {
     );
   }
 
-  String get statusLabel => isPlaying ? 'Reproduciendo' : 'En pausa';
+  String get statusLabel => isPlaying ? tx.reproduciendo : tx.enPausa;
 }
 
 /// Avisos cortos para el usuario (sin detalles técnicos). La pantalla
@@ -151,8 +152,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   late final _ytClient = YtMusicClient();
 
   /// Motores de extracción (Tarea Z8): en Android A (InnerTubeX) → B (Kiji); en PC, B.
-  late final StreamResolver _resolver =
-      StreamResolver(engines: [InnerTubeXEngine(), KijiEngine(_ytClient), ref.read(ytDlpEngineProvider)]);
+  late final StreamResolver _resolver = StreamResolver(
+    engines: [InnerTubeXEngine(), KijiEngine(_ytClient), ref.read(ytDlpEngineProvider)],
+  );
 
   /// Problema de contenido de la última canción que no se pudo cargar (para el aviso).
   ContentProblem? _lastContentProblem;
@@ -190,21 +192,14 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // Ecualizador del sistema (Tarea J, solo Android): el efecto se conecta
     // al crear el reproductor y el notificador aplica el perfil guardado.
     final equalizer = ref.read(androidEqualizerProvider);
-    _player = AudioPlayer(
-      audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]),
-    );
+    _player = AudioPlayer(audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]));
     ref.read(equalizerProvider);
     ref.onDispose(_dispose);
 
     _controls = ref.read(systemMediaControlsProvider)
-      ..attach(MediaCommands(
-        play: play,
-        pause: pause,
-        next: nextTrack,
-        previous: previousTrack,
-        seek: seekTo,
-        stop: pause,
-      ));
+      ..attach(
+        MediaCommands(play: play, pause: pause, next: nextTrack, previous: previousTrack, seek: seekTo, stop: pause),
+      );
 
     _listenToPlayer();
     unawaited(PathHealth.instance.load());
@@ -240,9 +235,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     try {
       await SchedulerBinding.instance.endOfFrame.timeout(const Duration(seconds: 3));
     } on TimeoutException {
-      StartupLog.mark('el primer cuadro tardó; se restaura la cola igual');
+      StartupLog.mark('el primer cuadro tardó; se restaura la cola igual'); // l10n-ignore
     }
-    await StartupLog.guard('restaurar la cola', _restoreState, limit: const Duration(seconds: 30));
+    await StartupLog.guard('restaurar la cola', _restoreState, limit: const Duration(seconds: 30)); // l10n-ignore
   }
 
   AudioPlayer get _audioPlayer {
@@ -271,10 +266,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           _pushSystemState();
         }),
       )
-      ..add(player.playbackEventStream.listen(
-        (_) => _pushSystemState(),
-        onError: (Object error) => unawaited(_onPlaybackError(error)),
-      ))
+      ..add(
+        player.playbackEventStream.listen(
+          (_) => _pushSystemState(),
+          onError: (Object error) => unawaited(_onPlaybackError(error)),
+        ),
+      )
       // just_audio 0.10 informa los errores de reproducción por aquí (no
       // como error de playbackEventStream).
       ..add(player.errorStream.listen((error) => unawaited(_onPlaybackError(error))))
@@ -340,11 +337,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final duration = state.duration;
     final position = _lastPlayedPosition;
     if (_currentClient != null &&
-        ((duration > Duration.zero && position < duration - const Duration(seconds: 5)) ||
-            !await _isOnline())) {
-      await _onPlaybackError('terminó antes de tiempo en ${position.inSeconds} s '
-          'de ${duration.inSeconds} s',
-          at: position);
+        ((duration > Duration.zero && position < duration - const Duration(seconds: 5)) || !await _isOnline())) {
+      await _onPlaybackError(tx.terminoAntesDeTiempoEnS(position.inSeconds, duration.inSeconds), at: position);
       return;
     }
 
@@ -398,8 +392,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
       _consecutiveFailures = 0;
       state = state.copyWith(isInitialized: true, position: _audioPlayer.position);
-      debugPrint('=== REPRODUCCION: "${track.title}" cargada en '
-          '${_audioPlayer.position.inSeconds} s ===');
+      debugPrint(
+        '=== REPRODUCCION: "${track.title}" cargada en '
+        '${_audioPlayer.position.inSeconds} s ===',
+      );
       unawaited(_saveState());
       if (autoPlay) {
         _startPlaying();
@@ -419,12 +415,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     }
   }
 
-  Future<LoadResult> _setSource(
-    Track track,
-    Duration initialPosition,
-    int token,
-    Set<String> skipClients,
-  ) async {
+  Future<LoadResult> _setSource(Track track, Duration initialPosition, int token, Set<String> skipClients) async {
     final videoId = track.youtubeVideoId;
     if (videoId == null) {
       await _audioPlayer.setFilePath(track.audioUrl, initialPosition: initialPosition);
@@ -480,7 +471,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
             final alternative = await alternatives.find(track);
             if (token != _loadToken) return LoadResult.cancelled;
             if (alternative != null && alternative != sourceId) {
-              debugPrint('=== REPRODUCCION: $videoId tiene un problema propio; se prueba la versión Canción $alternative ===');
+              debugPrint(
+                '=== REPRODUCCION: $videoId tiene un problema propio; se prueba la versión Canción $alternative ===',
+              );
               sourceId = alternative;
               tried.clear();
               continue;
@@ -492,8 +485,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           return LoadResult.contentBlocked;
         }
         final offline = outcome.offline || !await _isOnline();
-        debugPrint('=== REPRODUCCION: sin audio para $videoId '
-            '(${offline ? "sin conexión" : "caminos agotados"}) ===');
+        debugPrint(
+          '=== REPRODUCCION: sin audio para $videoId '
+          '(${offline ? "sin conexión" : tx.caminosAgotados}) ===',
+        );
         if (!offline) ErrorReporter.instance.unplayable(videoId);
         return offline ? LoadResult.offline : LoadResult.unplayable;
       }
@@ -529,24 +524,23 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           _currentStream = stream;
           if (sourceId != videoId && known.swap == null) {
             alternatives.remember(videoId, sourceId);
-            _notify(PlaybackNotice('«${track.title}»: el video tiene restricción o está bloqueado; suena su versión «Canción».'));
+            _notify(PlaybackNotice(tx.elVideoTieneRestriccionOEsta(track.title)));
           }
           if (mode != _SourceMode.cached) {
             debugPrint('=== REPRODUCCION: "${track.title}" sin la fuente por pedazos (${mode.name}) ===');
           }
-          unawaited(_cache.evict(
-            limitBytes: ref.read(settingsProvider).streamCacheLimitBytes,
-            keepVideoId: videoId,
-          ));
+          unawaited(_cache.evict(limitBytes: ref.read(settingsProvider).streamCacheLimitBytes, keepVideoId: videoId));
           return LoadResult.loaded;
         } on PlayerInterruptedException {
           return LoadResult.cancelled;
         } on PlayerException catch (error) {
-          debugPrint('=== REPRODUCCION: [${stream.path}] modo ${mode.name} '
-              'falló: ${error.code} ${error.message} ===');
+          debugPrint(
+            '=== REPRODUCCION: [${stream.path}] modo ${mode.name} '
+            'falló: ${error.code} ${error.message} ===',
+          );
         }
       }
-      PathHealth.instance.recordFormFailure(stream.path, 'El audio no se pudo abrir');
+      PathHealth.instance.recordFormFailure(stream.path, tx.elAudioNoSePudoAbrir);
       tried.add(stream.path);
     }
   }
@@ -561,9 +555,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// cuando la música se pausa, y quien llamó (la búsqueda, el botón de la
   /// notificación) quedaría "cargando" todo ese tiempo.
   void _startPlaying() {
-    unawaited(_audioPlayer.play().catchError(
-          (Object error) => debugPrint('=== REPRODUCCION: play() falló: $error ==='),
-        ));
+    unawaited(
+      _audioPlayer.play().catchError((Object error) => debugPrint('=== REPRODUCCION: play() falló: $error ===')),
+    );
   }
 
   /// Ahorro de datos (Tarea K): calidad baja con datos móviles.
@@ -605,12 +599,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     Duration initialPosition = Duration.zero,
     bool autoPlay = true,
   }) async {
-    final result = await _loadTrack(
-      track,
-      index,
-      initialPosition: initialPosition,
-      autoPlay: autoPlay,
-    );
+    final result = await _loadTrack(track, index, initialPosition: initialPosition, autoPlay: autoPlay);
     if (result == LoadResult.offline || result == LoadResult.unplayable || result == LoadResult.contentBlocked) {
       await _grace(track, index, result, initialPosition);
     }
@@ -626,10 +615,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       for (var step = 1; step < queue.length; step++) {
         final candidate = (index + step) % queue.length;
         if (await _isAvailableOffline(queue[candidate])) {
-          _notify(PlaybackNotice(
-            'Sin conexión. Seguimos con «${queue[candidate].title}», '
-            'que está guardada en el teléfono.',
-          ));
+          _notify(PlaybackNotice(tx.sinConexionSeguimosConQueEsta(queue[candidate].title)));
           await _loadOrRecover(queue[candidate], candidate);
           return;
         }
@@ -637,16 +623,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       // Nada para escuchar sin red: queda en pausa en el mismo punto, y al
       // tocar play se reintenta desde ahí.
       await _audioPlayer.pause();
-      state = state.copyWith(
-        track: track,
-        currentIndex: index,
-        position: position,
-        isInitialized: false,
-      );
-      _notify(const PlaybackNotice(
-        'Sin conexión: la música quedó en pausa. Cuando vuelva internet, toca play.',
-        action: NoticeAction.openDownloads,
-      ));
+      state = state.copyWith(track: track, currentIndex: index, position: position, isInitialized: false);
+      _notify(PlaybackNotice(tx.sinConexionLaMusicaQuedoEn, action: NoticeAction.openDownloads));
       return;
     }
 
@@ -654,8 +632,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       // No es culpa del extractor: se salta sin contar como falla.
       final problem = _lastContentProblem;
       final next = index + 1 < queue.length ? index + 1 : (state.repeatMode == PlaybackRepeatMode.off ? null : 0);
-      _notify(PlaybackNotice('«${track.title}»: ${problem == null ? 'no se puede reproducir' : contentProblemText(problem)}. '
-          '${next == null || next == index ? '' : 'Pasamos a la siguiente.'}'));
+      _notify(
+        PlaybackNotice(
+          '«${track.title}»: ${problem == null ? tx.noSePuedeReproducir : contentProblemText(problem)}. '
+          '${next == null || next == index ? '' : tx.pasamosALaSiguiente}',
+        ),
+      );
       // Solo una cuenta lo resuelve: se ofrece iniciar sesión (una vez por canción como mucho).
       final videoId = track.youtubeVideoId;
       if (problem == ContentProblem.ageRestricted &&
@@ -675,23 +657,23 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     }
 
     _consecutiveFailures++;
-    final next = index + 1 < queue.length
-        ? index + 1
-        : (state.repeatMode == PlaybackRepeatMode.off ? null : 0);
+    final next = index + 1 < queue.length ? index + 1 : (state.repeatMode == PlaybackRepeatMode.off ? null : 0);
     if (next == null || next == index || _consecutiveFailures >= 3) {
       _consecutiveFailures = 0;
       await _audioPlayer.pause();
       state = state.copyWith(position: position, isInitialized: false);
       final suggestC = YtDlpEngine.platformSupported && !ref.read(settingsProvider).ytDlpAccepted;
-      _notify(PlaybackNotice(
-        suggestC
-            ? 'YouTube no está dejando reproducir ahora. Puedes probar el motor C (yt-dlp) en Configuración → Salud del Extractor.'
-            : 'YouTube no está dejando reproducir ahora. Prueba en un rato o escucha tu música guardada.',
-        action: NoticeAction.openDownloads,
-      ));
+      _notify(
+        PlaybackNotice(
+          suggestC
+              ? tx.youtubeNoDejaProbarMotorC
+              : tx.youtubeNoEstaDejandoReproducirAhora,
+          action: NoticeAction.openDownloads,
+        ),
+      );
       return;
     }
-    _notify(PlaybackNotice('No se pudo reproducir «${track.title}». Pasamos a la siguiente.'));
+    _notify(PlaybackNotice(tx.noSePudoReproducirPasamosA(track.title)));
     await _loadOrRecover(queue[next], next);
   }
 
@@ -709,19 +691,16 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     try {
       final position = at ?? _lastPlayedPosition;
       final index = state.currentIndex;
-      debugPrint('=== REPRODUCCION: error a mitad de "${track.title}" en '
-          '${position.inSeconds} s: $error ===');
+      debugPrint(
+        '=== REPRODUCCION: error a mitad de "${track.title}" en '
+        '${position.inSeconds} s: $error ===',
+      );
 
       final client = _currentClient;
       if (client != null && await _isOnline()) {
         // Reintentar con el siguiente camino.
-        PathHealth.instance.recordFormFailure(client, 'Se cortó durante la reproducción');
-        final result = await _loadTrack(
-          track,
-          index,
-          initialPosition: position,
-          skipClients: {client},
-        );
+        PathHealth.instance.recordFormFailure(client, tx.seCortoDuranteLaReproduccion);
+        final result = await _loadTrack(track, index, initialPosition: position, skipClients: {client});
         if (result == LoadResult.loaded || result == LoadResult.cancelled) return;
         await _grace(track, index, result, position);
         return;
@@ -818,12 +797,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> undoRemove(RemovedFromQueue removed) async {
     if (state.queue.isEmpty) {
       state = state.copyWith(queue: [removed.track], currentIndex: 0);
-      await _loadOrRecover(
-        removed.track,
-        0,
-        initialPosition: removed.position,
-        autoPlay: removed.wasPlaying,
-      );
+      await _loadOrRecover(removed.track, 0, initialPosition: removed.position, autoPlay: removed.wasPlaying);
       return;
     }
     final queue = _queueSnapshot.insert(removed.index, removed.track, wasCurrent: removed.wasCurrent);
@@ -861,11 +835,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       final missing = queue[index];
       final next = await _nextAvailableIndex(queue, index);
       if (next == null) {
-        _notify(PlaybackNotice('Las canciones de esta cola ya no están en el dispositivo.'));
+        _notify(PlaybackNotice(tx.lasCancionesDeEstaColaYa));
         await _audioPlayer.pause();
         return;
       }
-      _notify(PlaybackNotice('«${missing.title}» ya no está en el dispositivo. Pasamos a la siguiente.'));
+      _notify(PlaybackNotice(tx.yaNoEstaEnElDispositivo(missing.title)));
       index = next;
     }
     await _loadOrRecover(queue[index], index);
@@ -910,9 +884,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // Colas guardadas antes del arreglo del artista ("Canción • Daft Punk").
     final queue = [
       for (final track in snapshot.queue)
-        track.source == TrackSource.youtube
-            ? track.copyWith(artist: cleanArtistText(track.artist))
-            : track,
+        track.source == TrackSource.youtube ? track.copyWith(artist: cleanArtistText(track.artist)) : track,
     ];
     var index = snapshot.currentIndex;
     var position = Duration(milliseconds: snapshot.positionMs);
@@ -923,10 +895,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       final next = await _nextAvailableIndex(queue, index);
       if (next == null) {
         debugPrint('=== MEMORIA: ningún archivo de la cola existe ===');
-        _notify(PlaybackNotice('Las canciones de tu última cola ya no están en el dispositivo.'));
+        _notify(PlaybackNotice(tx.lasCancionesDeTuUltimaCola));
         return;
       }
-      _notify(PlaybackNotice('«${missing.title}» ya no está en el dispositivo. Pasamos a la siguiente.'));
+      _notify(PlaybackNotice(tx.yaNoEstaEnElDispositivo(missing.title)));
       index = next;
       position = Duration.zero;
     }
@@ -935,8 +907,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     state = state.copyWith(
       queue: queue,
       currentIndex: index,
-      repeatMode: PlaybackRepeatMode.values.asNameMap()[snapshot.repeatMode] ??
-          PlaybackRepeatMode.off,
+      repeatMode: PlaybackRepeatMode.values.asNameMap()[snapshot.repeatMode] ?? PlaybackRepeatMode.off,
       shuffleEnabled: snapshot.shuffleEnabled,
     );
     debugPrint('=== MEMORIA: restaurada "${queue[index].title}" en ${position.inSeconds} s ===');
@@ -1027,9 +998,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (!state.isInitialized) return;
     final target = _audioPlayer.position + offset;
     final duration = state.duration;
-    await seekTo(target < Duration.zero
-        ? Duration.zero
-        : (duration > Duration.zero && target > duration ? duration : target));
+    await seekTo(
+      target < Duration.zero ? Duration.zero : (duration > Duration.zero && target > duration ? duration : target),
+    );
   }
 
   /// Sube o baja el volumen de Kiji ([delta] entre -1 y 1).
@@ -1200,13 +1171,13 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final gain = _crossfading && waitingNext
         ? 0.0
         : _tailReady && waitingNext
-            ? 1.0
-            : transitionGain(
-      position: position,
-      duration: state.duration,
-      seconds: seconds,
-      fadeIn: _fadeInToken == _loadToken,
-    );
+        ? 1.0
+        : transitionGain(
+            position: position,
+            duration: state.duration,
+            seconds: seconds,
+            fadeIn: _fadeInToken == _loadToken,
+          );
     if ((gain - _transition).abs() < 0.01 && !(gain == 1 && _transition != 1)) return;
     if (_transition == 1 && gain < 1) {
       debugPrint('=== TRANSICION: empieza a ${position.inMilliseconds < 1000 ? 'subir' : 'bajar'} ($seconds s) ===');
@@ -1223,9 +1194,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final duration = state.duration;
     if (duration.inMilliseconds <= 0 || !state.isInitialized) return;
 
-    final position = Duration(
-      milliseconds: (duration.inMilliseconds * progress.clamp(0.0, 1.0)).round(),
-    );
+    final position = Duration(milliseconds: (duration.inMilliseconds * progress.clamp(0.0, 1.0)).round());
     await _audioPlayer.seek(position);
   }
 
@@ -1324,5 +1293,4 @@ class RemovedFromQueue {
   final bool wasPlaying;
 }
 
-final playbackProvider =
-    NotifierProvider<PlaybackNotifier, PlaybackState>(PlaybackNotifier.new);
+final playbackProvider = NotifierProvider<PlaybackNotifier, PlaybackState>(PlaybackNotifier.new);

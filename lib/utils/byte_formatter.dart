@@ -1,4 +1,6 @@
-/// Tamaño legible en español: "850 KB", "4,2 MB", "1,5 GB".
+import 'package:kiji_player/l10n/l10n.dart';
+
+/// Tamaño legible: "850 KB", "4,2 MB" (en inglés, "4.2 MB").
 String formatBytes(int bytes) {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   var value = bytes.toDouble();
@@ -9,6 +11,6 @@ String formatBytes(int bytes) {
   }
   final text = unit <= 1 || value >= 100
       ? value.round().toString()
-      : value.toStringAsFixed(1).replaceAll('.', ',');
+      : value.toStringAsFixed(1).replaceAll('.', kijiLanguage == 'es' ? ',' : '.');
   return '$text ${units[unit]}';
 }

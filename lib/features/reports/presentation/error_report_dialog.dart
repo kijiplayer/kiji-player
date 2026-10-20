@@ -11,7 +11,7 @@ Future<void> sendReportToDeveloper(BuildContext context, ErrorReport? report) as
   final messenger = ScaffoldMessenger.of(context);
   final uri = githubIssueUri(report, log: await KijiLogs.text());
   final ok = await launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) => false);
-  if (!ok) messenger.showSnackBar(const SnackBar(content: Text('No se pudo abrir el navegador.')));
+  if (!ok) messenger.showSnackBar(SnackBar(content: Text(tx.noSePudoAbrirElNavegador)));
 }
 
 /// Guarda el informe en un .txt donde el usuario elija.
@@ -19,7 +19,7 @@ Future<void> downloadReport(BuildContext context, ErrorReport? report) async {
   final text = buildReportText(report, log: await KijiLogs.text(), logLines: 400);
   final stamp = DateTime.now().toIso8601String().substring(0, 16).replaceAll(':', '-');
   if (!context.mounted) return;
-  await saveTextFile(context, 'informe-kiji-$stamp.txt', text, dialogTitle: 'Guardar informe');
+  await saveTextFile(context, 'informe-kiji-$stamp.txt', text, dialogTitle: tx.guardarInforme);
 }
 
 /// "Algo falló": las tres opciones de la Tarea T3. Nunca se manda nada sin que el usuario elija.
@@ -34,10 +34,7 @@ Future<void> showErrorReportDialog(BuildContext context, ErrorReport report) {
       actionsOverflowDirection: VerticalDirection.down,
       actionsOverflowButtonSpacing: 4,
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: Text(t.errorReportNoThanks),
-        ),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(t.errorReportNoThanks)),
         TextButton(
           onPressed: () {
             Navigator.of(dialogContext).pop();

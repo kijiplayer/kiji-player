@@ -10,6 +10,7 @@ import '../../../utils/json_file.dart';
 import '../domain/equalizer_model.dart';
 import 'equalizer_engine.dart';
 
+
 class EqualizerState {
   const EqualizerState({
     this.settings = const EqualizerSettings(),
@@ -29,20 +30,19 @@ class EqualizerState {
 
   EqProfile get activeProfile => settings.profileFor(output);
 
-  EqualizerState copyWith({EqualizerSettings? settings, AudioOutputKind? output, EqBands? bands}) =>
-      EqualizerState(
-        settings: settings ?? this.settings,
-        output: output ?? this.output,
-        bands: bands ?? this.bands,
-        supported: supported,
-      );
+  EqualizerState copyWith({EqualizerSettings? settings, AudioOutputKind? output, EqBands? bands}) => EqualizerState(
+    settings: settings ?? this.settings,
+    output: output ?? this.output,
+    bands: bands ?? this.bands,
+    supported: supported,
+  );
 }
 
 /// Ajustes en `<appSupportDir>/equalizer.json`. Aplica el perfil de la salida
 /// activa y lo cambia solo cuando se conectan o desconectan auriculares.
 class EqualizerNotifier extends Notifier<EqualizerState> {
   EqualizerNotifier({Future<Directory> Function()? directory})
-      : _directory = directory ?? getApplicationSupportDirectory;
+    : _directory = directory ?? getApplicationSupportDirectory;
 
   final Future<Directory> Function() _directory;
   JsonFile? _file;

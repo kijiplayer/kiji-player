@@ -13,6 +13,8 @@ import '../../queue/presentation/track_actions.dart';
 import '../../yt_music/data/ytm_browse_parser.dart';
 import '../data/home_feed_provider.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 void _playAll(WidgetRef ref, List<Track> tracks, {int index = 0, bool shuffle = false}) {
   if (tracks.isEmpty) return;
   final notifier = ref.read(playbackProvider.notifier);
@@ -50,7 +52,7 @@ class SectionTitle extends StatelessWidget {
           if (onPlayAll != null) ...[
             const SizedBox(width: 8),
             IconButton.filledTonal(
-              tooltip: 'Reproducir todo',
+              tooltip: tx.reproducirTodo,
               onPressed: onPlayAll,
               icon: const Icon(Icons.play_arrow_rounded),
             ),
@@ -118,10 +120,18 @@ class TrackCard extends StatelessWidget {
           children: [
             TrackArtwork(track: track, size: 140, radius: 16),
             const SizedBox(height: 8),
-            TrackTitleText(track,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-            TrackArtistText(track,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
+            TrackTitleText(
+              track,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            TrackArtistText(
+              track,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -137,13 +147,13 @@ class RecommendationSections extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final feed = ref.watch(homeFeedProvider);
     return feed.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.only(bottom: 28),
+      loading: () => Padding(
+        padding: const EdgeInsets.only(bottom: 28),
         child: Row(
           children: [
-            SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-            SizedBox(width: 10),
-            Text('Buscando música para ti…', style: TextStyle(color: KijiColors.muted)),
+            const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(width: 10),
+            Text(tx.buscandoMusicaParaTi, style: const TextStyle(color: KijiColors.muted)),
           ],
         ),
       ),
@@ -152,9 +162,9 @@ class RecommendationSections extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (feed.becauseOf != null)
-            TrackShelf(title: 'Porque escuchaste ${feed.becauseOf!.title}', tracks: feed.because),
-          TrackShelf(title: 'Mezcla para ti', note: 'tus favoritas + nuevas', tracks: feed.mix),
-          TrackShelf(title: 'Descubre', note: 'relacionadas de YouTube Music', tracks: feed.discover),
+            TrackShelf(title: tx.porqueEscuchaste(feed.becauseOf!.title), tracks: feed.because),
+          TrackShelf(title: tx.mezclaParaTi, note: tx.tusFavoritasNuevas, tracks: feed.mix),
+          TrackShelf(title: tx.descubre, note: tx.relacionadasDeYoutubeMusic, tracks: feed.discover),
         ],
       ),
     );
@@ -163,38 +173,37 @@ class RecommendationSections extends ConsumerWidget {
 
 /// "Para empezar" (usuario nuevo): géneros y estados de ánimo de YouTube Music.
 class StartHereSection extends ConsumerWidget {
-  const StartHereSection({super.key, this.title = 'Para empezar', this.note = 'elige un estilo'});
+  const StartHereSection({super.key, this._title, this._note});
 
-  final String title;
-  final String note;
+  final String? _title;
+  final String? _note;
+  String get title => _title ?? tx.paraEmpezar;
+  String get note => _note ?? tx.eligeUnEstilo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final moods = ref.watch(moodsProvider);
     return moods.when(
       loading: () => const Padding(padding: EdgeInsets.only(bottom: 28), child: LinearProgressIndicator()),
-      error: (error, _) => const Padding(
-        padding: EdgeInsets.only(bottom: 28),
-        child: Text('Sin conexión: los géneros aparecen cuando vuelva internet.', style: TextStyle(color: KijiColors.muted)),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.only(bottom: 28),
+        child: Text(tx.sinConexionLosGenerosAparecenCuando, style: const TextStyle(color: KijiColors.muted)),
       ),
       data: (list) {
         if (list.isEmpty) return const SizedBox.shrink();
-        Widget chips(Iterable<YtMood> items) => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [for (final mood in items) MoodChip(mood: mood)],
-            );
+        Widget chips(Iterable<YtMood> items) =>
+            Wrap(spacing: 8, runSpacing: 8, children: [for (final mood in items) MoodChip(mood: mood)]);
         return Padding(
           padding: const EdgeInsets.only(bottom: 28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionTitle(title, note: note),
-              Text('ESTADOS DE ÁNIMO', style: KijiText.mono(size: 11)),
+              Text(tx.estadosDeAnimo, style: KijiText.mono(size: 11)),
               const SizedBox(height: 8),
               chips(list.where((m) => !m.isGenre)),
               const SizedBox(height: 16),
-              Text('GÉNEROS', style: KijiText.mono(size: 11)),
+              Text(tx.generos, style: KijiText.mono(size: 11)),
               const SizedBox(height: 8),
               chips(list.where((m) => m.isGenre)),
             ],
@@ -237,7 +246,7 @@ class MoodScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(mood.title)),
       body: shelves.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => const Center(child: Text('No se pudo cargar. Revisa tu conexión.')),
+        error: (error, _) => Center(child: Text(tx.noSePudoCargarRevisaTu)),
         data: (list) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
@@ -291,7 +300,12 @@ class _PlaylistCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(card.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              card.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
       ),
@@ -315,7 +329,7 @@ class YtPlaylistScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(card.title)),
       body: tracks.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => const Center(child: Text('No se pudo cargar. Revisa tu conexión.')),
+        error: (error, _) => Center(child: Text(tx.noSePudoCargarRevisaTu)),
         data: (list) => ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
@@ -328,12 +342,12 @@ class YtPlaylistScreen extends ConsumerWidget {
                   FilledButton.icon(
                     onPressed: list.isEmpty ? null : () => _playAll(ref, list),
                     icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Reproducir'),
+                    label: Text(tx.reproducir),
                   ),
                   OutlinedButton.icon(
                     onPressed: list.isEmpty ? null : () => _playAll(ref, list, shuffle: true),
                     icon: const Icon(Icons.shuffle_rounded),
-                    label: const Text('Aleatorio'),
+                    label: Text(tx.aleatorio),
                   ),
                   OutlinedButton.icon(
                     onPressed: list.isEmpty
@@ -341,10 +355,10 @@ class YtPlaylistScreen extends ConsumerWidget {
                         : () {
                             final created = ref.read(playlistsProvider.notifier).create(card.title, tracks: list);
                             ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(content: Text('Se guardó «${created.name}» en tus playlists')));
+                                .showSnackBar(SnackBar(content: Text(tx.seGuardoEnTusPlaylists(created.name))));
                           },
                     icon: const Icon(Icons.library_add_rounded),
-                    label: const Text('Guardar en Kiji'),
+                    label: Text(tx.guardarEnKiji),
                   ),
                 ],
               ),

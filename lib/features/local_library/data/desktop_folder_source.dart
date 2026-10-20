@@ -7,38 +7,33 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../utils/startup_log.dart';
+
 import 'package:path_provider/path_provider.dart';
 
 import '../../../models/track.dart';
+import '../../yt_music/domain/subtitle_parser.dart';
 import '../../../utils/json_file.dart';
 import '../domain/local_library_source.dart';
+
+import 'package:kiji_player/l10n/l10n.dart';
 
 /// Windows / Linux / macOS: música de las carpetas que elige el usuario.
 /// Kiji no recorre el disco por su cuenta (Cero Sorpresas): solo lee las
 /// carpetas elegidas, y quitar una carpeta no borra ningún archivo.
 class DesktopFolderSource implements LocalLibrarySource {
-  DesktopFolderSource({
-    Future<Directory> Function()? baseDirectory,
-    Future<String?> Function()? pickFolder,
-  })  : _baseDirectory = baseDirectory ?? getApplicationSupportDirectory,
-        _pickFolder = pickFolder ??
-            (() => FilePicker.getDirectoryPath(
-                  dialogTitle: 'Elige una carpeta con música',
-                ));
+  DesktopFolderSource({Future<Directory> Function()? baseDirectory, Future<String?> Function()? pickFolder})
+    : _baseDirectory = baseDirectory ?? getApplicationSupportDirectory,
+      _pickFolder = pickFolder ?? (() => FilePicker.getDirectoryPath(dialogTitle: tx.eligeUnaCarpetaConMusica));
 
   /// Extensiones de audio que se leen.
-  static const audioExtensions = {
-    '.mp3', '.m4a', '.aac', '.flac', '.ogg', '.opus', '.wav', '.webm', '.wma',
-  };
+  static const audioExtensions = {'.mp3', '.m4a', '.aac', '.flac', '.ogg', '.opus', '.wav', '.webm', '.wma'};
 
   final Future<Directory> Function() _baseDirectory;
   final Future<String?> Function() _pickFolder;
   JsonFile? _file;
 
-  Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join((await _baseDirectory()).path, 'library_folders.json'),
-        logTag: 'BIBLIOTECA',
-      );
+  Future<JsonFile> _jsonFile() async =>
+      _file ??= JsonFile(p.join((await _baseDirectory()).path, 'library_folders.json'), logTag: 'BIBLIOTECA');
 
   @override
   bool get usesFolders => true;
@@ -47,11 +42,13 @@ class DesktopFolderSource implements LocalLibrarySource {
   Future<List<String>> folders() async {
     final json = await (await _jsonFile()).read();
     if (json is! List) return const [];
-    return [for (final folder in json) if (folder is String) folder];
+    return [
+      for (final folder in json)
+        if (folder is String) folder,
+    ];
   }
 
-  Future<void> _saveFolders(List<String> folders) async =>
-      (await _jsonFile()).write(folders);
+  Future<void> _saveFolders(List<String> folders) async => (await _jsonFile()).write(folders);
 
   @override
   Future<bool> hasAccess() async => (await folders()).isNotEmpty;
@@ -68,7 +65,10 @@ class DesktopFolderSource implements LocalLibrarySource {
   @override
   Future<void> removeFolder(String folder) async {
     final current = await folders();
-    await _saveFolders([for (final f in current) if (f != folder) f]);
+    await _saveFolders([
+      for (final f in current)
+        if (f != folder) f,
+    ]);
   }
 
   @override
@@ -77,8 +77,12 @@ class DesktopFolderSource implements LocalLibrarySource {
     // Recorrer carpetas y leer etiquetas puede tardar: en otro isolate para
     // que la interfaz no se trabe.
     // Con límite: archivos "solo en la nube" (OneDrive) pueden quedarse esperando al leerlos.
-    final entries = await StartupLog.guard('leer la carpeta de música', () => Isolate.run(() => scanFolders(roots)),
-            limit: const Duration(seconds: 90)) ??
+    final entries =
+        await StartupLog.guard(
+          'leer la carpeta de música', // l10n-ignore
+          () => Isolate.run(() => scanFolders(roots)),
+          limit: const Duration(seconds: 90),
+        ) ??
         const <ScannedSong>[];
     return [for (final entry in entries) entry.toTrack()]
       ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
@@ -104,17 +108,17 @@ class ScannedSong {
   final int? sizeBytes;
 
   Track toTrack() => Track(
-        // El id depende de la ruta: si el archivo se mueve, es otra canción.
-        id: 'local-file-${path.hashCode.toUnsigned(32).toRadixString(16)}',
-        title: title,
-        artist: artist,
-        coverColor: _colorFromSeed(title),
-        audioUrl: path,
-        source: TrackSource.local,
-        album: album,
-        durationMs: durationMs,
-        sizeBytes: sizeBytes,
-      );
+    // El id depende de la ruta: si el archivo se mueve, es otra canción.
+    id: 'local-file-${path.hashCode.toUnsigned(32).toRadixString(16)}',
+    title: title,
+    artist: artist,
+    coverColor: _colorFromSeed(title),
+    audioUrl: path,
+    source: TrackSource.local,
+    album: album,
+    durationMs: durationMs,
+    sizeBytes: sizeBytes,
+  );
 }
 
 /// Recorre [roots] y lee las etiquetas de cada archivo de audio. Si un
@@ -145,7 +149,7 @@ ScannedSong _readSong(File file) {
     return ScannedSong(
       path: file.path,
       title: title == null || title.isEmpty ? fallbackTitle : title,
-      artist: artist == null || artist.isEmpty ? 'Artista desconocido' : artist,
+      artist: artist == null || artist.isEmpty ? unknownArtist : artist,
       album: metadata.album,
       durationMs: metadata.duration?.inMilliseconds ?? 0,
       sizeBytes: file.lengthSync(),
@@ -156,7 +160,7 @@ ScannedSong _readSong(File file) {
     return ScannedSong(
       path: file.path,
       title: fallbackTitle,
-      artist: 'Artista desconocido',
+      artist: tx.artistaDesconocido,
       sizeBytes: file.lengthSync(),
     );
   }

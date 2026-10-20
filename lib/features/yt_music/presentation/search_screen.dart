@@ -25,15 +25,21 @@ import '../../recommendations/data/home_feed_provider.dart';
 import '../../recommendations/data/search_history.dart';
 import '../../recommendations/presentation/home_sections.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Qué se busca (chips del mockup, §7).
 enum SearchKind {
-  songs('Canciones'),
-  artists('Artistas'),
-  albums('Álbumes'),
-  myFiles('Mis archivos');
+  songs,
+  artists,
+  albums,
+  myFiles;
 
-  const SearchKind(this.label);
-  final String label;
+  String get label => switch (this) {
+    SearchKind.songs => tx.canciones,
+    SearchKind.artists => tx.artistas,
+    SearchKind.albums => tx.albumes,
+    SearchKind.myFiles => tx.misArchivos,
+  };
 }
 
 /// Filtra [tracks] por título, artista o álbum (sin distinguir mayúsculas).
@@ -41,10 +47,12 @@ List<Track> filterMyFiles(List<Track> tracks, String query) {
   final q = query.trim().toLowerCase();
   if (q.isEmpty) return const [];
   return tracks
-      .where((t) =>
-          t.title.toLowerCase().contains(q) ||
-          t.artist.toLowerCase().contains(q) ||
-          (t.album?.toLowerCase().contains(q) ?? false))
+      .where(
+        (t) =>
+            t.title.toLowerCase().contains(q) ||
+            t.artist.toLowerCase().contains(q) ||
+            (t.album?.toLowerCase().contains(q) ?? false),
+      )
       .toList();
 }
 
@@ -112,7 +120,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       } catch (error) {
         if (!mounted) return;
         setState(() {
-          _error = 'No se pudo buscar. Revisa tu conexión a Internet.';
+          _error = tx.noSePudoBuscarRevisaTu;
           _loading = false;
         });
         debugPrint('=== ERROR AL BUSCAR ${_kind.label.toUpperCase()} "$query": $error ===');
@@ -130,7 +138,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = 'No se pudo buscar. Revisa tu conexión a Internet.';
+        _error = tx.noSePudoBuscarRevisaTu;
         _loading = false;
       });
       debugPrint('=== ERROR AL BUSCAR "$query" ===\n$error');
@@ -160,11 +168,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         if (recent.isNotEmpty) ...[
           Row(
             children: [
-              Expanded(child: Text('RECIENTES', style: KijiText.mono(size: 11))),
-              TextButton(
-                onPressed: () => ref.read(searchHistoryProvider.notifier).clear(),
-                child: const Text('Borrar'),
-              ),
+              Expanded(child: Text(tx.recientes, style: KijiText.mono(size: 11))),
+              TextButton(onPressed: () => ref.read(searchHistoryProvider.notifier).clear(), child: Text(tx.borrar)),
             ],
           ),
           for (final query in recent.take(8))
@@ -173,7 +178,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               leading: const Icon(Icons.history_rounded, color: KijiColors.muted),
               title: Text(query, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: IconButton(
-                tooltip: 'Quitar',
+                tooltip: tx.quitar,
                 icon: const Icon(Icons.close_rounded, size: 18),
                 onPressed: () => ref.read(searchHistoryProvider.notifier).remove(query),
               ),
@@ -182,10 +187,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           const SizedBox(height: 16),
         ],
         if (suggestions.isNotEmpty)
-          TrackShelf(title: 'Te puede gustar', note: 'según lo que escuchas', tracks: suggestions),
+          TrackShelf(title: tx.tePuedeGustar, note: tx.segunLoQueEscuchas, tracks: suggestions),
         isNew
             ? const StartHereSection()
-            : const StartHereSection(title: 'Explora por estilo', note: 'géneros y ánimos de YouTube Music'),
+            : StartHereSection(title: tx.exploraPorEstilo, note: tx.generosYAnimosDeYoutubeMusic),
       ],
     );
   }
@@ -200,9 +205,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       await ref.read(playbackProvider.notifier).playTrack(ytTrackFromResult(result, audioUrl: ''));
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo reproducir esta canción.')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.noSePudoReproducirEstaCancion)));
       }
       debugPrint('=== ERROR AL REPRODUCIR RESULTADO DE BÚSQUEDA ===\n$error');
     } finally {
@@ -231,12 +234,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               },
               textInputAction: TextInputAction.search,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Buscar canciones, artistas...',
-                hintStyle: TextStyle(color: AppColors.onSurfaceMuted),
-                prefixIcon: Icon(Icons.search_rounded, color: KijiColors.muted),
+              decoration: InputDecoration(
+                hintText: tx.buscarCancionesArtistas,
+                hintStyle: const TextStyle(color: AppColors.onSurfaceMuted),
+                prefixIcon: const Icon(Icons.search_rounded, color: KijiColors.muted),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               ),
             ),
           ),
@@ -285,11 +288,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _buildCollections() {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
-      return Center(child: Text(_error!, style: const TextStyle(color: AppColors.onSurfaceMuted)));
+      return Center(
+        child: Text(_error!, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+      );
     }
     if (_controller.text.trim().isEmpty) return _buildBeforeTyping();
     if (_collections.isEmpty) {
-      return const Center(child: Text('Sin resultados', style: TextStyle(color: AppColors.onSurfaceMuted)));
+      return Center(
+        child: Text(tx.sinResultados, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+      );
     }
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 180),
@@ -306,15 +313,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final results = filterMyFiles([...downloaded, ...local], query);
 
     if (query.trim().isEmpty) {
-      return const Center(
-        child: Text('Busca entre tu música guardada y tus descargas',
-            style: TextStyle(color: AppColors.onSurfaceMuted)),
+      return Center(
+        child: Text(tx.buscaEntreTuMusicaGuardadaY, style: const TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
     if (results.isEmpty) {
-      return const Center(
-        child: Text('No hay coincidencias en tus archivos',
-            style: TextStyle(color: AppColors.onSurfaceMuted)),
+      return Center(
+        child: Text(tx.noHayCoincidenciasEnTusArchivos, style: const TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
     return ListView.builder(
@@ -344,8 +349,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
     if (_controller.text.trim().isEmpty) return _buildBeforeTyping();
     if (_results.isEmpty) {
-      return const Center(
-        child: Text('Sin resultados', style: TextStyle(color: AppColors.onSurfaceMuted)),
+      return Center(
+        child: Text(tx.sinResultados, style: const TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
 
@@ -353,38 +358,34 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return StaggerScope(
       generation: _results,
       child: ListView.separated(
-      padding: const EdgeInsets.only(bottom: 180),
-      itemCount: _results.length,
-      separatorBuilder: (_, _) => const SizedBox.shrink(),
-      itemBuilder: (context, index) {
-        final result = _results[index];
-        final isResolving = _resolvingVideoId == result.videoId;
+        padding: const EdgeInsets.only(bottom: 180),
+        itemCount: _results.length,
+        separatorBuilder: (_, _) => const SizedBox.shrink(),
+        itemBuilder: (context, index) {
+          final result = _results[index];
+          final isResolving = _resolvingVideoId == result.videoId;
 
-        final track = ytTrackFromResult(result, audioUrl: '');
+          final track = ytTrackFromResult(result, audioUrl: '');
 
-        // Mantener presionado (celular) o clic derecho (PC): "Reproducir a
-        // continuación" / "Agregar a la cola".
-        return StaggeredEntrance(
-          index: index,
-          child: GestureDetector(
-          onSecondaryTap: () => showTrackActions(context, ref, track),
-          child: ListTile(
-            leading: _Thumbnail(url: result.thumbnailUrl),
-            title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
-            trailing: isResolving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : DownloadButton(track: track),
-            onTap: isResolving ? null : () => _play(result),
-            onLongPress: () => showTrackActions(context, ref, track),
-          ),
-          ),
-        );
-      },
+          // Mantener presionado (celular) o clic derecho (PC): "Reproducir a
+          // continuación" / "Agregar a la cola".
+          return StaggeredEntrance(
+            index: index,
+            child: GestureDetector(
+              onSecondaryTap: () => showTrackActions(context, ref, track),
+              child: ListTile(
+                leading: _Thumbnail(url: result.thumbnailUrl),
+                title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+                trailing: isResolving
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : DownloadButton(track: track),
+                onTap: isResolving ? null : () => _play(result),
+                onLongPress: () => showTrackActions(context, ref, track),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -403,11 +404,7 @@ class _Thumbnail extends StatelessWidget {
         width: 44,
         height: 44,
         child: url != null
-            ? Image.network(
-                url!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const _FallbackThumb(),
-              )
+            ? Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const _FallbackThumb())
             : const _FallbackThumb(),
       ),
     );

@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../models/track.dart';
 import '../../utils/json_file.dart';
 
+
 /// Una canción escuchada: cuándo fue la última vez y cuántas veces.
 class HistoryEntry {
   const HistoryEntry({required this.track, required this.lastPlayed, required this.playCount});
@@ -17,16 +18,16 @@ class HistoryEntry {
   final int playCount;
 
   Map<String, dynamic> toJson() => {
-        'track': track.toJson(),
-        'lastPlayed': lastPlayed.millisecondsSinceEpoch,
-        'playCount': playCount,
-      };
+    'track': track.toJson(),
+    'lastPlayed': lastPlayed.millisecondsSinceEpoch,
+    'playCount': playCount,
+  };
 
   factory HistoryEntry.fromJson(Map<String, dynamic> json) => HistoryEntry(
-        track: Track.fromJson(json['track'] as Map<String, dynamic>),
-        lastPlayed: DateTime.fromMillisecondsSinceEpoch(json['lastPlayed'] as int),
-        playCount: json['playCount'] as int? ?? 1,
-      );
+    track: Track.fromJson(json['track'] as Map<String, dynamic>),
+    lastPlayed: DateTime.fromMillisecondsSinceEpoch(json['lastPlayed'] as int),
+    playCount: json['playCount'] as int? ?? 1,
+  );
 }
 
 /// Lógica pura del historial (testeable sin disco).
@@ -48,19 +49,15 @@ abstract final class HistoryLogic {
 
   /// "Escuchado recientemente": de la más reciente a la más vieja.
   static List<Track> recent(List<HistoryEntry> entries, {int limit = 12}) =>
-      ([...entries]..sort((a, b) => b.lastPlayed.compareTo(a.lastPlayed)))
-          .take(limit)
-          .map((e) => e.track)
-          .toList();
+      ([...entries]..sort((a, b) => b.lastPlayed.compareTo(a.lastPlayed))).take(limit).map((e) => e.track).toList();
 
   /// "Para ti · calculado en tu teléfono": las que más escuchaste (empate:
   /// la más reciente), sin la que está sonando.
   static List<Track> forYou(List<HistoryEntry> entries, {String? excludeId, int limit = 4}) =>
-      ([...entries.where((e) => e.track.id != excludeId)]
-            ..sort((a, b) {
-              final byCount = b.playCount.compareTo(a.playCount);
-              return byCount != 0 ? byCount : b.lastPlayed.compareTo(a.lastPlayed);
-            }))
+      ([...entries.where((e) => e.track.id != excludeId)]..sort((a, b) {
+            final byCount = b.playCount.compareTo(a.playCount);
+            return byCount != 0 ? byCount : b.lastPlayed.compareTo(a.lastPlayed);
+          }))
           .take(limit)
           .map((e) => e.track)
           .toList();
@@ -71,10 +68,8 @@ abstract final class HistoryLogic {
 class ListeningHistoryNotifier extends Notifier<List<HistoryEntry>> {
   JsonFile? _file;
 
-  Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join((await getApplicationSupportDirectory()).path, 'history.json'),
-        logTag: 'HISTORIAL',
-      );
+  Future<JsonFile> _jsonFile() async =>
+      _file ??= JsonFile(p.join((await getApplicationSupportDirectory()).path, 'history.json'), logTag: 'HISTORIAL');
 
   @override
   List<HistoryEntry> build() {
@@ -104,7 +99,10 @@ class ListeningHistoryNotifier extends Notifier<List<HistoryEntry>> {
   /// historial (nunca cambia lo existente). Devuelve los ids agregados.
   List<String> importEntries(List<HistoryEntry> entries) {
     final existing = {for (final e in state) e.track.id};
-    final toAdd = [for (final e in entries) if (existing.add(e.track.id)) e];
+    final toAdd = [
+      for (final e in entries)
+        if (existing.add(e.track.id)) e,
+    ];
     if (toAdd.isEmpty) return const [];
     state = [...state, ...toAdd]..sort((a, b) => b.lastPlayed.compareTo(a.lastPlayed));
     if (state.length > HistoryLogic.maxEntries) {
@@ -112,13 +110,19 @@ class ListeningHistoryNotifier extends Notifier<List<HistoryEntry>> {
     }
     unawaited(_save());
     final kept = {for (final e in state) e.track.id};
-    return [for (final e in toAdd) if (kept.contains(e.track.id)) e.track.id];
+    return [
+      for (final e in toAdd)
+        if (kept.contains(e.track.id)) e.track.id,
+    ];
   }
 
   /// Deshacer una importación: quita solo estas.
   void removeIds(Iterable<String> ids) {
     final remove = ids.toSet();
-    state = [for (final e in state) if (!remove.contains(e.track.id)) e];
+    state = [
+      for (final e in state)
+        if (!remove.contains(e.track.id)) e,
+    ];
     unawaited(_save());
   }
 
@@ -137,5 +141,6 @@ class ListeningHistoryNotifier extends Notifier<List<HistoryEntry>> {
   }
 }
 
-final listeningHistoryProvider =
-    NotifierProvider<ListeningHistoryNotifier, List<HistoryEntry>>(ListeningHistoryNotifier.new);
+final listeningHistoryProvider = NotifierProvider<ListeningHistoryNotifier, List<HistoryEntry>>(
+  ListeningHistoryNotifier.new,
+);

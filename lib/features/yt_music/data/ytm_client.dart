@@ -18,6 +18,8 @@ import 'ytm_browse_parser.dart';
 import 'yt_clients.dart';
 import '../../account/domain/yt_session.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
 /// a nuestro modelo de dominio [Track].
 class YtMusicSearchResult {
@@ -71,23 +73,23 @@ class YtStream {
 /// requerir ajustes si YouTube cambia la forma de su respuesta.
 class YtMusicClient {
   YtMusicClient({JsChallengeSolver? solver, PlayerScriptSource? playerScripts, PoTokenProvider? poTokens})
-      : _solver = solver ?? sharedSolver,
-        _poTokens = poTokens ?? sharedPoTokens,
-        _playerScripts = playerScripts ?? sharedPlayerScripts,
-        _dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://music.youtube.com/youtubei/v1',
-            headers: {
-              'Content-Type': 'application/json',
-              'Origin': 'https://music.youtube.com',
-              'User-Agent':
-                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                      '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            connectTimeout: const Duration(seconds: 15),
-            receiveTimeout: const Duration(seconds: 15),
-          ),
-        );
+    : _solver = solver ?? sharedSolver,
+      _poTokens = poTokens ?? sharedPoTokens,
+      _playerScripts = playerScripts ?? sharedPlayerScripts,
+      _dio = Dio(
+        BaseOptions(
+          baseUrl: 'https://music.youtube.com/youtubei/v1',
+          headers: {
+            'Content-Type': 'application/json',
+            'Origin': 'https://music.youtube.com',
+            'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' // l10n-ignore
+                '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', // l10n-ignore
+          },
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
 
   /// Una sola WebView y un solo reproductor para toda la app.
   static final JsChallengeSolver sharedSolver = WebViewEjsSolver();
@@ -101,10 +103,7 @@ class YtMusicClient {
   /// Dio limpio para pedir el audio: sin headers heredados del cliente de
   /// búsqueda (cada "cliente" de YouTube manda los suyos propios).
   final Dio _playerDio = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
-    ),
+    BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 15)),
   );
 
   final Dio _dio;
@@ -112,24 +111,19 @@ class YtMusicClient {
   /// Clave pública embebida en el frontend web de YouTube Music. No es
   /// secreta: viaja en el HTML público del sitio y la reutilizan
   /// prácticamente todos los clientes FOSS de YTM.
-  static const _apiKey = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL47NlEVNIeM';
+  static const _apiKey = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL47NlEVNIeM'; // l10n-ignore
 
   Map<String, dynamic> get _context => {
-        'context': {
-          'client': {
-            'clientName': 'WEB_REMIX',
-            'clientVersion': '1.20260213.01.00',
-            'hl': 'es',
-            'gl': 'US',
-          },
-        },
-      };
+    'context': {
+      'client': {'clientName': 'WEB_REMIX', 'clientVersion': '1.20260213.01.00', 'hl': 'es', 'gl': 'US'},
+    },
+  };
 
   /// Busca canciones de forma anónima. Devuelve una lista vacía si no hay
   /// resultados o si la respuesta no se pudo interpretar.
   /// Filtro "solo canciones" de la búsqueda de YouTube Music (el mismo
   /// `params` que manda la web al tocar el chip "Canciones").
-  static const songsFilter = 'EgWKAQIIAWoKEAkQBRAKEAMQBA==';
+  static const songsFilter = 'EgWKAQIIAWoKEAkQBRAKEAMQBA=='; // l10n-ignore
 
   /// Busca de forma anónima. Con [songsOnly], solo canciones (sin videos).
   Future<List<YtMusicSearchResult>> search(String query, {bool songsOnly = false}) async {
@@ -140,11 +134,7 @@ class YtMusicClient {
     final response = await _dio.post<Map<String, dynamic>>(
       '/search',
       queryParameters: {'key': _apiKey},
-      data: {
-        ..._context,
-        'query': query,
-        if (songsOnly) 'params': songsFilter,
-      },
+      data: {..._context, 'query': query, if (songsOnly) 'params': songsFilter},
     );
 
     debugPrint('=== YTM search: status ${response.statusCode} ===');
@@ -165,8 +155,8 @@ class YtMusicClient {
 
   /// Filtros de la búsqueda de YouTube Music para Artistas y Álbumes (los
   /// mismos `params` que manda la web al tocar esos chips).
-  static const artistsFilter = 'EgWKAQIgAWoKEAkQChAFEAMQBA==';
-  static const albumsFilter = 'EgWKAQIYAWoKEAkQChAFEAMQBA==';
+  static const artistsFilter = 'EgWKAQIgAWoKEAkQChAFEAMQBA=='; // l10n-ignore
+  static const albumsFilter = 'EgWKAQIYAWoKEAkQChAFEAMQBA=='; // l10n-ignore
 
   /// Busca artistas o álbumes (anónimo).
   Future<List<YtCollection>> searchCollections(String query, YtCollectionKind kind) async {
@@ -174,11 +164,7 @@ class YtMusicClient {
     final response = await _dio.post<Map<String, dynamic>>(
       '/search',
       queryParameters: {'key': _apiKey},
-      data: {
-        ..._context,
-        'query': query,
-        'params': kind == YtCollectionKind.artist ? artistsFilter : albumsFilter,
-      },
+      data: {..._context, 'query': query, 'params': kind == YtCollectionKind.artist ? artistsFilter : albumsFilter},
     );
     final data = response.data;
     return data == null ? const [] : parseCollectionResults(data, kind);
@@ -215,7 +201,7 @@ class YtMusicClient {
       final author = (details['author'] as String? ?? '').replaceAll(RegExp(r'\s*-\s*Topic$'), '');
       return YtMusicSearchResult(
         videoId: videoId,
-        title: details['title'] as String? ?? 'Sin título',
+        title: details['title'] as String? ?? tx.sinTitulo,
         artist: author.isEmpty ? unknownArtist : author,
         durationMs: seconds == null ? null : seconds * 1000,
         thumbnailUrl: thumbs == null || thumbs.isEmpty ? null : (thumbs.last as Map)['url'] as String?,
@@ -242,7 +228,10 @@ class YtMusicClient {
   /// que se le dice a YouTube es ese videoId: el historial no sale del teléfono.
   Future<List<YtMusicSearchResult>> related(String videoId) async {
     final tracks = await _next({'videoId': videoId, 'playlistId': 'RDAMVM$videoId'});
-    return [for (final t in tracks) if (t.videoId != videoId) t];
+    return [
+      for (final t in tracks)
+        if (t.videoId != videoId) t,
+    ];
   }
 
   /// Pistas de una playlist de YouTube Music (sin el prefijo `VL`).
@@ -287,8 +276,7 @@ class YtMusicClient {
       if (node is Map) {
         final renderer = node['musicResponsiveListItemRenderer'];
         if (renderer is Map) {
-          final parsed =
-              _parseItem(Map<String, dynamic>.from(renderer), fallbackArtist: cardArtist);
+          final parsed = _parseItem(Map<String, dynamic>.from(renderer), fallbackArtist: cardArtist);
           if (parsed != null && seenVideoIds.add(parsed.videoId)) {
             results.add(parsed);
           }
@@ -319,9 +307,9 @@ class YtMusicClient {
   String? _cardArtist(Map card) {
     final runs = (card['title'] as Map?)?['runs'] as List?;
     final run = runs?.whereType<Map>().firstOrNull;
-    final pageType = (((run?['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?)?[
-            'browseEndpointContextSupportedConfigs'] as Map?)?['browseEndpointContextMusicConfig']
-        ?['pageType'];
+    final pageType =
+        (((run?['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?)?['browseEndpointContextSupportedConfigs']
+            as Map?)?['browseEndpointContextMusicConfig']?['pageType'];
     return pageType == 'MUSIC_PAGE_TYPE_ARTIST' ? run!['text'] as String? : null;
   }
 
@@ -335,14 +323,13 @@ class YtMusicClient {
       final subtitleRuns = _extractRuns(flexColumns, 1);
       final subtitle = subtitleRuns == null ? null : parseSubtitleRuns(subtitleRuns);
 
-      final thumbnails = ((renderer['thumbnail'] as Map?)?['musicThumbnailRenderer']
-              as Map?)?['thumbnail']?['thumbnails'] as List?;
-      final thumbnailUrl =
-          thumbnails != null && thumbnails.isNotEmpty ? thumbnails.last['url'] as String? : null;
+      final thumbnails =
+          ((renderer['thumbnail'] as Map?)?['musicThumbnailRenderer'] as Map?)?['thumbnail']?['thumbnails'] as List?;
+      final thumbnailUrl = thumbnails != null && thumbnails.isNotEmpty ? thumbnails.last['url'] as String? : null;
 
       return YtMusicSearchResult(
         videoId: videoId,
-        title: (title == null || title.isEmpty) ? 'Sin título' : title,
+        title: (title == null || title.isEmpty) ? tx.sinTitulo : title,
         artist: subtitle?.artist ?? fallbackArtist ?? unknownArtist,
         album: subtitle?.album,
         durationMs: subtitle?.durationMs,
@@ -375,8 +362,7 @@ class YtMusicClient {
   List<dynamic>? _extractRuns(List? flexColumns, int index) {
     if (flexColumns == null || index >= flexColumns.length) return null;
     final column = flexColumns[index] as Map?;
-    final runs =
-        (column?['musicResponsiveListItemFlexColumnRenderer'] as Map?)?['text']?['runs'] as List?;
+    final runs = (column?['musicResponsiveListItemFlexColumnRenderer'] as Map?)?['text']?['runs'] as List?;
     if (runs == null || runs.isEmpty) return null;
     return runs;
   }
@@ -400,10 +386,7 @@ class YtMusicClient {
     try {
       final response = await Dio().get<String>(
         'https://music.youtube.com/sw.js_data',
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {'User-Agent': safariUserAgent},
-        ),
+        options: Options(responseType: ResponseType.plain, headers: {'User-Agent': safariUserAgent}),
       );
 
       final body = response.data ?? '';
@@ -429,7 +412,7 @@ class YtMusicClient {
       }
 
       walk(decoded);
-      debugPrint('=== YTM visitorData: ${found == null ? "NO encontrado" : "obtenido OK"} ===');
+      debugPrint('=== YTM visitorData: ${found == null ? "NO encontrado" : tx.obtenidoOk} ===');
       _visitorData = found;
       return found;
     } catch (error) {
@@ -450,13 +433,15 @@ class YtMusicClient {
       final response = await _playerDio.post<Map<String, dynamic>>(
         'https://${client.host}/youtubei/v1/player',
         queryParameters: {'prettyPrint': 'false'},
-        options: Options(headers: {
-          'Content-Type': 'application/json',
-          'X-YouTube-Client-Name': client.id,
-          'X-YouTube-Client-Version': client.version,
-          'X-Goog-Visitor-Id': ?visitor,
-          'User-Agent': client.userAgent,
-        }),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-YouTube-Client-Name': client.id,
+            'X-YouTube-Client-Version': client.version,
+            'X-Goog-Visitor-Id': ?visitor,
+            'User-Agent': client.userAgent,
+          },
+        ),
         data: {
           'context': {'client': client.context(visitor)},
           'videoId': videoId,
@@ -474,10 +459,12 @@ class YtMusicClient {
   /// Resuelve una URL del archivo de audio entero para [videoId] (para
   /// descargar: sin las formas HLS, que son segmentos).
   Future<String?> getAudioStreamUrl(String videoId) async => (await resolveStream(
-        videoId,
-        skipClients: {for (final client in ytPlayerClients) if (client.useHls) client.label},
-      ))
-          ?.url;
+    videoId,
+    skipClients: {
+      for (final client in ytPlayerClients)
+        if (client.useHls) client.label,
+    },
+  ))?.url;
 
   /// true si el último [resolveStream] falló por falta de conexión (y no
   /// porque YouTube rechazara a todas las formas).
@@ -564,7 +551,7 @@ class YtMusicClient {
     // En la PC, el reproductor (mpv vía just_audio_media_kit) toma la lista
     // HLS de YouTube como una lista de archivos sueltos y falla.
     if (client.useHls && !kIsWeb && !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
-      return fail('En la PC todavía no se pueden reproducir listas HLS');
+      return fail(tx.enLaPcTodaviaNoSe);
     }
     visitorData ??= await _getVisitorData();
     // Cuenta opcional: solo en las formas que la admiten (la de la web de YouTube Music).
@@ -574,15 +561,15 @@ class YtMusicClient {
     String? hostFlags;
     if (client.embedded) {
       final embed = await _embedConfig(videoId);
-      if (embed == null) return fail('No se pudo leer la página del reproductor incrustado');
+      if (embed == null) return fail(tx.noSePudoLeerLaPagina);
       visitorData = embed.visitorData;
       hostFlags = embed.hostFlags;
     }
     PlayerScript? player;
     if (client.needsPlayerScript) {
-      if (!_solver.isSupported) return fail('En este dispositivo no se puede descifrar (no hay WebView)');
+      if (!_solver.isSupported) return fail(tx.enEsteDispositivoNoSePuede);
       player = await _playerScripts.current();
-      if (player == null) return fail('No se pudo ubicar el reproductor de YouTube');
+      if (player == null) return fail(tx.noSePudoUbicarElReproductor);
     }
 
     // PO tokens (Tarea Z8, reglas de InnerTubeX 0.10.0): el de la URL de googlevideo ("GVS")
@@ -602,17 +589,19 @@ class YtMusicClient {
       final response = await _playerDio.post<Map<String, dynamic>>(
         'https://${client.host}/youtubei/v1/player',
         queryParameters: {'prettyPrint': 'false'},
-        options: Options(headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Format-Version': '1',
-          'X-YouTube-Client-Name': client.id,
-          'X-YouTube-Client-Version': client.version,
-          'X-Origin': 'https://${client.host}',
-          'Referer': 'https://${client.host}/',
-          'X-Goog-Visitor-Id': ?visitorData,
-          'User-Agent': client.userAgent,
-          ...?session?.authHeaders(),
-        }),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Format-Version': '1',
+            'X-YouTube-Client-Name': client.id,
+            'X-YouTube-Client-Version': client.version,
+            'X-Origin': 'https://${client.host}',
+            'Referer': 'https://${client.host}/',
+            'X-Goog-Visitor-Id': ?visitorData,
+            'User-Agent': client.userAgent,
+            ...?session?.authHeaders(),
+          },
+        ),
         data: {
           'context': {
             'client': client.context(visitorData),
@@ -625,7 +614,7 @@ class YtMusicClient {
             'playbackContext': {
               'contentPlaybackContext': {
                 'signatureTimestamp': player.signatureTimestamp,
-                if (client.embedded) 'html5Preference': 'HTML5_PREF_WANTS',
+                if (client.embedded) 'html5Preference': 'HTML5_PREF_WANTS', // l10n-ignore
                 'encryptedHostFlags': ?hostFlags,
               },
             },
@@ -646,12 +635,12 @@ class YtMusicClient {
       }
       return StreamAttempt(
         client.label,
-        reason: offline ? 'Sin conexión' : 'YouTube rechazó el pedido (${_status(error)})',
+        reason: offline ? tx.sinConexion : tx.youtubeRechazoElPedido(_status(error)),
         offline: offline,
         elapsed: watch.elapsed,
       );
     }
-    if (data == null) return fail('YouTube respondió vacío');
+    if (data == null) return fail(tx.youtubeRespondioVacio);
 
     final playability = data['playabilityStatus'] as Map?;
     final formats = sortAudioFormats(
@@ -659,7 +648,7 @@ class YtMusicClient {
       lowQuality: lowQuality,
     );
     if (formats.isEmpty) {
-      return fail('${playability?['status'] ?? 'Sin estado'}: ${playability?['reason'] ?? 'sin formatos de audio'}');
+      return fail('${playability?['status'] ?? tx.sinEstado}: ${playability?['reason'] ?? tx.sinFormatosDeAudio}');
     }
     if (client.useHls) return _tryHls(data, client, lowQuality, watch, fail);
     final format = formats.first;
@@ -669,35 +658,34 @@ class YtMusicClient {
     var signatureParam = 'signature';
     if (url == null) {
       final cipher = (format['signatureCipher'] ?? format['cipher']) as String?;
-      if (cipher == null) return fail('El formato no trae URL ni firma');
+      if (cipher == null) return fail(tx.elFormatoNoTraeUrlNi);
       final params = Uri.splitQueryString(cipher);
       url = params['url'];
       signature = params['s'];
       signatureParam = params['sp'] ?? 'signature';
-      if (url == null || signature == null) return fail('La firma cifrada vino incompleta');
-      if (player == null) return fail('Formato cifrado en una forma que no descifra');
+      if (url == null || signature == null) return fail(tx.laFirmaCifradaVinoIncompleta);
+      if (player == null) return fail(tx.formatoCifradoEnUnaFormaQue);
     }
 
     if (player != null) {
       final uri = Uri.parse(url);
       final n = uri.queryParameters['n'];
-      final answers = await _solver.solve(
-        playerHash: player.hash,
-        playerJs: player.load,
-        n: [?n],
-        sig: [?signature],
-      );
+      final answers = await _solver.solve(playerHash: player.hash, playerJs: player.load, n: [?n], sig: [?signature]);
       if (signature != null && answers.sig[signature] == null) {
-        return fail('No se pudo descifrar la firma: ${answers.error ?? 'sin respuesta'}');
+        return fail(tx.noSePudoDescifrarLaFirma(answers.error ?? tx.sinRespuesta));
       }
       if (n != null && answers.n[n] == null) {
-        return fail('No se pudo transformar el parámetro "n": ${answers.error ?? 'sin respuesta'}');
+        return fail(tx.noSePudoTransformarElParametro(answers.error ?? tx.sinRespuesta));
       }
-      url = uri.replace(queryParameters: {
-        ...uri.queryParameters,
-        if (n != null) 'n': answers.n[n]!,
-        if (signature != null) signatureParam: answers.sig[signature]!,
-      }).toString();
+      url = uri
+          .replace(
+            queryParameters: {
+              ...uri.queryParameters,
+              if (n != null) 'n': answers.n[n]!,
+              if (signature != null) signatureParam: answers.sig[signature]!,
+            },
+          )
+          .toString();
     }
 
     if (gvsToken != null) {
@@ -724,7 +712,11 @@ class YtMusicClient {
         'https://www.youtube.com/embed/$videoId?html5=1',
         options: Options(
           responseType: ResponseType.plain,
-          headers: {'User-Agent': chromeUserAgent, 'Referer': 'https://www.reddit.com/', 'Accept-Language': 'en-US,en;q=0.9'},
+          headers: {
+            'User-Agent': chromeUserAgent,
+            'Referer': 'https://www.reddit.com/',
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
         ),
       );
       final html = response.data ?? '';
@@ -748,23 +740,23 @@ class YtMusicClient {
     StreamAttempt Function(String) fail,
   ) async {
     final manifest = data['streamingData']?['hlsManifestUrl'] as String?;
-    if (manifest == null) return fail('YouTube no entregó la lista HLS');
+    if (manifest == null) return fail(tx.youtubeNoEntregoLaListaHls);
     Future<Response<String>> text(String url) => _playerDio.get<String>(
-          url,
-          options: Options(
-            responseType: ResponseType.plain,
-            headers: {'User-Agent': client.userAgent},
-            validateStatus: (_) => true,
-          ),
-        );
+      url,
+      options: Options(
+        responseType: ResponseType.plain,
+        headers: {'User-Agent': client.userAgent},
+        validateStatus: (_) => true,
+      ),
+    );
     try {
       final master = await text(manifest);
-      if (master.statusCode != 200) return fail('La lista HLS no responde (HTTP ${master.statusCode})');
+      if (master.statusCode != 200) return fail(tx.laListaHlsNoRespondeHttp(master.statusCode));
       final audio = pickHlsAudio(master.data ?? '', lowQuality: lowQuality);
-      if (audio == null) return fail('La lista HLS no trae audio solo');
+      if (audio == null) return fail(tx.laListaHlsNoTraeAudio);
       final playlist = await text(audio);
       final segments = (playlist.data ?? '').split('\n').where((l) => l.startsWith('http')).toList();
-      if (playlist.statusCode != 200 || segments.isEmpty) return fail('La lista de audio HLS vino vacía');
+      if (playlist.statusCode != 200 || segments.isEmpty) return fail(tx.laListaDeAudioHlsVino);
       for (final segment in [segments.first, segments.last]) {
         final response = await _playerDio.get<List<int>>(
           segment,
@@ -774,14 +766,16 @@ class YtMusicClient {
             validateStatus: (_) => true,
           ),
         );
-        if (response.statusCode != 200) return fail('Un segmento HLS no baja (HTTP ${response.statusCode})');
+        if (response.statusCode != 200) return fail(tx.unSegmentoHlsNoBajaHttp(response.statusCode));
       }
       final duration = hlsDuration(playlist.data ?? '');
-      debugPrint('=== YTM stream [${client.label}]: lista HLS lista, ${segments.length} segmentos, '
-          '${duration.inSeconds} s (${watch.elapsedMilliseconds} ms) ===');
+      debugPrint(
+        '=== YTM stream [${client.label}]: lista HLS lista, ${segments.length} segmentos, '
+        '${duration.inSeconds} s (${watch.elapsedMilliseconds} ms) ===',
+      );
       return StreamAttempt(client.label, url: audio, isHls: true, duration: duration, elapsed: watch.elapsed);
     } catch (error) {
-      return _isOffline(error) ? fail('Sin conexión') : fail('La lista HLS falló: ${'$error'.split('\n').first}');
+      return _isOffline(error) ? fail(tx.sinConexion) : fail(tx.laListaHlsFallo('$error'.split('\n').first));
     }
   }
 
@@ -831,11 +825,11 @@ class YtMusicClient {
       final status = response.statusCode ?? 0;
       if (status == 200 || status == 206) return null;
       if (status == 403 && length != null && length > 4096) {
-        return 'YouTube solo deja bajar el primer minuto (HTTP 403 al final del archivo)';
+        return tx.youtubeSoloDejaBajarElPrimer;
       }
-      return 'El audio no responde (HTTP $status)';
+      return tx.elAudioNoRespondeHttp(status);
     } catch (error) {
-      return _isOffline(error) ? 'Sin conexión' : 'El audio no responde ($error)';
+      return _isOffline(error) ? tx.sinConexion : tx.elAudioNoResponde(error);
     }
   }
 
@@ -846,18 +840,16 @@ class YtMusicClient {
           error.type == DioExceptionType.receiveTimeout ||
           error.error is SocketException);
 
-  static String _status(Object error) =>
-      error is DioException && error.response != null ? 'HTTP ${error.response!.statusCode}' : '$error'.split('\n').first;
+  static String _status(Object error) => error is DioException && error.response != null
+      ? 'HTTP ${error.response!.statusCode}' // l10n-ignore
+      : '$error'.split('\n').first;
 
   /// Formatos de audio de `streamingData`, de mayor a menor bitrate (con
   /// [lowQuality], de menor a mayor: el primero es el más liviano).
   @visibleForTesting
   static List<Map> sortAudioFormats(List formats, {bool lowQuality = false}) {
     int bitrate(Map f) => (f['bitrate'] as int?) ?? 0;
-    return formats
-        .whereType<Map>()
-        .where((f) => ((f['mimeType'] as String?) ?? '').startsWith('audio/'))
-        .toList()
+    return formats.whereType<Map>().where((f) => ((f['mimeType'] as String?) ?? '').startsWith('audio/')).toList()
       ..sort((a, b) => lowQuality ? bitrate(a).compareTo(bitrate(b)) : bitrate(b).compareTo(bitrate(a)));
   }
 

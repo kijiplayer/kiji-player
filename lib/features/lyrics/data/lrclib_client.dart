@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 
 import '../domain/lyrics.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// No se pudo consultar (sin conexión o el servicio falló). Distinto de
 /// "no hay letra": esto no se guarda en caché, se reintenta la próxima vez.
 class LyricsUnavailableException implements Exception {
@@ -19,24 +21,22 @@ class LyricsUnavailableException implements Exception {
 /// usuario abre la letra.
 class LrcLibClient {
   LrcLibClient({Dio? dio, String baseUrl = 'https://lrclib.net'})
-      : _dio = dio ??
-            Dio(BaseOptions(
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
               baseUrl: baseUrl,
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 15),
               // LRCLIB pide que cada app se identifique.
-              headers: {'User-Agent': 'Kiji Player 1.0.0 (software libre, GPL-3.0)'},
-            ));
+              headers: {'User-Agent': 'Kiji Player 1.0.0 (software libre, GPL-3.0)'}, // l10n-ignore
+            ),
+          );
 
   final Dio _dio;
 
   /// Busca la letra. Devuelve [Lyrics.none] si LRCLIB no la tiene.
-  Future<Lyrics> fetch({
-    required String title,
-    required String artist,
-    String? album,
-    Duration? duration,
-  }) async {
+  Future<Lyrics> fetch({required String title, required String artist, String? album, Duration? duration}) async {
     try {
       final exact = await _dio.get<Map<String, dynamic>>(
         '/api/get',
@@ -61,10 +61,9 @@ class LrcLibClient {
     } on DioException catch (error) {
       debugPrint('=== LETRAS: LRCLIB no respondió: $error ===');
       throw LyricsUnavailableException(
-        error.type == DioExceptionType.connectionError ||
-                error.type == DioExceptionType.connectionTimeout
-            ? 'sin conexión'
-            : 'el servicio de letras no respondió',
+        error.type == DioExceptionType.connectionError || error.type == DioExceptionType.connectionTimeout
+            ? tx.sinConexionMinuscula
+            : tx.elServicioDeLetrasNoRespondio,
       );
     }
   }

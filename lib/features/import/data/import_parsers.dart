@@ -14,13 +14,11 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../domain/imported.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Elige el lector según la extensión y el contenido.
-Future<ImportBundle> parseImportFile(File file, {required Directory tempDir}) async => parseImportBytes(
-      await file.readAsBytes(),
-      p.basename(file.path),
-      tempDir: tempDir,
-      baseDir: file.parent.path,
-    );
+Future<ImportBundle> parseImportFile(File file, {required Directory tempDir}) async =>
+    parseImportBytes(await file.readAsBytes(), p.basename(file.path), tempDir: tempDir, baseDir: file.parent.path);
 
 /// Igual que [parseImportFile], con los bytes (en Android, `file_picker`
 /// a veces no da una ruta real).
@@ -41,7 +39,7 @@ Future<ImportBundle> parseImportBytes(
     return parseM3u(text, name: base, baseDir: baseDir);
   }
   if (ext == '.csv') return parseCsvPlaylist(text, name: base);
-  throw ImportFormatException('No reconozco el formato de «$name». Kiji lee .backup, .m3u, .m3u8 y .csv.');
+  throw ImportFormatException(tx.noReconozcoElFormatoDeKiji(name));
 }
 
 String _decodeText(Uint8List bytes) {
@@ -71,13 +69,11 @@ Future<ImportBundle> parseEchoBackup(Uint8List bytes, {required Directory tempDi
     archive = ZipDecoder().decodeBytes(bytes);
   } catch (error) {
     debugPrint('=== IMPORTAR: zip dañado: $error ===');
-    throw const ImportFormatException('El archivo de copia de seguridad está dañado.');
+    throw ImportFormatException(tx.elArchivoDeCopiaDeSeguridad);
   }
   final entry = archive.files.where((f) => f.isFile && p.basename(f.name) == 'song.db').firstOrNull;
   if (entry == null) {
-    throw const ImportFormatException(
-      'Esta copia de seguridad no tiene la base de canciones (song.db).',
-    );
+    throw ImportFormatException(tx.estaCopiaDeSeguridadNoTiene);
   }
 
   // sqlite necesita un archivo: se copia a una carpeta temporal propia y se
@@ -96,7 +92,7 @@ Future<ImportBundle> parseEchoBackup(Uint8List bytes, {required Directory tempDi
     rethrow;
   } catch (error) {
     debugPrint('=== IMPORTAR: no se pudo leer song.db: $error ===');
-    throw const ImportFormatException('No se pudo leer la base de canciones de la copia de seguridad.');
+    throw ImportFormatException(tx.noSePudoLeerLaBase);
   } finally {
     try {
       await work.delete(recursive: true);
@@ -110,7 +106,7 @@ Future<ImportBundle> parseEchoBackup(Uint8List bytes, {required Directory tempDi
 ImportBundle readEchoDatabase(Database db) {
   final tables = {for (final r in db.select("SELECT name FROM sqlite_master WHERE type='table'")) r['name']};
   if (!tables.contains('song')) {
-    throw const ImportFormatException('La base no tiene el formato de Echo / Metrolist.');
+    throw ImportFormatException(tx.laBaseNoTieneElFormato);
   }
   final hasArtists = tables.contains('song_artist_map') && tables.contains('artist');
   final songColumns = {for (final r in db.select('PRAGMA table_info(song)')) r['name'] as String};
@@ -154,18 +150,17 @@ ImportBundle readEchoDatabase(Database db) {
       if (playlistColumns.contains('isPinned')) 'isPinned',
     ];
     for (final pl in db.select('SELECT ${['id', 'name', ...extra].join(', ')} FROM playlist ORDER BY createdAt')) {
-      final rows = db.select(
-        'SELECT songId FROM playlist_song_map WHERE playlistId = ? ORDER BY position',
-        [pl['id']],
-      );
+      final rows = db.select('SELECT songId FROM playlist_song_map WHERE playlistId = ? ORDER BY position', [pl['id']]);
       final list = [for (final r in rows) ?songs[r['songId']]];
       if (list.isNotEmpty) {
-        playlists.add(ImportedPlaylist(
-          pl['name'] as String,
-          list,
-          thumbnailUrl: extra.contains('thumbnailUrl') ? pl['thumbnailUrl'] as String? : null,
-          pinned: extra.contains('isPinned') && (pl['isPinned'] as int? ?? 0) == 1,
-        ));
+        playlists.add(
+          ImportedPlaylist(
+            pl['name'] as String,
+            list,
+            thumbnailUrl: extra.contains('thumbnailUrl') ? pl['thumbnailUrl'] as String? : null,
+            pinned: extra.contains('isPinned') && (pl['isPinned'] as int? ?? 0) == 1,
+          ),
+        );
       }
     }
   }
@@ -182,7 +177,7 @@ ImportBundle readEchoDatabase(Database db) {
   }
 
   return ImportBundle(
-    source: 'Echo / Metrolist (.backup)',
+    source: 'Echo / Metrolist (.backup)', // l10n-ignore
     playlists: playlists,
     liked: [for (final id in likedIds) songs[id]!],
     history: history,
@@ -193,7 +188,9 @@ ImportBundle readEchoDatabase(Database db) {
 // .m3u / .m3u8
 // ---------------------------------------------------------------------------
 
-final _ytUrl = RegExp(r'(?:youtube\.com/watch\?(?:.*&)?v=|youtu\.be/|music\.youtube\.com/watch\?(?:.*&)?v=)([A-Za-z0-9_-]{11})');
+final _ytUrl = RegExp(
+  r'(?:youtube\.com/watch\?(?:.*&)?v=|youtu\.be/|music\.youtube\.com/watch\?(?:.*&)?v=)([A-Za-z0-9_-]{11})',
+);
 
 /// Lista .m3u/.m3u8: rutas de archivos (relativas a la carpeta de la lista)
 /// y enlaces de YouTube. Usa `#EXTINF:segundos,Artista - Título` si está.
@@ -209,6 +206,7 @@ ImportBundle parseM3u(String text, {required String name, String? baseDir}) {
     final local = path.startsWith('file://') ? Uri.parse(path).toFilePath() : path;
     return p.isAbsolute(local) || baseDir == null ? local : p.normalize(p.join(baseDir, local));
   }
+
   for (final raw in text.split(RegExp(r'\r?\n'))) {
     final line = raw.trim();
     if (line.isEmpty) continue;
@@ -241,29 +239,27 @@ ImportBundle parseM3u(String text, {required String name, String? baseDir}) {
     final duration = pendingSeconds != null && pendingSeconds > 0 ? pendingSeconds * 1000 : null;
     final yt = _ytUrl.firstMatch(line);
     if (yt != null) {
-      songs.add(ImportedSong(
-        videoId: yt[1],
-        title: title,
-        artist: artist,
-        durationMs: duration,
-        thumbnailUrl: pendingImage,
-      ));
+      songs.add(
+        ImportedSong(videoId: yt[1], title: title, artist: artist, durationMs: duration, thumbnailUrl: pendingImage),
+      );
     } else {
       final path = line.startsWith('file://') ? Uri.parse(line).toFilePath() : line;
       final absolute = p.isAbsolute(path) || baseDir == null ? path : p.normalize(p.join(baseDir, path));
-      songs.add(ImportedSong(
-        localPath: absolute,
-        title: title ?? p.basenameWithoutExtension(absolute),
-        artist: artist,
-        durationMs: duration,
-        thumbnailUrl: pendingImage,
-      ));
+      songs.add(
+        ImportedSong(
+          localPath: absolute,
+          title: title ?? p.basenameWithoutExtension(absolute),
+          artist: artist,
+          durationMs: duration,
+          thumbnailUrl: pendingImage,
+        ),
+      );
     }
     pendingSeconds = null;
     pendingInfo = null;
     pendingImage = null;
   }
-  if (songs.isEmpty) throw ImportFormatException('La lista «$name» no tiene canciones.');
+  if (songs.isEmpty) throw ImportFormatException(tx.laListaNoTieneCanciones(name));
   return ImportBundle(source: '$name (.m3u)', playlists: [ImportedPlaylist(playlistName, songs)]);
 }
 
@@ -332,18 +328,16 @@ int? _column(List<String> header, List<String> names) {
 /// - Y variantes: "Title"/"Título", "Artist"/"Artista", "Duration".
 ImportBundle parseCsvPlaylist(String text, {required String name}) {
   final rows = parseCsv(text);
-  if (rows.length < 2) throw ImportFormatException('«$name» no tiene canciones.');
+  if (rows.length < 2) throw ImportFormatException(tx.noTieneCanciones(name));
   final header = rows.first;
-  final videoCol = _column(header, ['video id', 'videoid', 'video_id']);
-  final titleCol = _column(header, ['track name', 'title', 'título', 'titulo', 'song', 'name']);
-  final artistCol = _column(header, ['artist name(s)', 'artist names', 'artist', 'artista']);
-  final albumCol = _column(header, ['album name', 'album', 'álbum']);
-  final durationCol = _column(header, ['duration (ms)', 'duration_ms', 'duration', 'duración']);
-  final pathCol = _column(header, ['path', 'ruta', 'file path']);
+  final videoCol = _column(header, ['video id', 'videoid', 'video_id']); // l10n-ignore
+  final titleCol = _column(header, ['track name', 'title', 'título', 'titulo', 'song', 'name']); // l10n-ignore
+  final artistCol = _column(header, ['artist name(s)', 'artist names', 'artist', 'artista']); // l10n-ignore
+  final albumCol = _column(header, ['album name', 'album', 'álbum']); // l10n-ignore
+  final durationCol = _column(header, ['duration (ms)', 'duration_ms', 'duration', 'duración']); // l10n-ignore
+  final pathCol = _column(header, ['path', 'ruta', 'file path']); // l10n-ignore
   if (videoCol == null && titleCol == null) {
-    throw ImportFormatException(
-      'No encontré columnas de canciones en «$name» (busqué "Track Name", "Title" o "Video ID").',
-    );
+    throw ImportFormatException(tx.noEncontreColumnasDeCancionesEn(name));
   }
 
   String? cell(List<String> row, int? col) {
@@ -372,7 +366,7 @@ ImportBundle parseCsvPlaylist(String text, {required String name}) {
     );
     if (song.isUsable) songs.add(song);
   }
-  if (songs.isEmpty) throw ImportFormatException('«$name» no tiene canciones.');
-  final source = videoCol != null ? 'Google Takeout de YouTube Music (.csv)' : 'Exportify / Spotify (.csv)';
+  if (songs.isEmpty) throw ImportFormatException(tx.noTieneCanciones(name));
+  final source = videoCol != null ? tx.googleTakeoutCsv : 'Exportify / Spotify (.csv)'; // l10n-ignore
   return ImportBundle(source: source, playlists: [ImportedPlaylist(name, songs)]);
 }

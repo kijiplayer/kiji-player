@@ -11,6 +11,8 @@ import '../data/lyrics_repository.dart';
 import '../domain/lyrics.dart';
 import '../lyrics_provider.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// ⋯ → Fuente: todas las fuentes de letras, cuál se usa ahora, cuáles tienen esta letra y si está
 /// sincronizada. Tocar una fuente que la tiene la usa para esta canción.
 Future<void> showLyricsSourcesSheet(
@@ -105,12 +107,10 @@ class _SourcesSheetState extends ConsumerState<_SourcesSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Fuente de la letra', style: KijiText.title(size: 22)),
+                  Text(tx.fuenteDeLaLetra, style: KijiText.title(size: 22)),
                   const SizedBox(height: 6),
                   Text(
-                    pending > 0
-                        ? 'Preguntando a las fuentes… ($pending)'
-                        : 'Toca una fuente que tenga la letra para usarla en esta canción.',
+                    pending > 0 ? tx.preguntandoALasFuentes(pending) : tx.tocaUnaFuenteQueTengaLa,
                     style: const TextStyle(color: Colors.white70, fontSize: 15),
                   ),
                   const SizedBox(height: 12),
@@ -127,7 +127,7 @@ class _SourcesSheetState extends ConsumerState<_SourcesSheet> {
                   const Divider(color: Colors.white12),
                   _ActionRow(
                     icon: Icons.manage_search_rounded,
-                    text: 'Buscar con otro título o artista',
+                    text: tx.buscarConOtroTituloOArtista,
                     onTap: () {
                       Navigator.of(context).pop();
                       widget.onSearchByHand();
@@ -135,7 +135,7 @@ class _SourcesSheetState extends ConsumerState<_SourcesSheet> {
                   ),
                   _ActionRow(
                     icon: Icons.file_open_outlined,
-                    text: 'Importar un archivo .lrc',
+                    text: tx.importarUnArchivoLrc,
                     onTap: () {
                       Navigator.of(context).pop();
                       widget.onImport();
@@ -143,7 +143,7 @@ class _SourcesSheetState extends ConsumerState<_SourcesSheet> {
                   ),
                   _ActionRow(
                     icon: Icons.swap_vert_rounded,
-                    text: 'Cambiar el orden de las fuentes',
+                    text: tx.cambiarElOrdenDeLasFuentes,
                     onTap: () {
                       Navigator.of(context).pop();
                       LyricsSourcesScreen.open(context);
@@ -170,12 +170,12 @@ class _SourceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (probe?.state) {
-      null => (inUse ? 'En uso' : 'Buscando…', Colors.white54),
-      LyricsProbeState.synced => ('Sincronizada', KijiColors.cyan),
-      LyricsProbeState.plain => ('Sin sincronizar', Colors.white),
-      LyricsProbeState.none => ('No la tiene', Colors.white38),
-      LyricsProbeState.failed => ('No respondió', Colors.white38),
-      LyricsProbeState.off => ('Apagada', Colors.white38),
+      null => (inUse ? tx.enUso : tx.buscando, Colors.white54),
+      LyricsProbeState.synced => (tx.sincronizada, KijiColors.cyan),
+      LyricsProbeState.plain => (tx.sinSincronizar, Colors.white),
+      LyricsProbeState.none => (tx.noLaTiene, Colors.white38),
+      LyricsProbeState.failed => (tx.noRespondio2, Colors.white38),
+      LyricsProbeState.off => (tx.apagada, Colors.white38),
     };
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -200,8 +200,7 @@ class _SourceRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(source.label, style: KijiText.title(size: 17, weight: FontWeight.w600)),
-                      if (inUse)
-                        const Text('Es la que ves ahora', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                      if (inUse) Text(tx.esLaQueVesAhora, style: const TextStyle(color: Colors.white60, fontSize: 13)),
                     ],
                   ),
                 ),

@@ -9,10 +9,17 @@ import '../../../utils/json_file.dart';
 import '../../yt_music/data/ytm_client.dart';
 import '../domain/extraction_failure.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Quita los agregados típicos de un video ("(Official Video)", "[4K]"…) para buscar la canción.
 String cleanSongTitle(String title) => title
-    .replaceAll(RegExp(r'\s*[\(\[][^\)\]]*(official|video|vídeo|lyric|letra|audio|visualizer|4k|hd|mv|clip)[^\)\]]*[\)\]]',
-        caseSensitive: false), '')
+    .replaceAll(
+      RegExp(
+        r'\s*[\(\[][^\)\]]*(official|video|vídeo|lyric|letra|audio|visualizer|4k|hd|mv|clip)[^\)\]]*[\)\]]',
+        caseSensitive: false,
+      ),
+      '',
+    )
     .replaceAll(RegExp(r'\s+'), ' ')
     .trim();
 
@@ -58,9 +65,9 @@ class AlternativeFinder {
   Map<String, String>? _blocked;
 
   Future<JsonFile> _jsonFile() async => _file ??= JsonFile(
-        p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'alternatives.json'),
-        logTag: 'ALTERNATIVAS',
-      );
+    p.join(await (_directoryPath ?? () async => (await getApplicationSupportDirectory()).path)(), 'alternatives.json'),
+    logTag: 'ALTERNATIVAS',
+  );
 
   Future<void> _load() async {
     if (_swaps != null) return;
@@ -87,10 +94,7 @@ class AlternativeFinder {
   Future<({String? swap, ContentProblem? blocked})> known(String videoId) async {
     await _load();
     final blocked = _blocked![videoId];
-    return (
-      swap: _swaps![videoId],
-      blocked: blocked == null ? null : ContentProblem.values.asNameMap()[blocked],
-    );
+    return (swap: _swaps![videoId], blocked: blocked == null ? null : ContentProblem.values.asNameMap()[blocked]);
   }
 
   /// Busca la versión "Canción" de [track] (con la duración más parecida).
@@ -102,7 +106,7 @@ class AlternativeFinder {
       final query = '${cleanSongTitle(track.title)} ${track.artist}'.trim();
       final results = await client.search(query, songsOnly: true);
       final best = pickAlternative(track, results);
-      debugPrint('=== ALTERNATIVAS: ${track.youtubeVideoId} → ${best?.videoId ?? 'sin alternativa'} ===');
+      debugPrint('=== ALTERNATIVAS: ${track.youtubeVideoId} → ${best?.videoId ?? tx.sinAlternativa} ===');
       return best?.videoId;
     } catch (error) {
       debugPrint('=== ALTERNATIVAS: falló la búsqueda: ${error.runtimeType} ===');

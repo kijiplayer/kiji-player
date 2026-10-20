@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import '../../extractor/data/stream_resolver.dart';
 import '../../extractor/domain/extraction_failure.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Por qué no bajó una canción (Tarea T4).
 enum DownloadFailureKind {
   /// Problema de la canción (edad, borrada, bloqueada…): reintentar no sirve; otra versión, quizás.
@@ -38,32 +40,25 @@ class DownloadFailure {
   /// "Buscar otra versión" tiene sentido: la canción en sí no se puede bajar con este video.
   bool get canSearchAlternative =>
       !noAlternative &&
-      (kind == DownloadFailureKind.content || kind == DownloadFailureKind.allForms || kind == DownloadFailureKind.refused);
+      (kind == DownloadFailureKind.content ||
+          kind == DownloadFailureKind.allForms ||
+          kind == DownloadFailureKind.refused);
 
   /// La misma falla, después de buscar otra versión sin encontrarla: se conserva el motivo.
   DownloadFailure withoutAlternative() => DownloadFailure(
-        kind,
-        '${message.replaceAll(' Puedes buscar otra versión.', '').replaceAll(' o busca otra versión', '')} '
-        'Kiji buscó otra versión en YouTube Music y no hay.',
-        problem: problem,
-        noAlternative: true,
-      );
+    kind,
+    tx.kijiBuscoOtraVersionEnYoutube(
+      message.replaceAll(tx.puedesBuscarOtraVersionSufijo, '').replaceAll(tx.oBuscaOtraVersionSufijo, ''),
+    ),
+    problem: problem,
+    noAlternative: true,
+  );
 
-  static const network = DownloadFailure(
-    DownloadFailureKind.network,
-    'Se cortó la conexión. Al reintentar sigue desde donde quedó.',
-  );
-  static const allFormsFailed = DownloadFailure(
-    DownloadFailureKind.allForms,
-    'YouTube no entregó el audio con ninguna de las formas que probó Kiji. '
-    'Suele arreglarse solo: reintenta en un rato o busca otra versión.',
-  );
-  static const refusedMidway = DownloadFailure(
-    DownloadFailureKind.refused,
-    'YouTube cortó la descarga a mitad de camino. Al reintentar se prueba otra forma.',
-  );
-  static const noSpace = DownloadFailure(DownloadFailureKind.noSpace, 'No queda espacio en el dispositivo.');
-  static const unknown = DownloadFailure(DownloadFailureKind.unknown, 'No se pudo descargar. Reintenta en un rato.');
+  static DownloadFailure get network => DownloadFailure(DownloadFailureKind.network, tx.seCortoLaConexionAlReintentar);
+  static DownloadFailure get allFormsFailed => DownloadFailure(DownloadFailureKind.allForms, tx.youtubeNoEntregoElAudioCon);
+  static DownloadFailure get refusedMidway => DownloadFailure(DownloadFailureKind.refused, tx.youtubeCortoLaDescargaAMitad);
+  static DownloadFailure get noSpace => DownloadFailure(DownloadFailureKind.noSpace, tx.noQuedaEspacioEnElDispositivo);
+  static DownloadFailure get unknown => DownloadFailure(DownloadFailureKind.unknown, tx.noSePudoDescargarReintentaEn);
 
   /// El resultado de buscar el audio, en palabras simples.
   static DownloadFailure fromOutcome(ResolveOutcome outcome) {
@@ -86,25 +81,24 @@ class DownloadFailure {
 
   /// Texto para una canción que tiene un problema propio.
   static String contentText(ContentProblem problem) => switch (problem) {
-        ContentProblem.ageRestricted =>
-          'Tiene restricción de edad: YouTube no deja bajarla sin iniciar sesión. Puedes buscar otra versión.',
-        ContentProblem.unavailable => 'YouTube Music ya no la ofrece (la quitaron o no está en tu país).',
-        ContentProblem.private => 'El video es privado.',
-        ContentProblem.removed => 'El video fue borrado de YouTube.',
-        ContentProblem.regionBlocked => 'No está disponible en tu país.',
-      };
+    ContentProblem.ageRestricted => tx.tieneRestriccionDeEdadYoutubeNo,
+    ContentProblem.unavailable => tx.youtubeMusicYaNoLaOfrece,
+    ContentProblem.private => tx.elVideoEsPrivado,
+    ContentProblem.removed => tx.elVideoFueBorradoDeYoutube,
+    ContentProblem.regionBlocked => tx.noEstaDisponibleEnTuPais,
+  };
 
   Map<String, dynamic> toJson() => {
-        'kind': kind.name,
-        'message': message,
-        if (problem != null) 'problem': problem!.name,
-        if (noAlternative) 'noAlternative': true,
-      };
+    'kind': kind.name,
+    'message': message,
+    if (problem != null) 'problem': problem!.name,
+    if (noAlternative) 'noAlternative': true,
+  };
 
   static DownloadFailure fromJson(Map<String, dynamic> json) => DownloadFailure(
-        DownloadFailureKind.values.asNameMap()[json['kind']] ?? DownloadFailureKind.unknown,
-        json['message'] as String? ?? unknown.message,
-        problem: ContentProblem.values.asNameMap()[json['problem']],
-        noAlternative: json['noAlternative'] == true,
-      );
+    DownloadFailureKind.values.asNameMap()[json['kind']] ?? DownloadFailureKind.unknown,
+    json['message'] as String? ?? unknown.message,
+    problem: ContentProblem.values.asNameMap()[json['problem']],
+    noAlternative: json['noAlternative'] == true,
+  );
 }

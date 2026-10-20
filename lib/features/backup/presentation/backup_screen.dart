@@ -16,13 +16,14 @@ import '../data/backup_service.dart';
 import '../domain/backup_manifest.dart';
 import '../data/backup_folder.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Configuración → Copia de seguridad → "Copia de seguridad de Kiji" (Tarea U).
 class BackupScreen extends ConsumerWidget {
   const BackupScreen({super.key});
 
-  static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const BackupScreen()),
-      );
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const BackupScreen()));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,16 +34,11 @@ class BackupScreen extends ConsumerWidget {
     final last = backup.lastBackup;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Copia de seguridad')),
+      appBar: AppBar(title: Text(tx.copiaDeSeguridad)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
-          const Text(
-            'Una copia de tus playlists, me gusta, historial, ajustes, carátulas personalizadas y la '
-            'lista de tus descargas (sin el audio). Es un archivo tuyo, en tu dispositivo: no va a '
-            'ningún servidor. Se guardan las últimas 7.',
-            style: TextStyle(color: KijiColors.muted),
-          ),
+          Text(tx.unaCopiaDeTusPlaylistsMe, style: const TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 16),
           Glass(
             blur: false,
@@ -52,21 +48,23 @@ class BackupScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('Copia automática diaria'),
-                    subtitle: Text(last == null ? 'Todavía no hay copias.' : 'Última copia: ${describeDate(last, DateTime.now())}'),
+                    title: Text(tx.copiaAutomaticaDiaria),
+                    subtitle: Text(
+                      last == null ? tx.todaviaNoHayCopias : tx.ultimaCopia(describeDate(last, DateTime.now())),
+                    ),
                     value: auto,
                     onChanged: notifier.setAutoBackup,
                   ),
                   ListTile(
                     leading: const Icon(Icons.folder_outlined),
-                    title: const Text('Carpeta'),
-                    subtitle: Text(backup.folder?.path ?? 'Buscando…'),
-                    trailing: TextButton(onPressed: () => _chooseFolder(context, ref), child: const Text('Cambiar')),
+                    title: Text(tx.carpeta),
+                    subtitle: Text(backup.folder?.path ?? tx.buscando),
+                    trailing: TextButton(onPressed: () => _chooseFolder(context, ref), child: Text(tx.cambiar)),
                   ),
                   if (customFolder)
                     ListTile(
                       leading: const Icon(Icons.undo_rounded),
-                      title: const Text('Volver a la carpeta de fábrica'),
+                      title: Text(tx.volverALaCarpetaDeFabrica),
                       subtitle: const Text('Documentos/$backupFolderName'),
                       onTap: () => notifier.setFolder(null),
                     ),
@@ -80,22 +78,21 @@ class BackupScreen extends ConsumerWidget {
                 ? null
                 : () async {
                     final ok = await notifier.backupNow();
-                    if (context.mounted) _say(context, ok ? 'Copia hecha' : 'No se pudo hacer la copia');
+                    if (context.mounted) _say(context, ok ? tx.copiaHecha : tx.noSePudoHacerLaCopia2);
                   },
             icon: backup.busy
                 ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.backup_outlined),
-            label: const Text('Hacer una copia ahora'),
+            label: Text(tx.hacerUnaCopiaAhora),
           ),
           if (backup.error != null) ...[
             const SizedBox(height: 8),
             Text(backup.error!, style: const TextStyle(color: Colors.orangeAccent)),
           ],
           const SizedBox(height: 20),
-          Text('COPIAS', style: KijiText.mono(size: 11)),
+          Text(tx.copias, style: KijiText.mono(size: 11)),
           const SizedBox(height: 8),
-          if (backup.copies.isEmpty)
-            const Text('No hay copias en esta carpeta.', style: TextStyle(color: KijiColors.muted)),
+          if (backup.copies.isEmpty) Text(tx.noHayCopiasEnEstaCarpeta, style: const TextStyle(color: KijiColors.muted)),
           for (final copy in backup.copies)
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -104,20 +101,17 @@ class BackupScreen extends ConsumerWidget {
               subtitle: Text(formatBytes(copy.sizeBytes)),
               trailing: TextButton(
                 onPressed: backup.busy ? null : () => _restore(context, ref, copy.file),
-                child: const Text('Restaurar…'),
+                child: Text(tx.restaurar),
               ),
             ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: backup.busy ? null : () => _pickAndRestore(context, ref),
             icon: const Icon(Icons.file_open_outlined),
-            label: const Text('Restaurar desde un archivo…'),
+            label: Text(tx.restaurarDesdeUnArchivo),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Por ejemplo, una copia de otro teléfono o de la PC.',
-            style: TextStyle(color: KijiColors.muted, fontSize: 12),
-          ),
+          Text(tx.porEjemploUnaCopiaDeOtro, style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
         ],
       ),
     );
@@ -128,14 +122,14 @@ class BackupScreen extends ConsumerWidget {
     ..showSnackBar(SnackBar(content: Text(message)));
 
   Future<void> _chooseFolder(BuildContext context, WidgetRef ref) async {
-    final path = await FilePicker.getDirectoryPath(dialogTitle: 'Carpeta para las copias de Kiji');
+    final path = await FilePicker.getDirectoryPath(dialogTitle: tx.carpetaParaLasCopiasDeKiji);
     if (path == null) return;
     final problem = await ref.read(backupProvider.notifier).setFolder(path);
-    if (context.mounted) _say(context, problem ?? 'Las copias se van a guardar en $path');
+    if (context.mounted) _say(context, problem ?? tx.lasCopiasSeVanAGuardar(path));
   }
 
   Future<void> _pickAndRestore(BuildContext context, WidgetRef ref) async {
-    final picked = await FilePicker.pickFiles(dialogTitle: 'Elige una copia de Kiji', type: FileType.any);
+    final picked = await FilePicker.pickFiles(dialogTitle: tx.eligeUnaCopiaDeKiji, type: FileType.any);
     final path = picked.isEmpty ? null : picked.first.path;
     if (path == null || !context.mounted) return;
     await _restore(context, ref, File(path));
@@ -154,11 +148,11 @@ class BackupScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Restaurar esta copia?'),
+        title: Text(tx.restaurarEstaCopia),
         content: Text(restorePreviewText(preview.manifest)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Restaurar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.restaurar2)),
         ],
       ),
     );
@@ -166,31 +160,29 @@ class BackupScreen extends ConsumerWidget {
     try {
       await notifier.restore(file);
     } catch (error) {
-      if (context.mounted) _say(context, 'No se pudo restaurar: $error');
+      if (context.mounted) _say(context, tx.noSePudoRestaurar(error));
       return;
     }
     if (!context.mounted) return;
-    _say(context, 'Listo. Lo que tenías antes quedó en una copia "antes de restaurar".');
+    _say(context, tx.listoLoQueTeniasAntesQuedo);
     if (preview.downloads.isEmpty) return;
     final again = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Volver a bajar tus descargas?'),
+        title: Text(tx.volverABajarTusDescargas),
         content: Text(
-          'La copia tiene ${preview.downloads.length} '
-          '${preview.downloads.length == 1 ? 'canción descargada' : 'canciones descargadas'}. '
-          'El audio no va en la copia: se puede volver a bajar de YouTube (respeta "solo con WiFi").',
+          tx.laCopiaTieneElAudioNo(tx.nCancionesDescargadas(preview.downloads.length)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Ahora no')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Volver a bajar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.ahoraNo)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.volverABajar)),
         ],
       ),
     );
     if (again != true || !context.mounted) return;
     final (started, blocked) = await notifier.redownload(preview.downloads);
     if (context.mounted) {
-      _say(context, blocked == null ? 'Bajando $started canciones' : 'Bajando $started. Las demás no: $blocked');
+      _say(context, blocked == null ? tx.bajandoNCanciones(started) : tx.bajandoLasDemasNo(started, blocked));
     }
   }
 }
@@ -202,8 +194,8 @@ String describeDate(DateTime date, DateTime now) {
   final today = DateTime(now.year, now.month, now.day);
   final day = DateTime(date.year, date.month, date.day);
   final diff = today.difference(day).inDays;
-  if (diff == 0) return 'hoy $time';
-  if (diff == 1) return 'ayer $time';
+  if (diff == 0) return tx.hoyA(time);
+  if (diff == 1) return tx.ayerA(time);
   return '${two(date.day)}/${two(date.month)}/${date.year} $time';
 }
 
@@ -212,18 +204,20 @@ String restorePreviewText(BackupManifest manifest) {
   final c = manifest.counts;
   String n(int count, String one, String many) => '$count ${count == 1 ? one : many}';
   final origin = switch (manifest.platform) {
-    'android' => ' (de un celular Android)',
-    'windows' => ' (de una PC con Windows)',
+    'android' => tx.deUnCelularAndroid,
+    'windows' => tx.deUnaPcConWindows,
     _ => '',
   };
   final when = describeDate(manifest.createdAt, DateTime.now());
   final of = when.startsWith('hoy') || when.startsWith('ayer') ? 'de' : 'del';
-  return 'Copia $of $when$origin:\n'
-      '• ${n(c.playlists, 'playlist', 'playlists')}\n'
-      '• ${n(c.likes, 'me gusta', 'me gusta')}\n'
-      '• ${n(c.history, 'canción', 'canciones')} en el historial\n'
-      '• ${n(c.downloads, 'canción descargada', 'canciones descargadas')} (el audio se vuelve a bajar)\n'
-      '${c.covers > 0 ? '• ${n(c.covers, 'carátula personalizada', 'carátulas personalizadas')}\n' : ''}'
-      '\nReemplaza tus playlists, me gusta, historial y ajustes actuales. Antes, Kiji guarda una '
-      'copia de lo que tienes ahora, así que se puede volver atrás.';
+  return tx.copiaEnElHistorialElAudio(
+    of,
+    when,
+    origin,
+    n(c.playlists, 'playlist', 'playlists'),
+    n(c.likes, tx.meGusta, tx.meGusta),
+    n(c.history, tx.cancion, 'canciones'),
+    n(c.downloads, tx.cancionDescargada, tx.cancionesDescargadas),
+    c.covers > 0 ? '• ${n(c.covers, tx.caratulaPersonalizada, tx.caratulasPersonalizadas)}\n' : '',
+  );
 }

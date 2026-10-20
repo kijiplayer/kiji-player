@@ -8,6 +8,8 @@ import '../data/moments_store.dart';
 import '../domain/moment.dart';
 import 'moments_screen.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// El tramo que se está repitiendo (null: ninguno).
 final momentLoopProvider = StateProvider<Moment?>((ref) => null);
 
@@ -49,7 +51,10 @@ class MomentMarks extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final track = ref.watch(playbackProvider.select((p) => p.track));
     final duration = ref.watch(playbackProvider.select((p) => p.duration));
-    final moments = [for (final m in ref.watch(momentsProvider)) if (m.track.id == track?.id) m];
+    final moments = [
+      for (final m in ref.watch(momentsProvider))
+        if (m.track.id == track?.id) m,
+    ];
     final loop = ref.watch(momentLoopProvider);
     if (track == null || moments.isEmpty || duration <= Duration.zero) return const SizedBox(height: 6);
     final total = duration.inMilliseconds;
@@ -72,7 +77,7 @@ class MomentMarks extends ConsumerWidget {
                     height: 8,
                     child: Semantics(
                       button: true,
-                      label: 'Tramo de ${formatDuration(m.position)} a ${formatDuration(m.end!)}',
+                      label: tx.tramoDeA(formatDuration(m.position), formatDuration(m.end!)),
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () => playMoment(ref, m),
@@ -94,7 +99,7 @@ class MomentMarks extends ConsumerWidget {
                     height: 24,
                     child: Semantics(
                       button: true,
-                      label: 'Momento en ${formatDuration(m.position)}',
+                      label: tx.momentoEn(formatDuration(m.position)),
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () => playMoment(ref, m),
@@ -170,9 +175,9 @@ class MomentLoopChip extends ConsumerWidget {
       padding: const EdgeInsets.only(top: 6),
       child: InputChip(
         avatar: const Icon(Icons.repeat_one_rounded, size: 18, color: KijiColors.cyan),
-        label: Text('Repitiendo ${formatDuration(loop.position)}–${formatDuration(loop.end!)}'),
+        label: Text(tx.repitiendo(formatDuration(loop.position), formatDuration(loop.end!))),
         onDeleted: () => ref.read(momentLoopProvider.notifier).state = null,
-        deleteButtonTooltipMessage: 'Dejar de repetir',
+        deleteButtonTooltipMessage: tx.dejarDeRepetir,
       ),
     );
   }
@@ -189,10 +194,12 @@ void toggleMomentLoop(BuildContext context, WidgetRef ref, Moment moment) {
   playMoment(ref, moment);
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(
-      content: Text('Repitiendo de ${formatDuration(moment.position)} a ${formatDuration(moment.end!)}'),
-      persist: false,
-    ));
+    ..showSnackBar(
+      SnackBar(
+        content: Text(tx.repitiendoDeA(formatDuration(moment.position), formatDuration(moment.end!))),
+        persist: false,
+      ),
+    );
 }
 
 /// "Momento": guardar este segundo o un tramo (con dos tiradores), y repetir el tramo si se quiere.
@@ -234,7 +241,11 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
     if (track == null) return;
     final notifier = ref.read(momentsProvider.notifier);
     final moment = _interval
-        ? notifier.add(track, Duration(seconds: _range.start.round()), end: Duration(seconds: _range.end.round()))
+        ? notifier.add(
+            track,
+            Duration(seconds: _range.start.round()),
+            end: Duration(seconds: _range.end.round()),
+          )
         : notifier.add(track, widget.position);
     Navigator.of(context).pop();
     if (moment.isInterval && _repeat) {
@@ -243,13 +254,17 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
     }
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(moment.isInterval
-            ? 'Tramo guardado: ${formatDuration(moment.position)}–${formatDuration(moment.end!)}'
-            : 'Momento guardado en ${formatDuration(moment.position)}'),
-        persist: false,
-        action: SnackBarAction(label: 'Ver', onPressed: () => MomentsScreen.open(context)),
-      ));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            moment.isInterval
+                ? tx.tramoGuardado(formatDuration(moment.position), formatDuration(moment.end!))
+                : tx.momentoGuardadoEn(formatDuration(moment.position)),
+          ),
+          persist: false,
+          action: SnackBarAction(label: tx.ver, onPressed: () => MomentsScreen.open(context)),
+        ),
+      );
   }
 
   @override
@@ -262,16 +277,16 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Guardar un momento', style: KijiText.title(size: 20)),
+            Text(tx.guardarUnMomento, style: KijiText.title(size: 20)),
             const SizedBox(height: 14),
             SegmentedButton<bool>(
               segments: [
                 ButtonSegment(
                   value: false,
                   icon: const Icon(Icons.place_outlined),
-                  label: Text('Este segundo (${formatDuration(widget.position)})'),
+                  label: Text(tx.esteSegundo(formatDuration(widget.position))),
                 ),
-                const ButtonSegment(value: true, icon: Icon(Icons.straighten_rounded), label: Text('Un tramo')),
+                ButtonSegment(value: true, icon: const Icon(Icons.straighten_rounded), label: Text(tx.unTramo)),
               ],
               selected: {_interval},
               onSelectionChanged: (v) => setState(() => _interval = v.first),
@@ -279,8 +294,10 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
             if (_interval) ...[
               const SizedBox(height: 16),
               Text(
-                'De ${formatDuration(Duration(seconds: _range.start.round()))} '
-                'a ${formatDuration(Duration(seconds: _range.end.round()))}',
+                tx.deA(
+                  formatDuration(Duration(seconds: _range.start.round())),
+                  formatDuration(Duration(seconds: _range.end.round())),
+                ),
                 textAlign: TextAlign.center,
                 style: KijiText.mono(size: 15, color: KijiColors.cyan),
               ),
@@ -297,18 +314,14 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Repetir este tramo'),
-                subtitle: const Text('Vuelve al principio del tramo al llegar al final.'),
+                title: Text(tx.repetirEsteTramo),
+                subtitle: Text(tx.vuelveAlPrincipioDelTramoAl),
                 value: _repeat,
                 onChanged: (v) => setState(() => _repeat = v),
               ),
             ],
             const SizedBox(height: 12),
-            FilledButton.icon(
-              icon: const Icon(Icons.bookmark_add_rounded),
-              label: const Text('Guardar'),
-              onPressed: _save,
-            ),
+            FilledButton.icon(icon: const Icon(Icons.bookmark_add_rounded), label: Text(tx.guardar), onPressed: _save),
           ],
         ),
       ),

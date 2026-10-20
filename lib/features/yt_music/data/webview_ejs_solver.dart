@@ -1,3 +1,4 @@
+// l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 // Adaptado de Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivos originales: app/.../utils/sabr/EjsNTransformSolver.kt y
 // app/.../utils/cipher/CipherWebView.kt (el solver de yt-dlp/ejs dentro de una

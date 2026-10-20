@@ -10,14 +10,16 @@ import '../../extractor/domain/resolved_stream.dart';
 import '../data/yt_clients.dart';
 import 'collection_screens.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// "Hace 5 min", "hace 3 h", "hace 2 días".
 String agoShort(DateTime? when, DateTime now) {
   if (when == null) return 'nunca';
   final d = now.difference(when);
-  if (d.inMinutes < 1) return 'recién';
-  if (d.inHours < 1) return 'hace ${d.inMinutes} min';
-  if (d.inDays < 1) return 'hace ${d.inHours} h';
-  return 'hace ${d.inDays} ${d.inDays == 1 ? 'día' : 'días'}';
+  if (d.inMinutes < 1) return tx.recien;
+  if (d.inHours < 1) return tx.haceMin(d.inMinutes);
+  if (d.inDays < 1) return tx.haceH(d.inHours);
+  return tx.haceNDias(d.inDays);
 }
 
 /// Salud del Extractor 2.0 (Tarea Z8): resumen simple arriba, caminos agrupados por motor, las
@@ -54,9 +56,11 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
     });
     final tester = widget.tester ?? ExtractorTester(client: ref.read(ytMusicClientProvider), health: _health);
     try {
-      await tester.runAll(onResult: (r) {
-        if (mounted) setState(() => _results.add(r));
-      });
+      await tester.runAll(
+        onResult: (r) {
+          if (mounted) setState(() => _results.add(r));
+        },
+      );
     } finally {
       if (mounted) setState(() => _running = false);
     }
@@ -65,7 +69,7 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Salud del Extractor')),
+      appBar: AppBar(title: Text(tx.saludDelExtractor)),
       body: ListenableBuilder(
         listenable: _health,
         builder: (context, _) {
@@ -75,22 +79,26 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
           final summary = _results.isNotEmpty
               ? healthSummary(_results)
               : working == 0
-                  ? (all.isEmpty ? 'Todavía no se probó.' : 'Canciones normales: ✗ ninguna forma funciona ahora')
-                  : 'Canciones normales: ✓ $working ${working == 1 ? 'forma funcionando' : 'formas funcionando'}';
+              ? (all.isEmpty ? tx.todaviaNoSeProbo : tx.cancionesNormalesNingunaFormaFuncionaAho)
+              : tx.cancionesNormalesFormas(working);
           final aPaths = all.keys.where((k) => k.startsWith('A/')).toList()..sort();
-          final bForms = [for (final c in ytPlayerClients) if (!c.isRetired) c.label];
-          final retired = [for (final c in ytPlayerClients) if (c.isRetired) c];
+          final bForms = [
+            for (final c in ytPlayerClients)
+              if (!c.isRetired) c.label,
+          ];
+          final retired = [
+            for (final c in ytPlayerClients)
+              if (c.isRetired) c,
+          ];
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             children: [
               Text(summary, style: KijiText.title(size: 18)),
               const SizedBox(height: 4),
-              const Text(ageSummary, style: TextStyle(color: KijiColors.muted)),
+              Text(ageSummary, style: const TextStyle(color: KijiColors.muted)),
               const SizedBox(height: 4),
               Text(
-                'Última prueba automática: ${agoShort(_health.lastTestAt, now)}. Se prueba con '
-                '${controlVideos.length} canciones de control, nunca con tu historial; la prueba pide '
-                'el último byte del audio para descubrir las formas que cortan al minuto.',
+                tx.ultimaPruebaAutomaticaSePruebaCon(agoShort(_health.lastTestAt, now), controlVideos.length),
                 style: const TextStyle(color: KijiColors.muted, fontSize: 13),
               ),
               const SizedBox(height: 12),
@@ -99,14 +107,18 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
                 icon: _running
                     ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.play_circle_outline_rounded),
-                label: Text(_running ? 'Probando…' : 'Probar todas las formas ahora'),
+                label: Text(_running ? tx.probando : tx.probarTodasLasFormasAhora),
               ),
               if (aPaths.isNotEmpty || _results.any((r) => r.path.startsWith('A/'))) ...[
-                _EngineHeader(EngineId.a),
-                for (final path in {...aPaths, for (final r in _results) if (r.path.startsWith('A/')) r.path})
+                const _EngineHeader(EngineId.a),
+                for (final path in {
+                  ...aPaths,
+                  for (final r in _results)
+                    if (r.path.startsWith('A/')) r.path,
+                })
                   _PathTile(path: path, record: all[path], result: _resultFor(path), now: now),
               ],
-              _EngineHeader(EngineId.b),
+              const _EngineHeader(EngineId.b),
               for (final form in _health.order('B', bForms))
                 _PathTile(
                   path: 'B/$form',
@@ -119,7 +131,7 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
               const SizedBox(height: 8),
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
-                title: Text('Formas retiradas (YouTube ya no las permite) · ${retired.length}'),
+                title: Text(tx.formasRetiradasYoutubeYaNoLas(retired.length)),
                 children: [
                   for (final c in retired)
                     ListTile(
@@ -151,9 +163,9 @@ class _EngineHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(top: 20, bottom: 4),
-        child: Text(engine.label.toUpperCase(), style: KijiText.mono(size: 11)),
-      );
+    padding: const EdgeInsets.only(top: 20, bottom: 4),
+    child: Text(engine.label.toUpperCase(), style: KijiText.mono(size: 11)),
+  );
 }
 
 class _PathTile extends StatelessWidget {
@@ -172,14 +184,14 @@ class _PathTile extends StatelessWidget {
     final lines = <String>[
       if (result != null)
         result!.ok
-            ? 'Anduvo con ${result!.control} (${result!.elapsed.inMilliseconds} ms)'
-            : 'Falló con ${result!.control}: ${result!.reason}'
+            ? tx.anduvoCon(result!.control, result!.elapsed.inMilliseconds)
+            : tx.falloCon(result!.control, result!.reason)
       else if (record == null)
-        'Sin probar todavía'
+        tx.sinProbarTodavia
       else ...[
-        'Última vez que anduvo: ${agoShort(record!.lastOk, now)}',
+        tx.ultimaVezQueAnduvo(agoShort(record!.lastOk, now)),
         if (record!.lastFail != null && (record!.lastOk == null || record!.lastFail!.isAfter(record!.lastOk!)))
-          'Último problema: ${record!.lastReason}',
+          tx.ultimoProblema(record!.lastReason),
       ],
       ?note,
     ];
@@ -220,16 +232,18 @@ class _YtDlpCardState extends ConsumerState<_YtDlpCard> {
       _message = null;
     });
     try {
-      await engine.install(onProgress: (done, total) {
-        if (mounted && total > 0) setState(() => _progress = done / total);
-      });
+      await engine.install(
+        onProgress: (done, total) {
+          if (mounted && total > 0) setState(() => _progress = done / total);
+        },
+      );
       await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytDlpAccepted: true));
       setState(() {
         _installed = true;
-        _message = 'yt-dlp listo y verificado. Se usa solo si los motores A y B fallan.';
+        _message = tx.ytDlpListo;
       });
     } catch (error) {
-      setState(() => _message = 'No se pudo instalar: $error');
+      setState(() => _message = tx.noSePudoInstalar(error));
     } finally {
       if (mounted) setState(() => _progress = null);
     }
@@ -245,32 +259,30 @@ class _YtDlpCardState extends ConsumerState<_YtDlpCard> {
         children: [
           Text(EngineId.c.label.toUpperCase(), style: KijiText.mono(size: 11)),
           const SizedBox(height: 6),
-          const Text(
-            'Opcional y solo en la PC. Si los motores A y B no pueden con una canción, Kiji puede usar '
-            'yt-dlp, un programa libre muy conocido. Se baja de su página oficial en GitHub (unos 18 MB), '
-            'se verifica su huella y se actualiza solo una vez por semana. Nada se baja si no lo pides.',
-            style: TextStyle(color: KijiColors.muted, fontSize: 13),
-          ),
+          Text(tx.opcionalYSoloEnLaPc, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
           const SizedBox(height: 8),
           if (_progress != null)
             LinearProgressIndicator(value: _progress)
           else if (_installed == true && accepted)
-            Wrap(spacing: 8, children: [
-              const Chip(label: Text('Instalado')),
-              TextButton(
-                onPressed: () async {
-                  await ref.read(ytDlpEngineProvider).remove();
-                  await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytDlpAccepted: false));
-                  setState(() => _installed = false);
-                },
-                child: const Text('Quitar yt-dlp'),
-              ),
-            ])
+            Wrap(
+              spacing: 8,
+              children: [
+                Chip(label: Text(tx.instalado)),
+                TextButton(
+                  onPressed: () async {
+                    await ref.read(ytDlpEngineProvider).remove();
+                    await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytDlpAccepted: false));
+                    setState(() => _installed = false);
+                  },
+                  child: Text(tx.quitarYtDlp),
+                ),
+              ],
+            )
           else
             OutlinedButton.icon(
               onPressed: _install,
               icon: const Icon(Icons.download_rounded),
-              label: const Text('Bajar y usar yt-dlp (≈18 MB)'),
+              label: Text(tx.bajarYUsarYtDlp18),
             ),
           if (_message != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_message!)),
         ],

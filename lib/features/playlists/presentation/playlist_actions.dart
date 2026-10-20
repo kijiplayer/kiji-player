@@ -13,10 +13,12 @@ import '../domain/playlist.dart';
 import '../playlists_provider.dart';
 import '../../downloads/presentation/download_status.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Texto para compartir una playlist: nombre y una línea por canción, con su
 /// enlace de YouTube Music si tiene. No sube nada: lo manda quien comparte.
 String playlistShareText(Playlist playlist) {
-  final b = StringBuffer('«${playlist.name}» (${playlist.tracks.length} canciones)\n');
+  final b = StringBuffer(tx.canciones2(playlist.name, playlist.tracks.length));
   for (final (i, t) in playlist.tracks.indexed) {
     final id = t.youtubeVideoId;
     b.writeln('${i + 1}. ${t.artist} – ${t.title}${id == null ? '' : ' https://music.youtube.com/watch?v=$id'}');
@@ -54,45 +56,47 @@ Future<void> showPlaylistOptions(
               ListTile(
                 enabled: !empty,
                 leading: const Icon(Icons.play_arrow_rounded),
-                title: const Text('Reproducir'),
+                title: Text(tx.reproducir),
                 onTap: () => then(() async => onPlay()),
               ),
               ListTile(
                 enabled: !empty,
                 leading: const Icon(Icons.shuffle_rounded),
-                title: const Text('Aleatorio'),
+                title: Text(tx.aleatorio),
                 onTap: () => then(() async => onShuffle()),
               ),
               ListTile(
                 leading: const Icon(Icons.edit_outlined),
-                title: const Text('Editar'),
-                subtitle: const Text('Nombre, descripción y color'),
+                title: Text(tx.editar),
+                subtitle: Text(tx.nombreDescripcionYColor),
                 onTap: () => then(() => showCustomizePlaylistSheet(context, ref, playlist)),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_outlined),
-                title: const Text('Cambiar foto'),
+                title: Text(tx.cambiarFoto),
                 onTap: () => then(() => changePlaylistPhoto(context, ref, playlist)),
               ),
               ListTile(
                 leading: Icon(playlist.pinned ? Icons.push_pin_outlined : Icons.push_pin_rounded),
-                title: Text(playlist.pinned ? 'Desfijar' : 'Fijar arriba'),
+                title: Text(playlist.pinned ? tx.desfijar : tx.fijarArriba),
                 onTap: () => then(() async => notifier.setPinned(playlist.id, !playlist.pinned)),
               ),
               ListTile(
                 enabled: !empty,
                 leading: const Icon(Icons.download_for_offline_outlined),
-                title: const Text('Descargar toda la playlist'),
+                title: Text(tx.descargarTodaLaPlaylist),
                 onTap: () => then(() => confirmPlaylistDownload(context, ref, playlist)),
               ),
               ListTile(
                 enabled: !empty,
                 leading: const Icon(Icons.share_outlined),
-                title: const Text('Compartir'),
-                subtitle: const Text('La lista de canciones como texto'),
+                title: Text(tx.compartir),
+                subtitle: Text(tx.laListaDeCancionesComoTexto),
                 onTap: () => then(() async {
                   try {
-                    await SharePlus.instance.share(ShareParams(text: playlistShareText(playlist), subject: playlist.name));
+                    await SharePlus.instance.share(
+                      ShareParams(text: playlistShareText(playlist), subject: playlist.name),
+                    );
                   } catch (error) {
                     debugPrint('=== COMPARTIR: no se pudo abrir el menú: $error ===');
                   }
@@ -101,14 +105,14 @@ Future<void> showPlaylistOptions(
               ListTile(
                 enabled: !empty,
                 leading: const Icon(Icons.file_upload_outlined),
-                title: const Text('Exportar'),
-                subtitle: const Text('.m3u8 (otras apps) o .csv (planillas)'),
+                title: Text(tx.exportar),
+                subtitle: Text(tx.m3u8OtrasAppsOCsvPlanillas),
                 onTap: () => then(() => _export(context, playlist)),
               ),
               ListTile(
                 leading: const Icon(Icons.delete_outline_rounded, color: Color(0xFFFF6B6B)),
-                title: const Text('Borrar la playlist'),
-                subtitle: const Text('Se puede deshacer'),
+                title: Text(tx.borrarLaPlaylist),
+                subtitle: Text(tx.sePuedeDeshacer),
                 onTap: () => then(() async => onDelete()),
               ),
             ],
@@ -123,16 +127,10 @@ Future<void> _export(BuildContext context, Playlist playlist) async {
   final format = await showDialog<String>(
     context: context,
     builder: (dialog) => SimpleDialog(
-      title: const Text('Exportar como'),
+      title: Text(tx.exportarComo),
       children: [
-        SimpleDialogOption(
-          onPressed: () => Navigator.pop(dialog, 'm3u8'),
-          child: const Text('.m3u8 — para otras apps de música'),
-        ),
-        SimpleDialogOption(
-          onPressed: () => Navigator.pop(dialog, 'csv'),
-          child: const Text('.csv — para planillas'),
-        ),
+        SimpleDialogOption(onPressed: () => Navigator.pop(dialog, 'm3u8'), child: Text(tx.m3u8ParaOtrasAppsDeMusica)),
+        SimpleDialogOption(onPressed: () => Navigator.pop(dialog, 'csv'), child: Text(tx.csvParaPlanillas)),
       ],
     ),
   );
@@ -151,11 +149,11 @@ Future<void> confirmPlaylistDownload(BuildContext context, WidgetRef ref, Playli
   final plan = planPlaylistDownload(playlist.tracks, downloads.completed.keys.toSet());
   final messenger = ScaffoldMessenger.of(context);
   if (plan.toDownload.isEmpty) {
-    messenger.showSnackBar(SnackBar(
-      content: Text(plan.alreadyDownloaded > 0
-          ? 'Ya están todas descargadas.'
-          : 'Esta playlist no tiene canciones de YouTube para descargar.'),
-    ));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(plan.alreadyDownloaded > 0 ? tx.yaEstanTodasDescargadas : tx.estaPlaylistNoTieneCancionesDe),
+      ),
+    );
     return;
   }
   int? free;
@@ -166,36 +164,30 @@ Future<void> confirmPlaylistDownload(BuildContext context, WidgetRef ref, Playli
   final ok = await showDialog<bool>(
     context: context,
     builder: (dialog) => AlertDialog(
-      title: const Text('Descargar toda la playlist'),
+      title: Text(tx.descargarTodaLaPlaylist),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${plan.toDownload.length} canciones para bajar.'),
-          if (plan.alreadyDownloaded > 0) Text('${plan.alreadyDownloaded} ya estaban descargadas: se saltean.'),
-          if (plan.notFromYouTube > 0) Text('${plan.notFromYouTube} son archivos tuyos: no hace falta bajarlas.'),
+          Text(tx.cancionesParaBajar(plan.toDownload.length)),
+          if (plan.alreadyDownloaded > 0) Text(tx.yaEstabanDescargadasSeSaltean(plan.alreadyDownloaded)),
+          if (plan.notFromYouTube > 0) Text(tx.sonArchivosTuyosNoHaceFalta(plan.notFromYouTube)),
           const SizedBox(height: 10),
-          Text('Ocupan unos ${formatBytes(plan.estimatedBytes)} (estimado por la duración).'),
-          Text(free == null ? 'Espacio libre: desconocido.' : 'Espacio libre: ${formatBytes(free)}.'),
+          Text(tx.ocupanUnosEstimadoPorLaDuracion(formatBytes(plan.estimatedBytes))),
+          Text(free == null ? tx.espacioLibreDesconocido : tx.espacioLibre(formatBytes(free))),
           if (downloads.settings.wifiOnly) ...[
             const SizedBox(height: 10),
-            const Text(
-              'Tienes "solo con WiFi": si no hay WiFi, la descarga espera en pausa.',
-              style: TextStyle(color: KijiColors.muted),
-            ),
+            Text(tx.tienesSoloConWifiSiNo, style: const TextStyle(color: KijiColors.muted)),
           ],
           if (!fits) ...[
             const SizedBox(height: 10),
-            const Text('No entra en el espacio libre del dispositivo.', style: TextStyle(color: Color(0xFFFF6B6B))),
+            Text(tx.noEntraEnElEspacioLibre, style: const TextStyle(color: Color(0xFFFF6B6B))),
           ],
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialog, false), child: const Text('Cancelar')),
-        FilledButton(
-          onPressed: fits ? () => Navigator.pop(dialog, true) : null,
-          child: const Text('Descargar'),
-        ),
+        TextButton(onPressed: () => Navigator.pop(dialog, false), child: Text(tx.cancelar)),
+        FilledButton(onPressed: fits ? () => Navigator.pop(dialog, true) : null, child: Text(tx.descargar)),
       ],
     ),
   );
@@ -215,10 +207,13 @@ class PlaylistDownloadCard extends ConsumerWidget {
     final notifier = ref.read(playlistDownloadsProvider.notifier);
     final finished = status.finished;
     final title = finished
-        ? '${status.done} ${status.done == 1 ? 'descargada' : 'descargadas'}'
-            '${status.failed > 0 ? ', ${status.failed} ${status.failed == 1 ? 'falló' : 'fallaron'}' : ''}.'
-        : '${status.paused ? 'En pausa' : 'Descargando'}: ${status.done + status.failed} de ${status.total}'
-            '${status.failed > 0 ? ' (${status.failed} con error)' : ''}';
+        ? '${tx.nDescargadas(status.done)}${status.failed > 0 ? ', ${tx.nFallaron(status.failed)}' : ''}.'
+        : tx.de(
+            status.paused ? tx.enPausa : tx.descargando,
+            status.done + status.failed,
+            status.total,
+            status.failed > 0 ? tx.conErrorSufijo(status.failed) : '',
+          );
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Container(
@@ -238,18 +233,18 @@ class PlaylistDownloadCard extends ConsumerWidget {
                 Expanded(child: Text(title)),
                 if (finished)
                   IconButton(
-                    tooltip: 'Cerrar',
+                    tooltip: tx.cerrar,
                     icon: const Icon(Icons.close_rounded),
                     onPressed: () => notifier.dismiss(playlistId),
                   )
                 else ...[
                   IconButton(
-                    tooltip: status.paused ? 'Seguir' : 'Pausar',
+                    tooltip: status.paused ? tx.seguir : tx.pausar,
                     icon: Icon(status.paused ? Icons.play_arrow_rounded : Icons.pause_rounded),
                     onPressed: () => status.paused ? notifier.resume(playlistId) : notifier.pause(playlistId),
                   ),
                   IconButton(
-                    tooltip: 'Cancelar',
+                    tooltip: tx.cancelar,
                     icon: const Icon(Icons.stop_rounded),
                     onPressed: () => notifier.cancel(playlistId),
                   ),
@@ -276,12 +271,12 @@ class PlaylistDownloadCard extends ConsumerWidget {
                   children: [
                     TextButton.icon(
                       icon: const Icon(Icons.list_alt_rounded),
-                      label: const Text('Ver cuáles'),
+                      label: Text(tx.verCuales),
                       onPressed: () => showFailedDownloadsSheet(context, ref, only: status.failedIds),
                     ),
                     TextButton.icon(
                       icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Reintentar las fallidas'),
+                      label: Text(tx.reintentarLasFallidas),
                       onPressed: () => notifier.retryFailed(playlistId),
                     ),
                   ],

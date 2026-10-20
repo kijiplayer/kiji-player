@@ -22,6 +22,8 @@ import '../player/player_screen.dart';
 import 'pill_nav_bar.dart';
 import '../../features/customize/presentation/track_text.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// "A continuación" visible en la PC (el botón Cola de la barra lo oculta).
 final queuePanelVisibleProvider = StateProvider<bool>((ref) => true);
 
@@ -82,7 +84,7 @@ class _Sidebar extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 8, bottom: 24),
-            child: GradientText('Kiji', style: KijiText.title(size: 32)),
+            child: GradientText('Kiji', style: KijiText.title(size: 32)), // l10n-ignore
           ),
           for (final destination in ShellDestination.all)
             Padding(
@@ -96,39 +98,41 @@ class _Sidebar extends ConsumerWidget {
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.only(left: 8, bottom: 8),
-            child: Text('TUS LISTAS', style: KijiText.mono(size: 11)),
+            child: Text(tx.tusListas, style: KijiText.mono(size: 11)),
           ),
           Expanded(
-            child: Builder(builder: (context) {
-              final playlists = ref.watch(playlistsProvider);
-              if (playlists.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: Text(
-                    'Tus playlists van a aparecer aquí.',
-                    style: TextStyle(color: KijiColors.muted, fontSize: 13),
-                  ),
-                );
-              }
-              return ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  for (final playlist in playlists)
-                    ListTile(
-                      dense: true,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
-                      leading: const Icon(Icons.queue_music_rounded, size: 20, color: KijiColors.violet),
-                      title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      onTap: () => PlaylistScreen.open(context, playlist.id),
+            child: Builder(
+              builder: (context) {
+                final playlists = ref.watch(playlistsProvider);
+                if (playlists.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Text(
+                      tx.tusPlaylistsVanAAparecerAqui,
+                      style: const TextStyle(color: KijiColors.muted, fontSize: 13),
                     ),
-                ],
-              );
-            }),
+                  );
+                }
+                return ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    for (final playlist in playlists)
+                      ListTile(
+                        dense: true,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
+                        leading: const Icon(Icons.queue_music_rounded, size: 20, color: KijiColors.violet),
+                        title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        onTap: () => PlaylistScreen.open(context, playlist.id),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
           ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
             leading: const Icon(Icons.settings_outlined, color: KijiColors.muted),
-            title: const Text('Configuración'),
+            title: Text(tx.settingsTitle),
             onTap: () => SettingsScreen.open(context),
           ),
           const SizedBox(height: 8),
@@ -159,8 +163,7 @@ class _SidebarItem extends StatelessWidget {
         child: ListTile(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
           selected: selected,
-          leading: Icon(destination.icon,
-              color: selected ? KijiColors.onAccent : KijiColors.muted),
+          leading: Icon(destination.icon, color: selected ? KijiColors.onAccent : KijiColors.muted),
           title: Text(
             destination.labelOf(context),
             style: TextStyle(
@@ -188,10 +191,10 @@ class _HealthBox extends StatelessWidget {
         final working = health.all.entries.where((e) => e.value.working).map((e) => e.key);
         final anyUsed = health.all.isNotEmpty;
         final summary = working.isNotEmpty
-            ? 'YouTube funciona (${working.length} ${working.length == 1 ? 'forma' : 'formas'})'
+            ? tx.youtubeFuncionaNFormas(working.length)
             : anyUsed
-                ? 'YouTube con problemas'
-                : 'Sin usar todavía';
+            ? tx.youtubeConProblemas
+            : tx.sinUsarTodavia;
         return Glass(
           blur: false,
           radius: KijiRadii.tile,
@@ -215,7 +218,7 @@ class _HealthBox extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('SALUD DEL EXTRACTOR', style: KijiText.mono(size: 9)),
+                          Text(tx.saludDelExtractor2, style: KijiText.mono(size: 9)),
                           const SizedBox(height: 2),
                           Text(summary, style: const TextStyle(fontSize: 12)),
                         ],
@@ -247,8 +250,7 @@ class _SearchBarHint extends ConsumerWidget {
         child: InkWell(
           onTap: () {
             ref.read(shellTabProvider.notifier).state = ShellTab.search;
-            WidgetsBinding.instance
-                .addPostFrameCallback((_) => ref.read(searchFocusProvider).requestFocus());
+            WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(searchFocusProvider).requestFocus());
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -256,10 +258,10 @@ class _SearchBarHint extends ConsumerWidget {
               children: [
                 const Icon(Icons.search_rounded, color: KijiColors.muted),
                 const SizedBox(width: 12),
-                const Expanded(
-                  child: Text('Buscar canciones, artistas…', style: TextStyle(color: KijiColors.muted)),
+                Expanded(
+                  child: Text(tx.buscarCancionesArtistas2, style: const TextStyle(color: KijiColors.muted)),
                 ),
-                Text('Ctrl K', style: KijiText.mono(size: 11)),
+                Text('Ctrl K', style: KijiText.mono(size: 11)), // l10n-ignore
               ],
             ),
           ),
@@ -279,7 +281,7 @@ class _QueuePanel extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-          child: Text('A continuación', style: KijiText.title(size: 18)),
+          child: Text(tx.aContinuacion, style: KijiText.title(size: 18)),
         ),
         const Expanded(child: QueueList(padding: EdgeInsets.only(bottom: 16))),
       ],
@@ -321,10 +323,18 @@ class _PlayerBar extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w600)),
-                        TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
+                        TrackTitleText(
+                          track,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        TrackArtistText(
+                          track,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+                        ),
                       ],
                     ),
                   ),
@@ -342,9 +352,7 @@ class _PlayerBar extends ConsumerWidget {
                   children: [
                     Text(formatDuration(playback.position), style: KijiText.mono(size: 11)),
                     const SizedBox(width: 10),
-                    Expanded(
-                      child: const TimerWaveform(height: 28, barWidth: 2),
-                    ),
+                    const Expanded(child: TimerWaveform(height: 28, barWidth: 2)),
                     const SizedBox(width: 10),
                     Text(formatDuration(playback.duration), style: KijiText.mono(size: 11)),
                   ],
@@ -359,23 +367,23 @@ class _PlayerBar extends ConsumerWidget {
             child: Slider(
               value: playback.volume,
               onChanged: (value) => notifier.changeVolume(value - playback.volume),
-              semanticFormatterCallback: (value) => 'Volumen ${(value * 100).round()} %',
+              semanticFormatterCallback: (value) => tx.volumen((value * 100).round()),
             ),
           ),
           IconButton(
-            tooltip: 'Letra',
+            tooltip: tx.letra,
             onPressed: () => LyricsScreen.open(context),
             icon: const Icon(Icons.lyrics_outlined),
             color: KijiColors.muted,
           ),
           IconButton(
-            tooltip: ref.watch(sleepTimerProvider) == null ? 'Temporizador' : 'Temporizador activo',
+            tooltip: ref.watch(sleepTimerProvider) == null ? tx.temporizador : tx.temporizadorActivo2,
             onPressed: () => showSleepTimerSheet(context),
             icon: const Icon(Icons.bedtime_outlined),
             color: ref.watch(sleepTimerProvider) == null ? KijiColors.muted : KijiColors.cyan,
           ),
           IconButton(
-            tooltip: showQueue ? 'Ocultar la cola' : 'Mostrar la cola',
+            tooltip: showQueue ? tx.ocultarLaCola : tx.mostrarLaCola,
             onPressed: () => ref.read(queuePanelVisibleProvider.notifier).state = !showQueue,
             icon: const Icon(Icons.queue_music_rounded),
             color: showQueue ? KijiColors.cyan : KijiColors.muted,

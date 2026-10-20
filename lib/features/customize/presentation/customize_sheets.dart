@@ -12,6 +12,8 @@ import '../../playlists/playlists_provider.dart';
 import '../data/track_overrides.dart';
 import 'pick_and_crop.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Colores para elegir en una playlist.
 const playlistColors = <Color>[
   Color(0xFF7C5CFF),
@@ -45,7 +47,7 @@ Future<void> changePlaylistPhoto(
     await covers.delete(old);
   } catch (error) {
     debugPrint('=== PERSONALIZAR: no se pudo usar la foto: $error ===');
-    say.showSnackBar(const SnackBar(content: Text('No se pudo usar esa imagen.')));
+    say.showSnackBar(SnackBar(content: Text(tx.noSePudoUsarEsaImagen)));
   }
 }
 
@@ -75,12 +77,9 @@ Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track 
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Personalizar canción', style: KijiText.title(size: 20)),
+              Text(tx.personalizarCancion, style: KijiText.title(size: 20)),
               const SizedBox(height: 4),
-              const Text(
-                'Solo cambia cómo se ve en Kiji. El archivo de música no se toca.',
-                style: TextStyle(color: KijiColors.muted),
-              ),
+              Text(tx.soloCambiaComoSeVeEn, style: const TextStyle(color: KijiColors.muted)),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -94,11 +93,11 @@ Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track 
                         try {
                           await notifier.setCover(track, bytes);
                         } catch (error) {
-                          messenger.showSnackBar(const SnackBar(content: Text('No se pudo usar esa imagen.')));
+                          messenger.showSnackBar(SnackBar(content: Text(tx.noSePudoUsarEsaImagen)));
                         }
                       },
                       icon: const Icon(Icons.photo_outlined),
-                      label: const Text('Cambiar foto'),
+                      label: Text(tx.cambiarFoto),
                     ),
                   ),
                 ],
@@ -106,31 +105,31 @@ Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track 
               const SizedBox(height: 12),
               TextField(
                 controller: title,
-                decoration: InputDecoration(labelText: 'Título', helperText: 'Original: ${track.title}'),
+                decoration: InputDecoration(labelText: tx.titulo, helperText: tx.original(track.title)),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: artist,
-                decoration: InputDecoration(labelText: 'Artista', helperText: 'Original: ${track.artist}'),
+                decoration: InputDecoration(labelText: tx.artista, helperText: tx.original(track.artist)),
               ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () {
                   notifier.setText(track, title: title.text, artist: artist.text);
                   Navigator.pop(sheetContext);
-                  messenger.showSnackBar(const SnackBar(content: Text('Listo')));
+                  messenger.showSnackBar(SnackBar(content: Text(tx.listo)));
                 },
-                child: const Text('Guardar'),
+                child: Text(tx.guardar),
               ),
               if (override != null)
                 TextButton.icon(
                   onPressed: () async {
                     await notifier.restoreOriginal(track);
                     if (sheetContext.mounted) Navigator.pop(sheetContext);
-                    messenger.showSnackBar(const SnackBar(content: Text('Volvió a como era')));
+                    messenger.showSnackBar(SnackBar(content: Text(tx.volvioAComoEra)));
                   },
                   icon: const Icon(Icons.restore_rounded),
-                  label: const Text('Restaurar original'),
+                  label: Text(tx.restaurarOriginal),
                 ),
             ],
           );
@@ -195,7 +194,7 @@ Future<void> showCustomizePlaylistSheet(BuildContext context, WidgetRef ref, Pla
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Personalizar playlist', style: KijiText.title(size: 20)),
+                  Text(tx.personalizarPlaylist, style: KijiText.title(size: 20)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -205,22 +204,25 @@ Future<void> showCustomizePlaylistSheet(BuildContext context, WidgetRef ref, Pla
                         child: OutlinedButton.icon(
                           onPressed: () => changePlaylistPhoto(context, ref, current, messenger: messenger),
                           icon: const Icon(Icons.photo_outlined),
-                          label: const Text('Cambiar foto'),
+                          label: Text(tx.cambiarFoto),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  TextField(controller: name, decoration: const InputDecoration(labelText: 'Nombre')),
+                  TextField(
+                    controller: name,
+                    decoration: InputDecoration(labelText: tx.nombre),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: description,
                     maxLines: 3,
                     minLines: 1,
-                    decoration: const InputDecoration(labelText: 'Descripción (opcional)'),
+                    decoration: InputDecoration(labelText: tx.descripcionOpcional),
                   ),
                   const SizedBox(height: 12),
-                  Text('COLOR', style: KijiText.mono(size: 11)),
+                  Text(tx.color, style: KijiText.mono(size: 11)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 10,
@@ -255,9 +257,9 @@ Future<void> showCustomizePlaylistSheet(BuildContext context, WidgetRef ref, Pla
                         colorValue: color,
                       );
                       Navigator.pop(sheetContext);
-                      _say(context, 'Listo');
+                      _say(context, tx.listo);
                     },
-                    child: const Text('Guardar'),
+                    child: Text(tx.guardar),
                   ),
                   if (current.isCustomized)
                     TextButton.icon(
@@ -265,10 +267,10 @@ Future<void> showCustomizePlaylistSheet(BuildContext context, WidgetRef ref, Pla
                         final old = notifier.restoreOriginal(playlist.id);
                         await covers.delete(old);
                         if (sheetContext.mounted) Navigator.pop(sheetContext);
-                        messenger.showSnackBar(const SnackBar(content: Text('Volvió a como era')));
+                        messenger.showSnackBar(SnackBar(content: Text(tx.volvioAComoEra)));
                       },
                       icon: const Icon(Icons.restore_rounded),
-                      label: Text('Restaurar original («${current.originalName ?? current.name}», sin foto ni color)'),
+                      label: Text(tx.restaurarOriginalSinFotoNiColor(current.originalName ?? current.name)),
                     ),
                 ],
               ),

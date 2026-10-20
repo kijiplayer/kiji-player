@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 import '../../../models/track.dart';
+import '../../yt_music/domain/subtitle_parser.dart';
 
 const _unknownArtistMarkers = {'<unknown>', 'unknown', ''};
 
@@ -16,7 +17,7 @@ const _unknownArtistMarkers = {'<unknown>', 'unknown', ''};
 Track localTrackFromSong(SongModel song) {
   final rawArtist = song.artist?.trim() ?? '';
   final artist = _unknownArtistMarkers.contains(rawArtist.toLowerCase())
-      ? 'Artista desconocido'
+      ? unknownArtist
       : rawArtist;
 
   return Track(

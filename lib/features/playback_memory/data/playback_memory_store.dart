@@ -10,11 +10,12 @@ import 'package:path_provider/path_provider.dart';
 import '../../../utils/json_file.dart';
 import '../domain/playback_snapshot.dart';
 
+
 /// Guarda y recupera la [PlaybackSnapshot] en
 /// `<appSupportDir>/playback_state.json`.
 class PlaybackMemoryStore {
   PlaybackMemoryStore({Future<Directory> Function()? directory})
-      : _directory = directory ?? getApplicationSupportDirectory;
+    : _directory = directory ?? getApplicationSupportDirectory;
 
   static const _fileName = 'playback_state.json';
 

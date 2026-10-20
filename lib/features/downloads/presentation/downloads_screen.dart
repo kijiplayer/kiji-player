@@ -15,26 +15,27 @@ import 'download_button.dart';
 import '../../customize/presentation/track_text.dart';
 import 'download_status.dart';
 
+import 'package:kiji_player/l10n/l10n.dart';
+
 /// Sección "Descargadas" de la Biblioteca: lo que se puede escuchar sin
 /// conexión, cuánto ocupa, y las opciones de descarga.
 class DownloadsScreen extends ConsumerWidget {
   const DownloadsScreen({super.key});
 
-  static Future<void> open(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const DownloadsScreen()),
-      );
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DownloadsScreen()));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final count = ref.watch(downloadsProvider.select((d) => d.completed.length));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Descargadas'),
+        title: Text(tx.descargadas),
         actions: [
           if (count > 0)
             IconButton(
               icon: const Icon(Icons.delete_sweep_outlined),
-              tooltip: 'Borrar todas',
+              tooltip: tx.borrarTodas,
               onPressed: () => confirmDeleteAllDownloads(context, ref, count),
             ),
         ],
@@ -54,122 +55,109 @@ class DownloadsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final downloads = ref.watch(downloadsProvider);
-    final completed = downloads.completed.values.toList()
-      ..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
+    final completed = downloads.completed.values.toList()..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
     final active = downloads.active.values.toList();
 
     return ListView(
-        padding: EdgeInsets.only(bottom: bottomPadding),
-        children: [
-          _SettingsCard(downloads: downloads),
-          if (active.any((d) => d.status == ActiveDownloadStatus.failed))
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
-                label: Text(
-                  '${active.where((d) => d.status == ActiveDownloadStatus.failed).length} con error: ver cuáles',
-                ),
-                onPressed: () => showFailedDownloadsSheet(context, ref),
-              ),
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      children: [
+        _SettingsCard(downloads: downloads),
+        if (active.any((d) => d.status == ActiveDownloadStatus.failed))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
+              label: Text(tx.conErrorVerCuales(active.where((d) => d.status == ActiveDownloadStatus.failed).length)),
+              onPressed: () => showFailedDownloadsSheet(context, ref),
             ),
-          if (active.isNotEmpty) ...[
-            const _SectionTitle('Descargando'),
-            for (final download in active)
-              ListTile(
-                leading: _Cover(color: download.track.coverColor),
-                title: TrackTitleText(download.track, maxLines: 1, overflow: TextOverflow.ellipsis),
-                subtitle: Text(
-                  download.status == ActiveDownloadStatus.failed
-                      ? download.errorMessage ?? 'Falló la descarga'
-                      : download.status == ActiveDownloadStatus.queued
-                          ? 'En cola'
-                          : '${formatBytes(download.received)}'
-                              '${download.total == null ? '' : ' de ${formatBytes(download.total!)}'}',
-                  maxLines: 2,
-                ),
-                trailing: DownloadButton(track: download.track),
-                onTap: download.status == ActiveDownloadStatus.failed && download.track.youtubeVideoId != null
-                    ? () => showDownloadFailureSheet(context, ref, download.track.youtubeVideoId!)
-                    : null,
-              ),
-          ],
-          _SectionTitle(
-            completed.isEmpty
-                ? 'Todavía no descargaste nada'
-                : '${completed.length} ${completed.length == 1 ? 'canción' : 'canciones'} · '
-                    '${formatBytes(downloads.usedBytes)}',
           ),
-          if (completed.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Busca una canción y toca el ícono de descarga para escucharla sin conexión.',
-                style: TextStyle(color: AppColors.onSurfaceMuted),
-              ),
-            ),
-          for (final (index, track) in completed.indexed)
+        if (active.isNotEmpty) ...[
+          _SectionTitle(tx.descargando),
+          for (final download in active)
             ListTile(
-              leading: _Cover(
-                color: track.coverColor,
-                imagePath: track.thumbnailFileName == null || downloads.directoryPath == null
-                    ? null
-                    : p.join(downloads.directoryPath!, track.thumbnailFileName!),
-              ),
-              title: TrackTitleText(track.toTrack(), maxLines: 1, overflow: TextOverflow.ellipsis),
+              leading: _Cover(color: download.track.coverColor),
+              title: TrackTitleText(download.track, maxLines: 1, overflow: TextOverflow.ellipsis),
               subtitle: Text(
-                '${track.artist} · ${formatBytes(track.sizeBytes)}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                download.status == ActiveDownloadStatus.failed
+                    ? download.errorMessage ?? tx.falloLaDescarga
+                    : download.status == ActiveDownloadStatus.queued
+                    ? tx.enCola
+                    : download.total == null
+                    ? formatBytes(download.received)
+                    : tx.bytesDe(formatBytes(download.received), formatBytes(download.total!)),
+                maxLines: 2,
               ),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete_outline_rounded),
-                tooltip: 'Borrar descarga',
-                color: AppColors.onSurfaceMuted,
-                onPressed: () => confirmDeleteDownload(context, ref, track.title, track.videoId),
-              ),
-              onTap: () => _playAll(ref, completed, index),
-              onLongPress: () => showTrackActions(context, ref, track.toTrack()),
-            ),
-          if (completed.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: OutlinedButton.icon(
-                onPressed: () => confirmDeleteAllDownloads(context, ref, completed.length),
-                icon: const Icon(Icons.delete_sweep_outlined),
-                label: const Text('Borrar todas las descargas'),
-              ),
+              trailing: DownloadButton(track: download.track),
+              onTap: download.status == ActiveDownloadStatus.failed && download.track.youtubeVideoId != null
+                  ? () => showDownloadFailureSheet(context, ref, download.track.youtubeVideoId!)
+                  : null,
             ),
         ],
-      );
+        _SectionTitle(
+          completed.isEmpty
+              ? tx.todaviaNoDescargasteNada
+              : '${tx.nCanciones(completed.length)} · ${formatBytes(downloads.usedBytes)}',
+        ),
+        if (completed.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(tx.buscaUnaCancionYTocaEl, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+          ),
+        for (final (index, track) in completed.indexed)
+          ListTile(
+            leading: _Cover(
+              color: track.coverColor,
+              imagePath: track.thumbnailFileName == null || downloads.directoryPath == null
+                  ? null
+                  : p.join(downloads.directoryPath!, track.thumbnailFileName!),
+            ),
+            title: TrackTitleText(track.toTrack(), maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Text(
+              '${track.artist} · ${formatBytes(track.sizeBytes)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline_rounded),
+              tooltip: tx.borrarDescarga,
+              color: AppColors.onSurfaceMuted,
+              onPressed: () => confirmDeleteDownload(context, ref, track.title, track.videoId),
+            ),
+            onTap: () => _playAll(ref, completed, index),
+            onLongPress: () => showTrackActions(context, ref, track.toTrack()),
+          ),
+        if (completed.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: OutlinedButton.icon(
+              onPressed: () => confirmDeleteAllDownloads(context, ref, completed.length),
+              icon: const Icon(Icons.delete_sweep_outlined),
+              label: Text(tx.borrarTodasLasDescargas),
+            ),
+          ),
+      ],
+    );
   }
 
   void _playAll(WidgetRef ref, List<DownloadedTrack> tracks, int index) {
-    ref.read(playbackProvider.notifier).playQueue(
-          [for (final track in tracks) track.toTrack()],
-          startIndex: index,
-        );
+    ref.read(playbackProvider.notifier).playQueue([for (final track in tracks) track.toTrack()], startIndex: index);
   }
-
 }
 
 /// Pregunta antes de borrar todas las descargas.
 Future<void> confirmDeleteAllDownloads(BuildContext context, WidgetRef ref, int count) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¿Borrar todas las descargas?'),
-        content: Text(
-          'Se borran $count ${count == 1 ? 'canción' : 'canciones'} del dispositivo. '
-          'No se quitan de tu cola: vuelven a sonar desde internet.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Borrar todas')),
-        ],
-      ),
-    );
-    if (confirmed == true) await ref.read(downloadsProvider.notifier).deleteAll();
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(tx.borrarTodasLasDescargas2),
+      content: Text(tx.seBorranNDelDispositivo(count)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.cancelar)),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.borrarTodas)),
+      ],
+    ),
+  );
+  if (confirmed == true) await ref.read(downloadsProvider.notifier).deleteAll();
 }
 
 class _SettingsCard extends ConsumerWidget {
@@ -188,27 +176,24 @@ class _SettingsCard extends ConsumerWidget {
       child: Column(
         children: [
           SwitchListTile(
-            title: const Text('Descargar solo con WiFi'),
-            subtitle: const Text('No usa tus datos móviles'),
+            title: Text(tx.descargarSoloConWifi),
+            subtitle: Text(tx.noUsaTusDatosMoviles),
             value: settings.wifiOnly,
             onChanged: notifier.setWifiOnly,
           ),
           ListTile(
-            title: const Text('Límite de espacio'),
+            title: Text(tx.limiteDeEspacio),
             subtitle: Text(
               settings.limitBytes == null
-                  ? 'Sin límite'
-                  : 'Usado ${formatBytes(downloads.usedBytes)} de ${formatBytes(settings.limitBytes!)}',
+                  ? tx.sinLimite
+                  : tx.usadoDe(formatBytes(downloads.usedBytes), formatBytes(settings.limitBytes!)),
             ),
             trailing: DropdownButton<int?>(
               value: settings.limitBytes,
               underline: const SizedBox.shrink(),
               items: [
                 for (final option in DownloadSettings.limitOptions)
-                  DropdownMenuItem(
-                    value: option,
-                    child: Text(option == null ? 'Sin límite' : formatBytes(option)),
-                  ),
+                  DropdownMenuItem(value: option, child: Text(option == null ? tx.sinLimite : formatBytes(option))),
               ],
               onChanged: notifier.setLimit,
             ),
@@ -226,12 +211,9 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppColors.onSurfaceMuted),
-        ),
-      );
+    padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+    child: Text(text, style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppColors.onSurfaceMuted)),
+  );
 }
 
 class _Cover extends StatelessWidget {
