@@ -11,7 +11,14 @@
 - Kiji ya tiene instalador: se instala para tu usuario, sin pedir permisos de administrador, y al
   desinstalarlo tus playlists y descargas se quedan.
 
+**Más fluida**
+- Con música sonando, Inicio y el reproductor ya no se redibujan enteros varias veces por segundo,
+  y las carátulas de las listas ocupan mucha menos memoria.
+- Con el celular de costado, el mini-reproductor y las pestañas van en una sola fila y dejan ver
+  el contenido.
+
 **Arreglos**
+- En inglés, importar y restaurar una copia ya no mezclan palabras en español.
 - Si YouTube cambia la forma en que responde, Kiji ya no falla al mostrar resultados, y ningún
   título sale con la palabra "null".
 - Salir de una pantalla mientras algo se descarga o se prueba (yt-dlp, la clave de Gemini, una
