@@ -41,7 +41,7 @@ Future<void> playMoment(WidgetRef ref, Moment moment) {
   return notifier.playTrack(moment.track, startAt: moment.position);
 }
 
-/// Tus Momentos (Tarea Z6): tocarlos va a ese segundo; se comparten y se
+/// Tus Momentos: tocarlos va a ese segundo; se comparten y se
 /// borran (con Deshacer).
 class MomentsScreen extends ConsumerWidget {
   const MomentsScreen({super.key});

@@ -732,7 +732,7 @@
   "youtubeYaNoLeDaFormatos2": "YouTube no longer gives it audio formats (InnerTubeX: broken).",
   "sueleDarSoloElPrimerMinuto": "It usually gives only the first minute.",
   "laWebDeYoutubeMusicDescifra": "The YouTube Music website; deciphers with the solver and sends a PO token.",
-  "elReproductorIncrustadoUsaElVisitor": "The embedded player; uses the visitor from the embed page (Task Z8, like InnerTubeX 0.8.4).",
+  "elReproductorIncrustadoUsaElVisitor": "The embedded player; uses the visitor from the embed page (like InnerTubeX 0.8.4).",
   "necesitaUnPoTokenLigadoA": "Needs a PO token tied to the page, which Kiji doesn't generate (measured on 10/18/2026).",
   "laWebParaCelularesDescifraCon": "The mobile website; deciphers with the solver and sends a PO token.",
   "enEsteDispositivoNoHayWebview": "This device has no WebView to decipher",

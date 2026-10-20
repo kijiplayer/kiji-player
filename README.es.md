@@ -35,9 +35,8 @@ las playlists, el historial y las descargas) se queda en tu dispositivo.
 
 ## Instalación
 
-Todavía no hay versiones publicadas. Cuando las haya, estarán en
-[Releases](https://github.com/kijiplayer/kiji-player/releases): un APK para Android 7 o más nuevo y un
-instalador para Windows 10/11.
+Las versiones se publican en [Releases](https://github.com/kijiplayer/kiji-player/releases). Kiji
+funciona en Android 7 o más nuevo y en Windows 10/11.
 
 Para compilarlo tú mismo necesitas [Flutter](https://flutter.dev) 3.47 o más nuevo:
 

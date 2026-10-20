@@ -18,7 +18,7 @@ import '../data/backup_folder.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Configuración → Copia de seguridad → "Copia de seguridad de Kiji" (Tarea U).
+/// Configuración → Copia de seguridad → "Copia de seguridad de Kiji".
 class BackupScreen extends ConsumerWidget {
   const BackupScreen({super.key});
 

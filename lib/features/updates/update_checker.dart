@@ -75,7 +75,7 @@ int compareVersions(String a, String b) {
   return 0;
 }
 
-/// Estado de "Actualizaciones" (Tarea W1).
+/// Estado de "Actualizaciones".
 @immutable
 class UpdateState {
   const UpdateState({this.lastCheck, this.latest, this.checking = false, this.message});

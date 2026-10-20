@@ -71,7 +71,7 @@ class PlaylistDownloadState {
   final int done;
   final int failed;
 
-  /// Cuáles fallaron (Tarea T4: "Ver cuáles" y "Reintentar las fallidas").
+  /// Cuáles fallaron ("Ver cuáles" y "Reintentar las fallidas").
   final List<String> failedIds;
   final bool paused;
 
@@ -103,7 +103,7 @@ class PlaylistDownloadState {
       );
 }
 
-/// Descarga de playlists enteras como una cola (Tarea Z7): de a dos canciones,
+/// Descarga de playlists enteras como una cola: de a dos canciones,
 /// salteando las ya bajadas, respetando "solo con WiFi" y el espacio. Se puede
 /// pausar (sin perder lo bajado) y cancelar.
 class PlaylistDownloadsNotifier extends Notifier<Map<String, PlaylistDownloadState>> {
@@ -166,7 +166,7 @@ class PlaylistDownloadsNotifier extends Notifier<Map<String, PlaylistDownloadSta
     }
   }
 
-  /// "Reintentar las fallidas" (Tarea T4): vuelve a poner en la cola las que fallaron en esta
+  /// "Reintentar las fallidas": vuelve a poner en la cola las que fallaron en esta
   /// playlist; la tarjeta cuenta de nuevo solo esas.
   void retryFailed(String playlistId) {
     final current = state[playlistId];

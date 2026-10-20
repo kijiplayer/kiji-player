@@ -11,7 +11,7 @@ Future<SystemMediaControls> createSystemMediaControls() async {
           defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS);
   if (!supported) {
-    // Windows (SMTC) y Linux (MPRIS): pendientes para la Tarea X.
+    // Windows y Linux: sin controles del sistema (las teclas multimedia van por los atajos).
     return const NoSystemMediaControls();
   }
   try {

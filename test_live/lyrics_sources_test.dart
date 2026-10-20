@@ -1,4 +1,4 @@
-// Prueba cada fuente de letras contra el servicio real (Tarea Z4). A mano:
+// Prueba cada fuente de letras contra el servicio real. A mano:
 // (Nunca imprime letras: solo cuántas líneas trajo cada fuente.)
 //   flutter test test_live/lyrics_sources_test.dart
 import 'package:flutter_test/flutter_test.dart';

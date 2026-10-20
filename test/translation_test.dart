@@ -1,4 +1,4 @@
-// Tarea Z4 (traducción). Solo textos inventados: nunca letras reales.
+// Traducción de letras. Solo textos inventados: nunca letras reales.
 
 import 'dart:io';
 

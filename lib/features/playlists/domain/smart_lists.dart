@@ -18,7 +18,7 @@ class SmartListInputs {
   final List<Track> local;
 }
 
-/// Listas inteligentes con reglas que se ven y se entienden (Tarea M).
+/// Listas inteligentes con reglas que se ven y se entienden.
 enum SmartList {
   liked,
   mostPlayed,

@@ -47,7 +47,7 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-# Kiji (Tarea W1): nada de compilaciones, secretos ni datos personales en el repo.
+# Kiji: nada de compilaciones, secretos ni datos personales en el repo.
 /android/build/
 **/build/reports/
 *.jks
@@ -67,6 +67,6 @@ GoogleService-Info.plist
 # Datos de la app que pudieran copiarse acá al probar (copias, cookies, claves cifradas).
 secrets/
 
-# Notas internas (fuera del repo)
+# Configuración local del entorno de desarrollo
 CLAUDE.md
 .claude/

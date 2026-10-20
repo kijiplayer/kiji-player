@@ -22,7 +22,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 // AudioServiceActivity (en vez de FlutterActivity) comparte el motor de Flutter con el
-// servicio de audio, para que la música siga cuando se cierra la pantalla (Tarea C).
+// servicio de audio, para que la música siga cuando se cierra la pantalla.
 class MainActivity : AudioServiceActivity() {
     private fun secretKey(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
@@ -41,7 +41,7 @@ class MainActivity : AudioServiceActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // Espacio libre en disco, para avisar antes de descargar (Tarea B).
+        // Espacio libre en disco, para avisar antes de descargar.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kiji/storage")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -57,7 +57,7 @@ class MainActivity : AudioServiceActivity() {
                             }
                         }
                     }
-                    // Carpeta pública Documentos, para la copia de seguridad (Tarea U).
+                    // Carpeta pública Documentos, para la copia de seguridad.
                     "documentsDir" -> result.success(
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
                     )
@@ -65,7 +65,7 @@ class MainActivity : AudioServiceActivity() {
                 }
             }
 
-        // Secretos cifrados con una clave AES-GCM del Android Keystore (Tarea Z4: clave de
+        // Secretos cifrados con una clave AES-GCM del Android Keystore (clave de
         // Gemini). La clave nunca sale del Keystore; Dart guarda solo lo cifrado.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kiji/secrets")
             .setMethodCallHandler { call, result ->
@@ -89,10 +89,10 @@ class MainActivity : AudioServiceActivity() {
                 }
             }
 
-        // Motor A de extracción: InnerTubeX (Tarea Z8, solo Android).
+        // Motor A de extracción: InnerTubeX (solo Android).
         ExtractorChannel.register(this, flutterEngine.dartExecutor.binaryMessenger)
 
-        // Volumen de la música del sistema (0 a 1), para "Pausar al silenciar" (Tarea K).
+        // Volumen de la música del sistema (0 a 1), para "Pausar al silenciar".
         // Solo se escucha mientras Dart está suscrito.
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, "kiji/volume")
             .setStreamHandler(object : EventChannel.StreamHandler {

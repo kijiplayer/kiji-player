@@ -26,7 +26,7 @@ String playlistShareText(Playlist playlist) {
   return b.toString().trimRight();
 }
 
-/// El ⋯ grande de la cabecera: todas las opciones de la playlist (Tarea Z7).
+/// El ⋯ grande de la cabecera: todas las opciones de la playlist.
 Future<void> showPlaylistOptions(
   BuildContext context,
   WidgetRef ref,

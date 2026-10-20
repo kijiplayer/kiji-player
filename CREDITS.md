@@ -66,14 +66,14 @@ personas que los construyen y mantienen.
 | [meriyah](https://github.com/meriyah/meriyah) 6.1.4 (dentro de `yt.solver.lib.js`) | ISC | Parser de JavaScript que usa el solver. |
 | [astring](https://github.com/davidbonnet/astring) 1.9.0 (dentro de `yt.solver.lib.js`) | MIT | Generador de código JavaScript que usa el solver. |
 | `player_configs.json` de Echo Music | GPL-3.0 | Tabla de reproductores verificados por hash (Kiji usa el `sts`). |
-| [crop_your_image](https://pub.dev/packages/crop_your_image) | Apache 2.0 | Recorte de fotos personalizadas (Tarea Z3). |
-| [image](https://pub.dev/packages/image) | MIT | Achicar las fotos personalizadas a 800 px (Tarea Z3). |
+| [crop_your_image](https://pub.dev/packages/crop_your_image) | Apache 2.0 | Recorte de fotos personalizadas. |
+| [image](https://pub.dev/packages/image) | MIT | Achicar las fotos personalizadas a 800 px. |
 | [Space Grotesk](https://github.com/floriankarsten/space-grotesk) (Florian Karsten) | SIL OFL 1.1 | Tipografía de títulos, incluida en `assets/fonts/space_grotesk/` (con su `OFL.txt`). |
-| [bergamot-translator](https://github.com/mozilla/bergamot-translator) (motor WebAssembly, versión 3.0 de Firefox) | MPL-2.0 | Traducción en el teléfono (Tarea Z4). Se baja de los servidores de Mozilla; no viene en la app. |
+| [bergamot-translator](https://github.com/mozilla/bergamot-translator) (motor WebAssembly, versión 3.0 de Firefox) | MPL-2.0 | Traducción en el teléfono. Se baja de los servidores de Mozilla; no viene en la app. |
 | `bergamot-translator.js` de [Firefox](https://searchfox.org/mozilla-central/source/toolkit/components/translations/bergamot-translator) | MPL-2.0 | Pegamento JavaScript del motor, sin cambios, en `assets/translation/`. |
 | [Modelos de Firefox Translations](https://github.com/mozilla/firefox-translations-models) (Mozilla) | MPL-2.0 | Un modelo por par de idiomas; se bajan solo cuando el usuario elige traducir y se pueden borrar. |
 | [url_launcher](https://pub.dev/packages/url_launcher) | BSD-3-Clause | Abrir páginas en el navegador (guía de Gemini). |
-| [InnerTubeX](https://github.com/MetrolistGroup/innertubex) v0.10.0 (MetrolistGroup) | GPL-3.0 | Motor A de extracción en Android (Tarea Z8), desde JitPack. |
+| [InnerTubeX](https://github.com/MetrolistGroup/innertubex) v0.10.0 (MetrolistGroup) | GPL-3.0 | Motor A de extracción en Android, desde JitPack. |
 | [quickjs-kt](https://github.com/dokar3/quickjs-kt) (dentro de InnerTubeX) | Apache-2.0 | Motor JavaScript para descifrar en Android. |
 | [Ktor](https://ktor.io), [OkHttp](https://square.github.io/okhttp/), [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) | Apache-2.0 | Red y concurrencia del motor A. |
 | [WorkManager](https://developer.android.com/jetpack/androidx/releases/work) (AndroidX) | Apache-2.0 | Prueba diaria del extractor (solo WiFi y batería no baja). |

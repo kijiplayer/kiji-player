@@ -95,7 +95,7 @@ void main() {
         resolver: StreamResolver(engines: [_FakeEngine(answer)], health: PathHealth(directory: () async => dir.path)),
       );
 
-  group('Descargas con los motores de Z8 (T4)', () {
+  group('Descargas con los motores de extracción', () {
     test('Una lista HLS no se puede bajar por pedazos: se saltea y se usa la forma siguiente', () async {
       final seen = <Set<String>>[];
       final s = service((skip) {
@@ -189,7 +189,7 @@ void main() {
     expect(downloadMarkOf(state, 'z').$1, DownloadMark.none);
   });
 
-  group('Playlist entera (T4)', () {
+  group('Playlist entera', () {
     test('Las que YouTube no da quedan en la lista con su motivo, "Ver cuáles" y "Reintentar las fallidas"', () async {
       final container = ProviderContainer(overrides: [downloadsProvider.overrideWith(_FakeDownloads.new)]);
       addTearDown(container.dispose);

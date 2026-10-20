@@ -1,4 +1,4 @@
-// Carpeta de las copias en la PC (Tarea U). SOLO EN PC:
+// Carpeta de las copias en la PC. SOLO EN PC:
 //   flutter test integration_test/backup_folder_test.dart -d windows
 // NUNCA en el celular real (en el teléfono borraría los datos de la app).
 import 'package:flutter/foundation.dart';

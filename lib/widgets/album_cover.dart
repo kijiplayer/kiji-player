@@ -65,8 +65,8 @@ class AlbumCover extends StatelessWidget {
   }
 }
 
-/// Carátula de una canción: la foto propia si el usuario eligió una
-/// (Tarea Z3); si no, la imagen real (YouTube, en tamaño grande; guardada
+/// Carátula de una canción: la foto propia si el usuario eligió
+/// una; si no, la imagen real (YouTube, en tamaño grande; guardada
 /// en el dispositivo si se importó) y, si no hay o no carga (sin red), el
 /// degradado de su color.
 class TrackArtwork extends ConsumerWidget {
@@ -82,7 +82,7 @@ class TrackArtwork extends ConsumerWidget {
   final double size;
   final double radius;
 
-  /// En las listas (carátulas chicas) se ve el estado de descarga (Tarea T4).
+  /// En las listas (carátulas chicas) se ve el estado de descarga.
   final bool showDownloadState;
 
   @override
@@ -129,14 +129,14 @@ class TrackArtwork extends ConsumerWidget {
 /// conexión), la guardada en caché, la de internet y, para YouTube sin miniatura
 /// (descargas, importadas, radio), la del video por su id.
 /// null si no tiene (se usa el degradado de su color). También la usa el
-/// reproductor para sacar el color real del halo (Tarea Z6).
+/// reproductor para sacar el color real del halo.
 ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
   final custom = ref.watch(trackOverridesProvider.select((all) => all[track.id]?.coverFile));
   final covers = ref.watch(coversFolderProvider).valueOrNull;
   if (custom != null && covers != null) return FileImage(File(p.join(covers.path, custom)));
 
   final cache = ref.watch(artworkFolderProvider).valueOrNull;
-  // Carátula incluida en el archivo, guardada al importar (Tarea Z3).
+  // Carátula incluida en el archivo, guardada al importar.
   if (track.source == TrackSource.local && cache != null) {
     final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
     if (embedded.existsSync()) return FileImage(embedded);

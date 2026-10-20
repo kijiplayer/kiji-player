@@ -27,7 +27,7 @@ import '../../recommendations/presentation/home_sections.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Qué se busca (chips del mockup, §7).
+/// Qué se busca.
 enum SearchKind {
   songs,
   artists,
@@ -156,7 +156,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     _search(query);
   }
 
-  /// Antes de escribir: búsquedas recientes y sugerencias (Tarea Z5).
+  /// Antes de escribir: búsquedas recientes y sugerencias.
   Widget _buildBeforeTyping() {
     final recent = ref.watch(searchHistoryProvider);
     final isNew = ref.watch(listeningHistoryProvider).isEmpty;
@@ -219,7 +219,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          // Campo con borde degradado (§7). Ctrl K lo enfoca desde cualquier lado.
+          // Campo con borde degradado. Ctrl K lo enfoca desde cualquier lado.
           child: GradientBorder(
             radius: KijiRadii.pill,
             fill: KijiColors.surface,
@@ -354,7 +354,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       );
     }
 
-    // Los resultados entran escalonados; otra búsqueda vuelve a escalonar (Tarea Z6).
+    // Los resultados entran escalonados; otra búsqueda vuelve a escalonar.
     return StaggerScope(
       generation: _results,
       child: ListView.separated(

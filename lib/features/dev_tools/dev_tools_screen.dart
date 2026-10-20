@@ -18,7 +18,7 @@ import '../stream_cache/data/stream_cache.dart';
 import '../welcome/presentation/welcome_screen.dart';
 import '../yt_music/presentation/extractor_health_screen.dart';
 
-/// Herramientas de desarrollo (Tarea T2), solo en Kiji Dev: registro en vivo, diagnóstico del
+/// Herramientas de desarrollo, solo en Kiji Dev: registro en vivo, diagnóstico del
 /// extractor, caché y descargas. Nada de esto sale del teléfono.
 class DevToolsScreen extends StatelessWidget {
   const DevToolsScreen({super.key});
@@ -42,7 +42,7 @@ class DevToolsScreen extends StatelessWidget {
             IconButton(
               tooltip: 'Probar el aviso de error',
               icon: const Icon(Icons.bug_report_outlined),
-              // Tarea T3: muestra el aviso con sus tres opciones (una vez por sesión).
+              // Muestra el aviso con sus tres opciones (una vez por sesión).
               onPressed: () => ErrorReporter.instance
                   .capture(StateError('error de prueba de Kiji Dev'), StackTrace.current, where: 'prueba'),
             ),

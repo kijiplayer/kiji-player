@@ -1,4 +1,4 @@
-// Motor C (Tarea Z8), solo PC: baja yt-dlp oficial a una carpeta temporal, verifica su huella y
+// Motor C, solo PC: baja yt-dlp oficial a una carpeta temporal, verifica su huella y
 // pide el audio de una canción de control, con la prueba del último byte.
 // SOLO EN PC: flutter test integration_test/ytdlp_engine_test.dart -d windows
 

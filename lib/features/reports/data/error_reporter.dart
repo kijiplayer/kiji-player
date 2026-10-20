@@ -5,7 +5,7 @@ import 'error_report.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Junta los errores de Kiji para ofrecer mandar un informe (Tarea T3).
+/// Junta los errores de Kiji para ofrecer mandar un informe.
 ///
 /// - Los cortes de red no cuentan: no son fallas de Kiji.
 /// - Los errores de dibujo que el usuario no nota (un texto que no entra, un aviso a destiempo)

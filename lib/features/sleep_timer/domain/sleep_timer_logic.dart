@@ -10,10 +10,10 @@ enum SleepTimerMode {
   endOfTrack,
   endOfQueue,
 
-  /// Tarea H2: al terminar una canción elegida de la cola.
+  /// Al terminar una canción elegida de la cola.
   untilTrack,
 
-  /// Tarea H2: en un segundo exacto de la canción que suena.
+  /// En un segundo exacto de la canción que suena.
   atPosition;
 
   String get label => switch (this) {
@@ -42,7 +42,7 @@ abstract final class SleepTimerLogic {
   /// Opciones rápidas de "en X minutos".
   static const minuteOptions = [5, 10, 15, 30, 45, 60, 90];
 
-  /// "En X minutos" con número a elección (Tarea H2).
+  /// "En X minutos" con número a elección.
   static const minMinutes = 1;
   static const maxMinutes = 600;
 

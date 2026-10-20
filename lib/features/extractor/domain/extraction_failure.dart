@@ -1,6 +1,6 @@
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// De quién es la culpa cuando no sale el audio (Tarea Z8). La clave del "1 de 11": un problema
+/// De quién es la culpa cuando no sale el audio. La clave del "1 de 11": un problema
 /// del CONTENIDO (la canción) nunca marca una FORMA como rota.
 enum FailureScope {
   /// La canción: restricción de edad, no disponible, privada, borrada, bloqueada en el país.

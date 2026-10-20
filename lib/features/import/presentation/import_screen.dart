@@ -18,7 +18,7 @@ import 'package:kiji_player/l10n/l10n.dart';
 
 enum _Step { idle, reading, searching, preview, done }
 
-/// Configuración → Copia de seguridad → "Importar desde otra app" (Tarea Y).
+/// Configuración → Copia de seguridad → "Importar desde otra app".
 /// Cero Sorpresas: vista previa antes de importar, nunca se sobrescribe ni
 /// se borra nada, resumen al final y se puede deshacer la importación entera.
 class ImportScreen extends ConsumerStatefulWidget {

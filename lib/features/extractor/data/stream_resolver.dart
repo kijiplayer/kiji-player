@@ -24,7 +24,7 @@ class ResolveOutcome {
   final List<(String path, ExtractionFailure failure)> failures;
 }
 
-/// Prueba los motores en orden (Tarea Z8): en Android A → B; en PC B (→ C si el usuario lo
+/// Prueba los motores en orden: en Android A → B; en PC B (→ C si el usuario lo
 /// aceptó). Anota en la Salud solo las fallas de la forma, y decide si el problema es de la
 /// canción cuando las formas coinciden.
 class StreamResolver {
@@ -39,7 +39,7 @@ class StreamResolver {
   final List<ExtractionEngine> engines;
   final PathHealth health;
 
-  /// Las últimas búsquedas, para las herramientas de Kiji Dev (Tarea T2).
+  /// Las últimas búsquedas, para las herramientas de Kiji Dev.
   final ExtractorTrace trace;
 
   /// [skipPaths]: caminos que ya fallaron con esta canción ("A/AUTO", "B/WEB_REMIX").

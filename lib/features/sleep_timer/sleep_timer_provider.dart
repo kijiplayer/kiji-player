@@ -41,7 +41,7 @@ class SleepTimerState {
   /// primera vez que se sabe cuánto falta.
   final Duration? fadeWindow;
 
-  /// "Momento exacto" elegido en un punto que ya pasó (Tarea Z2): espera a
+  /// "Momento exacto" elegido en un punto que ya pasó: espera a
   /// que la canción vuelva antes de ese punto (si se vuelve atrás o se
   /// repite) y recién ahí cuenta. Así nunca pausa de golpe.
   final bool waitingForTarget;
@@ -58,7 +58,7 @@ class SleepTimerState {
   );
 }
 
-/// Temporizador de apagado (Tareas H y H2). null = apagado.
+/// Temporizador de apagado. null = apagado.
 class SleepTimerNotifier extends Notifier<SleepTimerState?> {
   Timer? _ticker;
 
@@ -83,12 +83,12 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
     );
   }
 
-  /// "Pausar al terminar esta" (Tarea H2): [track] tiene que estar en la cola.
+  /// "Pausar al terminar esta": [track] tiene que estar en la cola.
   void startUntilTrack(Track track) =>
       _begin(SleepTimerState(mode: SleepTimerMode.untilTrack, targetTrackId: track.id, targetTitle: track.title));
 
-  /// "En un momento exacto" de la canción que suena (Tarea H2).
-  /// Cualquier punto de 0:00 al final (Tarea Z2); si ya pasó, espera a que
+  /// "En un momento exacto" de la canción que suena.
+  /// Cualquier punto de 0:00 al final; si ya pasó, espera a que
   /// la canción vuelva a ese punto.
   void startAtPosition(Duration position) {
     final playback = ref.read(playbackProvider);
@@ -181,6 +181,6 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
 
 final sleepTimerProvider = NotifierProvider<SleepTimerNotifier, SleepTimerState?>(SleepTimerNotifier.new);
 
-/// "Marcar en la onda" (Tarea Z2): mientras es true, tocar la onda del
+/// "Marcar en la onda": mientras es true, tocar la onda del
 /// reproductor elige el momento de la pausa en vez de saltar a ese punto.
 final sleepTimerMarkingProvider = StateProvider<bool>((ref) => false);

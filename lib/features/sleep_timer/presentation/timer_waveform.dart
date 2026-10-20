@@ -19,7 +19,7 @@ double? sleepMarkerFraction(SleepTimerState? timer, PlaybackState playback) {
   return target.inMilliseconds / playback.duration.inMilliseconds;
 }
 
-/// La onda del reproductor, conectada al temporizador (Tarea Z2): muestra la
+/// La onda del reproductor, conectada al temporizador: muestra la
 /// luna donde se va a pausar y, en el modo "Marcar en la onda", tocarla elige
 /// ese momento en vez de saltar.
 class TimerWaveform extends ConsumerWidget {
@@ -42,7 +42,7 @@ class TimerWaveform extends ConsumerWidget {
       height: height,
       barWidth: barWidth,
       marker: sleepMarkerFraction(timer, playback),
-      // Tarea Z6: se dibuja de izquierda a derecha y se mueve mientras suena.
+      // Se dibuja de izquierda a derecha y se mueve mientras suena.
       animateIn: !reduceMotion(context, ref),
       alive: playback.isPlaying && !reduceMotion(context, ref),
       onSeek: marking

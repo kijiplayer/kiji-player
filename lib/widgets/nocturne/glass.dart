@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/kiji_tokens.dart';
 
-/// Superficie de "vidrio" (§7): translúcida, con blur del fondo y un borde
+/// Superficie de "vidrio": translúcida, con blur del fondo y un borde
 /// de 1 px que brilla apenas.
 class Glass extends StatelessWidget {
   const Glass({

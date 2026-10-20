@@ -55,7 +55,7 @@ class BackupState {
   );
 }
 
-/// Copia de seguridad (Tarea U): una por día, automática; se guardan las
+/// Copia de seguridad: una por día, automática; se guardan las
 /// últimas 7; restaurar con vista previa y una copia de lo actual antes.
 class BackupNotifier extends Notifier<BackupState> {
   BackupNotifier({

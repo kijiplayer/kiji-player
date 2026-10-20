@@ -4,7 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../models/track.dart';
 import '../domain/playback_rules.dart';
 
-/// Abre el menú "Compartir" del sistema con la canción (Tarea K). En la PC,
+/// Abre el menú "Compartir" del sistema con la canción. En la PC,
 /// share_plus muestra el diálogo de Windows. Kiji no envía nada por su cuenta.
 Future<void> shareTrack(Track track) async {
   try {

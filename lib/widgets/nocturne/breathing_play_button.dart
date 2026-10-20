@@ -6,7 +6,7 @@ import '../../theme/kiji_tokens.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
 /// Botón PLAY de 84 px con degradado y un anillo de luz que "respira"
-/// mientras suena (§7). Con "reducir animaciones" el anillo queda quieto.
+/// mientras suena. Con "reducir animaciones" el anillo queda quieto.
 class BreathingPlayButton extends StatefulWidget {
   const BreathingPlayButton({
     super.key,
@@ -28,7 +28,7 @@ class BreathingPlayButton extends StatefulWidget {
 class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerProviderStateMixin {
   late final AnimationController _breath = AnimationController(vsync: this, duration: KijiMotion.breath);
 
-  /// Play que se transforma en pausa (Tarea Z6).
+  /// Play que se transforma en pausa.
   late final AnimationController _morph = AnimationController(
     vsync: this,
     duration: KijiMotion.normal,

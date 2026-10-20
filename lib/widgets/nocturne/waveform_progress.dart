@@ -24,10 +24,10 @@ List<double> waveformBars(String seed, int count) {
   return bars;
 }
 
-/// Barra de progreso como **forma de onda** (§7): barras finas; lo
+/// Barra de progreso como **forma de onda**: barras finas; lo
 /// reproducido en violeta → cian y lo que falta en blanco 16 %. Se toca o se
 /// arrastra para buscar. Con [marker], una luna sobre la onda marca dónde se
-/// va a pausar (temporizador "momento exacto", Tarea Z2).
+/// va a pausar (temporizador "momento exacto").
 class WaveformProgress extends StatefulWidget {
   const WaveformProgress({
     super.key,
@@ -55,7 +55,7 @@ class WaveformProgress extends StatefulWidget {
   /// Las barras se mueven suave (mientras suena, sin "Reducir animaciones").
   final bool alive;
 
-  /// Se dibuja de izquierda a derecha al aparecer (Tarea Z6).
+  /// Se dibuja de izquierda a derecha al aparecer.
   final bool animateIn;
 
   @override

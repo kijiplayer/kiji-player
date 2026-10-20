@@ -22,13 +22,13 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// Pide otra URL para la misma canción (después de un rechazo). null si no hay.
 typedef StreamRefresher = Future<ResolvedStream?> Function(ResolvedStream refused);
 
-/// Fuente de audio de YouTube para just_audio (Tarea Z8):
+/// Fuente de audio de YouTube para just_audio:
 /// - pide el archivo **por pedazos** con `Range` (algunas formas solo entregan rangos acotados y
 ///   cortan en 1 MiB si se pide entero);
 /// - si googlevideo rechaza la URL (403/410) a mitad de la canción, pide otra y **sigue desde el
 ///   mismo byte**, sin cortar la reproducción;
 /// - si la lectura empezó en 0 y llegó al final, guarda la canción en [cacheFile] (también en
-///   calidad baja, decisión del proyecto en K2).
+///   calidad baja, decisión del proyecto).
 class ChunkedYtSource extends StreamAudioSource {
   ChunkedYtSource({
     required ResolvedStream stream,

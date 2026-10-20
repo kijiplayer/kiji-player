@@ -1,7 +1,7 @@
-// Mezcla real (Tarea K2), solo PC: dos tonos de prueba como canciones locales; con la mezcla en
+// Mezcla real, solo PC: dos tonos de prueba como canciones locales; con la mezcla en
 // 5 s, al acercarse el final la "cola" sigue sonando mientras la segunda ya está cargada.
 // SOLO EN PC: flutter test integration_test/crossfade_test.dart -d windows
-// (los tonos se generan con ffmpeg en externos/casos/tonos; ver el reporte de K2).
+// (los tonos de prueba se generan con ffmpeg).
 
 import 'dart:io';
 

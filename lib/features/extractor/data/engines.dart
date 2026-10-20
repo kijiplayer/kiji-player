@@ -9,7 +9,7 @@ import '../domain/resolved_stream.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Un motor de extracción (Tarea Z8): todos dan el mismo [ResolvedStream] o fallas clasificadas.
+/// Un motor de extracción: todos dan el mismo [ResolvedStream] o fallas clasificadas.
 abstract class ExtractionEngine {
   EngineId get id;
 

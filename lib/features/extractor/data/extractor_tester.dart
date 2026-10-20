@@ -11,7 +11,7 @@ import 'path_health.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Canciones de CONTROL (Tarea Z8): normales, públicas y disponibles en todo el mundo. Las
+/// Canciones de CONTROL: normales, públicas y disponibles en todo el mundo. Las
 /// pruebas nunca usan el historial ni nada del usuario.
 const controlVideos = <(String id, String name)>[
   ('BSTsnWoslP4', 'Bohemian Rhapsody · Queen'), // l10n-ignore

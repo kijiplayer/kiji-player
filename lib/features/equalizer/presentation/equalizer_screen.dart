@@ -12,7 +12,7 @@ import '../domain/equalizer_model.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Configuración → Reproductor → Ecualizador (Tarea J).
+/// Configuración → Reproductor → Ecualizador.
 class EqualizerScreen extends ConsumerStatefulWidget {
   const EqualizerScreen({super.key});
 

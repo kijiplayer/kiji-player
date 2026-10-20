@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../utils/app_log.dart';
 import 'log_file.dart';
 
-/// Prende o apaga el registro guardado (Tarea T3) según Configuración → Registros e informes.
+/// Prende o apaga el registro guardado según Configuración → Registros e informes.
 abstract final class KijiLogs {
   static Future<Directory> Function() directory =
       () async => Directory(p.join((await getApplicationSupportDirectory()).path, 'logs'));

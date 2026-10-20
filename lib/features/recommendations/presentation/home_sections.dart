@@ -139,7 +139,7 @@ class TrackCard extends StatelessWidget {
   }
 }
 
-/// "Porque escuchaste X", "Mezcla para ti" y "Descubre" (Tarea Z5).
+/// "Porque escuchaste X", "Mezcla para ti" y "Descubre".
 class RecommendationSections extends ConsumerWidget {
   const RecommendationSections({super.key});
 

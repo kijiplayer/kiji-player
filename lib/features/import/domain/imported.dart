@@ -21,7 +21,7 @@ class ImportedSong {
   final String? album;
   final int? durationMs;
 
-  /// Carátula (Tarea Z3): URL de Echo/Metrolist o imagen indicada en el m3u.
+  /// Carátula: URL de Echo/Metrolist o imagen indicada en el m3u.
   final String? thumbnailUrl;
 
   /// Algo con qué buscarla.
@@ -45,7 +45,7 @@ class ImportedPlaylist {
   final String name;
   final List<ImportedSong> songs;
 
-  /// Miniatura de la playlist (Echo/Metrolist), Tarea Z3.
+  /// Miniatura de la playlist (Echo/Metrolist).
   final String? thumbnailUrl;
 
   /// Estaba fijada en la otra app.

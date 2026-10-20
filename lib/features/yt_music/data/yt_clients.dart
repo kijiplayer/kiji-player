@@ -53,14 +53,14 @@ class YtPlayerClient {
   final bool usesPoToken;
 
   /// Manda también un PO token ligado a la sesión en el pedido `/player` (TVHTML5_SIMPLY lo
-  /// exige; WEB_REMIX no). El de la URL siempre va ligado al video (Tarea Z8).
+  /// exige; WEB_REMIX no). El de la URL siempre va ligado al video.
   final bool playerSessionToken;
 
   /// Usa la lista HLS (segmentos chicos) en vez del archivo entero.
   final bool useHls;
 
   /// Reproductor "incrustado" (como en otra página): pide primero la página
-  /// `embed` para usar SU visitorData y sus `encryptedHostFlags` (Tarea Z8).
+  /// `embed` para usar SU visitorData y sus `encryptedHostFlags`.
   final bool embedded;
 
   /// Con la cuenta opcional (Configuración → Cuenta), esta forma manda la sesión: sirve para las
@@ -68,7 +68,7 @@ class YtPlayerClient {
   final bool loginSupported;
 
   /// Si no es null, la forma está retirada de la cadena automática y dice por
-  /// qué (Tarea Z8, medido con InnerTubeX). Se ve en "Formas retiradas".
+  /// qué (medido con InnerTubeX). Se ve en "Formas retiradas".
   final String? retired;
 
   bool get isRetired => retired != null;
@@ -99,10 +99,9 @@ const chromeUserAgent =
     '(KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36';
 const firefoxUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0';
 
-/// Orden en que Kiji prueba las formas: primero las que funcionan hoy (medido
-/// el 16/10/2026 con 20 canciones en un celular Android y en Windows, ver
-/// Tarea Z1) y al final las que fallan, por si YouTube
-/// vuelve a habilitarlas. Las de respaldo de Echo (`STREAM_FALLBACK_CLIENTS`:
+/// Orden en que Kiji prueba las formas: primero las que funcionan hoy (medido el 16/10/2026
+/// con 20 canciones en un celular Android y en Windows) y al final las que fallan, por si
+/// YouTube vuelve a habilitarlas. Las de respaldo de Echo (`STREAM_FALLBACK_CLIENTS`:
 /// VISIONOS, ANDROID_VR 1.65.10, TVHTML5, ANDROID_VR 1.43.32, IPADOS, IOS)
 /// mantienen entre sí su orden; `WEB_CREATOR` no está porque exige iniciar
 /// sesión y Kiji es anónimo. Las propias de Kiji: la lista HLS de VISIONOS y

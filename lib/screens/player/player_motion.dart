@@ -24,7 +24,7 @@ Future<Color?> coverAccentFor(Track track, ImageProvider? image) async {
   return _coverColors[track.id] = scheme.primary;
 }
 
-/// Animaciones del reproductor (Tarea Z6). Todas se apagan con "Reducir
+/// Animaciones del reproductor. Todas se apagan con "Reducir
 /// animaciones".
 
 /// Halo del color **real** de la carátula detrás de todo: cambia con una

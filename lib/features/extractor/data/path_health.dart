@@ -46,7 +46,7 @@ class PathRecord {
   );
 }
 
-/// Salud del Extractor 2.0 (Tarea Z8): por camino, solo con fallas de la FORMA (las de la
+/// Salud del Extractor 2.0: por camino, solo con fallas de la FORMA (las de la
 /// canción no cuentan), con pruebas de control y con cada reproducción real. El orden de las
 /// formas se ajusta solo según los éxitos recientes.
 class PathHealth extends ChangeNotifier {

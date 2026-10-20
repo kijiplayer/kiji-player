@@ -37,7 +37,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 
 /**
- * Motor A de extracción (Tarea Z8, solo Android): InnerTubeX elige el cliente según su catálogo
+ * Motor A de extracción (solo Android): InnerTubeX elige el cliente según su catálogo
  * medido, descifra con Zemer/EJS y genera el PO token con BotGuard.
  */
 class InnerTubeXEngine(context: Context) {

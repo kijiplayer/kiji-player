@@ -17,7 +17,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Prueba diaria del motor A (Tarea Z8): una canción de CONTROL por forma (nunca datos del
+ * Prueba diaria del motor A: una canción de CONTROL por forma (nunca datos del
  * usuario), con la prueba del ÚLTIMO byte. Corre con WorkManager solo con red no medida y
  * batería no baja. Deja el resultado en `extractor_bg.json`, que Kiji suma a la Salud del
  * Extractor la próxima vez que se abre.

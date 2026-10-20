@@ -150,7 +150,7 @@ void main() {
   // Kiji sigue el idioma del teléfono: estas pruebas miran los textos en español.
   TestWidgetsFlutterBinding.ensureInitialized().platformDispatcher.localeTestValue = const Locale('es', 'EC');
 
-  // Inicio con playlists de YouTube: el aviso de errores (Tarea T3) mostró en Kiji Dev un
+  // Inicio con playlists de YouTube: el aviso de errores mostró en Kiji Dev un
   // "setState() during build" al dibujar Inicio con playlists de verdad.
   testWidgets('Inicio con playlists de YouTube se dibuja sin errores', (tester) async {
     await tester.pumpWidget(_app(EmptyPlaybackNotifier.new, playlists: true));

@@ -84,7 +84,7 @@ class AccountNotifier extends Notifier<YtSession?> {
 
 final accountProvider = NotifierProvider<AccountNotifier, YtSession?>(AccountNotifier.new);
 
-/// "Esta canción necesita una cuenta" pendiente de ofrecer (una por canción como mucho).
+/// "Esta canción necesita una cuenta", para ofrecer (una por canción como mucho).
 class AccountOffer {
   const AccountOffer({required this.track});
   final Track track;

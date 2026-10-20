@@ -2628,7 +2628,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get elReproductorIncrustadoUsaElVisitor =>
-      'The embedded player; uses the visitor from the embed page (Task Z8, like InnerTubeX 0.8.4).';
+      'The embedded player; uses the visitor from the embed page (like InnerTubeX 0.8.4).';
 
   @override
   String get necesitaUnPoTokenLigadoA =>

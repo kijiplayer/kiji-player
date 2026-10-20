@@ -56,7 +56,7 @@ class ActiveDownload {
   final int received;
   final int? total;
 
-  /// Por qué falló, en palabras simples (Tarea T4).
+  /// Por qué falló, en palabras simples.
   final DownloadFailure? failure;
 
   /// Otra versión de la canción que se baja en su lugar ("Buscar otra versión"); se guarda con
@@ -298,7 +298,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   }
 
   /// La versión que se baja en lugar de [videoId]: la elegida con "Buscar otra versión" o la
-  /// que encontró la reproducción (Tarea Z8); si no, el mismo video.
+  /// que encontró la reproducción; si no, el mismo video.
   Future<String> _sourceFor(String videoId) async {
     final chosen = state.active[videoId]?.sourceId;
     if (chosen != null) return chosen;
@@ -450,7 +450,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     _pump();
   }
 
-  /// "Reintentar las fallidas" (Tarea T4). Devuelve cuántas se reintentaron.
+  /// "Reintentar las fallidas". Devuelve cuántas se reintentaron.
   int retryAll([Iterable<String>? videoIds]) {
     final ids = [
       for (final e in state.active.entries)
@@ -464,7 +464,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     return ids.length;
   }
 
-  /// "Buscar otra versión" (Tarea T4): busca la misma canción en YouTube Music (la versión
+  /// "Buscar otra versión": busca la misma canción en YouTube Music (la versión
   /// "Canción", con la duración más parecida) y la baja en lugar de esta. Devuelve si encontró.
   Future<bool> searchAlternative(String videoId) async {
     final download = state.active[videoId];
@@ -511,7 +511,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   }
 
   /// Frena una descarga sin borrar lo bajado: al volver a empezarla sigue
-  /// desde el `.part` (Tarea Z7, pausar la descarga de una playlist).
+  /// desde el `.part` (pausar la descarga de una playlist).
   void pause(String videoId) {
     _cancelTokens.remove(videoId)?.cancel();
     state = state.copyWith(active: Map.of(state.active)..remove(videoId));

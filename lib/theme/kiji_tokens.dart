@@ -1,9 +1,8 @@
 // l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
 import 'package:flutter/material.dart';
 
-/// Tokens de diseño de **Kiji Nocturne** (mockup aprobado el
-/// 15/10/2026). Todo color, radio, tamaño y tipografía de la app sale de aquí,
-/// para que Personalización (Tarea P) pueda cambiarlos en un solo lugar.
+/// Tokens de diseño de **Kiji Nocturne**. Todo color, radio, tamaño y tipografía de la app sale
+/// de aquí, para cambiarlos en un solo lugar.
 abstract final class KijiColors {
   /// Fondo casi negro azulado.
   static const background = Color(0xFF07070C);
@@ -62,14 +61,14 @@ abstract final class KijiSizes {
 }
 
 abstract final class KijiMotion {
-  /// Transiciones de 200-300 ms (§7).
+  /// Transiciones de 200-300 ms.
   static const fast = Duration(milliseconds: 200);
   static const normal = Duration(milliseconds: 260);
 
   /// Un ciclo del anillo que "respira" alrededor del botón play.
   static const breath = Duration(milliseconds: 2400);
 
-  /// Movimientos con protagonismo (carátula que se expande, Tarea Z6).
+  /// Movimientos con protagonismo (carátula que se expande).
   static const emphasized = Duration(milliseconds: 350);
   static const emphasizedCurve = Curves.easeInOutCubicEmphasized;
 

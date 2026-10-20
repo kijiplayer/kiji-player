@@ -18,7 +18,7 @@ String artworkCacheName(String url) {
   return '${hash.toUnsigned(64).toRadixString(16).padLeft(16, '0')}.img';
 }
 
-/// Carátulas guardadas en el dispositivo (Tarea Z3): las de lo importado se
+/// Carátulas guardadas en el dispositivo: las de lo importado se
 /// bajan una vez y después se ven sin internet. Es caché: se puede borrar y
 /// no va en la copia de seguridad.
 class ArtworkCache {

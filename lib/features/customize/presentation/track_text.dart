@@ -5,7 +5,7 @@ import '../../../models/track.dart';
 import '../data/track_overrides.dart';
 
 /// La canción como se muestra: con el título y el artista que eligió el
-/// usuario (Tarea Z3), si cambió alguno.
+/// usuario, si cambió alguno.
 Track displayTrack(WidgetRef ref, Track track) {
   final override = ref.watch(trackOverridesProvider.select((all) => all[track.id]));
   return override == null ? track : override.applyTo(track);

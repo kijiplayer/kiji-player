@@ -17,7 +17,7 @@ class ShellDestination {
   final ShellTab tab;
   final String Function(AppLocalizations t) _label;
 
-  /// El nombre de la pestaña en el idioma de la app (Tarea T5).
+  /// El nombre de la pestaña en el idioma de la app.
   String labelOf(BuildContext context) => _label(tr(context));
   final IconData icon;
 
@@ -28,9 +28,9 @@ class ShellDestination {
   ];
 }
 
-/// Barra inferior flotante en forma de píldora (§7, celular): la pestaña
+/// Barra inferior flotante en forma de píldora (celular): la pestaña
 /// activa muestra ícono + texto sobre el degradado; las otras, solo el ícono
-/// en gris. El degradado se desliza de una pestaña a otra (Tarea Z6).
+/// en gris. El degradado se desliza de una pestaña a otra.
 class PillNavBar extends ConsumerWidget {
   const PillNavBar({super.key});
 

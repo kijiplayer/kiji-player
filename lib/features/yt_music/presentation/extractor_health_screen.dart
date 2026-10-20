@@ -22,7 +22,7 @@ String agoShort(DateTime? when, DateTime now) {
   return tx.haceNDias(d.inDays);
 }
 
-/// Salud del Extractor 2.0 (Tarea Z8): resumen simple arriba, caminos agrupados por motor, las
+/// Salud del Extractor 2.0: resumen simple arriba, caminos agrupados por motor, las
 /// formas retiradas aparte. Las pruebas usan canciones de CONTROL fijas, nunca tu historial.
 class ExtractorHealthScreen extends ConsumerStatefulWidget {
   const ExtractorHealthScreen({super.key, this.health, this.tester});
@@ -204,7 +204,7 @@ class _PathTile extends StatelessWidget {
   }
 }
 
-/// Motor C en la PC: yt-dlp, opcional y solo si se acepta (Tarea Z8).
+/// Motor C en la PC: yt-dlp, opcional y solo si se acepta.
 class _YtDlpCard extends ConsumerStatefulWidget {
   const _YtDlpCard();
 

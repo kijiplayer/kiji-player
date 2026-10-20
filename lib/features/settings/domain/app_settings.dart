@@ -1,6 +1,6 @@
 import '../../lyrics/domain/lyrics.dart';
 
-/// Preferencias de Kiji (Tarea G). Se guardan solo en el teléfono.
+/// Preferencias de Kiji. Se guardan solo en el teléfono.
 ///
 /// Las de descargas ("solo con WiFi", límite de espacio) siguen en
 /// `DownloadSettings`, para que haya una sola fuente de verdad; la pantalla
@@ -47,44 +47,44 @@ class AppSettings {
   /// Duración mínima para no ser "audio corto" (sonidos de juegos, avisos).
   static const shortAudioMs = 30 * 1000;
 
-  /// Reproductor: al reabrir, volver a la cola y al segundo donde quedó
-  /// (Tarea A). Si se apaga, se borra la cola guardada.
+  /// Reproductor: al reabrir, volver a la cola y al segundo donde quedó.
+  /// Si se apaga, se borra la cola guardada.
   final bool rememberQueue;
 
   /// Apariencia: sin animaciones decorativas (además de lo del sistema).
   final bool reduceMotion;
 
-  /// Almacenamiento: espacio máximo de la caché de lo escuchado (Tarea D).
+  /// Almacenamiento: espacio máximo de la caché de lo escuchado.
   final int streamCacheLimitBytes;
 
   /// Contenido: ocultar de la Biblioteca los audios de menos de 30 s.
   final bool hideShortAudios;
 
-  /// Reproductor (Tarea K): pausar si el volumen del teléfono llega a cero y
+  /// Reproductor: pausar si el volumen del teléfono llega a cero y
   /// seguir al subirlo (solo si fue esa la causa de la pausa).
   final bool pauseOnMute;
 
-  /// Reproductor (Tarea K): si se cortó la música al desconectarse los
+  /// Reproductor: si se cortó la música al desconectarse los
   /// auriculares Bluetooth, seguir al reconectarlos (dentro de 10 minutos).
   final bool resumeOnBluetooth;
 
-  /// Reproductor (Tarea K): segundos de la transición suave entre canciones.
+  /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
 
-  /// Almacenamiento (Tarea K): con datos móviles, YouTube a la calidad más
+  /// Almacenamiento: con datos móviles, YouTube a la calidad más
   /// baja. Con WiFi, siempre la mejor.
   final bool dataSaver;
 
-  /// Copia de seguridad (Tarea U): una copia por día, automática.
+  /// Copia de seguridad: una copia por día, automática.
   final bool autoBackup;
 
   /// Carpeta elegida para las copias; null = la de fábrica (Documentos/Kiji).
   final String? backupFolder;
 
-  /// Letras (Tarea Z4): fuentes por internet apagadas por el usuario.
+  /// Letras: fuentes por internet apagadas por el usuario.
   final Set<LyricsSource> disabledLyricsSources;
 
-  /// Traducción de letras (Tarea Z4): idioma al que se traduce.
+  /// Traducción de letras: idioma al que se traduce.
   final String translationTarget;
 
   /// Traducir con Gemini en vez de en el teléfono (solo si está activado).
@@ -97,19 +97,19 @@ class AppSettings {
   /// Modelo de Gemini elegido (por ejemplo, "models/gemini-2.5-flash-lite").
   final String? geminiModel;
 
-  /// Buscar actualizaciones en GitHub una vez por día (Tarea W1). Se puede apagar.
+  /// Buscar actualizaciones en GitHub una vez por día. Se puede apagar.
   final bool checkUpdates;
 
-  /// Pruebas automáticas del extractor con canciones de control (Tarea Z8). Se puede apagar.
+  /// Pruebas automáticas del extractor con canciones de control. Se puede apagar.
   final bool autoExtractorTests;
 
-  /// Motor C (solo PC): el usuario aceptó bajar y usar yt-dlp (Tarea Z8). Apagado de fábrica.
+  /// Motor C (solo PC): el usuario aceptó bajar y usar yt-dlp. Apagado de fábrica.
   final bool ytDlpAccepted;
 
-  /// Guardar un registro en el dispositivo, sin datos personales (Tarea T3).
+  /// Guardar un registro en el dispositivo, sin datos personales.
   final bool saveLogs;
 
-  /// Cuando algo falla, preguntar si se quiere mandar un informe (Tarea T3).
+  /// Cuando algo falla, preguntar si se quiere mandar un informe.
   final bool offerErrorReports;
 
   /// En qué orden se buscan las letras en internet (Configuración → Letras → Fuentes).

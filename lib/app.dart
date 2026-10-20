@@ -36,11 +36,11 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Actualizaciones (Tarea W1): como mucho una consulta por día, si está prendido.
+    // Actualizaciones: como mucho una consulta por día, si está prendido.
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
-    // Salud del Extractor (Tarea Z8): pruebas automáticas con canciones de control.
+    // Salud del Extractor: pruebas automáticas con canciones de control.
     Future.microtask(() => ref.read(extractorAutoTestsProvider).start());
-    // Registros e informes (Tarea T3).
+    // Registros e informes.
     ref.listenManual(settingsProvider.select((s) => s.saveLogs), (_, on) => KijiLogs.setEnabled(on),
         fireImmediately: true);
     ErrorReporter.instance.pending.addListener(_offerReport);
@@ -131,10 +131,10 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final locale = _applyLanguage();
-    // Pausar al silenciar y retomar con el Bluetooth (Tarea K). Vive aquí y no
+    // Pausar al silenciar y retomar con el Bluetooth. Vive aquí y no
     // en el reproductor porque escucha al reproductor.
     ref.watch(playbackAutomationProvider);
-    // Copia de seguridad diaria (Tarea U): se revisa al abrir Kiji.
+    // Copia de seguridad diaria: se revisa al abrir Kiji.
     ref.watch(backupProvider);
     return MaterialApp(
       title: 'Kiji Player', // l10n-ignore
@@ -146,8 +146,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       theme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       darkTheme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       themeMode: ThemeMode.dark,
-      // Atajos de teclado en todas las pantallas (PC y teclados físicos, §9).
-      // El mini-reproductor se ve en todas las pantallas (Tarea Z7).
+      // Atajos de teclado en todas las pantallas (PC y teclados físicos).
+      // El mini-reproductor se ve en todas las pantallas.
       navigatorKey: kijiNavigatorKey,
       navigatorObservers: [_routes],
       builder: (context, child) => BackdropGroup(

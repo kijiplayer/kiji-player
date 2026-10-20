@@ -27,7 +27,7 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// "A continuación" visible en la PC (el botón Cola de la barra lo oculta).
 final queuePanelVisibleProvider = StateProvider<bool>((ref) => true);
 
-/// Diseño de PC, desde 1000 px de ancho (§7): barra lateral, contenido al
+/// Diseño de PC, desde 1000 px de ancho: barra lateral, contenido al
 /// centro con buscador (Ctrl K), panel "A continuación" y barra del
 /// reproductor abajo.
 class DesktopShell extends ConsumerWidget {

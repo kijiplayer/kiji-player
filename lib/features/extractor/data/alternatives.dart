@@ -49,8 +49,8 @@ YtMusicSearchResult? pickAlternative(Track track, List<YtMusicSearchResult> resu
   return best;
 }
 
-/// Versión "Canción" (pista de audio) para un video con restricción de edad o bloqueado (Tarea
-/// Z8). Se recuerda el cambio (`alternatives.json`) y también las canciones sin alternativa
+/// Versión "Canción" (pista de audio) para un video con restricción de edad o bloqueado. Se
+/// recuerda el cambio (`alternatives.json`) y también las canciones sin alternativa
 /// (🔞 "Requiere cuenta"), para no volver a buscar cada vez.
 class AlternativeFinder {
   AlternativeFinder(this.client, {Future<String> Function()? directory}) : _directoryPath = directory;

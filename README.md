@@ -35,9 +35,8 @@ Kiji plays the music on your device and from YouTube Music, anonymously. Everyth
 
 ## Installation
 
-There are no published versions yet. When there are, they will be on
-[Releases](https://github.com/kijiplayer/kiji-player/releases): an APK for Android 7 or newer and an
-installer for Windows 10/11.
+Versions are published on [Releases](https://github.com/kijiplayer/kiji-player/releases). Kiji runs
+on Android 7 or newer and on Windows 10/11.
 
 To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 

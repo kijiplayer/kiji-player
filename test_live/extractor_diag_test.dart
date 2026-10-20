@@ -1,4 +1,4 @@
-// Diagnóstico del extractor contra YouTube real (Tarea Z1). No corre con
+// Diagnóstico del extractor contra YouTube real. No corre con
 // `flutter test` normal (está fuera de test/): se corre a mano con
 //   flutter test test_live/extractor_diag_test.dart
 // Prueba cada forma por separado con 20 canciones y escribe una tabla con el

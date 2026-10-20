@@ -53,7 +53,7 @@ int? stsFromConfigTable(Map<String, dynamic> table, String hash) {
 }
 
 /// `player_configs.json` remoto de ZemerTeam/zemer-cipher (el que usan Echo y Metrolist), con
-/// caché de 6 h y ETag (Tarea Z8). YouTube rota su reproductor cada pocos días y la tabla de la
+/// caché de 6 h y ETag. YouTube rota su reproductor cada pocos días y la tabla de la
 /// app queda vieja; si aparece un reproductor desconocido se fuerza otra consulta (como mucho cada
 /// 10 min). GitHub ve esa consulta (lo explica Configuración → Privacidad). Si no hay red, se usa
 /// la tabla incluida en la app.

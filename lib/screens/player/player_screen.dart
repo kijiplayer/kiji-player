@@ -37,7 +37,7 @@ String playingFromLabel(Track track, {required bool downloaded}) {
   return 'YOUTUBE MUSIC'; // l10n-ignore
 }
 
-/// Reproductor a pantalla completa (Kiji Nocturne, §7).
+/// Reproductor a pantalla completa (Kiji Nocturne).
 class PlayerScreen extends ConsumerWidget {
   const PlayerScreen({super.key});
 
@@ -46,7 +46,7 @@ class PlayerScreen extends ConsumerWidget {
       PageRouteBuilder<void>(
         settings: const RouteSettings(name: KijiRoutes.player),
         fullscreenDialog: true,
-        // La carátula del mini-reproductor se expande hasta la del reproductor (Tarea Z6).
+        // La carátula del mini-reproductor se expande hasta la del reproductor.
         transitionDuration: KijiMotion.emphasized,
         reverseTransitionDuration: KijiMotion.normal,
         pageBuilder: (context, animation, secondaryAnimation) => const PlayerScreen(),
@@ -263,7 +263,7 @@ class _TitleRow extends ConsumerWidget {
                   ),
                 )
               : DownloadButton(track: track),
-        // "Agregar a playlist" a un toque (Tarea Z3).
+        // "Agregar a playlist" a un toque.
         IconButton(
           tooltip: tx.agregarAPlaylist,
           onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
@@ -292,7 +292,7 @@ class _Progress extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        // Con la luna del temporizador y "Marcar en la onda" (Tarea Z2).
+        // Con la luna del temporizador y "Marcar en la onda".
         const TimerWaveform(),
         const SizedBox(height: 6),
         Row(
@@ -408,7 +408,7 @@ class _BottomActions extends ConsumerWidget {
           active: timer != null,
           onPressed: () => showSleepTimerSheet(context),
         ),
-        // Momentos (Tarea Z6): guardar este segundo. La lista se abre desde el
+        // Momentos: guardar este segundo. La lista se abre desde el
         // aviso ("Ver") o desde Biblioteca → Playlists → Momentos.
         GlassIconButton(
           icon: Icons.bookmark_add_outlined,

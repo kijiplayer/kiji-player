@@ -6,7 +6,7 @@ import '../../theme/kiji_tokens.dart';
 
 /// Marca el momento en que apareció una lista: solo los ítems que se ven al
 /// abrirla entran escalonados; los que llegan después al hacer scroll, no
-/// esperan (Tarea Z6). Cambiar [generation] (por ejemplo, otra búsqueda)
+/// esperan. Cambiar [generation] (por ejemplo, otra búsqueda)
 /// vuelve a escalonar.
 class StaggerScope extends StatefulWidget {
   const StaggerScope({super.key, this.generation, required this.child});

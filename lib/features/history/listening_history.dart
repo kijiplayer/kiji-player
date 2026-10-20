@@ -95,7 +95,7 @@ class ListeningHistoryNotifier extends Notifier<List<HistoryEntry>> {
     unawaited(_save());
   }
 
-  /// Importar (Tarea Y): agrega solo canciones que no estaban en el
+  /// Importar: agrega solo canciones que no estaban en el
   /// historial (nunca cambia lo existente). Devuelve los ids agregados.
   List<String> importEntries(List<HistoryEntry> entries) {
     final existing = {for (final e in state) e.track.id};

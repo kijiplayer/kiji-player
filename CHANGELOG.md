@@ -1,8 +1,5 @@
 # Novedades de Kiji Player
 
-Cada versión llega primero a **Kiji Dev**, la app de pruebas. Cuando lleva al menos una o dos
-actualizaciones sin errores nuevos, esa misma versión, sin cambios, pasa a **Kiji**.
-
 ## 0.5.0-beta.1 — 19 de octubre de 2026
 
 La primera versión con número. Es todo lo que Kiji aprendió hasta ahora.

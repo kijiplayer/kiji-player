@@ -20,7 +20,7 @@ class LogLine {
   String toString() => '$time $text';
 }
 
-/// Registro de Kiji en memoria (Tarea T2): se queda con las últimas [capacity] líneas de
+/// Registro de Kiji en memoria: se queda con las últimas [capacity] líneas de
 /// `debugPrint` para verlas en vivo en las herramientas de Kiji Dev. Todo lo que Kiji anota
 /// pasa por aquí.
 abstract final class AppLog {
@@ -49,7 +49,7 @@ abstract final class AppLog {
 
   static void Function(LogLine line)? _sink;
 
-  /// Copia cada línea también a [sink] (el registro guardado de la Tarea T3), empezando por
+  /// Copia cada línea también a [sink] (el registro guardado), empezando por
   /// las que ya están en memoria. Con null deja de copiar.
   static void attachSink(void Function(LogLine line)? sink) {
     _sink = sink;

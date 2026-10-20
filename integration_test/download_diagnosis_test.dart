@@ -1,4 +1,4 @@
-// Diagnóstico de descargas (Tarea T4), solo PC: pasa una lista de videos por los motores B y C
+// Diagnóstico de descargas, solo PC: pasa una lista de videos por los motores B y C
 // y muestra, para cada uno, qué camino lo resolvió o por qué falló (texto clasificado).
 // SOLO EN PC: flutter test integration_test/download_diagnosis_test.dart -d windows
 // Los ids se pasan con --dart-define=KIJI_IDS=id1,id2 (sin ids usa las canciones de control).

@@ -7,10 +7,10 @@ import '../../updates/update_checker.dart';
 import 'log_scrubber.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Repositorio donde llegan los informes (Tarea T3).
+/// Repositorio donde llegan los informes.
 const kijiRepoUrl = 'https://github.com/kijiplayer/kiji-player';
 
-/// Un error para ofrecer mandar (Tarea T3). Todo el texto ya va sin datos personales.
+/// Un error para ofrecer mandar. Todo el texto ya va sin datos personales.
 class ErrorReport {
   ErrorReport({
     required this.summary,

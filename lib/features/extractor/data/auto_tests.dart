@@ -16,7 +16,7 @@ import 'path_health.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Pruebas automáticas del extractor (Tarea Z8):
+/// Pruebas automáticas del extractor:
 /// - al abrir Kiji, si pasaron más de 12 h desde la última;
 /// - en PC, cada 12 h mientras está abierta;
 /// - en Android, una vez por día con WorkManager (solo WiFi y batería no baja), cuyo resultado

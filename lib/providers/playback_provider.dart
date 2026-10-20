@@ -141,7 +141,7 @@ enum _SourceMode { cached, withHeaders, plain }
 
 /// Cómo terminó un intento de cargar una canción.
 /// [contentBlocked]: la canción tiene un problema propio (edad, no disponible…); se salta sin
-/// contar como falla del extractor (Tarea Z8).
+/// contar como falla del extractor.
 enum LoadResult { loaded, cancelled, offline, unplayable, contentBlocked }
 
 class PlaybackNotifier extends Notifier<PlaybackState> {
@@ -151,7 +151,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   late final _memory = PlaybackMemoryStore();
   late final _ytClient = YtMusicClient();
 
-  /// Motores de extracción (Tarea Z8): en Android A (InnerTubeX) → B (Kiji); en PC, B.
+  /// Motores de extracción: en Android A (InnerTubeX) → B (Kiji); en PC, B.
   late final StreamResolver _resolver = StreamResolver(
     engines: [InnerTubeXEngine(), KijiEngine(_ytClient), ref.read(ytDlpEngineProvider)],
   );
@@ -166,7 +166,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   int _loadToken = 0;
   bool _wasPlaying = false;
 
-  /// Notificación, pantalla de bloqueo y auriculares (Tarea C).
+  /// Notificación, pantalla de bloqueo y auriculares.
   late SystemMediaControls _controls;
 
   /// La notificación aparece recién cuando el usuario reproduce algo en esta
@@ -174,7 +174,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// (Cero Sorpresas).
   bool _shownInSystem = false;
 
-  /// Caché de lo escuchado (Tarea D).
+  /// Caché de lo escuchado.
   late final _cache = StreamCache();
 
   /// Cliente de YouTube de la canción que suena (para reintentar con otro).
@@ -189,7 +189,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
   @override
   PlaybackState build() {
-    // Ecualizador del sistema (Tarea J, solo Android): el efecto se conecta
+    // Ecualizador del sistema (solo Android): el efecto se conecta
     // al crear el reproductor y el notificador aplica el perfil guardado.
     final equalizer = ref.read(androidEqualizerProvider);
     _player = AudioPlayer(audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]));
@@ -445,7 +445,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // tiempo de conexión): el Modo de Gracia responde en el acto.
     if (!await _isOnline()) return LoadResult.offline;
 
-    // Canción con restricción de edad o bloqueada (Tarea Z8): se usa su versión "Canción" si ya se
+    // Canción con restricción de edad o bloqueada: se usa su versión "Canción" si ya se
     // encontró antes; si se sabe que no tiene, se salta enseguida.
     final alternatives = AlternativeFinder.of(_ytClient);
     final known = await alternatives.known(videoId);
@@ -560,7 +560,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     );
   }
 
-  /// Ahorro de datos (Tarea K): calidad baja con datos móviles.
+  /// Ahorro de datos: calidad baja con datos móviles.
   Future<bool> _useLowQuality() async {
     final dataSaver = ref.read(settingsProvider).dataSaver;
     if (!dataSaver) return false;
@@ -605,7 +605,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     }
   }
 
-  /// Modo de Gracia (Tarea D): la música no se traba ni muestra errores
+  /// Modo de Gracia: la música no se traba ni muestra errores
   /// técnicos. Sin conexión, sigue con lo que está guardado en el teléfono; si
   /// YouTube no deja reproducir una canción, pasa a la siguiente.
   Future<void> _grace(Track track, int index, LoadResult result, Duration position) async {
@@ -713,7 +713,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   }
 
   /// Reproduce una única pista suelta, convirtiéndola en una cola de un
-  /// solo elemento. [startAt]: desde qué segundo (un "Momento", Tarea Z6).
+  /// solo elemento. [startAt]: desde qué segundo (un "Momento").
   Future<void> playTrack(Track track, {Duration startAt = Duration.zero}) async {
     await _stopTail();
     _requestedNext.clear();
@@ -734,7 +734,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   }
 
   // ---------------------------------------------------------------------
-  // Cola (Tarea E)
+  // Cola
   // ---------------------------------------------------------------------
 
   QueueSnapshot get _queueSnapshot => QueueSnapshot(state.queue, state.currentIndex);
@@ -867,7 +867,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// Recupera la cola guardada y deja la canción EN PAUSA en su posición
   /// (Cero Sorpresas: nunca reproducir sola al abrir).
   Future<void> _restoreState() async {
-    // Configuración → "Recordar la cola al cerrar" (Tarea A, punto 5).
+    // Configuración → "Recordar la cola al cerrar".
     final settings = await ref.read(settingsProvider.notifier).loaded;
     if (!settings.rememberQueue) {
       debugPrint('=== MEMORIA: "recordar la cola" está apagado, se arranca vacío ===');
@@ -1010,7 +1010,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     await _applyVolume();
   }
 
-  /// Desvanecimiento del temporizador (Tarea H): multiplica el volumen de Kiji
+  /// Desvanecimiento del temporizador: multiplica el volumen de Kiji
   /// sin cambiarlo (al terminar, vuelve a 1 y suena como antes).
   double _fade = 1;
 
@@ -1021,7 +1021,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     await _applyVolume();
   }
 
-  /// Transición suave entre canciones (Tarea K): otro multiplicador del
+  /// Transición suave entre canciones: otro multiplicador del
   /// volumen, que baja al final de la canción y sube al empezar la siguiente
   /// (solo si la anterior terminó sola).
   double _transition = 1;
@@ -1029,7 +1029,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   int _fadeInToken = -1;
 
   // ---------------------------------------------------------------------
-  // Mezcla real entre canciones (Tarea K2): un segundo reproductor, la "cola", toca el final de
+  // Mezcla real entre canciones: un segundo reproductor, la "cola", toca el final de
   // esta canción mientras el principal arranca la siguiente. Suenan las dos y, de paso, se tapa
   // el tiempo de carga de la siguiente.
   // ---------------------------------------------------------------------

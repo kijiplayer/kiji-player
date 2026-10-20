@@ -1,5 +1,5 @@
 // l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
-/// Saca los datos personales de una línea del registro (Tarea T3) antes de guardarla o mandarla:
+/// Saca los datos personales de una línea del registro antes de guardarla o mandarla:
 /// correos, nombres de usuario en rutas, claves, tokens, cookies, IPs y las URLs de audio de
 /// YouTube (llevan tu IP y firmas). Deja lo que sirve para entender una falla: qué pasó, qué
 /// forma, el id del video y los tiempos.

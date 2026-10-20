@@ -34,7 +34,7 @@ class RouteStackInfo {
   final bool popupOpen;
 }
 
-/// Sigue la pila del Navigator (Tarea Z7).
+/// Sigue la pila del Navigator.
 class MiniPlayerRouteObserver extends NavigatorObserver {
   final info = ValueNotifier(const RouteStackInfo(topPageName: '/'));
   final _stack = <Route<dynamic>>[];
@@ -50,7 +50,7 @@ class MiniPlayerRouteObserver extends NavigatorObserver {
     }
     // El Navigator avisa en medio de un build (también en el primero, el de runApp, que pasa
     // fuera de un cuadro): se aplica después, siempre el último estado. Cambiarlo en el acto
-    // era el "setState() during build" que mostró el aviso de errores (Tarea T3).
+    // era el "setState() during build" que mostró el aviso de errores.
     final pending = _pending == null;
     _pending = RouteStackInfo(topPageName: page, popupOpen: top is PopupRoute);
     if (!pending) return;
@@ -99,7 +99,7 @@ class MiniPlayerRouteObserver extends NavigatorObserver {
   }
 }
 
-/// Si el mini-reproductor global se ve (Tarea Z7): hay canción, la pantalla
+/// Si el mini-reproductor global se ve: hay canción, la pantalla
 /// de arriba no tiene el suyo, y no hay hoja, diálogo ni teclado abiertos.
 bool showGlobalMiniPlayer({required bool hasTrack, required RouteStackInfo routes, required bool keyboardOpen}) =>
     hasTrack && !routes.popupOpen && !keyboardOpen && !KijiRoutes.hideMiniPlayer.contains(routes.topPageName);

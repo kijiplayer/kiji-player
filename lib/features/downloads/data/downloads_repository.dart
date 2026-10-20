@@ -112,7 +112,7 @@ class DownloadsRepository {
     });
   }
 
-  /// Descargas que fallaron, por `videoId` (Tarea T4), para verlas al volver a abrir Kiji.
+  /// Descargas que fallaron, por `videoId`, para verlas al volver a abrir Kiji.
   Future<Map<String, Map<String, dynamic>>> failed() async {
     await directory();
     final json = await _failedFile!.read();

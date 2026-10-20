@@ -7,7 +7,7 @@ import '../../extractor/domain/extraction_failure.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Por qué no bajó una canción (Tarea T4).
+/// Por qué no bajó una canción.
 enum DownloadFailureKind {
   /// Problema de la canción (edad, borrada, bloqueada…): reintentar no sirve; otra versión, quizás.
   content,

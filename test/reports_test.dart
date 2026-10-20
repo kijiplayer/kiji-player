@@ -11,7 +11,7 @@ import 'package:kiji_player/features/settings/domain/app_settings.dart';
 import 'package:kiji_player/utils/app_log.dart';
 
 void main() {
-  group('Sin datos personales (T3)', () {
+  group('Sin datos personales', () {
     test('Correos, claves, tokens, IPs, URLs de audio y usuarios en rutas se ocultan', () {
       const raw = 'usuario ana.perez@example.com clave AIzaSyA1234567890abcdefghijklmnopqrstu '
           'url https://rr3---sn-abc.googlevideo.com/videoplayback?ip=181.1.2.3&sig=XYZ&pot=abc '
@@ -33,7 +33,7 @@ void main() {
     });
   });
 
-  group('Registro guardado (T3)', () {
+  group('Registro guardado', () {
     late Directory dir;
     setUp(() => dir = Directory.systemTemp.createTempSync('kiji_t3'));
     tearDown(() => dir.deleteSync(recursive: true));
@@ -59,7 +59,7 @@ void main() {
     });
   });
 
-  group('Informes (T3)', () {
+  group('Informes', () {
     setUp(ErrorReporter.instance.reset);
 
     test('Los cortes de red no son fallas de Kiji', () {

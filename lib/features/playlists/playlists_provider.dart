@@ -110,7 +110,7 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     _replace(playlist.copyWith(name: PlaylistOps.uniqueName(name, others), updatedAt: _clock()));
   }
 
-  /// Personaliza la playlist (Tarea Z3): nombre, descripción, color y foto
+  /// Personaliza la playlist: nombre, descripción, color y foto
   /// (el nombre de un archivo ya guardado en covers/). Lo que no se pasa,
   /// queda igual.
   void customize(
@@ -187,7 +187,7 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     unawaited(_save());
   }
 
-  /// Borra varias de una vez (deshacer una importación, Tarea Y).
+  /// Borra varias de una vez (deshacer una importación).
   List<(Playlist, int)> deleteMany(Set<String> ids) {
     final removed = <(Playlist, int)>[];
     for (var i = 0; i < state.length; i++) {

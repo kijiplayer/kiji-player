@@ -38,7 +38,7 @@ enum LibraryTab {
   };
 }
 
-/// Biblioteca (§7): pestañas segmentadas, tarjeta de espacio usado/libre con
+/// Biblioteca: pestañas segmentadas, tarjeta de espacio usado/libre con
 /// "Todo", y cada canción con su etiqueta (YT ↓ o LOCAL) y su tamaño.
 class LocalLibraryScreen extends ConsumerStatefulWidget {
   const LocalLibraryScreen({super.key});
@@ -52,7 +52,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   LocalLibrarySource get _source => ref.read(localLibrarySourceProvider);
   _LibraryStatus _status = _LibraryStatus.loading;
   List<Track> _local = const [];
-  // Abre en Playlists (Tarea Z3).
+  // Abre en Playlists.
   LibraryTab _tab = LibraryTab.playlists;
 
   @override
@@ -109,7 +109,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
 
     return RefreshIndicator(
       onRefresh: _load,
-      // Las canciones que se ven al abrir entran escalonadas (Tarea Z6).
+      // Las canciones que se ven al abrir entran escalonadas.
       child: StaggerScope(
         generation: _source,
         child: CustomScrollView(

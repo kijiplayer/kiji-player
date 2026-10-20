@@ -67,7 +67,7 @@ class LyricsRepository {
   }
 
   /// La letra de [request]: la guardada; si no, la incluida en el archivo;
-  /// si no, la primera fuente que la tenga (Tarea Z4), salteando las de
+  /// si no, la primera fuente que la tenga, salteando las de
   /// [disabled]. Si ninguna respondió (sin conexión), tira
   /// [LyricsUnavailableException] y no se guarda nada.
   Future<Lyrics> get(
@@ -104,7 +104,7 @@ class LyricsRepository {
     return lyrics;
   }
 
-  /// "Buscar a mano" (Tarea Z4): con otro título o artista, en todas las
+  /// "Buscar a mano": con otro título o artista, en todas las
   /// fuentes; si encuentra, reemplaza la guardada de la canción [request.id].
   Future<Lyrics> search(
     LyricsRequest request, {

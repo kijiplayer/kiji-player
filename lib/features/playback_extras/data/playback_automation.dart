@@ -65,7 +65,7 @@ class _NotifierControl implements PlaybackControl {
 final playbackControlProvider = Provider<PlaybackControl>(_NotifierControl.new);
 
 /// "Pausar al silenciar" (apagado de fábrica) y "Retomar al conectar el
-/// Bluetooth" (prendido de fábrica, Tarea K2). Solo escuchan el volumen y los
+/// Bluetooth" (prendido de fábrica). Solo escuchan el volumen y los
 /// dispositivos mientras están activas.
 class PlaybackAutomation {
   PlaybackAutomation(this.ref);

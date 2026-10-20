@@ -25,7 +25,7 @@ final _seedKeyProvider = Provider<String>((ref) => ref.watch(homeSeedsProvider).
 /// Relacionadas ya pedidas en esta sesión (por id de la semilla).
 final _relatedCache = <String, List<Track>>{};
 
-/// Inicio con recomendaciones (Tarea Z5). Sin conexión, Inicio sigue con lo
+/// Inicio con recomendaciones. Sin conexión, Inicio sigue con lo
 /// local (más escuchadas, descargadas, playlists).
 final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
   ref.watch(_seedKeyProvider);

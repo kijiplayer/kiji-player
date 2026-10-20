@@ -223,11 +223,11 @@ class _ListHeader extends ConsumerWidget {
   final String subtitle;
   final List<Track> tracks;
 
-  /// Foto de la playlist (Tarea Z3).
+  /// Foto de la playlist.
   final Widget? cover;
   final String? description;
 
-  /// El ⋯ grande con todas las opciones (Tarea Z7); null = sin botón.
+  /// El ⋯ grande con todas las opciones; null = sin botón.
   final VoidCallback? onMore;
 
   @override
@@ -290,7 +290,7 @@ class _ListHeader extends ConsumerWidget {
   }
 }
 
-/// Filtros de la playlist por estado de descarga (Tarea T4).
+/// Filtros de la playlist por estado de descarga.
 enum _TrackFilter { all, downloaded, missing, failed }
 
 /// Una playlist de Kiji: reordenar, quitar (con Deshacer), renombrar, borrar.
@@ -337,7 +337,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
       }
     }
 
-    // Estado de descarga de cada canción (Tarea T4): para el "142 de 150" y los filtros.
+    // Estado de descarga de cada canción: para el "142 de 150" y los filtros.
     // Como texto (un carácter por canción) para que la pantalla solo se redibuje si algo cambió.
     final code = ref.watch(
       downloadsProvider.select(
@@ -479,7 +479,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
   }
 }
 
-/// "142 de 150 descargadas" y los filtros por estado de descarga (Tarea T4).
+/// "142 de 150 descargadas" y los filtros por estado de descarga.
 class _DownloadFilterBar extends StatelessWidget {
   const _DownloadFilterBar({
     required this.downloaded,

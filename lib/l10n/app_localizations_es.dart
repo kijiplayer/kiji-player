@@ -2633,7 +2633,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get elReproductorIncrustadoUsaElVisitor =>
-      'El reproductor incrustado; usa el visitor de la página embed (Tarea Z8, como InnerTubeX 0.8.4).';
+      'El reproductor incrustado; usa el visitor de la página embed (como InnerTubeX 0.8.4).';
 
   @override
   String get necesitaUnPoTokenLigadoA =>

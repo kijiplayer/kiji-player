@@ -10,8 +10,8 @@ import '../../utils/json_file.dart';
 
 
 /// Canciones con "me gusta", por id. Se guardan solo en el teléfono
-/// (`<appSupportDir>/favorites.json`). La Tarea M (playlists) las usará como
-/// lista automática.
+/// (`<appSupportDir>/favorites.json`). Las playlists las usan como lista
+/// automática.
 class FavoritesNotifier extends Notifier<Map<String, Track>> {
   JsonFile? _file;
 
@@ -44,7 +44,7 @@ class FavoritesNotifier extends Notifier<Map<String, Track>> {
     unawaited(_save());
   }
 
-  /// Importar (Tarea Y): agrega las que no estaban. Nunca quita ni cambia
+  /// Importar: agrega las que no estaban. Nunca quita ni cambia
   /// nada. Devuelve los ids agregados (para poder deshacerlo).
   List<String> addAll(List<Track> tracks) {
     final added = <String>[];

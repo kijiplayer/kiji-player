@@ -32,7 +32,7 @@ class DownloadEstimate {
   final String extension;
   final int? sizeBytes;
 
-  /// Encabezados que pide la forma (Tarea T4: los motores de Z8 los necesitan).
+  /// Encabezados que pide la forma (los motores de extracción los necesitan).
   final Map<String, String> headers;
 
   /// Camino que la dio ("A/WEB_REMIX"), para saltearlo si YouTube corta la descarga.
@@ -72,7 +72,7 @@ class DownloadService {
   final StreamResolver? _resolverOverride;
   final Dio _dio;
 
-  /// Los mismos motores que la reproducción (Tarea T4): en Android A → B, en PC B (→ C).
+  /// Los mismos motores que la reproducción: en Android A → B, en PC B (→ C).
   late final StreamResolver resolver =
       _resolverOverride ?? StreamResolver(engines: [InnerTubeXEngine(), KijiEngine(ytClient)]);
 

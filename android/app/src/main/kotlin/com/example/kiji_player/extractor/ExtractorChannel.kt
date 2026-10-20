@@ -18,7 +18,7 @@ object InnerTubeXHolder {
 }
 
 /**
- * Canal `kiji/innertubex` (Tarea Z8): `extract(videoId, quality, skip)`, `onRefused(url)` y
+ * Canal `kiji/innertubex`: `extract(videoId, quality, skip)`, `onRefused(url)` y
  * `prewarm()`. Todo corre fuera del hilo principal; la respuesta vuelve en el principal.
  */
 object ExtractorChannel {

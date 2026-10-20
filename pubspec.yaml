@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Textos de la app en archivos ARB (Tarea T5): español base, inglés listo para traducir.
+  # Textos de la app en archivos ARB: español base, inglés listo para traducir.
   flutter_localizations:
     sdk: flutter
   intl: any
@@ -97,12 +97,12 @@ flutter:
 
   # Kiji Nocturne. Tipografías incluidas en la app (licencia OFL, ver los OFL.txt):
   # no se descargan de Google al usarla, así nada sale del teléfono sin pedirlo.
-  # Créditos que se muestran en Configuración → Acerca de (Tarea G).
+  # Créditos que se muestran en Configuración → Acerca de.
   assets:
     - CREDITS.md
-    # Solver de yt-dlp/ejs para descifrar el audio de YouTube (Tarea Z1).
+    # Solver de yt-dlp/ejs para descifrar el audio de YouTube.
     - assets/solver/
-    # Traducción en el teléfono (Tarea Z4): pegamento JS de Bergamot, de Firefox (MPL-2.0).
+    # Traducción en el teléfono: pegamento JS de Bergamot, de Firefox (MPL-2.0).
     - assets/translation/
     # Logo (Opción B · K de onda); los PNG de esta carpeta son solo para generar íconos.
     - assets/branding/kiji_logo.svg

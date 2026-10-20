@@ -27,7 +27,7 @@ final lyricsProvider = FutureProvider.autoDispose.family<Lyrics, LyricsRequest>(
       ),
 );
 
-/// Desfase de la letra de una canción, guardado por canción (Tarea Z4).
+/// Desfase de la letra de una canción, guardado por canción.
 final lyricsOffsetProvider = FutureProvider.autoDispose.family<Duration, String>(
   (ref, id) => ref.watch(lyricsRepositoryProvider).offset(id),
 );

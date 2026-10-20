@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'kiji_tokens.dart';
 
-/// Transición entre pantallas de Kiji (Tarea Z6): fundido + escala 0,96 → 1
+/// Transición entre pantallas de Kiji: fundido + escala 0,96 → 1
 /// al entrar; la de abajo se aleja un poco. Con "Reducir animaciones", sin
 /// movimiento.
 class KijiPageTransitionsBuilder extends PageTransitionsBuilder {
@@ -46,7 +46,7 @@ abstract final class AppTheme {
     );
 
     final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
-    // Títulos en Space Grotesk (§7); el cuerpo queda con la fuente del sistema.
+    // Títulos en Space Grotesk; el cuerpo queda con la fuente del sistema.
     final textTheme = base.textTheme.copyWith(
       displaySmall: KijiText.title(size: 34),
       headlineMedium: KijiText.title(size: 28),

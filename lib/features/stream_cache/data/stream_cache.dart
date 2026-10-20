@@ -22,7 +22,7 @@ class StreamCache {
   StreamCache({Future<Directory> Function()? baseDirectory})
       : _baseDirectory = baseDirectory ?? getApplicationCacheDirectory;
 
-  /// Límite por defecto (configurable desde la Tarea G).
+  /// Límite por defecto (configurable).
   static const defaultLimitBytes = 300 * 1024 * 1024;
 
   final Future<Directory> Function() _baseDirectory;
@@ -47,7 +47,7 @@ class StreamCache {
     return null;
   }
 
-  /// Archivo donde se guarda [videoId] cuando suena entero (Tarea Z8: lo escribe la fuente por
+  /// Archivo donde se guarda [videoId] cuando suena entero (lo escribe la fuente por
   /// pedazos, que primero usa `<archivo>.part`).
   Future<File> targetFor(String videoId, String extension) async =>
       File(p.join((await directory()).path, '$videoId.$extension'));
@@ -66,7 +66,7 @@ class StreamCache {
     }
     final mime = Uri.parse(stream.url).queryParameters['mime'] ?? '';
     final ext = mime.contains('webm') ? 'webm' : 'm4a';
-    // Experimental en just_audio, pero es justo lo que pide el plan (Tarea D).
+    // Experimental en just_audio, pero es justo lo que hace falta.
     // Si falla, el reproductor reintenta sin caché (ver PlaybackNotifier).
     // ignore: experimental_member_use
     final source = LockCachingAudioSource(

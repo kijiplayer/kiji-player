@@ -4502,7 +4502,7 @@ abstract class AppLocalizations {
   /// No description provided for @elReproductorIncrustadoUsaElVisitor.
   ///
   /// In es, this message translates to:
-  /// **'El reproductor incrustado; usa el visitor de la página embed (Tarea Z8, como InnerTubeX 0.8.4).'**
+  /// **'El reproductor incrustado; usa el visitor de la página embed (como InnerTubeX 0.8.4).'**
   String get elReproductorIncrustadoUsaElVisitor;
 
   /// No description provided for @necesitaUnPoTokenLigadoA.

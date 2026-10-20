@@ -9,8 +9,8 @@ import '../../backup/data/backup_service.dart' show coversFolder;
 import 'package:kiji_player/l10n/l10n.dart';
 
 
-/// Fotos personalizadas (Tarea Z3): se guardan en `<datos>/covers/`, la misma
-/// carpeta que entra en la copia de seguridad (Tarea U). Nunca se toca el
+/// Fotos personalizadas: se guardan en `<datos>/covers/`, la misma
+/// carpeta que entra en la copia de seguridad. Nunca se toca el
 /// archivo de música original.
 class CoverStore {
   CoverStore({Future<Directory> Function()? directory}) : _directory = directory ?? getApplicationSupportDirectory;

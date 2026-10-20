@@ -29,11 +29,11 @@ class Playlist {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// Si vino de una importación (Tarea Y): de qué archivo o app. Sirve para
+  /// Si vino de una importación: de qué archivo o app. Sirve para
   /// "deshacer la importación".
   final String? importedFrom;
 
-  /// Personalización (Tarea Z3), solo dentro de Kiji.
+  /// Personalización, solo dentro de Kiji.
   final String? description;
 
   /// Color elegido (ARGB), o null para el de fábrica.

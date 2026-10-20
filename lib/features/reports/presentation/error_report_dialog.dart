@@ -22,7 +22,7 @@ Future<void> downloadReport(BuildContext context, ErrorReport? report) async {
   await saveTextFile(context, 'informe-kiji-$stamp.txt', text, dialogTitle: tx.guardarInforme);
 }
 
-/// "Algo falló": las tres opciones de la Tarea T3. Nunca se manda nada sin que el usuario elija.
+/// "Algo falló": las tres opciones. Nunca se manda nada sin que el usuario elija.
 Future<void> showErrorReportDialog(BuildContext context, ErrorReport report) {
   final t = tr(context);
   return showDialog<void>(

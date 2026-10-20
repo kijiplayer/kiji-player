@@ -1,4 +1,4 @@
-// Salud del Extractor 2.0 en Windows (Tarea Z8): prueba cada camino del motor B con una canción
+// Salud del Extractor 2.0 en Windows: prueba cada camino del motor B con una canción
 // de control y la prueba del ÚLTIMO byte, y además reproduce de verdad (en silencio) una canción
 // con la fuente por pedazos, saltando cerca del final.
 //

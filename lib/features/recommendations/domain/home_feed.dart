@@ -25,7 +25,7 @@ class HomeSeeds {
   String get key => [for (final t in all) t.id].join(',');
 }
 
-/// Lo que muestra Inicio (Tarea Z5).
+/// Lo que muestra Inicio.
 class HomeFeed {
   const HomeFeed({this.becauseOf, this.because = const [], this.mix = const [], this.discover = const []});
 

@@ -16,7 +16,7 @@ import 'utils/startup_log.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Registro en memoria para ver en vivo en Kiji Dev (Tarea T2).
+  // Registro en memoria para ver en vivo en Kiji Dev.
   AppLog.install();
   // Registro del arranque (bug de Windows): cada fase con su tiempo.
   StartupLog.start();
@@ -28,7 +28,7 @@ Future<void> main() async {
     debugPrint('=== ERROR NO CAPTURADO: $error ===');
     StartupLog.mark('error no capturado: ${error.runtimeType}');
     debugPrint('$stackTrace');
-    // Registros e informes (Tarea T3): se ofrece mandar un informe (los cortes de red no).
+    // Registros e informes: se ofrece mandar un informe (los cortes de red no).
     ErrorReporter.instance.capture(error, stackTrace, where: 'segundo plano');
     return true;
   };

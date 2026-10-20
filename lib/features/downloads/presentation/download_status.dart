@@ -14,7 +14,7 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// Color del aviso de una descarga con error.
 const downloadWarningColor = Color(0xFFFFB84D);
 
-/// Estado de descarga de una canción, para dibujarlo en cualquier lista (Tarea T4).
+/// Estado de descarga de una canción, para dibujarlo en cualquier lista.
 enum DownloadMark { none, done, queued, downloading, failed }
 
 /// (estado, porcentaje 0–100 o null) de [videoId]. Con `select` solo se redibuja la fila que cambió.
@@ -32,7 +32,7 @@ enum DownloadMark { none, done, queued, downloading, failed }
   };
 }
 
-/// Lo que se dibuja encima de la carátula de una canción en las listas (Tarea T4):
+/// Lo que se dibuja encima de la carátula de una canción en las listas:
 /// ✓ descargada · anillo con el % mientras baja · reloj en espera · ⚠ con error.
 class DownloadStateOverlay extends ConsumerWidget {
   const DownloadStateOverlay({super.key, required this.videoId, required this.size});
@@ -234,7 +234,7 @@ class _FailureReason extends StatelessWidget {
   }
 }
 
-/// "Ver cuáles" (Tarea T4): las descargas que fallaron, con su motivo y qué hacer con cada una.
+/// "Ver cuáles": las descargas que fallaron, con su motivo y qué hacer con cada una.
 Future<void> showFailedDownloadsSheet(BuildContext context, WidgetRef ref, {Iterable<String>? only}) {
   return showModalBottomSheet<void>(
     context: context,

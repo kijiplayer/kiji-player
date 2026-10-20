@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import '../../../utils/app_log.dart';
 import 'log_scrubber.dart';
 
-/// El registro guardado en el dispositivo (Tarea T3): `kiji.log` y, cuando pasa de [maxBytes],
+/// El registro guardado en el dispositivo: `kiji.log` y, cuando pasa de [maxBytes],
 /// se renombra a `kiji.1.log` (se borra el anterior). Así nunca ocupa más de 2 × [maxBytes].
 /// Cada línea se guarda ya sin datos personales. Escribe en el momento (síncrono) para que
 /// quede escrito aunque Kiji se cierre de golpe justo después.

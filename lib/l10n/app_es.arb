@@ -1710,7 +1710,7 @@
   "youtubeYaNoLeDaFormatos2": "YouTube ya no le da formatos de audio (InnerTubeX: rota).",
   "sueleDarSoloElPrimerMinuto": "Suele dar solo el primer minuto.",
   "laWebDeYoutubeMusicDescifra": "La web de YouTube Music; descifra con el solver y manda un PO token.",
-  "elReproductorIncrustadoUsaElVisitor": "El reproductor incrustado; usa el visitor de la página embed (Tarea Z8, como InnerTubeX 0.8.4).",
+  "elReproductorIncrustadoUsaElVisitor": "El reproductor incrustado; usa el visitor de la página embed (como InnerTubeX 0.8.4).",
   "necesitaUnPoTokenLigadoA": "Necesita un PO token ligado a la página, que Kiji no genera (medido el 18/10/2026).",
   "laWebParaCelularesDescifraCon": "La web para celulares; descifra con el solver y manda un PO token.",
   "enEsteDispositivoNoHayWebview": "En este dispositivo no hay WebView para descifrar",

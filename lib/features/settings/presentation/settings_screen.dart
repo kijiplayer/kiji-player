@@ -37,7 +37,7 @@ import '../../account/presentation/account_screens.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 
-/// Secciones de Configuración, en el orden del plan (Tarea G).
+/// Secciones de Configuración, en el orden en que se muestran.
 enum SettingsSection {
   player(Icons.play_circle_outline_rounded),
   content(Icons.library_music_outlined),
@@ -632,7 +632,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           );
         },
       ),
-      // Registros e informes (Tarea T3).
+      // Registros e informes.
       SettingOption(
         section: SettingsSection.reports,
         title: tx.guardarUnRegistroEnEsteDispositivo,
@@ -670,7 +670,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => ReportsScreen.open(context),
         ),
       ),
-      // Herramientas de desarrollo (Tarea T2): solo en Kiji Dev.
+      // Herramientas de desarrollo: solo en Kiji Dev.
       if (isDevBuild)
         SettingOption(
           section: SettingsSection.developer,
@@ -685,7 +685,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onTap: () => DevToolsScreen.open(context),
           ),
         ),
-      // Actualizaciones (Tarea W1)
+      // Actualizaciones
       SettingOption(
         section: SettingsSection.updates,
         title: tx.buscarActualizaciones,

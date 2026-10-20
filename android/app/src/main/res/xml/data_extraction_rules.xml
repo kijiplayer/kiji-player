@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copia de seguridad de Android (Tarea U), Android 12 en adelante: entran los datos de Kiji
+<!-- Copia de seguridad de Android, Android 12 en adelante: entran los datos de Kiji
      (playlists, me gusta, historial, ajustes). Quedan afuera el audio descargado y las cachés,
      que se pueden volver a bajar y superarían el límite de la copia. -->
 <data-extraction-rules>

@@ -22,7 +22,7 @@ class LyricLine {
 }
 
 /// De dónde salió la letra (se muestra como crédito). El orden es el orden
-/// en que se buscan (Tarea Z4): primero la del archivo, después LRCLIB y
+/// en que se buscan: primero la del archivo, después LRCLIB y
 /// después las fuentes de Echo, en su orden (`LyricsProviderRegistry.kt`), menos SimpMusic
 /// (su API es solo para su app).
 enum LyricsSource {

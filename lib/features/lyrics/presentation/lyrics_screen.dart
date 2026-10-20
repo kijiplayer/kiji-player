@@ -32,7 +32,7 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// Desfase que se está ajustando ahora (null = no se está ajustando).
 final _adjustingOffsetProvider = StateProvider.autoDispose<bool>((ref) => false);
 
-/// Letra de la canción que suena (Tareas I y Z4).
+/// Letra de la canción que suena.
 class LyricsScreen extends ConsumerWidget {
   const LyricsScreen({super.key});
 
@@ -355,7 +355,7 @@ final lyricsSelectionModeProvider = StateProvider.autoDispose<bool>((ref) => fal
 
 /// Letra sincronizada: resalta la línea que suena, avanza sola y al tocar una
 /// línea va a ese momento. Si el usuario se aleja por la letra, deja de
-/// seguir y aparece "Volver a la canción" (Tarea Z4). Mantener presionada una
+/// seguir y aparece "Volver a la canción". Mantener presionada una
 /// línea entra en el modo de elegir líneas para compartir.
 class SyncedLyricsView extends ConsumerStatefulWidget {
   const SyncedLyricsView({super.key, required this.lines, this.track, this.trackId, this.translations});
@@ -511,7 +511,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // La línea activa crece con un fundido (Tarea Z6).
+                      // La línea activa crece con un fundido.
                       AnimatedDefaultTextStyle(
                         duration: calm ? Duration.zero : KijiMotion.normal,
                         curve: Curves.easeOutCubic,

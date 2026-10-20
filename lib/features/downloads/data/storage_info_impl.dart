@@ -15,7 +15,7 @@ StorageInfo createStorageInfo() {
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
     return WindowsStorageInfo();
   }
-  // Linux/macOS: pendiente (statvfs por FFI).
+  // Linux/macOS: espacio libre desconocido.
   return const UnknownStorageInfo();
 }
 

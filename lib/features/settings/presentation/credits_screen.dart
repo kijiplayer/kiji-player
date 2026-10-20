@@ -65,7 +65,7 @@ List<CreditsBlock> parseCredits(String markdown) {
   return blocks;
 }
 
-/// "Acerca de → Créditos": muestra `CREDITS.md` dentro de la app (Tarea G).
+/// "Acerca de → Créditos": muestra `CREDITS.md` dentro de la app.
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key, this.bundle});
 

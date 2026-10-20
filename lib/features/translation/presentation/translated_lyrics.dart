@@ -13,7 +13,7 @@ import 'package:kiji_player/l10n/l10n.dart';
 final lyricsTranslationOnProvider = StateProvider<bool>((ref) => false);
 
 /// Traduce las líneas de una letra y se las pasa a [builder]. Original y
-/// traducción se muestran línea por línea (Tarea Z4).
+/// traducción se muestran línea por línea.
 class TranslatedLyrics extends ConsumerStatefulWidget {
   const TranslatedLyrics({super.key, required this.trackId, required this.lines, required this.builder});
 

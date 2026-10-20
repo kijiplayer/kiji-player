@@ -9,7 +9,7 @@ import 'error_report_dialog.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Configuración → Registros e informes (Tarea T3): leer el registro (ya sin datos personales),
+/// Configuración → Registros e informes: leer el registro (ya sin datos personales),
 /// descargar un informe o mandarlo al desarrollador, y borrar el registro.
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});

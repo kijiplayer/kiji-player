@@ -1,4 +1,4 @@
-// Traducción en el dispositivo con Bergamot (Tarea Z4). SOLO EN PC:
+// Traducción en el dispositivo con Bergamot. SOLO EN PC:
 //   flutter test integration_test/translation_test.dart -d windows
 // NUNCA en el celular real. Usa texto inventado, nunca letras reales.
 import 'package:flutter/foundation.dart';

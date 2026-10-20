@@ -29,8 +29,8 @@ class MediaCommands {
 /// Controles multimedia del sistema operativo.
 ///
 /// Es una interfaz porque cada plataforma los resuelve
-/// distinto: Android/iOS/macOS con `audio_service`; Windows con SMTC y Linux
-/// con MPRIS más adelante (Tarea X). Ver `data/`.
+/// distinto: Android/iOS/macOS con `audio_service`; en Windows y Linux no hay
+/// controles del sistema. Ver `data/`.
 abstract interface class SystemMediaControls {
   /// Conecta los botones del sistema con el reproductor.
   void attach(MediaCommands commands);

@@ -61,7 +61,7 @@ class MuteRule {
 
 enum MuteAction { none, pause, resume }
 
-/// "Retomar al conectar el Bluetooth" (decisión del proyecto, Tarea K2): como en
+/// "Retomar al conectar el Bluetooth" (decisión del proyecto): como en
 /// Echo, **siempre** que se conectan auriculares o un parlante Bluetooth y hay
 /// una canción en pausa, sigue sonando. Se apaga en Configuración.
 class BluetoothResumeRule {
@@ -86,7 +86,7 @@ bool useLowQuality({required bool dataSaver, required List<ConnectivityResult> c
   return !connection.any(unmetered.contains);
 }
 
-/// Mezcla real entre canciones (Tarea K2): qué hacer en este punto de la canción.
+/// Mezcla real entre canciones: qué hacer en este punto de la canción.
 enum CrossfadeStep {
   none,
 

@@ -46,7 +46,7 @@ class HomeScreen extends ConsumerWidget {
       ref.read(playbackNoticeProvider.notifier).state = null;
     });
 
-    // Versión nueva encontrada al abrir Kiji: un aviso con "Ver" (Tarea W1).
+    // Versión nueva encontrada al abrir Kiji: un aviso con "Ver".
     ref.listen<UpdateState>(updateProvider, (previous, next) {
       final latest = next.latest;
       if (latest == null || previous?.latest?.version == latest.version) return;

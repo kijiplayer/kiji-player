@@ -59,7 +59,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     return IconButton(
       tooltip: tx.cancelarDescarga,
       onPressed: () => _confirmCancel(videoId),
-      // Anillo con el porcentaje (§7). Tocarlo ofrece cancelar.
+      // Anillo con el porcentaje. Tocarlo ofrece cancelar.
       icon: SizedBox(
         width: 30,
         height: 30,
@@ -91,7 +91,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     if (!check.canDownload) {
       final failure = check.failure;
       if (failure != null) {
-        // YouTube no dio el audio: queda en la lista con su motivo y sus opciones (Tarea T4).
+        // YouTube no dio el audio: queda en la lista con su motivo y sus opciones.
         notifier.recordFailure(widget.track, failure);
         await showDownloadFailureSheet(context, ref, videoId!);
         return;

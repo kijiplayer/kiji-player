@@ -26,7 +26,7 @@ void main() {
       const echo = ['VISIONOS', 'ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS'];
       expect(labels.where(echo.contains), echo);
       expect(labels.any((l) => l.contains('CREATOR')), isFalse, reason: 'WEB_CREATOR exige iniciar sesión');
-      // Tarea Z8: las rotas según InnerTubeX quedan retiradas de la cadena automática.
+      // Las rotas según InnerTubeX quedan retiradas de la cadena automática.
       expect([for (final c in ytPlayerClients) if (c.isRetired) c.label],
           ['ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS', 'MWEB']);
       expect(clientByLabel('WEB_EMBEDDED_PLAYER')!.embedded, isTrue);

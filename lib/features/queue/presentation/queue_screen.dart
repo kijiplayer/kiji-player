@@ -17,7 +17,7 @@ import '../../customize/presentation/track_text.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
 /// "Qué suena después": reordenar arrastrando, quitar (con Deshacer) y
-/// saltar a una canción. El orden se guarda solo (memoria de la Tarea A).
+/// saltar a una canción. El orden se guarda solo.
 class QueueScreen extends ConsumerWidget {
   const QueueScreen({super.key});
 
@@ -145,7 +145,7 @@ class _QueueTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onRemove;
 
-  /// Tarea H2: el temporizador pausa al terminar esta canción (luna).
+  /// El temporizador pausa al terminar esta canción (luna).
   final bool pauseAfter;
   final VoidCallback onTogglePauseAfter;
 

@@ -32,7 +32,7 @@ String greetingFor(DateTime now) {
   return tx.buenasNoches;
 }
 
-/// Pestaña Inicio (§7): saludo, "Sigue donde quedaste", tus playlists,
+/// Pestaña Inicio: saludo, "Sigue donde quedaste", tus playlists,
 /// escuchado recientemente y "Para ti", todo calculado en el teléfono.
 class InicioTab extends ConsumerWidget {
   const InicioTab({super.key});
@@ -51,7 +51,7 @@ class InicioTab extends ConsumerWidget {
     ].take(15).toList();
     final isNew = history.isEmpty;
 
-    // Orden de Inicio (Tarea Z5): nunca se ve vacío.
+    // Orden de Inicio: nunca se ve vacío.
     return RefreshIndicator(
       onRefresh: () async {
         refreshHomeFeed(ref);
@@ -61,7 +61,7 @@ class InicioTab extends ConsumerWidget {
       child: StaggerScope(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
-          // Las secciones entran escalonadas (Tarea Z6).
+          // Las secciones entran escalonadas.
           children: staggered([
             const _Greeting(),
             const SizedBox(height: 20),
@@ -69,7 +69,7 @@ class InicioTab extends ConsumerWidget {
               _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
               const SizedBox(height: 28),
             ],
-            // Tarea Z3: las playlists a la vista, arriba.
+            // Las playlists a la vista, arriba.
             const _PlaylistsRow(),
             const SizedBox(height: 28),
             if (isNew) ...[
@@ -282,7 +282,7 @@ class _EmptyHome extends StatelessWidget {
   }
 }
 
-/// "Tus playlists" (Tarea Z3): carátulas grandes, las fijadas primero y
+/// "Tus playlists": carátulas grandes, las fijadas primero y
 /// después las tocadas hace menos; al final, "+ Nueva".
 class _PlaylistsRow extends ConsumerWidget {
   const _PlaylistsRow();

@@ -13,7 +13,7 @@ import '../features/playlists/presentation/playlist_screens.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Mini-reproductor de vidrio (§7): radio 20, borde 1 px blanco 12 %, y una
+/// Mini-reproductor de vidrio: radio 20, borde 1 px blanco 12 %, y una
 /// línea de progreso degradada de 2 px abajo. Sin canción elegida, no ocupa
 /// lugar.
 /// Etiqueta de la carátula que se expande del mini-reproductor al reproductor.
@@ -82,7 +82,7 @@ class MiniPlayer extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    // "Agregar a playlist" a un toque (Tarea Z3).
+                    // "Agregar a playlist" a un toque.
                     IconButton(
                       onPressed: () => showAddToPlaylistSheet(nav(), ref, [track]),
                       icon: const Icon(Icons.playlist_add_rounded),

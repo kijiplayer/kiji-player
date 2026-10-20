@@ -19,7 +19,7 @@ const backedUpFiles = [
   'history.json',
   'imports.json',
   'library_folders.json',
-  // Título, artista y foto personalizados de cada canción (Tarea Z3).
+  // Título, artista y foto personalizados de cada canción.
   'track_overrides.json',
 ];
 
@@ -28,7 +28,7 @@ const backedUpFiles = [
 const _downloadsIndex = 'downloads/index.json';
 const downloadsListEntry = 'downloads_list.json';
 
-/// Carátulas personalizadas (Tarea Z3): todo lo que haya en esta carpeta.
+/// Carátulas personalizadas: todo lo que haya en esta carpeta.
 const coversFolder = 'covers';
 
 /// Una canción de la lista de descargas de la copia.

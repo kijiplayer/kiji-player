@@ -27,7 +27,7 @@ const playlistColors = <Color>[
 ];
 
 /// Elegir, recortar y guardar la foto de una playlist (también desde el ⋯ de
-/// la playlist, Tarea Z7).
+/// la playlist).
 Future<void> changePlaylistPhoto(
   BuildContext context,
   WidgetRef ref,
@@ -55,7 +55,7 @@ void _say(BuildContext context, String message) => ScaffoldMessenger.of(context)
   ..hideCurrentSnackBar()
   ..showSnackBar(SnackBar(content: Text(message)));
 
-/// "Personalizar" una canción (Tarea Z3): título, artista y foto que se
+/// "Personalizar" una canción: título, artista y foto que se
 /// muestran en Kiji. El archivo de música no se toca.
 Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track track) {
   final overrides = ref.read(trackOverridesProvider);
@@ -171,7 +171,7 @@ class PlaylistCover extends ConsumerWidget {
   }
 }
 
-/// "Personalizar" una playlist (Tarea Z3): foto, nombre, descripción y color.
+/// "Personalizar" una playlist: foto, nombre, descripción y color.
 Future<void> showCustomizePlaylistSheet(BuildContext context, WidgetRef ref, Playlist playlist) {
   final name = TextEditingController(text: playlist.name);
   final description = TextEditingController(text: playlist.description ?? '');

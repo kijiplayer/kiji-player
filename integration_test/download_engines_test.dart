@@ -1,4 +1,4 @@
-// Descargas con los motores de Z8 (Tarea T4), solo PC: baja una canción de control entera con
+// Descargas con los motores de extracción, solo PC: baja una canción de control entera con
 // el servicio de descargas y comprueba que el archivo pesa lo que dijo YouTube.
 // SOLO EN PC: flutter test integration_test/download_engines_test.dart -d windows
 

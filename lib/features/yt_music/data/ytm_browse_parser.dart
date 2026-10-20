@@ -264,7 +264,7 @@ AlbumPage parseAlbumPage(Map<String, dynamic> json) {
 }
 
 // ---------------------------------------------------------------------------
-// Recomendaciones (Tarea Z5): radio de un tema, playlists y "Para empezar".
+// Recomendaciones: radio de un tema, playlists y "Para empezar".
 // ---------------------------------------------------------------------------
 
 /// Canciones de la cola de `/next` (`playlistPanelVideoRenderer`): el radio de

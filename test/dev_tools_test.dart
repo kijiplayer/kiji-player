@@ -27,7 +27,7 @@ class _FakeEngine extends ExtractionEngine {
 }
 
 void main() {
-  group('Registro en memoria (T2)', () {
+  group('Registro en memoria', () {
     setUp(AppLog.clear);
 
     test('debugPrint queda en el registro y se ve en vivo', () async {
@@ -50,7 +50,7 @@ void main() {
     });
   });
 
-  group('Rastro del extractor (T2)', () {
+  group('Rastro del extractor', () {
     late Directory dir;
     final trace = ExtractorTrace.instance;
 

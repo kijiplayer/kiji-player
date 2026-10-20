@@ -16,7 +16,7 @@ import 'engines.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
 
-/// Motor C (Tarea Z8): yt-dlp, solo en la PC y SOLO si el usuario lo aceptó. Se baja de las
+/// Motor C: yt-dlp, solo en la PC y SOLO si el usuario lo aceptó. Se baja de las
 /// releases oficiales de GitHub, se verifica con su `SHA2-256SUMS` y se busca actualización una
 /// vez por semana. Nada se baja sin aviso.
 class YtDlpEngine extends ExtractionEngine {

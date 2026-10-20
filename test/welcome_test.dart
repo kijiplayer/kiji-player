@@ -74,7 +74,7 @@ void main() {
     for (var i = 0; i < pages.length; i++) {
       expect(find.text('Saltar'), findsOneWidget, reason: 'pantalla ${i + 1}');
       if (i > 0) expect(find.text(pages[i]), findsOneWidget);
-      // La historia está aprobada: sin etiqueta de borrador.
+      // La historia va sin etiqueta de borrador.
       if (i == 2) expect(find.textContaining('BORRADOR'), findsNothing);
       if (i < pages.length - 1) {
         await tester.tap(find.text('Siguiente'));

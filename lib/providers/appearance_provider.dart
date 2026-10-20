@@ -8,6 +8,6 @@ final reduceMotionSettingProvider =
     Provider<bool>((ref) => ref.watch(settingsProvider.select((s) => s.reduceMotion)));
 
 /// true si hay que evitar animaciones: lo pidió el usuario en Kiji o en el
-/// sistema (accesibilidad). Respetado en toda la app (§7).
+/// sistema (accesibilidad). Respetado en toda la app.
 bool reduceMotion(BuildContext context, WidgetRef ref) =>
     ref.watch(reduceMotionSettingProvider) || MediaQuery.disableAnimationsOf(context);

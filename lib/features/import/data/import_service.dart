@@ -228,7 +228,7 @@ class ImportsNotifier extends Notifier<List<ImportRecord>> {
       final thumb = pl.thumbnailUrl;
       if (thumb != null && thumb.isNotEmpty) playlistCovers[created.id] = thumb;
     }
-    // Las carátulas se bajan después, sin hacer esperar (Tarea Z3).
+    // Las carátulas se bajan después, sin hacer esperar.
     unawaited(_importArtwork(plan, playlistCovers));
     final likedIds = ref.read(favoritesProvider.notifier).addAll([
       for (final s in plan.bundle.liked) ?plan.resolved[s.key],
@@ -252,7 +252,7 @@ class ImportsNotifier extends Notifier<List<ImportRecord>> {
     return record;
   }
 
-  /// Carátulas de lo importado (Tarea Z3): miniaturas de YouTube a la caché
+  /// Carátulas de lo importado: miniaturas de YouTube a la caché
   /// local, la imagen incluida en cada archivo local (o la que indica el
   /// m3u) y la foto de cada playlist. Si algo falla, queda la de siempre.
   Future<void> _importArtwork(ImportPlan plan, Map<String, String> playlistCovers) async {

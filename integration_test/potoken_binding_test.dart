@@ -1,4 +1,4 @@
-// Experimento de la Tarea Z8 (solo PC): con el PO token de la URL ligado al VIDEO (reglas de
+// Experimento (solo PC): con el PO token de la URL ligado al VIDEO (reglas de
 // InnerTubeX 0.10.0), ¿las formas web entregan el archivo entero?
 // SOLO EN PC: flutter test integration_test/potoken_binding_test.dart -d windows
 

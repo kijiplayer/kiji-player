@@ -103,14 +103,14 @@ void main() {
     expect(rule.onVolume(0.4, isPlaying: false), MuteAction.none);
   });
 
-  test('Retomar con el Bluetooth (Tarea K2): siempre que haya una canción en pausa', () {
+  test('Retomar con el Bluetooth: siempre que haya una canción en pausa', () {
     final rule = BluetoothResumeRule();
     expect(rule.onConnected(isPlaying: false, hasTrack: true), isTrue);
     expect(rule.onConnected(isPlaying: true, hasTrack: true), isFalse, reason: 'ya suena');
     expect(rule.onConnected(isPlaying: false, hasTrack: false), isFalse, reason: 'no hay nada para seguir');
   });
 
-  test('Mezcla real (K2): se prepara antes, arranca a N s del final y solo con siguiente', () {
+  test('Mezcla real: se prepara antes, arranca a N s del final y solo con siguiente', () {
     CrossfadeStep at(int sec, {bool prepared = false, bool hasNext = true, bool started = false}) => crossfadeStep(
           position: Duration(seconds: sec),
           duration: const Duration(seconds: 200),
@@ -167,7 +167,7 @@ void main() {
 
   test('los ajustes nuevos se guardan, vienen apagados y un valor raro vuelve al de fábrica', () {
     const d = AppSettings();
-    // "Retomar con el Bluetooth" viene prendido de fábrica (decisión del proyecto, Tarea K2).
+    // "Retomar con el Bluetooth" viene prendido de fábrica (decisión del proyecto).
     expect([d.pauseOnMute, d.resumeOnBluetooth, d.dataSaver, d.crossfadeSeconds], [false, true, false, 0]);
     final s = d.copyWith(pauseOnMute: true, resumeOnBluetooth: false, crossfadeSeconds: 5, dataSaver: true);
     final back = AppSettings.fromJson(s.toJson());
@@ -187,7 +187,7 @@ void main() {
       final control = _FakeControl()..isPlaying = true;
       final volume = _FakeVolume();
       final outputs = _FakeOutputs();
-      // Las dos apagadas a mano ("Retomar con el Bluetooth" viene prendida de fábrica, Tarea K2).
+      // Las dos apagadas a mano ("Retomar con el Bluetooth" viene prendida de fábrica).
       File('${dir.path}/settings.json').writeAsStringSync('{"pauseOnMute": false, "resumeOnBluetooth": false}');
       final automationProvider = Provider((ref) => PlaybackAutomation(ref)..start());
       final c = ProviderContainer(overrides: [

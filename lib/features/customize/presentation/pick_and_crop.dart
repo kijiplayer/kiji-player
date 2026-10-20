@@ -7,7 +7,7 @@ import '../../../theme/kiji_tokens.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Elegir una imagen (galería o archivo) y recortarla cuadrada (Tarea Z3).
+/// Elegir una imagen (galería o archivo) y recortarla cuadrada.
 /// Devuelve los bytes recortados, o null si el usuario cancela.
 Future<Uint8List?> pickAndCropImage(BuildContext context) async {
   final picked = await FilePicker.pickFiles(type: FileType.image, dialogTitle: tx.eligeUnaFoto);

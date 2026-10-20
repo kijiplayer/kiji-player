@@ -2,7 +2,7 @@ import 'extraction_failure.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Los motores de extracción (Tarea Z8).
+/// Los motores de extracción.
 enum EngineId {
   /// InnerTubeX, solo Android (principal ahí).
   a,

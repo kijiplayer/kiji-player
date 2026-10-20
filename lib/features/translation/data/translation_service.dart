@@ -36,7 +36,7 @@ class TranslationException implements Exception {
   String toString() => message;
 }
 
-/// Traducción de letras (Tarea Z4): en el teléfono (Bergamot) o con Gemini.
+/// Traducción de letras: en el teléfono (Bergamot) o con Gemini.
 /// Cada traducción se guarda en caché para no repetirla.
 class TranslationService {
   TranslationService({

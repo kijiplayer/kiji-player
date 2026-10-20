@@ -11,9 +11,7 @@ const _unknownArtistMarkers = {'<unknown>', 'unknown', ''};
 /// No usamos la carátula embebida aquí (eso requeriría leer bytes por
 /// canción, que es costoso para listas largas). En su lugar generamos un
 /// color determinístico a partir del título, igual que hace el resto de
-/// la UI con `AlbumCover`. La carátula real se puede mostrar más adelante
-/// directamente en el ítem de lista con `QueryArtworkWidget`, sin tocar
-/// este modelo.
+/// la UI con `AlbumCover`.
 Track localTrackFromSong(SongModel song) {
   final rawArtist = song.artist?.trim() ?? '';
   final artist = _unknownArtistMarkers.contains(rawArtist.toLowerCase())

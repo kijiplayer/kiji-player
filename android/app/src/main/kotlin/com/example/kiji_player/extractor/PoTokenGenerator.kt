@@ -15,7 +15,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
-/** PO tokens de BotGuard ("WEB_BOTGUARD") generados en una WebView invisible (Tarea Z8, motor A). */
+/** PO tokens de BotGuard ("WEB_BOTGUARD") generados en una WebView invisible (motor A). */
 class PoTokenGenerator(private val context: Context) {
   private val webViewSupported by lazy { runCatching { CookieManager.getInstance() }.isSuccess }
   private var webViewBroken = false

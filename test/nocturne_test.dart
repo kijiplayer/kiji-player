@@ -67,7 +67,7 @@ void main() {
       ));
       // Si el anillo se animara, esto nunca terminaría.
       await tester.pumpAndSettle();
-      // Play que se transforma en pausa (Tarea Z6): sonando, el ícono queda en "pausa".
+      // Play que se transforma en pausa: sonando, el ícono queda en "pausa".
       final icon = tester.widget<AnimatedIcon>(find.byType(AnimatedIcon));
       expect(icon.icon, AnimatedIcons.play_pause);
       expect(icon.progress.value, 1);

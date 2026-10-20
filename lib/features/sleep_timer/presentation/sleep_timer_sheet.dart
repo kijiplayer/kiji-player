@@ -199,7 +199,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   }
 }
 
-/// Selector simple de mm:ss dentro de la canción (Tareas H2 y Z2): cualquier
+/// Selector simple de mm:ss dentro de la canción: cualquier
 /// punto de 0:00 al final. Por defecto, 1 minuto antes del final (o un poco
 /// después de donde va, si eso ya pasó).
 Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration, Duration position) {

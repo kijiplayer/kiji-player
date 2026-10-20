@@ -87,8 +87,7 @@ class ImportMatcher {
   /// Puntaje mínimo para aceptar una coincidencia por título.
   static const threshold = 0.6;
 
-  /// La canción que corresponde a [song], con su carátula si la traía
-  /// (Tarea Z3).
+  /// La canción que corresponde a [song], con su carátula si la traía.
   Future<Track?> resolve(ImportedSong song) async {
     final track = await _resolve(song);
     final thumb = song.thumbnailUrl;

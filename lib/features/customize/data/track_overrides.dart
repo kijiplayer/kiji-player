@@ -11,7 +11,7 @@ import '../../../utils/json_file.dart';
 import 'cover_store.dart';
 
 
-/// Lo que el usuario cambió de una canción (Tarea Z3). Solo dentro de Kiji:
+/// Lo que el usuario cambió de una canción. Solo dentro de Kiji:
 /// el archivo de música no se toca.
 class TrackOverride {
   const TrackOverride({this.title, this.artist, this.coverFile});

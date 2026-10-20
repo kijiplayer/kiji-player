@@ -23,7 +23,7 @@ class TraceEntry {
   final List<(String, String)> failures;
 }
 
-/// Las últimas búsquedas de audio, en memoria (Tarea T2, herramientas de Kiji Dev).
+/// Las últimas búsquedas de audio, en memoria (herramientas de Kiji Dev).
 class ExtractorTrace extends ChangeNotifier {
   ExtractorTrace._();
 
