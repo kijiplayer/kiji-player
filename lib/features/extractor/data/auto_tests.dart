@@ -28,6 +28,7 @@ class ExtractorAutoTests {
   final Ref ref;
   static const interval = Duration(hours: 12);
   static const _channel = MethodChannel('kiji/innertubex');
+  Timer? _first;
   Timer? _timer;
   bool _running = false;
 
@@ -50,14 +51,17 @@ class ExtractorAutoTests {
     final last = health.lastTestAt;
     if (last == null || DateTime.now().difference(last) > interval) {
       // Un rato después de abrir, para no demorar la primera canción.
-      unawaited(Future<void>.delayed(const Duration(seconds: 30), run));
+      _first = Timer(const Duration(seconds: 30), run);
     }
     if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
       _timer = Timer.periodic(interval, (_) => run());
     }
   }
 
-  void stop() => _timer?.cancel();
+  void stop() {
+    _first?.cancel();
+    _timer?.cancel();
+  }
 
   Future<void> run() async {
     if (_running || !ref.read(settingsProvider).autoExtractorTests) return;

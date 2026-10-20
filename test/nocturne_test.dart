@@ -8,6 +8,7 @@ import 'package:kiji_player/models/track.dart';
 import 'package:kiji_player/screens/home/inicio_tab.dart';
 import 'package:kiji_player/screens/player/player_screen.dart';
 import 'package:kiji_player/widgets/nocturne/breathing_play_button.dart';
+import 'package:kiji_player/widgets/nocturne/glass.dart';
 import 'package:kiji_player/widgets/nocturne/waveform_progress.dart';
 
 Track _t(String id, {String? artist, TrackSource source = TrackSource.youtube, String path = ''}) => Track(
@@ -143,5 +144,19 @@ void main() {
     expect(filterMyFiles(tracks, 'NOVA').map((t) => t.title), ['Luz']);
     expect(filterMyFiles(tracks, 'som').map((t) => t.title), ['Sombra']);
     expect(filterMyFiles(tracks, '   '), isEmpty);
+  });
+
+  testWidgets('Un ListTile dentro del vidrio pinta su efecto al tocar (sin aviso de Flutter)', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Glass(
+          blur: false,
+          child: ListTile(title: const Text('Opción'), onTap: () {}),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('Opción'));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
   });
 }

@@ -31,7 +31,12 @@ class Glass extends StatelessWidget {
         borderRadius: borderRadius,
         border: Border.all(color: KijiColors.glassBorder),
       ),
-      child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
+      // Material propio: los ListTile y botones de adentro pintan aquí su efecto al tocar
+      // (si no, lo pintan detrás del vidrio y no se ve).
+      child: Material(
+        type: MaterialType.transparency,
+        child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
+      ),
     );
     return ClipRRect(
       borderRadius: borderRadius,

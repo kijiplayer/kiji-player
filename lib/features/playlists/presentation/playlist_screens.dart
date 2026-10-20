@@ -198,7 +198,7 @@ class PlaylistsView extends ConsumerWidget {
             leading: const Icon(Icons.auto_awesome_rounded, color: KijiColors.cyan),
             title: Text(list.title),
             subtitle: Text(
-              '${list.rule} · ${_count(list.compute(inputs).length)}',
+              '${list.rule.replaceFirst(RegExp(r'\.$'), '')} · ${_count(list.compute(inputs).length)}',
               style: const TextStyle(color: KijiColors.muted),
             ),
             onTap: () => SmartListScreen.open(context, list),
