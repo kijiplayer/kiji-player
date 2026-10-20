@@ -18,7 +18,8 @@ abstract final class KijiRoutes {
   static const player = 'player';
   static const lyrics = 'lyrics';
   static const share = 'share';
-  static const hideMiniPlayer = {'/', player, lyrics, share};
+  static const welcome = 'welcome';
+  static const hideMiniPlayer = {'/', player, lyrics, share, welcome};
 }
 
 /// Lo que importa de la pila de pantallas para el mini-reproductor.

@@ -7,6 +7,7 @@ import '../../../l10n/l10n.dart';
 import '../../../providers/appearance_provider.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../theme/kiji_tokens.dart';
+import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
@@ -27,6 +28,8 @@ class WelcomeScreen extends ConsumerStatefulWidget {
 
   static Future<void> open(BuildContext context, {bool instant = false}) => Navigator.of(context).push(
     PageRouteBuilder<void>(
+      // Sin mini-reproductor encima (ver KijiRoutes).
+      settings: const RouteSettings(name: KijiRoutes.welcome),
       fullscreenDialog: true,
       transitionDuration: instant ? Duration.zero : KijiMotion.emphasized,
       pageBuilder: (_, _, _) => const WelcomeScreen(),

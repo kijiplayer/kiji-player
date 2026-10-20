@@ -289,6 +289,17 @@ class _PlaylistsRow extends ConsumerWidget {
 
   static const _cover = 132.0;
 
+  /// Alto de una línea de texto con [style], tal como se va a dibujar aquí.
+  static double _lineHeight(BuildContext context, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: 'Ag', style: DefaultTextStyle.of(context).style.merge(style)), // l10n-ignore
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    return painter.height;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final all = ref.watch(playlistsProvider);
@@ -299,8 +310,10 @@ class _PlaylistsRow extends ConsumerWidget {
         Text(tx.tusPlaylists2, style: KijiText.title(size: 18)),
         const SizedBox(height: 12),
         SizedBox(
-          // Debajo de la portada van dos líneas de texto: crecen con la letra del teléfono.
-          height: _cover + MediaQuery.textScalerOf(context).scale(48),
+          // Debajo de la portada van dos líneas de texto: se miden con la letra del teléfono
+          // (con letra grande no se cortan).
+          height: _cover + 8 + _lineHeight(context, const TextStyle(fontWeight: FontWeight.w600)) +
+              _lineHeight(context, KijiText.mono(size: 11)) + 4,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: playlists.length + 1,
@@ -386,7 +399,12 @@ class _NewPlaylistCard extends ConsumerWidget {
               child: const Icon(Icons.add_rounded, size: 44, color: KijiColors.cyan),
             ),
             const SizedBox(height: 8),
-            Text(tx.nueva2, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              tx.nueva2,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
       ),
