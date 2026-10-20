@@ -224,7 +224,7 @@ class _Cover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = Container(
+    final fallback = ColoredBox(
       color: color,
       child: const Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
     );

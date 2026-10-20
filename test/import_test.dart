@@ -240,12 +240,12 @@ https://youtu.be/vidBBBBBBBB
   });
 
   test('Vista previa: cuenta playlists, canciones y sin encontrar', () async {
-    final bundle = ImportBundle(source: 'prueba', playlists: [
-      const ImportedPlaylist('A', [
+    const bundle = ImportBundle(source: 'prueba', playlists: [
+      ImportedPlaylist('A', [
         ImportedSong(videoId: 'vidAAAAAAAA', title: 'Get Lucky'),
         ImportedSong(title: 'Zzzz qqqq', artist: 'Nadie'),
       ]),
-      const ImportedPlaylist('B', [ImportedSong(title: 'Zzzz qqqq', artist: 'Nadie')]),
+      ImportedPlaylist('B', [ImportedSong(title: 'Zzzz qqqq', artist: 'Nadie')]),
     ]);
     final progress = <int>[];
     final plan = await prepareImport(

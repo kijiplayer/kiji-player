@@ -39,7 +39,9 @@ class InicioTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playback = ref.watch(playbackProvider);
+    // Solo canción y play/pausa: la posición cambia varias veces por segundo y no hace falta
+    // redibujar todo Inicio por eso.
+    final playback = ref.watch(playbackProvider.select((s) => (track: s.track, isPlaying: s.isPlaying)));
     final history = ref.watch(listeningHistoryProvider);
     final recent = HistoryLogic.recent(history);
     final top = HistoryLogic.forYou(history, excludeId: playback.track?.id, limit: 6);

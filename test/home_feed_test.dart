@@ -168,11 +168,11 @@ void main() {
 
     test('Semillas: la última que sonó, las más escuchadas y un me gusta', () {
       final a = _yt('a'), b = _yt('b', artist: 'Artista B'), c = _yt('c'), liked = _yt('l', artist: 'Otro');
-      final local = Track(
+      const local = Track(
         id: 'local-1',
         title: 'Archivo',
         artist: 'Yo',
-        coverColor: const Color(0xFF000000),
+        coverColor: Color(0xFF000000),
         audioUrl: '/x.mp3',
         source: TrackSource.local,
       );

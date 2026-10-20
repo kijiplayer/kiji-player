@@ -204,7 +204,7 @@ void main() {
 
     testWidgets('la carátula guardada en el dispositivo se usa sin internet', (tester) async {
       final cacheDir = Directory(p.join(dir.path, 'artwork'))..createSync();
-      final local = Track(
+      const local = Track(
         id: 'local-1',
         title: 'Mi grabación',
         artist: 'Yo',
@@ -222,7 +222,7 @@ void main() {
           artworkFolderProvider.overrideWith((ref) async => cacheDir),
           trackOverridesProvider.overrideWith(() => TrackOverridesNotifier(directory: () async => throw const FileSystemException('sin disco'))),
         ],
-        child: MaterialApp(home: Center(child: TrackArtwork(track: local))),
+        child: const MaterialApp(home: Center(child: TrackArtwork(track: local))),
       ));
       await tester.pump();
       expect(find.byType(Image), findsOneWidget);

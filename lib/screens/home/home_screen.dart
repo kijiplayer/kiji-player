@@ -97,23 +97,36 @@ class ShellTabContent extends ConsumerWidget {
 class _MobileShell extends ConsumerWidget {
   const _MobileShell();
 
+  /// Por debajo de este alto (celular horizontal), mini-reproductor y pestañas van en una fila.
+  static const shortHeight = 520.0;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Scaffold(
+    final short = MediaQuery.sizeOf(context).height < shortHeight;
+    return Scaffold(
       extendBody: true,
-      body: SafeArea(bottom: false, child: ShellTabContent()),
+      body: const SafeArea(bottom: false, child: ShellTabContent()),
       bottomNavigationBar: SafeArea(
-        minimum: EdgeInsets.only(bottom: 12),
+        minimum: const EdgeInsets.only(bottom: 12),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              MiniPlayer(),
-              SizedBox(height: 10),
-              Center(child: PillNavBar()),
-            ],
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: short
+              // En horizontal la altura es poca: una sola fila deja ver casi todo el contenido.
+              ? const Row(
+                  children: [
+                    Expanded(child: MiniPlayer()),
+                    SizedBox(width: 10),
+                    PillNavBar(),
+                  ],
+                )
+              : const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    MiniPlayer(),
+                    SizedBox(height: 10),
+                    Center(child: PillNavBar()),
+                  ],
+                ),
         ),
       ),
     );

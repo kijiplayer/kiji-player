@@ -170,7 +170,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
             const SizedBox(height: 8),
             Text(
               tx.motorYModelosDeFirefox,
-              style: TextStyle(color: KijiColors.muted, fontSize: 12),
+              style: const TextStyle(color: KijiColors.muted, fontSize: 12),
             ),
             const SizedBox(height: 8),
             Text(tx.idiomasBajados, style: KijiText.mono(size: 11)),

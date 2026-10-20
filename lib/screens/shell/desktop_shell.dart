@@ -296,7 +296,8 @@ class _PlayerBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playback = ref.watch(playbackProvider);
+    // Solo canción y volumen: los tiempos se redibujan aparte con cada avance.
+    final playback = ref.watch(playbackProvider.select((s) => (track: s.track, volume: s.volume)));
     final track = playback.track!;
     final notifier = ref.read(playbackProvider.notifier);
     final showQueue = ref.watch(queuePanelVisibleProvider);
@@ -348,14 +349,20 @@ class _PlayerBar extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const PlaybackControlsRow(compact: true),
-                Row(
-                  children: [
-                    Text(formatDuration(playback.position), style: KijiText.mono(size: 11)),
-                    const SizedBox(width: 10),
-                    const Expanded(child: TimerWaveform(height: 28, barWidth: 2)),
-                    const SizedBox(width: 10),
-                    Text(formatDuration(playback.duration), style: KijiText.mono(size: 11)),
-                  ],
+                Consumer(
+                  builder: (context, ref, waveform) {
+                    final time = ref.watch(playbackProvider.select((s) => (position: s.position, duration: s.duration)));
+                    return Row(
+                      children: [
+                        Text(formatDuration(time.position), style: KijiText.mono(size: 11)),
+                        const SizedBox(width: 10),
+                        waveform!,
+                        const SizedBox(width: 10),
+                        Text(formatDuration(time.duration), style: KijiText.mono(size: 11)),
+                      ],
+                    );
+                  },
+                  child: const Expanded(child: TimerWaveform(height: 28, barWidth: 2)),
                 ),
               ],
             ),
