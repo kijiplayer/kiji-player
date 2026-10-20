@@ -416,9 +416,9 @@ class _FallbackThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return const ColoredBox(
       color: AppColors.surfaceContainer,
-      child: const Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
+      child: Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
     );
   }
 }

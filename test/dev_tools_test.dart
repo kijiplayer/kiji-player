@@ -76,8 +76,8 @@ void main() {
       final a = _FakeEngine(EngineId.a, () => EngineResult.failed([('AUTO', classifyFailure('HTTP 403'))]));
       final b = _FakeEngine(
           EngineId.b,
-          () => EngineResult.ok(
-              const ResolvedStream(videoId: 'abcdefghijk', url: 'https://g/1', engine: EngineId.b, form: 'VISIONOS')));
+          () => const EngineResult.ok(
+              ResolvedStream(videoId: 'abcdefghijk', url: 'https://g/1', engine: EngineId.b, form: 'VISIONOS')));
       await StreamResolver(engines: [a, b], health: health).resolve('abcdefghijk');
       final entry = trace.entries.first;
       expect(entry.ok, isTrue);

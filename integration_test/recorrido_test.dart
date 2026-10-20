@@ -322,9 +322,9 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
   await _visit(tester, '$tag-letra', () => LyricsScreen.open(_ctx));
   await _visit(tester, '$tag-momentos', () => MomentsScreen.open(_ctx));
   await _visit(tester, '$tag-temporizador', () => showSleepTimerSheet(_ctx));
-  await tester.runAsync(() => player.nextTrack());
+  await tester.runAsync(player.nextTrack);
   await _settle(tester, 10);
-  await tester.runAsync(() => player.pause());
+  await tester.runAsync(player.pause);
 
   await _visit(tester, '$tag-playlist', () => PlaylistScreen.open(_ctx, 'pl-demo0'));
   await _visit(tester, '$tag-descargas', () => DownloadsScreen.open(_ctx));

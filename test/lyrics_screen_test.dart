@@ -93,9 +93,9 @@ void main() {
     test('si una no la tiene o no responde, prueba la siguiente; respeta las apagadas', () async {
       final none = _Fake(LyricsSource.lrclib);
       final down = _Fake(LyricsSource.youlyplus, offline: true);
-      final off = _Fake(LyricsSource.unison, lyrics: Lyrics(plain: 'no', source: LyricsSource.unison));
+      final off = _Fake(LyricsSource.unison, lyrics: const Lyrics(plain: 'no', source: LyricsSource.unison));
       final found = _Fake(LyricsSource.kugou, lyrics: lyricsFromText('[00:01.00]Sí', LyricsSource.kugou));
-      final after = _Fake(LyricsSource.youtubeMusic, lyrics: Lyrics(plain: 'tarde', source: LyricsSource.youtubeMusic));
+      final after = _Fake(LyricsSource.youtubeMusic, lyrics: const Lyrics(plain: 'tarde', source: LyricsSource.youtubeMusic));
       final repo = LyricsRepository(fetchers: [none, down, off, found, after], baseDirectory: () async => dir);
       final lyrics = await repo.get(_req(), disabled: {LyricsSource.unison});
       expect(lyrics.source, LyricsSource.kugou);

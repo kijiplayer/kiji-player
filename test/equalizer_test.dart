@@ -21,7 +21,7 @@ class _FakeEngine implements EqualizerEngine {
   @override
   bool get isSupported => true;
   @override
-  Future<EqBands?> bands() async => EqBands(centers: centers, minDb: -15, maxDb: 15);
+  Future<EqBands?> bands() async => const EqBands(centers: centers, minDb: -15, maxDb: 15);
   @override
   Future<void> setEnabled(bool value) async => enabled = value;
   @override
