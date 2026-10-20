@@ -11,6 +11,7 @@ import '../../settings/data/settings_store.dart';
 import '../data/gemini_client.dart';
 import '../data/translation_service.dart';
 import '../domain/languages.dart';
+import 'translate_sheet.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
@@ -122,7 +123,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
-    Widget section(String title, List<Widget> children) => Padding(
+    Widget section(String title, List<Widget> children, {Widget? badge}) => Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Glass(
         blur: false,
@@ -132,7 +133,11 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: KijiText.title(size: 17)),
+              Wrap(
+                spacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [Text(title, style: KijiText.title(size: 17)), ?badge],
+              ),
               const SizedBox(height: 8),
               ...children,
             ],
@@ -221,7 +226,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
                   onChanged: (on) => notifier.update((s) => s.copyWith(useGemini: on)),
                 ),
             ],
-          ]),
+          ], badge: const BetaBadge()),
         ],
       ),
     );

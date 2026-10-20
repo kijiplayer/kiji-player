@@ -1193,7 +1193,7 @@
   "fuentesDeLetras": "Fuentes de letras",
   "dondeBuscaKijiLasLetrasCada": "Dónde busca Kiji las letras; cada fuente se puede apagar.",
   "traduccionDeLetras": "Traducción de letras",
-  "enTuTelefonoAnonimaOCon": "En tu teléfono (anónima) o con Gemini (opcional).",
+  "enTuTelefonoAnonimaOCon": "En tu teléfono (privada) o con IA (Beta).",
   "enTuTelefono": "en tu teléfono",
   "al": "Al {p0} · {p1}",
   "@al": {
@@ -2179,7 +2179,7 @@
       }
     }
   },
-  "conGemini": "con Gemini",
+  "conGemini": "con IA (Beta)",
   "privacidadActualizaciones": "Si \"Buscar actualizaciones\" está prendido, una vez por día Kiji le pide a GitHub cuál es la última versión publicada. GitHub ve esa consulta como una visita a una página (tu IP y que es Kiji); no se manda nada tuyo. Se apaga en Configuración → Actualizaciones.",
   "soloParaCancionesConCuenta": "Solo para canciones que YouTube entrega únicamente a cuentas.",
   "todaviaSinCopias": "todavía sin copias",
@@ -2384,5 +2384,13 @@
     }
   },
   "verBienvenidaOtraVez": "Ver bienvenida otra vez",
-  "verBienvenidaOtraVezTexto": "Las pantallas del primer inicio."
+  "verBienvenidaOtraVezTexto": "Las pantallas del primer inicio.",
+  "traducirLaLetra": "Traducir la letra",
+  "traduccionEnElTelefono": "Traducción en el teléfono",
+  "traduccionEnElTelefonoTexto": "Privada: se hace en tu teléfono y, después de bajar el idioma, sin internet.",
+  "traduccionConIa": "Traducción con IA",
+  "traduccionConIaTexto": "Usa Gemini de Google y tu clave. Las líneas de la letra salen del teléfono.",
+  "traduccionConIaPreparar": "Primero hay que activarla y poner tu clave.",
+  "beta": "Beta",
+  "ajustesDeTraduccion": "Ajustes de traducción"
 }

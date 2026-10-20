@@ -1684,7 +1684,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enTuTelefonoAnonimaOCon =>
-      'On your phone (anonymous) or with Gemini (optional).';
+      'On your phone (private) or with AI (Beta).';
 
   @override
   String get enTuTelefono => 'on your phone';
@@ -3302,7 +3302,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get conGemini => 'with Gemini';
+  String get conGemini => 'with AI (Beta)';
 
   @override
   String get privacidadActualizaciones =>
@@ -3621,4 +3621,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verBienvenidaOtraVezTexto => 'The screens from the first launch.';
+
+  @override
+  String get traducirLaLetra => 'Translate lyrics';
+
+  @override
+  String get traduccionEnElTelefono => 'On-device translation';
+
+  @override
+  String get traduccionEnElTelefonoTexto =>
+      'Private: done on your phone, with no internet once the language is downloaded.';
+
+  @override
+  String get traduccionConIa => 'AI translation';
+
+  @override
+  String get traduccionConIaTexto =>
+      'Uses Google Gemini with your key. The lyric lines leave your phone.';
+
+  @override
+  String get traduccionConIaPreparar =>
+      'Set it up first: turn it on and add your key.';
+
+  @override
+  String get beta => 'Beta';
+
+  @override
+  String get ajustesDeTraduccion => 'Translation settings';
 }

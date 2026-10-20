@@ -471,7 +471,7 @@
   "fuentesDeLetras": "Lyrics sources",
   "dondeBuscaKijiLasLetrasCada": "Where Kiji looks for lyrics; each source can be turned off.",
   "traduccionDeLetras": "Lyrics translation",
-  "enTuTelefonoAnonimaOCon": "On your phone (anonymous) or with Gemini (optional).",
+  "enTuTelefonoAnonimaOCon": "On your phone (private) or with AI (Beta).",
   "enTuTelefono": "on your phone",
   "al": "To {p0} · {p1}",
   "reducirAnimaciones": "Reduce animations",
@@ -897,7 +897,7 @@
   "nSegundos": "{count, plural, =1{1 second} other{{count} seconds}}",
   "todasPrendidas": "All on.",
   "nApagadas": "{count, plural, =1{1 off.} other{{count} off.}}",
-  "conGemini": "with Gemini",
+  "conGemini": "with AI (Beta)",
   "privacidadActualizaciones": "If \"Check for updates\" is on, once a day Kiji asks GitHub for the latest published version. GitHub sees that request as a page visit (your IP and that it's Kiji); nothing of yours is sent. You can turn it off in Settings → Updates.",
   "soloParaCancionesConCuenta": "Only for songs that YouTube plays only for accounts.",
   "todaviaSinCopias": "no backups yet",
@@ -980,5 +980,13 @@
   "bienvenidaPrivacidadTexto": "No usage statistics, no ads and no required accounts. Your music, your history and your settings stay on this device.",
   "bienvenidaPaginaDe": "Page {page} of {total}",
   "verBienvenidaOtraVez": "Show welcome again",
-  "verBienvenidaOtraVezTexto": "The screens from the first launch."
+  "verBienvenidaOtraVezTexto": "The screens from the first launch.",
+  "traducirLaLetra": "Translate lyrics",
+  "traduccionEnElTelefono": "On-device translation",
+  "traduccionEnElTelefonoTexto": "Private: done on your phone, with no internet once the language is downloaded.",
+  "traduccionConIa": "AI translation",
+  "traduccionConIaTexto": "Uses Google Gemini with your key. The lyric lines leave your phone.",
+  "traduccionConIaPreparar": "Set it up first: turn it on and add your key.",
+  "beta": "Beta",
+  "ajustesDeTraduccion": "Translation settings"
 }

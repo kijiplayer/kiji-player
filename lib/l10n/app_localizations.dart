@@ -2936,7 +2936,7 @@ abstract class AppLocalizations {
   /// No description provided for @enTuTelefonoAnonimaOCon.
   ///
   /// In es, this message translates to:
-  /// **'En tu teléfono (anónima) o con Gemini (opcional).'**
+  /// **'En tu teléfono (privada) o con IA (Beta).'**
   String get enTuTelefonoAnonimaOCon;
 
   /// No description provided for @enTuTelefono.
@@ -5492,7 +5492,7 @@ abstract class AppLocalizations {
   /// No description provided for @conGemini.
   ///
   /// In es, this message translates to:
-  /// **'con Gemini'**
+  /// **'con IA (Beta)'**
   String get conGemini;
 
   /// No description provided for @privacidadActualizaciones.
@@ -5992,6 +5992,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Las pantallas del primer inicio.'**
   String get verBienvenidaOtraVezTexto;
+
+  /// No description provided for @traducirLaLetra.
+  ///
+  /// In es, this message translates to:
+  /// **'Traducir la letra'**
+  String get traducirLaLetra;
+
+  /// No description provided for @traduccionEnElTelefono.
+  ///
+  /// In es, this message translates to:
+  /// **'Traducción en el teléfono'**
+  String get traduccionEnElTelefono;
+
+  /// No description provided for @traduccionEnElTelefonoTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Privada: se hace en tu teléfono y, después de bajar el idioma, sin internet.'**
+  String get traduccionEnElTelefonoTexto;
+
+  /// No description provided for @traduccionConIa.
+  ///
+  /// In es, this message translates to:
+  /// **'Traducción con IA'**
+  String get traduccionConIa;
+
+  /// No description provided for @traduccionConIaTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Usa Gemini de Google y tu clave. Las líneas de la letra salen del teléfono.'**
+  String get traduccionConIaTexto;
+
+  /// No description provided for @traduccionConIaPreparar.
+  ///
+  /// In es, this message translates to:
+  /// **'Primero hay que activarla y poner tu clave.'**
+  String get traduccionConIaPreparar;
+
+  /// No description provided for @beta.
+  ///
+  /// In es, this message translates to:
+  /// **'Beta'**
+  String get beta;
+
+  /// No description provided for @ajustesDeTraduccion.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustes de traducción'**
+  String get ajustesDeTraduccion;
 }
 
 class _AppLocalizationsDelegate

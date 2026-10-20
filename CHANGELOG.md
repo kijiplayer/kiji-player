@@ -1,5 +1,25 @@
 # Novedades de Kiji Player
 
+## 0.5.0-beta.4 — 20 de octubre de 2026
+
+**Traducir letras, más simple**
+- En Letras → ⋯ → Traducir eliges entre dos opciones: **en el teléfono** (privada; sin internet
+  después de bajar el idioma) o **con IA** (Gemini, necesita tu clave; está en Beta). Un toque
+  elige y traduce. Lo demás está en Ajustes de traducción.
+
+**En Windows**
+- Kiji ya tiene instalador: se instala para tu usuario, sin pedir permisos de administrador, y al
+  desinstalarlo tus playlists y descargas se quedan.
+
+**Arreglos**
+- Si YouTube cambia la forma en que responde, Kiji ya no falla al mostrar resultados, y ningún
+  título sale con la palabra "null".
+- Salir de una pantalla mientras algo se descarga o se prueba (yt-dlp, la clave de Gemini, una
+  importación) ya no muestra un error, y lo que terminaba se guarda bien.
+- Las opciones dentro de los paneles de vidrio vuelven a mostrar el efecto al tocarlas.
+- Detalles de texto: un punto de más en "Me gusta" y una línea suelta en el menú de la letra.
+- Kiji es un poco más liviana: se quitaron partes que ya no se usaban.
+
 ## 0.5.0-beta.3 — 20 de octubre de 2026
 
 **Para actualizar desde 0.5.0-beta.1:** Kiji ahora se firma con una clave nueva, así que Android no

@@ -23,6 +23,7 @@ import '../data/lrclib_client.dart';
 import '../data/lyrics_repository.dart';
 import '../domain/lyrics.dart';
 import '../lyrics_provider.dart';
+import '../../translation/presentation/translate_sheet.dart';
 import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_share.dart';
 import 'lyrics_sources_sheet.dart';
@@ -110,6 +111,8 @@ class LyricsScreen extends ConsumerWidget {
                           Expanded(
                             child: translating
                                 ? TranslatedLyrics(
+                                    // Otro motor (teléfono o IA): se vuelve a traducir.
+                                    key: ValueKey(ref.watch(settingsProvider.select((s) => s.useGemini))),
                                     trackId: request.id,
                                     lines: value.isSynced
                                         ? [for (final l in value.synced) l.text]
@@ -262,8 +265,12 @@ class _Header extends ConsumerWidget {
                 case 'share':
                   ref.read(lyricsSelectionModeProvider.notifier).state = true;
                 case 'translate':
-                  final on = ref.read(lyricsTranslationOnProvider);
-                  ref.read(lyricsTranslationOnProvider.notifier).state = !on;
+                  // Prendida: se quita. Apagada: se elige cómo traducir (teléfono o IA).
+                  if (ref.read(lyricsTranslationOnProvider)) {
+                    ref.read(lyricsTranslationOnProvider.notifier).state = false;
+                  } else {
+                    showTranslateSheet(context, ref);
+                  }
               }
             },
             itemBuilder: (context) {

@@ -1688,7 +1688,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enTuTelefonoAnonimaOCon =>
-      'En tu teléfono (anónima) o con Gemini (opcional).';
+      'En tu teléfono (privada) o con IA (Beta).';
 
   @override
   String get enTuTelefono => 'en tu teléfono';
@@ -3310,7 +3310,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get conGemini => 'con Gemini';
+  String get conGemini => 'con IA (Beta)';
 
   @override
   String get privacidadActualizaciones =>
@@ -3629,4 +3629,31 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get verBienvenidaOtraVezTexto => 'Las pantallas del primer inicio.';
+
+  @override
+  String get traducirLaLetra => 'Traducir la letra';
+
+  @override
+  String get traduccionEnElTelefono => 'Traducción en el teléfono';
+
+  @override
+  String get traduccionEnElTelefonoTexto =>
+      'Privada: se hace en tu teléfono y, después de bajar el idioma, sin internet.';
+
+  @override
+  String get traduccionConIa => 'Traducción con IA';
+
+  @override
+  String get traduccionConIaTexto =>
+      'Usa Gemini de Google y tu clave. Las líneas de la letra salen del teléfono.';
+
+  @override
+  String get traduccionConIaPreparar =>
+      'Primero hay que activarla y poner tu clave.';
+
+  @override
+  String get beta => 'Beta';
+
+  @override
+  String get ajustesDeTraduccion => 'Ajustes de traducción';
 }
