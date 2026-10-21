@@ -35,9 +35,9 @@
 ## 0.5.1 — 20 de octubre de 2026
 
 **Kiji tiene un identificador nuevo: hay que reinstalar una vez**
-- En Android, Kiji pasa a llamarse por dentro `io.github.kijiplayer.kiji`, su nombre definitivo
-  para repositorios como IzzyOnDroid. Android la ve como otra app, así que esta vez no se actualiza
-  encima: se instala al lado de la anterior.
+- En Android, Kiji pasa a llamarse por dentro `io.github.kijiplayer.kiji`, su nombre definitivo.
+  Android la ve como otra app, así que esta vez no se actualiza encima: se instala al lado de la
+  anterior.
 - Para llevarte todo: en la Kiji anterior, Configuración → Copia de seguridad → "Hacer una copia
   ahora". En la nueva, Configuración → Copia de seguridad → elige esa copia (está en
   Documentos/Kiji) y restaúrala. Cuando veas todo bien, desinstala la anterior.
