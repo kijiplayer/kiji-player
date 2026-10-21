@@ -41,6 +41,8 @@ import 'package:kiji_player/features/settings/presentation/credits_screen.dart';
 import 'package:kiji_player/features/settings/presentation/settings_screen.dart';
 import 'package:kiji_player/features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import 'package:kiji_player/features/translation/presentation/lyrics_settings_screens.dart';
+import 'package:kiji_player/features/updates/whats_new.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/features/welcome/presentation/welcome_screen.dart';
 import 'package:kiji_player/features/yt_music/presentation/extractor_health_screen.dart';
 import 'package:kiji_player/models/track.dart';
@@ -297,6 +299,39 @@ Future<void> _tab(WidgetTester tester, IconData icon, String name) async {
   _visited.add(name);
 }
 
+/// Un paso con varias acciones (tocar, mantener presionado…): un fallo se anota y el recorrido
+/// sigue. Al final vuelve atrás hasta la pantalla principal.
+Future<void> _step(WidgetTester tester, String name, Future<void> Function() body, {int pops = 1}) async {
+  _where = name;
+  try {
+    await body();
+    _visited.add(name);
+  } catch (error, stack) {
+    _problems.add('$name: $error\n$stack');
+  }
+  for (var i = 0; i < pops; i++) {
+    await kijiNavigatorKey.currentState?.maybePop();
+    await _settle(tester, 6);
+  }
+}
+
+/// Selección múltiple: mantener presionada la primera fila, captura, "todas", captura y cerrar.
+Future<void> _selection(WidgetTester tester, String name) async {
+  final rows = find.byType(ListTile);
+  if (rows.evaluate().isEmpty) throw StateError('no hay filas para elegir');
+  await tester.longPress(rows.first, warnIfMissed: false);
+  await _settle(tester, 6);
+  await _shot(tester, name);
+  final all = find.byTooltip(tx.seleccionarTodas);
+  if (all.evaluate().isEmpty) throw StateError('no apareció la barra de selección');
+  await tester.tap(all.first);
+  await _settle(tester, 6);
+  await _shot(tester, '$name-todas');
+  await tester.tap(find.byTooltip(tx.quitarSeleccion).first);
+  await _settle(tester, 6);
+  if (find.byTooltip(tx.quitarSeleccion).evaluate().isNotEmpty) throw StateError('la selección no se cerró');
+}
+
 Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container, List<Track> tracks,
     {required bool online}) async {
   await _tab(tester, Icons.home_rounded, '$tag-inicio');
@@ -328,6 +363,20 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
   await _visit(tester, '$tag-reproductor', () => PlayerScreen.open(_ctx));
   await _visit(tester, '$tag-cola', () => QueueScreen.open(_ctx));
   await _visit(tester, '$tag-letra', () => LyricsScreen.open(_ctx));
+  await _step(tester, '$tag-letra-menu', () async {
+    unawaited(LyricsScreen.open(_ctx));
+    await _settle(tester);
+    await tester.tap(find.byTooltip(tx.opcionesDeLaLetra).first);
+    await _settle(tester);
+    await _shot(tester, '$tag-letra-menu');
+    // Se cierra deslizando hacia abajo desde la mitad de la hoja.
+    await tester.timedDrag(find.text(tx.tamanoDeLasLetras.toUpperCase()), const Offset(0, 260),
+        const Duration(milliseconds: 500));
+    await _settle(tester);
+    if (find.text(tx.tamanoDeLasLetras.toUpperCase()).evaluate().isNotEmpty) {
+      throw StateError('la hoja no se cerró deslizando desde la mitad');
+    }
+  });
   await _visit(tester, '$tag-momentos', () => MomentsScreen.open(_ctx));
   await _visit(tester, '$tag-temporizador', () => showSleepTimerSheet(_ctx));
   await tester.runAsync(player.nextTrack);
@@ -335,6 +384,22 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
   await tester.runAsync(player.pause);
 
   await _visit(tester, '$tag-playlist', () => PlaylistScreen.open(_ctx, 'pl-demo0'));
+  await _step(tester, '$tag-playlist-seleccion', () async {
+    unawaited(PlaylistScreen.open(_ctx, 'pl-demo0'));
+    await _settle(tester);
+    await _selection(tester, '$tag-playlist-seleccion');
+  });
+  await _visit(tester, '$tag-novedades', () async {
+    final notes = await tester.runAsync(() => loadBundledWhatsNew(kijiLanguage));
+    await showWhatsNewSheet(_ctx, notes ?? '');
+  });
+  await _step(tester, '$tag-apariencia', () async {
+    unawaited(SettingsScreen.open(_ctx));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField).first, tx.apariencia);
+    await _settle(tester, 6);
+    await _shot(tester, '$tag-apariencia');
+  });
   await _visit(tester, '$tag-descargas', () => DownloadsScreen.open(_ctx));
   await _visit(tester, '$tag-ecualizador', () => EqualizerScreen.open(_ctx));
   await _visit(tester, '$tag-copias', () => BackupScreen.open(_ctx), scroll: true);
