@@ -260,18 +260,24 @@ class _ListHeader extends ConsumerWidget {
               ),
               if (description != null) ...[const SizedBox(height: 10), Text(description!)],
               const SizedBox(height: 12),
+              // Flexibles: con la letra del sistema grande, los botones se achican y el texto se
+              // corta con "…" en vez de salirse de la tarjeta.
               Row(
                 children: [
-                  FilledButton.icon(
-                    onPressed: tracks.isEmpty ? null : () => _play(ref, tracks),
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: Text(tx.reproducir),
+                  Flexible(
+                    child: FilledButton.icon(
+                      onPressed: tracks.isEmpty ? null : () => _play(ref, tracks),
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: Text(tx.reproducir, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
                   ),
                   const SizedBox(width: 10),
-                  OutlinedButton.icon(
-                    onPressed: tracks.isEmpty ? null : () => _play(ref, tracks, shuffle: true),
-                    icon: const Icon(Icons.shuffle_rounded),
-                    label: Text(tx.aleatorio),
+                  Flexible(
+                    child: OutlinedButton.icon(
+                      onPressed: tracks.isEmpty ? null : () => _play(ref, tracks, shuffle: true),
+                      icon: const Icon(Icons.shuffle_rounded),
+                      label: Text(tx.aleatorio, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
                   ),
                   if (onMore != null) ...[
                     const Spacer(),
@@ -572,41 +578,39 @@ class _DownloadFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget chip(_TrackFilter value, String label) => Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(label: Text(label), selected: filter == value, onSelected: (_) => onFilter(value)),
-    );
+    Widget chip(_TrackFilter value, String label) =>
+        ChoiceChip(label: Text(label), selected: filter == value, onSelected: (_) => onFilter(value));
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 6,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Icon(
                 downloaded == total ? Icons.download_done_rounded : Icons.download_rounded,
                 size: 18,
                 color: KijiColors.cyan,
               ),
-              const SizedBox(width: 6),
               Text(tx.deDescargadas(downloaded, total), style: KijiText.mono(size: 13, color: KijiColors.text)),
-              if (failed > 0) ...[
-                const SizedBox(width: 10),
+              if (failed > 0)
                 Text(tx.conError(failed), style: KijiText.mono(size: 13, color: downloadWarningColor)),
-              ],
             ],
           ),
           const SizedBox(height: 6),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                chip(_TrackFilter.all, tx.todas),
-                chip(_TrackFilter.downloaded, tx.descargadas),
-                chip(_TrackFilter.missing, tx.sinDescargar),
-                if (failed > 0) chip(_TrackFilter.failed, tx.conError2),
-              ],
-            ),
+          // Si no entran en una línea, bajan a la siguiente (antes el último quedaba cortado).
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              chip(_TrackFilter.all, tx.todas),
+              chip(_TrackFilter.downloaded, tx.descargadas),
+              chip(_TrackFilter.missing, tx.sinDescargar),
+              if (failed > 0) chip(_TrackFilter.failed, tx.conError2),
+            ],
           ),
         ],
       ),
