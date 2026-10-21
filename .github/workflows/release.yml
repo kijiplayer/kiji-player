@@ -47,7 +47,7 @@ jobs:
       - run: flutter pub get
       - name: Parche de plugins viejos
         run: dart run tool/patch_plugins.dart
-      - name: NDK de Android (con reintentos: la descarga a veces llega dañada)
+      - name: "NDK de Android (con reintentos: la descarga a veces llega dañada)"
         run: |
           ndk=$(grep -oP 'ndkVersion\s*=\s*"\K[^"]+' "$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt" || true)
           ndk=${ndk:-28.2.13676358}
