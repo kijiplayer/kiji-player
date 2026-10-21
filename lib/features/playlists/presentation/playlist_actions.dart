@@ -14,6 +14,7 @@ import '../playlists_provider.dart';
 import '../../downloads/presentation/download_status.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Texto para compartir una playlist: nombre y una línea por canción, con su
 /// enlace de YouTube Music si tiene. No sube nada: lo manda quien comparte.
@@ -37,7 +38,7 @@ Future<void> showPlaylistOptions(
 }) {
   final notifier = ref.read(playlistsProvider.notifier);
   final empty = playlist.tracks.isEmpty;
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,

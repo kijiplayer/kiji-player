@@ -13,6 +13,7 @@ import '../data/track_overrides.dart';
 import 'pick_and_crop.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Colores para elegir en una playlist.
 const playlistColors = <Color>[
@@ -63,7 +64,7 @@ Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track 
   final title = TextEditingController(text: current.title);
   final artist = TextEditingController(text: current.artist);
   final messenger = ScaffoldMessenger.of(context);
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
@@ -177,7 +178,7 @@ Future<void> showCustomizePlaylistSheet(BuildContext context, WidgetRef ref, Pla
   final description = TextEditingController(text: playlist.description ?? '');
   final messenger = ScaffoldMessenger.of(context);
   int? color = playlist.colorValue;
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,

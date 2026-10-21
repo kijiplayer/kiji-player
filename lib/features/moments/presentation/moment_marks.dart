@@ -9,6 +9,7 @@ import '../domain/moment.dart';
 import 'moments_screen.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// El tramo que se está repitiendo (null: ninguno).
 final momentLoopProvider = StateProvider<Moment?>((ref) => null);
@@ -209,7 +210,7 @@ Future<void> showNewMomentSheet(BuildContext context, WidgetRef ref) {
     saveCurrentMoment(context, ref);
     return Future.value();
   }
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,

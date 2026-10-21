@@ -8,6 +8,7 @@ import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Una acción del menú ⋯ de la letra.
 class LyricsMenuAction {
@@ -32,7 +33,7 @@ class LyricsMenuGroup {
 /// ⋯ de la letra: hoja de vidrio con íconos grandes, agrupados, y el tamaño de la letra.
 /// Al tocar una acción la hoja se cierra y después corre la acción.
 Future<void> showLyricsMenuSheet(BuildContext context, {required List<LyricsMenuGroup> groups}) =>
-    showModalBottomSheet<void>(
+    showKijiSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

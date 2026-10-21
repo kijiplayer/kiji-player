@@ -29,6 +29,7 @@ import '../../features/playlists/presentation/playlist_screens.dart';
 import '../../features/moments/presentation/moment_marks.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// De dónde sale la canción, para "REPRODUCIENDO DESDE".
 String playingFromLabel(Track track, {required bool downloaded}) {
@@ -163,7 +164,7 @@ class _TopBar extends StatelessWidget {
 
   void _showMenu(BuildContext context, Track track) {
     final navigator = Navigator.of(context);
-    showModalBottomSheet<void>(
+    showKijiSheet<void>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(

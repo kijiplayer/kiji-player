@@ -29,6 +29,7 @@ import 'playlist_actions.dart';
 import '../../downloads/presentation/download_status.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Datos de las listas inteligentes, calculados en el teléfono.
 final smartListInputsProvider = Provider<SmartListInputs>(
@@ -85,7 +86,7 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(message)));
 
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => SafeArea(

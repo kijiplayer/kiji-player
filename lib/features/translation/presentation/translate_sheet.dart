@@ -10,6 +10,7 @@ import 'lyrics_settings_screens.dart';
 import 'translated_lyrics.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Etiqueta "Beta" (traducción con IA).
 class BetaBadge extends StatelessWidget {
@@ -32,7 +33,7 @@ bool geminiReady(AppSettings settings) => settings.geminiEnabled && settings.gem
 
 /// Letras → ⋯ → Traducir: dos opciones claras. Un toque elige y traduce; lo demás está en los
 /// ajustes.
-Future<void> showTranslateSheet(BuildContext context, WidgetRef ref) => showModalBottomSheet<void>(
+Future<void> showTranslateSheet(BuildContext context, WidgetRef ref) => showKijiSheet<void>(
   context: context,
   showDragHandle: true,
   // Con letra grande o pantallas bajas, la hoja crece y se desplaza en vez de cortarse.

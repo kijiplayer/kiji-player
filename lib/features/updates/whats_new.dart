@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../version.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Las notas de una versión en GitHub traen los dos idiomas: primero inglés y, después de
 /// "## Español", español. Devuelve solo la parte de [languageCode], sin la tabla de
@@ -89,7 +90,7 @@ Future<String?> loadBundledWhatsNew(String languageCode, {AssetBundle? bundle, i
 }
 
 /// "Novedades de esta versión": hoja con lo nuevo, en el idioma de la app.
-Future<void> showWhatsNewSheet(BuildContext context, String notes) => showModalBottomSheet<void>(
+Future<void> showWhatsNewSheet(BuildContext context, String notes) => showKijiSheet<void>(
   context: context,
   isScrollControlled: true,
   showDragHandle: true,

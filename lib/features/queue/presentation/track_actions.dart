@@ -14,6 +14,7 @@ import '../../sleep_timer/sleep_timer_provider.dart';
 import '../../customize/presentation/track_text.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Menú de una canción (mantener presionado en el celular, clic derecho en la
 /// PC): "Reproducir a continuación" y "Agregar a la cola".
@@ -27,7 +28,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(message)));
 
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     showDragHandle: true,
     builder: (context) => SafeArea(

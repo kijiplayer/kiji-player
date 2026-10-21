@@ -68,4 +68,45 @@ void main() {
     expect(lyricsScaleFor('large'), greaterThan(1));
     expect(lyricsScaleFor('raro'), 1);
   });
+
+  testWidgets('El ⋯ de la letra se cierra deslizando hacia abajo desde la mitad', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    final container = ProviderContainer(overrides: [settingsProvider.overrideWith(_FakeSettings.new)]);
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showLyricsMenuSheet(
+                  context,
+                  groups: [
+                    LyricsMenuGroup('Leer', [LyricsMenuAction(icon: Icons.translate_rounded, label: 'Traducir', onTap: () {})]),
+                    LyricsMenuGroup('Ajustar', [
+                      LyricsMenuAction(icon: Icons.sync_rounded, label: 'Sincronizar', onTap: () {}),
+                      LyricsMenuAction(icon: Icons.ios_share_rounded, label: 'Compartir', onTap: () {}),
+                    ]),
+                    LyricsMenuGroup('Fuente', [
+                      LyricsMenuAction(icon: Icons.library_books_outlined, label: 'Elegir fuente', onTap: () {}),
+                    ]),
+                  ],
+                ),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    expect(find.text('FUENTE'), findsOneWidget);
+    await tester.timedDrag(find.text('FUENTE'), const Offset(0, 230), const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+    expect(find.text('FUENTE'), findsNothing);
+  });
 }

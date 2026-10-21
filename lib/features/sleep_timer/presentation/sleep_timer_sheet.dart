@@ -8,11 +8,12 @@ import '../domain/sleep_timer_logic.dart';
 import '../sleep_timer_provider.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Hoja del temporizador: elegir cómo termina, o ver cuál está activo,
 /// cuánto falta y apagarlo.
 Future<void> showSleepTimerSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (context) => const SafeArea(child: _SleepTimerSheet()),

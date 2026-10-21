@@ -9,6 +9,7 @@ import '../../account/presentation/account_screens.dart';
 import '../../extractor/domain/extraction_failure.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// Color del aviso de una descarga con error.
 const downloadWarningColor = Color(0xFFFFB84D);
@@ -103,7 +104,7 @@ class DownloadStateOverlay extends ConsumerWidget {
 
 /// Por qué falló una descarga y qué se puede hacer: Reintentar, Buscar otra versión o quitarla.
 Future<void> showDownloadFailureSheet(BuildContext context, WidgetRef ref, String videoId) {
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     showDragHandle: true,
     builder: (context) => Consumer(
@@ -235,7 +236,7 @@ class _FailureReason extends StatelessWidget {
 
 /// "Ver cuáles": las descargas que fallaron, con su motivo y qué hacer con cada una.
 Future<void> showFailedDownloadsSheet(BuildContext context, WidgetRef ref, {Iterable<String>? only}) {
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,

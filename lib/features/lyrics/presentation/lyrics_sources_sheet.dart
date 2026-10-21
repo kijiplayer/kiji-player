@@ -12,6 +12,7 @@ import '../domain/lyrics.dart';
 import '../lyrics_provider.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// ⋯ → Fuente: todas las fuentes de letras, cuál se usa ahora, cuáles tienen esta letra y si está
 /// sincronizada. Tocar una fuente que la tiene la usa para esta canción.
@@ -22,7 +23,7 @@ Future<void> showLyricsSourcesSheet(
   required VoidCallback onSearchByHand,
   required VoidCallback onImport,
 }) {
-  return showModalBottomSheet<void>(
+  return showKijiSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

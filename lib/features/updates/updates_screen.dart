@@ -8,6 +8,7 @@ import 'whats_new.dart';
 import '../../version_label.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
 /// "Hace 3 horas", "hace 2 días" (para la última consulta).
 String agoText(DateTime when, DateTime now) {
@@ -28,7 +29,7 @@ Future<void> openReleasePage(String url) async {
 }
 
 /// Novedades de una versión nueva, con el botón a la página oficial.
-Future<void> showReleaseSheet(BuildContext context, Release release) => showModalBottomSheet<void>(
+Future<void> showReleaseSheet(BuildContext context, Release release) => showKijiSheet<void>(
   context: context,
   isScrollControlled: true,
   showDragHandle: true,
