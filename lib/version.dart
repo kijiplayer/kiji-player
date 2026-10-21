@@ -7,4 +7,4 @@ const kijiVersion = '0.6.0';
 const kijiBuild = 7;
 
 /// Fecha en que se generó esta versión.
-const kijiBuildDate = '2026-10-20';
+const kijiBuildDate = '2026-10-21';

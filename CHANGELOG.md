@@ -1,6 +1,6 @@
 # Novedades de Kiji Player
 
-## 0.6.0 — 20 de octubre de 2026
+## 0.6.0 — 21 de octubre de 2026
 
 **A tu gusto**
 - Configuración → Apariencia: tema oscuro, **más oscuro** (negro puro) o **claro**; cinco colores
@@ -26,6 +26,11 @@
   una vez "Novedades de esta versión" (también en Configuración → Acerca de).
 - El buscador de Configuración entiende sinónimos en español e inglés ("dark", "tema", "sleep"…),
   y arriba hay un índice para saltar a cada sección.
+
+**Más cómodo**
+- Todas las hojas que suben desde abajo (el menú ⋯, la letra, el temporizador…) se cierran
+  deslizando hacia abajo desde cualquier parte, no solo desde la barrita. El scroll de adentro
+  sigue funcionando igual.
 
 ## 0.5.1 — 20 de octubre de 2026
 

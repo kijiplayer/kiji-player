@@ -4,3 +4,4 @@
 • Menú ⋯ de la letra nuevo.
 • Copia interna antes de poner al día tus datos.
 • Novedades en tu idioma y buscador de Configuración con sinónimos.
+• Las hojas se cierran deslizando hacia abajo desde cualquier parte.

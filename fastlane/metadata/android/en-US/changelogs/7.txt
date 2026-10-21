@@ -4,3 +4,4 @@
 • New lyrics ⋯ menu.
 • Internal copy before updating your data.
 • What's new in your language and Settings search with synonyms.
+• Bottom sheets close by swiping down from anywhere.
