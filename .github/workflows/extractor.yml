@@ -55,6 +55,9 @@ jobs:
           previa=$(gh run list --workflow extractor.yml --status completed --limit 1 --json databaseId --jq '.[0].databaseId' || true)
           if [ -n "$previa" ] && gh run download "$previa" --name estado-extractor --dir previo 2>/dev/null; then
             antes=$(jq -r '.seguidas // 0' previo/estado.json)
+            echo "Estado anterior (corrida $previa): $(cat previo/estado.json | jq -c .)"
+          else
+            echo "Sin estado anterior: se empieza de 0."
           fi
           case "$resultado" in
             ok) seguidas=0 ;;
