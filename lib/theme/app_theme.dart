@@ -105,3 +105,34 @@ abstract final class AppTheme {
     );
   }
 }
+
+/// Partes que son siempre oscuras (la letra y sus hojas, que se leen sobre la carátula
+/// difuminada), sea cual sea el tema elegido: textos, íconos y controles de Material en claro.
+/// El acento sigue siendo el elegido.
+class AlwaysDark extends StatelessWidget {
+  const AlwaysDark({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: KijiColors.violet,
+      brightness: Brightness.dark,
+      surface: KijiPalette.nocturne.surface,
+    ).copyWith(primary: KijiColors.violet, secondary: KijiColors.cyan, onSurface: Colors.white);
+    return Theme(
+      data: Theme.of(context).copyWith(
+        brightness: Brightness.dark,
+        colorScheme: scheme,
+        textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.white, displayColor: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
+        dividerColor: Colors.white12,
+      ),
+      child: DefaultTextStyle.merge(
+        style: const TextStyle(color: Colors.white),
+        child: IconTheme.merge(data: const IconThemeData(color: Colors.white), child: child),
+      ),
+    );
+  }
+}

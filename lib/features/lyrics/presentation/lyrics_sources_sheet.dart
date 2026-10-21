@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../theme/app_theme.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../settings/data/settings_store.dart';
 import '../../translation/presentation/lyrics_settings_screens.dart';
@@ -28,8 +29,10 @@ Future<void> showLyricsSourcesSheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black38,
-    builder: (_) =>
-        _SourcesSheet(request: request, current: current, onSearchByHand: onSearchByHand, onImport: onImport),
+    showDragHandle: false,
+    builder: (_) => AlwaysDark(
+      child: _SourcesSheet(request: request, current: current, onSearchByHand: onSearchByHand, onImport: onImport),
+    ),
   );
 }
 
@@ -108,7 +111,7 @@ class _SourcesSheetState extends ConsumerState<_SourcesSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(tx.fuenteDeLaLetra, style: KijiText.title(size: 22)),
+                  Text(tx.fuenteDeLaLetra, style: KijiText.title(size: 22, color: Colors.white)),
                   const SizedBox(height: 6),
                   Text(
                     pending > 0 ? tx.preguntandoALasFuentes(pending) : tx.tocaUnaFuenteQueTengaLa,
@@ -200,7 +203,10 @@ class _SourceRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(source.label, style: KijiText.title(size: 17, weight: FontWeight.w600)),
+                      Text(
+                        source.label,
+                        style: KijiText.title(size: 17, weight: FontWeight.w600, color: Colors.white),
+                      ),
                       if (inUse) Text(tx.esLaQueVesAhora, style: const TextStyle(color: Colors.white60, fontSize: 13)),
                     ],
                   ),

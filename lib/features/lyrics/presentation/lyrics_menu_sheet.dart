@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../theme/app_theme.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
@@ -32,15 +33,16 @@ class LyricsMenuGroup {
 
 /// ⋯ de la letra: hoja de vidrio con íconos grandes, agrupados, y el tamaño de la letra.
 /// Al tocar una acción la hoja se cierra y después corre la acción.
-Future<void> showLyricsMenuSheet(BuildContext context, {required List<LyricsMenuGroup> groups}) =>
-    showKijiSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black38,
-      constraints: const BoxConstraints(maxWidth: 560),
-      builder: (_) => LyricsMenuSheet(groups: groups),
-    );
+Future<void> showLyricsMenuSheet(BuildContext context, {required List<LyricsMenuGroup> groups}) => showKijiSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  backgroundColor: Colors.transparent,
+  barrierColor: Colors.black38,
+  constraints: const BoxConstraints(maxWidth: 560),
+  // La hoja dibuja su propia barrita (la del tema quedaría encima, doble).
+  showDragHandle: false,
+  builder: (_) => AlwaysDark(child: LyricsMenuSheet(groups: groups)),
+);
 
 class LyricsMenuSheet extends ConsumerWidget {
   const LyricsMenuSheet({super.key, required this.groups});
@@ -58,7 +60,7 @@ class LyricsMenuSheet extends ConsumerWidget {
           color: const Color(0xCC0B0B12),
           shape: RoundedRectangleBorder(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            side: BorderSide(color: KijiColors.glassBorder),
+            side: BorderSide(color: KijiPalette.nocturne.glassBorder),
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
@@ -89,7 +91,10 @@ class LyricsMenuSheet extends ConsumerWidget {
                             runSpacing: 10,
                             children: [
                               for (final action in group.actions)
-                                SizedBox(width: width, child: _ActionTile(action: action)),
+                                SizedBox(
+                                  width: width,
+                                  child: _ActionTile(action: action),
+                                ),
                             ],
                           );
                         },
@@ -103,10 +108,7 @@ class LyricsMenuSheet extends ConsumerWidget {
                       for (final option in AppSettings.lyricsSizes)
                         ButtonSegment(
                           value: option,
-                          label: Text(
-                            lyricsSizeLabel(option),
-                            style: TextStyle(fontSize: 14 * lyricsScaleFor(option)),
-                          ),
+                          label: Text(lyricsSizeLabel(option), style: TextStyle(fontSize: 14 * lyricsScaleFor(option))),
                         ),
                     ],
                     selected: {size},
@@ -138,7 +140,7 @@ class _GroupTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
-    child: Text(text.toUpperCase(), style: KijiText.mono(size: 11)),
+    child: Text(text.toUpperCase(), style: KijiText.mono(size: 11, color: KijiPalette.nocturne.muted)),
   );
 }
 
@@ -153,10 +155,12 @@ class _ActionTile extends StatelessWidget {
       button: true,
       selected: action.active,
       child: Material(
-        color: KijiColors.glassFill,
+        color: KijiPalette.nocturne.glassFill,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(KijiRadii.tile),
-          side: BorderSide(color: action.active ? KijiColors.cyan.withValues(alpha: 0.5) : KijiColors.glassBorder),
+          side: BorderSide(
+            color: action.active ? KijiColors.cyan.withValues(alpha: 0.5) : KijiPalette.nocturne.glassBorder,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -184,7 +188,7 @@ class _ActionTile extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, height: 1.2),
+                  style: const TextStyle(fontSize: 13, height: 1.2, color: Colors.white),
                 ),
               ],
             ),

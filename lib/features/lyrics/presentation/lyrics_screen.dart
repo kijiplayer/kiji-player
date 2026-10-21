@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/track.dart';
 import '../../../providers/appearance_provider.dart';
 import '../../../providers/playback_provider.dart';
+import '../../../theme/app_theme.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../screens/player/player_motion.dart';
 import '../../../widgets/album_cover.dart';
@@ -69,73 +70,75 @@ class LyricsScreen extends ConsumerWidget {
     final request = _requestFor(ref, track);
     final lyrics = ref.watch(lyricsProvider(request));
 
-    return Scaffold(
-      backgroundColor: _dark.background,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          RepaintBoundary(child: LyricsBackdrop(track: track)),
-          SafeArea(
-            child: Column(
-              children: [
-                _Header(track: track, request: request, lyrics: lyrics.valueOrNull),
-                Expanded(
-                  child: lyrics.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, _) => _Message(
-                      icon: Icons.cloud_off_rounded,
-                      text: error is LyricsUnavailableException
-                          ? tx.noSePudoBuscarLaLetraPorque(error.reason)
-                          : tx.noSePudoBuscarLaLetra,
-                      actionLabel: tx.reintentar,
-                      onAction: () => ref.invalidate(lyricsProvider(request)),
-                    ),
-                    data: (value) {
-                      if (value.instrumental) {
-                        return _Message(icon: Icons.piano_rounded, text: tx.instrumental);
-                      }
-                      if (value.isEmpty) {
-                        return _Message(
-                          icon: Icons.lyrics_outlined,
-                          text: tx.noEncontramosLaLetraDeEsta,
-                          actionLabel: tx.buscarAMano,
-                          onAction: () => searchLyricsManually(context, ref, request),
+    return AlwaysDark(
+      child: Scaffold(
+        backgroundColor: _dark.background,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            RepaintBoundary(child: LyricsBackdrop(track: track)),
+            SafeArea(
+              child: Column(
+                children: [
+                  _Header(track: track, request: request, lyrics: lyrics.valueOrNull),
+                  Expanded(
+                    child: lyrics.when(
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (error, _) => _Message(
+                        icon: Icons.cloud_off_rounded,
+                        text: error is LyricsUnavailableException
+                            ? tx.noSePudoBuscarLaLetraPorque(error.reason)
+                            : tx.noSePudoBuscarLaLetra,
+                        actionLabel: tx.reintentar,
+                        onAction: () => ref.invalidate(lyricsProvider(request)),
+                      ),
+                      data: (value) {
+                        if (value.instrumental) {
+                          return _Message(icon: Icons.piano_rounded, text: tx.instrumental);
+                        }
+                        if (value.isEmpty) {
+                          return _Message(
+                            icon: Icons.lyrics_outlined,
+                            text: tx.noEncontramosLaLetraDeEsta,
+                            actionLabel: tx.buscarAMano,
+                            onAction: () => searchLyricsManually(context, ref, request),
+                          );
+                        }
+                        Widget body(List<String?>? translations) => value.isSynced
+                            ? SyncedLyricsView(
+                                lines: value.synced,
+                                track: track,
+                                trackId: request.id,
+                                translations: translations,
+                              )
+                            : PlainLyricsView(text: value.plain!, track: track, translations: translations);
+                        final translating = ref.watch(lyricsTranslationOnProvider);
+                        return Column(
+                          children: [
+                            const _OffsetBar(),
+                            Expanded(
+                              child: translating
+                                  ? TranslatedLyrics(
+                                      // Otro motor (teléfono o IA): se vuelve a traducir.
+                                      key: ValueKey(ref.watch(settingsProvider.select((s) => s.useGemini))),
+                                      trackId: request.id,
+                                      lines: value.isSynced
+                                          ? [for (final l in value.synced) l.text]
+                                          : value.plain!.split('\n'),
+                                      builder: body,
+                                    )
+                                  : body(null),
+                            ),
+                          ],
                         );
-                      }
-                      Widget body(List<String?>? translations) => value.isSynced
-                          ? SyncedLyricsView(
-                              lines: value.synced,
-                              track: track,
-                              trackId: request.id,
-                              translations: translations,
-                            )
-                          : PlainLyricsView(text: value.plain!, track: track, translations: translations);
-                      final translating = ref.watch(lyricsTranslationOnProvider);
-                      return Column(
-                        children: [
-                          const _OffsetBar(),
-                          Expanded(
-                            child: translating
-                                ? TranslatedLyrics(
-                                    // Otro motor (teléfono o IA): se vuelve a traducir.
-                                    key: ValueKey(ref.watch(settingsProvider.select((s) => s.useGemini))),
-                                    trackId: request.id,
-                                    lines: value.isSynced
-                                        ? [for (final l in value.synced) l.text]
-                                        : value.plain!.split('\n'),
-                                    builder: body,
-                                  )
-                                : body(null),
-                          ),
-                        ],
-                      );
-                    },
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -295,32 +298,29 @@ class _Header extends ConsumerWidget {
                         onTap: () => ref.read(lyricsSelectionModeProvider.notifier).state = true,
                       ),
                   ]),
-                  LyricsMenuGroup(
-                    lyrics?.source == null ? tx.fuenteDeLaLetra : tx.fuente(lyrics!.source!.label),
-                    [
-                      LyricsMenuAction(
-                        icon: Icons.library_books_outlined,
-                        label: tx.menuLetraElegirFuente,
-                        onTap: () => showLyricsSourcesSheet(
-                          context,
-                          request,
-                          current: lyrics?.source,
-                          onSearchByHand: () => searchLyricsManually(context, ref, request),
-                          onImport: () => importLrc(context, ref, request),
-                        ),
+                  LyricsMenuGroup(lyrics?.source == null ? tx.fuenteDeLaLetra : tx.fuente(lyrics!.source!.label), [
+                    LyricsMenuAction(
+                      icon: Icons.library_books_outlined,
+                      label: tx.menuLetraElegirFuente,
+                      onTap: () => showLyricsSourcesSheet(
+                        context,
+                        request,
+                        current: lyrics?.source,
+                        onSearchByHand: () => searchLyricsManually(context, ref, request),
+                        onImport: () => importLrc(context, ref, request),
                       ),
-                      LyricsMenuAction(
-                        icon: Icons.manage_search_rounded,
-                        label: tx.menuLetraBuscarOtra,
-                        onTap: () => searchLyricsManually(context, ref, request),
-                      ),
-                      LyricsMenuAction(
-                        icon: Icons.file_open_outlined,
-                        label: tx.menuLetraImportar,
-                        onTap: () => importLrc(context, ref, request),
-                      ),
-                    ],
-                  ),
+                    ),
+                    LyricsMenuAction(
+                      icon: Icons.manage_search_rounded,
+                      label: tx.menuLetraBuscarOtra,
+                      onTap: () => searchLyricsManually(context, ref, request),
+                    ),
+                    LyricsMenuAction(
+                      icon: Icons.file_open_outlined,
+                      label: tx.menuLetraImportar,
+                      onTap: () => importLrc(context, ref, request),
+                    ),
+                  ]),
                 ],
               );
             },
@@ -640,9 +640,7 @@ class _SelectionBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                count == 0
-                    ? tx.tocaLasLineasQueQuieresCompartir
-                    : tx.nLineasElegidas(count),
+                count == 0 ? tx.tocaLasLineasQueQuieresCompartir : tx.nLineasElegidas(count),
                 style: TextStyle(color: _dark.muted),
               ),
               const SizedBox(height: 8),
@@ -727,7 +725,11 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
                   children: [
                     Text(
                       lines[i],
-                      style: KijiText.title(size: 22 * scale, weight: FontWeight.w600, color: Colors.white).copyWith(height: 1.3),
+                      style: KijiText.title(
+                        size: 22 * scale,
+                        weight: FontWeight.w600,
+                        color: Colors.white,
+                      ).copyWith(height: 1.3),
                     ),
                     if (widget.translations != null &&
                         i < widget.translations!.length &&
