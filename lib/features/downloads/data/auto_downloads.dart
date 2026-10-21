@@ -30,9 +30,26 @@ final autoDownloadsFileProvider = Provider<Future<JsonFile>>(
 );
 
 /// Avisos de cambio de conexión (en las pruebas, ninguno).
-final connectivityChangesProvider = Provider<Stream<List<ConnectivityResult>>>(
-  (ref) => Connectivity().onConnectivityChanged,
-);
+final connectivityChangesProvider = Provider<Stream<List<ConnectivityResult>>>((ref) => _connectivityChanges());
+
+/// Una sola escucha del sistema por proceso, que nunca se corta: en Windows, volver a empezar a
+/// escuchar después de cortar falla (`NetworkManager::StartListen`).
+StreamController<List<ConnectivityResult>>? _changes;
+
+Stream<List<ConnectivityResult>> _connectivityChanges() {
+  if (_changes case final changes?) return changes.stream;
+  // ignore: close_sinks (vive mientras viva la app, a propósito)
+  final changes = _changes = StreamController<List<ConnectivityResult>>.broadcast();
+  try {
+    Connectivity().onConnectivityChanged.listen(
+      changes.add,
+      onError: (Object error) => debugPrint('=== DESCARGAS AUTO: error de la conexión: $error ==='),
+    );
+  } catch (error) {
+    debugPrint('=== DESCARGAS AUTO: no se puede escuchar la conexión: $error ===');
+  }
+  return changes.stream;
+}
 
 class AutoDownloadsNotifier extends Notifier<AutoDownloadsState> {
   bool _running = false;
