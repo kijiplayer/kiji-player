@@ -54,12 +54,21 @@ To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 
 ```bash
 flutter pub get
+dart run tool/patch_plugins.dart  # once: patches an old Android plugin
 flutter build apk --flavor prod   # Android
 flutter build windows             # Windows
 ```
 
 The Android APK can be rebuilt and checked against the published one: see
 [docs/REPRODUCIBLE_BUILDS.md](docs/REPRODUCIBLE_BUILDS.md).
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains how
+to build, test and send changes (in English and Spanish), and issues labeled
+[`good first issue`](https://github.com/kijiplayer/kiji-player/labels/good%20first%20issue) are a
+good place to start. If YouTube playback breaks, [docs/EXTRACTOR.md](docs/EXTRACTOR.md) explains how
+the extractor works and how to fix it.
 
 ## License and credits
 

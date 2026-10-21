@@ -3,7 +3,7 @@
 The APK published on [Releases](https://github.com/kijiplayer/kiji-player/releases) can be rebuilt
 from the tagged source and compared file by file, except for the signature.
 
-## Environment used for 0.5.1
+## Environment used for 0.5.1 and 0.6.0
 
 | | |
 |---|---|
@@ -15,9 +15,18 @@ from the tagged source and compared file by file, except for the signature.
 ## Build
 
 ```bash
-git checkout v0.5.1
+git checkout v0.6.0
 flutter pub get
+dart run tool/patch_plugins.dart
 flutter build apk --release --flavor prod
+```
+
+`tool/patch_plugins.dart` patches an old plugin (`on_audio_query_android` 1.1.0) that doesn't
+build with the current Gradle; the published APKs were built with the same patch. Tags up to
+v0.6.0 don't include that file yet: take it from `master` before running it:
+
+```bash
+git show origin/master:tool/patch_plugins.dart > tool/patch_plugins.dart
 ```
 
 The per-architecture APKs (`Kiji-Player-<version>-arm64-v8a.apk` and the others) are the same build
@@ -34,7 +43,7 @@ Every entry outside `META-INF/` (the signature) must be identical, for example w
 [diffoscope](https://diffoscope.org/):
 
 ```bash
-diffoscope Kiji-Player-0.5.1.apk build/app/outputs/flutter-apk/app-prod-release.apk
+diffoscope Kiji-Player-0.6.0.apk build/app/outputs/flutter-apk/app-prod-release.apk
 ```
 
 Only `META-INF/` should differ.
