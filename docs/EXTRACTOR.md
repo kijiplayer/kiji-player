@@ -68,12 +68,18 @@ edad, no cuentan) y reordena las formas según los éxitos recientes. Las **prue
 ### Diagnóstico paso a paso
 
 1. **¿Falla para todos o solo en tu equipo?** Mira la [prueba diaria del
-   extractor](../.github/workflows/extractor.yml) en la pestaña Actions de GitHub. Si falla, abre
-   sola un issue con la tabla de formas. Puedes correrla a mano: Actions → "Prueba diaria del
-   extractor" → *Run workflow*.
-2. **Correr la prueba en vivo en tu PC:**
-   `flutter test test_live/extractor_live_test.dart`. Deja un resumen en
-   `build/extractor_live.md`: búsqueda y audio, forma por forma, con el motivo exacto.
+   extractor](../.github/workflows/extractor.yml) en la pestaña Actions de GitHub. Da uno de tres
+   resultados:
+   - **ok**;
+   - **bloqueo**: YouTube pide "confirmar que no eres un bot" a los servidores de GitHub. Pasa
+     seguido y no dice nada de Kiji, así que no cuenta;
+   - **falla**: cualquier otro problema. Abre un issue solo si se repite **3 días seguidos**.
+
+   Puedes correrla a mano: Actions → "Prueba diaria del extractor" → *Run workflow*.
+2. **Correr la prueba desde tu PC** (la prueba que vale, con una conexión de casa):
+   `dart run tool/extractor_pc.dart`. Si falla, abre el issue en el acto (con `--sin-issue` solo
+   muestra el resultado). Deja un resumen en `build/extractor_live.md`: búsqueda y audio, forma por
+   forma, con el motivo exacto.
 3. **En la app (Kiji Dev):** Configuración → Kiji Dev → herramientas: registro en vivo, prueba de
    una canción y de cada forma, y Salud del Extractor ("Probar ahora"). El registro guarda líneas
    `=== YTM ... ===` y `=== SALUD ... ===` con el código HTTP y el motivo.
@@ -168,11 +174,18 @@ the same track and remembers it in `alternatives.json`.
 ### Step-by-step diagnosis
 
 1. **Does it fail for everyone or only for you?** Check the [daily extractor
-   test](../.github/workflows/extractor.yml) in GitHub's Actions tab. When it fails, it opens an
-   issue with the per-form table. You can run it by hand: Actions → "Prueba diaria del extractor"
-   → *Run workflow*.
-2. **Run the live test on your PC:** `flutter test test_live/extractor_live_test.dart`. It writes
-   a summary to `build/extractor_live.md`: search and audio, form by form, with the exact reason.
+   test](../.github/workflows/extractor.yml) in GitHub's Actions tab. It gives one of three
+   results:
+   - **ok**;
+   - **bloqueo** (blocked): YouTube asks GitHub's servers to "confirm you're not a bot". It happens
+     often and says nothing about Kiji, so it doesn't count;
+   - **falla** (failure): any other problem. It opens an issue only after **3 days in a row**.
+
+   You can run it by hand: Actions → "Prueba diaria del extractor" → *Run workflow*.
+2. **Run the test from your PC** (the one that counts, from a home connection):
+   `dart run tool/extractor_pc.dart`. If it fails, it opens the issue right away (with
+   `--sin-issue` it only shows the result). It writes a summary to `build/extractor_live.md`:
+   search and audio, form by form, with the exact reason.
 3. **In the app (Kiji Dev):** Settings → Kiji Dev → tools: live log, test one song and each form,
    and Extractor Health ("Test now"). The log keeps `=== YTM ... ===` and `=== SALUD ... ===`
    lines with the HTTP code and the reason.

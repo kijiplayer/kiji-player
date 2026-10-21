@@ -162,3 +162,22 @@ String healthSummary(List<PathTestResult> results) {
 
 /// El problema de contenido nunca baja el contador de formas.
 String get ageSummary => tx.conRestriccionDeEdadNecesitanCuenta;
+
+/// YouTube pide "confirmar que no eres un bot": bloquea esa IP (pasa con los servidores de
+/// GitHub), no es que la forma se haya roto.
+bool isBotCheck(String reason) =>
+    RegExp(r'not a bot|no eres un bot|confirm you.re not|confirmar que no', caseSensitive: false).hasMatch(reason);
+
+/// Resultado de la prueba en vivo (`test_live/`, la Action diaria y `tool/extractor_pc.dart`):
+/// "ok" si anda, "bloqueo" si la búsqueda anda y el audio falla solo por el pedido de "no eres un
+/// bot" (no se puede saber desde ahí si Kiji anda), y "falla" en cualquier otro caso.
+String liveCheckResult({
+  required bool searchOk,
+  required int songsOk,
+  required int songs,
+  required List<String> failures,
+}) {
+  if (searchOk && songsOk >= songs - 1) return 'ok';
+  if (searchOk && failures.isNotEmpty && failures.every(isBotCheck)) return 'bloqueo';
+  return 'falla';
+}

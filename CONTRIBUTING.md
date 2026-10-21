@@ -40,7 +40,7 @@ depuración.
 flutter analyze                                   # sin avisos
 flutter test                                      # todas las pruebas (no salen a internet)
 flutter test integration_test/recorrido_test.dart -d windows   # recorrido completo, solo en PC
-flutter test test_live/extractor_live_test.dart   # extractor contra YouTube real (sí sale a internet)
+dart run tool/extractor_pc.dart                   # extractor contra YouTube real (sí sale a internet)
 ```
 
 - **Nunca** corras `integration_test/` en un celular: desinstala la app y se pierden sus datos.
@@ -154,7 +154,7 @@ Without the signing key (it's not in the repo), release builds are signed with t
 flutter analyze                                   # no warnings
 flutter test                                      # all tests (no internet)
 flutter test integration_test/recorrido_test.dart -d windows   # full walkthrough, PC only
-flutter test test_live/extractor_live_test.dart   # extractor against real YouTube (uses internet)
+dart run tool/extractor_pc.dart                   # extractor against real YouTube (uses internet)
 ```
 
 - **Never** run `integration_test/` on a phone: it uninstalls the app and its data is lost.

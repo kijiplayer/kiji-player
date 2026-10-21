@@ -1,5 +1,14 @@
-# Prueba diaria del extractor contra YouTube real. Si falla, abre un issue (o comenta en el que
-# ya está abierto); cuando vuelve a andar, lo comenta y lo cierra. Qué hacer: docs/EXTRACTOR.md.
+# Prueba diaria del extractor contra YouTube real (test_live/extractor_live_test.dart).
+#
+# Sin falsas alarmas:
+# - "bloqueo": YouTube pide "confirmar que no eres un bot" a los servidores de GitHub. Desde acá no
+#   se puede saber si Kiji anda: la corrida queda en verde con un aviso y no cuenta.
+# - "falla": cualquier otro problema. Se cuentan los días seguidos (el estado pasa de una corrida a
+#   la siguiente en el artefacto "estado-extractor"). Al TERCER día seguido se abre un issue (o se
+#   comenta el que ya está abierto) y la corrida queda en rojo; antes, verde con un aviso.
+# - "ok": se reinicia la cuenta y, si había un issue abierto, se cierra.
+# Desde una PC (IP de casa), `dart run tool/extractor_pc.dart` abre el issue en el acto si falla.
+# Qué hacer cuando falla: docs/EXTRACTOR.md.
 name: Prueba diaria del extractor
 
 on:
@@ -10,10 +19,12 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: read
 
 env:
   FLUTTER_VERSION: '3.47.0'
   TITULO: 'Prueba diaria del extractor: YouTube no da el audio'
+  DIAS_PARA_AVISAR: 3
 
 jobs:
   extractor:
@@ -30,17 +41,55 @@ jobs:
       - run: flutter pub get
 
       - name: Prueba en vivo
-        id: prueba
         continue-on-error: true
         run: flutter test test_live/extractor_live_test.dart
 
+      - name: Días seguidos con falla real
+        id: estado
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          resultado=$(jq -r '.resultado' build/extractor_live.json 2>/dev/null || echo falla)
+          # Estado de la corrida anterior (si hay).
+          antes=0
+          previa=$(gh run list --workflow extractor.yml --status completed --limit 1 --json databaseId --jq '.[0].databaseId' || true)
+          if [ -n "$previa" ] && gh run download "$previa" --name estado-extractor --dir previo 2>/dev/null; then
+            antes=$(jq -r '.seguidas // 0' previo/estado.json)
+          fi
+          case "$resultado" in
+            ok) seguidas=0 ;;
+            bloqueo) seguidas=$antes ;;
+            *) seguidas=$((antes + 1)) ;;
+          esac
+          echo "Resultado: $resultado · días seguidos con falla real: $seguidas (antes: $antes)"
+          mkdir -p estado
+          jq -n --arg r "$resultado" --argjson s "$seguidas" --arg f "$(date -u +%Y-%m-%d)" \
+            '{resultado: $r, seguidas: $s, fecha: $f}' > estado/estado.json
+          echo "resultado=$resultado" >> "$GITHUB_OUTPUT"
+          echo "seguidas=$seguidas" >> "$GITHUB_OUTPUT"
+          if [ "$resultado" = falla ] && [ "$seguidas" -ge "$DIAS_PARA_AVISAR" ]; then avisar=true; else avisar=false; fi
+          echo "avisar=$avisar" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: estado-extractor
+          path: estado/estado.json
+          retention-days: 30
+
       - name: Resumen
-        if: always()
         run: |
           if [ -f build/extractor_live.md ]; then cat build/extractor_live.md >> "$GITHUB_STEP_SUMMARY"; fi
+          {
+            echo
+            echo "Días seguidos con falla real: ${{ steps.estado.outputs.seguidas }} (se avisa a los $DIAS_PARA_AVISAR)."
+          } >> "$GITHUB_STEP_SUMMARY"
+          case "${{ steps.estado.outputs.resultado }}" in
+            bloqueo) echo "::warning::YouTube pide 'no eres un bot' a los servidores de GitHub: no se puede probar desde acá. No cuenta como falla (desde una PC: dart run tool/extractor_pc.dart)." ;;
+            falla) echo "::warning::Falla real (día ${{ steps.estado.outputs.seguidas }} de $DIAS_PARA_AVISAR antes de abrir un issue)." ;;
+          esac
 
-      - name: Abrir o actualizar el issue
-        if: steps.prueba.outcome == 'failure'
+      - name: Abrir o comentar el issue (falla real varios días seguidos)
+        if: steps.estado.outputs.avisar == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -48,9 +97,9 @@ jobs:
           gh label create error --color B60205 --description "Algo no funciona" --force
           run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           {
-            echo "La prueba diaria del extractor falló el $(date -u +%Y-%m-%d) ([ver la corrida]($run))."
+            echo "La prueba diaria del extractor falla hace ${{ steps.estado.outputs.seguidas }} días seguidos ([última corrida]($run))."
             echo
-            if [ -f build/extractor_live.md ]; then cat build/extractor_live.md; else echo "La prueba no llegó a escribir el resumen."; fi
+            cat build/extractor_live.md 2>/dev/null || echo "La prueba no llegó a escribir el resumen."
             echo
             echo "Qué hacer: [docs/EXTRACTOR.md](../blob/master/docs/EXTRACTOR.md) → \"Diagnóstico paso a paso\"."
           } > cuerpo.md
@@ -63,7 +112,7 @@ jobs:
           exit 1
 
       - name: Cerrar el issue si volvió a andar
-        if: steps.prueba.outcome == 'success'
+        if: steps.estado.outputs.resultado == 'ok'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
