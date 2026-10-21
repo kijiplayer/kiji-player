@@ -179,9 +179,15 @@ class SelectionBar extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(children: [for (final a in actions) _BarButton(action: a)]),
+                  // Los botones se reparten el ancho; si no entran ni a 64 px, se desplazan.
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = (constraints.maxWidth / actions.length).clamp(64.0, 96.0);
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(children: [for (final a in actions) _BarButton(action: a, width: width)]),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -280,16 +286,17 @@ class _BarAction {
 }
 
 class _BarButton extends StatelessWidget {
-  const _BarButton({required this.action});
+  const _BarButton({required this.action, required this.width});
 
   final _BarAction action;
+  final double width;
 
   @override
   Widget build(BuildContext context) => InkWell(
     borderRadius: BorderRadius.circular(14),
     onTap: action.onTap,
     child: SizedBox(
-      width: 84,
+      width: width,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Column(
