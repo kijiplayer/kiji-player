@@ -6232,6 +6232,132 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Grande'**
   String get tamanoGrande;
+
+  /// No description provided for @nSeleccionadas.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 seleccionada} other{{n} seleccionadas}}'**
+  String nSeleccionadas(int n);
+
+  /// No description provided for @seleccionarTodas.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar todas'**
+  String get seleccionarTodas;
+
+  /// No description provided for @quitarSeleccion.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar la selección'**
+  String get quitarSeleccion;
+
+  /// No description provided for @seleccionAPlaylist.
+  ///
+  /// In es, this message translates to:
+  /// **'A playlist'**
+  String get seleccionAPlaylist;
+
+  /// No description provided for @seleccionDescargar.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar'**
+  String get seleccionDescargar;
+
+  /// No description provided for @seleccionAContinuacion.
+  ///
+  /// In es, this message translates to:
+  /// **'A continuación'**
+  String get seleccionAContinuacion;
+
+  /// No description provided for @seleccionAlFinal.
+  ///
+  /// In es, this message translates to:
+  /// **'Al final'**
+  String get seleccionAlFinal;
+
+  /// No description provided for @seleccionMas.
+  ///
+  /// In es, this message translates to:
+  /// **'Más'**
+  String get seleccionMas;
+
+  /// No description provided for @seleccionQuitar.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar'**
+  String get seleccionQuitar;
+
+  /// No description provided for @seleccionBorrarDescargas.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar descargas'**
+  String get seleccionBorrarDescargas;
+
+  /// No description provided for @nSuenanDespues.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 canción suena después de esta} other{{n} canciones suenan después de esta}}'**
+  String nSuenanDespues(int n);
+
+  /// No description provided for @nAlFinalDeLaCola.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{Se agregó 1 canción al final de la cola} other{Se agregaron {n} canciones al final de la cola}}'**
+  String nAlFinalDeLaCola(int n);
+
+  /// No description provided for @descargarNCanciones.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{¿Descargar 1 canción?} other{¿Descargar {n} canciones?}}'**
+  String descargarNCanciones(int n);
+
+  /// No description provided for @descargarNCancionesTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Se bajan de a dos, en segundo plano. Si falta el WiFi (con \"solo con WiFi\") o el espacio, esperan y siguen solas.'**
+  String get descargarNCancionesTexto;
+
+  /// No description provided for @nSeSaltean.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 ya estaba descargada o no es de YouTube: se saltea.} other{{n} ya estaban descargadas o no son de YouTube: se saltean.}}'**
+  String nSeSaltean(int n);
+
+  /// No description provided for @nadaParaDescargar.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya están descargadas o no son de YouTube.'**
+  String get nadaParaDescargar;
+
+  /// No description provided for @nPorBajarse.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 canción en camino} other{{n} canciones en camino}}'**
+  String nPorBajarse(int n);
+
+  /// No description provided for @nQuitadasDeLaPlaylist.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{Se quitó 1 canción} other{Se quitaron {n} canciones}}'**
+  String nQuitadasDeLaPlaylist(int n);
+
+  /// No description provided for @borrarNDescargas.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{¿Borrar 1 descarga?} other{¿Borrar {n} descargas?}}'**
+  String borrarNDescargas(int n);
+
+  /// No description provided for @borrarNDescargasTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Se borra solo el audio guardado en Kiji; las canciones siguen en tus playlists y se pueden volver a bajar. Tus archivos de música no se tocan.'**
+  String get borrarNDescargasTexto;
+
+  /// No description provided for @nDescargasBorradas.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{Se borró 1 descarga} other{Se borraron {n} descargas}}'**
+  String nDescargasBorradas(int n);
 }
 
 class _AppLocalizationsDelegate

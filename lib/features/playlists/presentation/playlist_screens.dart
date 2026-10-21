@@ -19,6 +19,7 @@ import '../../history/listening_history.dart';
 import '../../moments/data/moments_store.dart';
 import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
+import '../../selection/track_selection.dart';
 import '../domain/smart_lists.dart';
 import '../playlists_provider.dart';
 import '../../customize/presentation/track_text.dart';
@@ -309,6 +310,25 @@ class PlaylistScreen extends ConsumerStatefulWidget {
 class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
   _TrackFilter _filter = _TrackFilter.all;
 
+  /// Selección múltiple: la clave de cada fila es su lugar en la playlist.
+  final _selection = TrackSelection();
+
+  @override
+  void initState() {
+    super.initState();
+    _selection.addListener(_onSelection);
+  }
+
+  void _onSelection() => setState(() {});
+
+  @override
+  void dispose() {
+    _selection
+      ..removeListener(_onSelection)
+      ..dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final playlistId = widget.playlistId;
@@ -367,9 +387,18 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     Widget tile(int index, {required bool reorderable}) {
       final track = playlist.tracks[index];
       final videoId = track.youtubeVideoId;
+      final selected = _selection.contains('$index');
       return ListTile(
         key: ValueKey('${track.id}#$index'),
-        leading: TrackArtwork(track: track, size: 44, radius: 8),
+        selected: selected,
+        selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_selection.active) ...[SelectionCheck(selected: selected), const SizedBox(width: 10)],
+            TrackArtwork(track: track, size: 44, radius: 8),
+          ],
+        ),
         title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: marks[index] == DownloadMark.failed
             ? Text(
@@ -379,8 +408,11 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                 style: const TextStyle(color: downloadWarningColor),
               )
             : TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-        onTap: () => ref.read(playbackProvider.notifier).playQueue(playlist.tracks, startIndex: index),
-        onLongPress: () => showTrackActions(context, ref, track),
+        onTap: _selection.active
+            ? () => _selection.toggle('$index', track)
+            : () => ref.read(playbackProvider.notifier).playQueue(playlist.tracks, startIndex: index),
+        // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
+        onLongPress: () => _selection.toggle('$index', track),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -446,13 +478,41 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
             ),
           ),
           PlaylistDownloadCard(playlistId: playlist.id),
+          SelectionBar(
+            selection: _selection,
+            all: {for (final i in visible) '$i': playlist.tracks[i]},
+            remove: SelectionRemoveAction(
+              label: tx.quitarDeLaPlaylist,
+              icon: Icons.playlist_remove_rounded,
+              onRemove: (keys, _) async {
+                final removed = notifier.removeTracksAt(playlist.id, {for (final k in keys) int.parse(k)});
+                if (removed.isEmpty) return;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(tx.nQuitadasDeLaPlaylist(removed.length)),
+                      duration: const Duration(seconds: 10),
+                      persist: false,
+                      action: SnackBarAction(
+                        label: tx.deshacer,
+                        onPressed: () => notifier.insertTracks(playlist.id, removed),
+                      ),
+                    ),
+                  );
+              },
+            ),
+          ),
           if (fromYouTube > 0 && (downloaded > 0 || failed > 0))
             _DownloadFilterBar(
               downloaded: downloaded,
               total: fromYouTube,
               failed: failed,
               filter: filter,
-              onFilter: (f) => setState(() => _filter = f),
+              onFilter: (f) {
+                _selection.clear();
+                setState(() => _filter = f);
+              },
             ),
           Expanded(
             child: filter == _TrackFilter.all
@@ -460,7 +520,11 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                     buildDefaultDragHandles: false,
                     padding: const EdgeInsets.only(bottom: 120),
                     itemCount: playlist.tracks.length,
-                    onReorderItem: (from, to) => notifier.moveTrack(playlist.id, from, to),
+                    onReorderItem: (from, to) {
+                      // Las claves son lugares: al mover, la selección ya no vale.
+                      _selection.clear();
+                      notifier.moveTrack(playlist.id, from, to);
+                    },
                     itemBuilder: (context, index) => tile(index, reorderable: true),
                   )
                 : visible.isEmpty

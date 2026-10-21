@@ -3805,4 +3805,142 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tamanoGrande => 'Large';
+
+  @override
+  String nSeleccionadas(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get seleccionarTodas => 'Select all';
+
+  @override
+  String get quitarSeleccion => 'Clear selection';
+
+  @override
+  String get seleccionAPlaylist => 'To playlist';
+
+  @override
+  String get seleccionDescargar => 'Download';
+
+  @override
+  String get seleccionAContinuacion => 'Play next';
+
+  @override
+  String get seleccionAlFinal => 'Add to queue';
+
+  @override
+  String get seleccionMas => 'More';
+
+  @override
+  String get seleccionQuitar => 'Remove';
+
+  @override
+  String get seleccionBorrarDescargas => 'Delete downloads';
+
+  @override
+  String nSuenanDespues(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n songs play after this one',
+      one: '1 song plays after this one',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nAlFinalDeLaCola(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Added $n songs to the end of the queue',
+      one: 'Added 1 song to the end of the queue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String descargarNCanciones(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Download $n songs?',
+      one: 'Download 1 song?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get descargarNCancionesTexto =>
+      'They download two at a time, in the background. If Wi-Fi (with \"Wi-Fi only\") or space is missing, they wait and continue by themselves.';
+
+  @override
+  String nSeSaltean(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n were already downloaded or aren\'t from YouTube: skipped.',
+      one: '1 was already downloaded or isn\'t from YouTube: skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nadaParaDescargar =>
+      'They\'re already downloaded or not from YouTube.';
+
+  @override
+  String nPorBajarse(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n songs on their way',
+      one: '1 song on its way',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nQuitadasDeLaPlaylist(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Removed $n songs',
+      one: 'Removed 1 song',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String borrarNDescargas(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Delete $n downloads?',
+      one: 'Delete 1 download?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get borrarNDescargasTexto =>
+      'Only the audio saved inside Kiji is deleted; the songs stay in your playlists and can be downloaded again. Your music files are not touched.';
+
+  @override
+  String nDescargasBorradas(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Deleted $n downloads',
+      one: 'Deleted 1 download',
+    );
+    return '$_temp0';
+  }
 }

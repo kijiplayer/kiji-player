@@ -823,6 +823,31 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     _applyQueue(_queueSnapshot.addToEnd(track));
   }
 
+  /// Selección múltiple: varias "a continuación", en el orden en que vienen. Si no suena
+  /// nada, empiezan a sonar (igual que con una sola).
+  Future<void> playNextAll(List<Track> tracks) async {
+    if (tracks.isEmpty) return;
+    if (state.track == null) return playQueue(tracks);
+    var queue = _queueSnapshot;
+    // Al revés: cada una se pone justo después de la que suena, así la primera queda primera.
+    for (final track in tracks.reversed) {
+      queue = queue.playNext(track);
+      _requestedNext.add(track.id);
+    }
+    _applyQueue(queue);
+  }
+
+  /// Selección múltiple: varias al final de la cola (las que ya estaban no se repiten).
+  Future<void> addAllToQueue(List<Track> tracks) async {
+    if (tracks.isEmpty) return;
+    if (state.track == null) return playQueue(tracks);
+    var queue = _queueSnapshot;
+    for (final track in tracks) {
+      queue = queue.addToEnd(track);
+    }
+    _applyQueue(queue);
+  }
+
   Future<void> _playAtIndex(int index) async {
     final queue = state.queue;
     if (index < 0 || index >= queue.length) return;

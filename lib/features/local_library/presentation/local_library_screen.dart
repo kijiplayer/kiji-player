@@ -15,6 +15,7 @@ import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/presentation/downloads_screen.dart';
 import '../../playlists/presentation/playlist_screens.dart';
 import '../../queue/presentation/track_actions.dart';
+import '../../selection/track_selection.dart';
 import '../../settings/data/settings_store.dart';
 import '../../stream_cache/data/stream_cache.dart';
 import '../domain/local_library_source.dart';
@@ -55,10 +56,24 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   // Abre en Playlists.
   LibraryTab _tab = LibraryTab.playlists;
 
+  /// Selección múltiple (mantener presionada una canción).
+  final _selection = TrackSelection();
+
   @override
   void initState() {
     super.initState();
+    _selection.addListener(_onSelection);
     _load();
+  }
+
+  void _onSelection() => setState(() {});
+
+  @override
+  void dispose() {
+    _selection
+      ..removeListener(_onSelection)
+      ..dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -107,7 +122,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   Widget build(BuildContext context) {
     final songs = _allSongs();
 
-    return RefreshIndicator(
+    final list = RefreshIndicator(
       onRefresh: _load,
       // Las canciones que se ven al abrir entran escalonadas.
       child: StaggerScope(
@@ -141,7 +156,10 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                       visualDensity: VisualDensity.compact,
                       textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
-                    onSelectionChanged: (selection) => setState(() => _tab = selection.first),
+                    onSelectionChanged: (selection) {
+                      _selection.clear();
+                      setState(() => _tab = selection.first);
+                    },
                   ),
                 ],
               ),
@@ -156,6 +174,32 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
           ],
         ),
       ),
+    );
+    // La barra de la selección queda fija arriba mientras se elige.
+    return Stack(
+      children: [
+        list,
+        if (_tab == LibraryTab.songs && _selection.active)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: SelectionBar(
+                selection: _selection,
+                all: {for (final t in songs) t.id: t},
+                remove: songs.any((t) => _selection.contains(t.id) && t.source == TrackSource.youtube)
+                    ? SelectionRemoveAction(
+                        label: tx.seleccionBorrarDescargas,
+                        icon: Icons.delete_outline_rounded,
+                        onRemove: (_, tracks) => deleteSelectedDownloads(context, ref, tracks),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -196,6 +240,9 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
           index: index,
           child: _SongTile(
             track: songs[index],
+            selecting: _selection.active,
+            selected: _selection.contains(songs[index].id),
+            onSelect: () => _selection.toggle(songs[index].id, songs[index]),
             onTap: () => ref.read(playbackProvider.notifier).playQueue(songs, startIndex: index),
           ),
         ),
@@ -255,10 +302,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
           return ListTile(
             leading: const Icon(Icons.folder_outlined, color: KijiColors.violet),
             title: Text(p.basename(entry.key), maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(
-              tx.nCanciones(entry.value.length),
-              style: const TextStyle(color: KijiColors.muted),
-            ),
+            subtitle: Text(tx.nCanciones(entry.value.length), style: const TextStyle(color: KijiColors.muted)),
             trailing: const Icon(Icons.play_arrow_rounded),
             onTap: () => ref.read(playbackProvider.notifier).playQueue(entry.value),
           );
@@ -336,10 +380,21 @@ class _StorageCard extends ConsumerWidget {
 
 /// Fila de canción con su etiqueta (YT ↓ cian, LOCAL violeta) y su tamaño.
 class _SongTile extends ConsumerWidget {
-  const _SongTile({required this.track, required this.onTap});
+  const _SongTile({
+    required this.track,
+    required this.onTap,
+    this.selecting = false,
+    this.selected = false,
+    required this.onSelect,
+  });
 
   final Track track;
   final VoidCallback onTap;
+
+  /// Selección múltiple: mientras se elige, tocar marca o desmarca.
+  final bool selecting;
+  final bool selected;
+  final VoidCallback onSelect;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -348,7 +403,15 @@ class _SongTile extends ConsumerWidget {
     return GestureDetector(
       onSecondaryTap: () => showTrackActions(context, ref, track),
       child: ListTile(
-        leading: TrackArtwork(track: track, size: 44, radius: 8),
+        selected: selected,
+        selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selecting) ...[SelectionCheck(selected: selected), const SizedBox(width: 10)],
+            TrackArtwork(track: track, size: 44, radius: 8),
+          ],
+        ),
         title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Row(
           children: [
@@ -367,8 +430,9 @@ class _SongTile extends ConsumerWidget {
         trailing: track.durationMs > 0
             ? Text(formatDuration(Duration(milliseconds: track.durationMs)), style: KijiText.mono(size: 11))
             : null,
-        onTap: onTap,
-        onLongPress: () => showTrackActions(context, ref, track),
+        onTap: selecting ? onSelect : onTap,
+        // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
+        onLongPress: onSelect,
       ),
     );
   }

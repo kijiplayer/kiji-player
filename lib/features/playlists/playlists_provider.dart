@@ -218,6 +218,38 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     return track;
   }
 
+  /// Quita varias a la vez (selección múltiple). Devuelve las quitadas con su lugar, para
+  /// poder deshacerlo con [insertTracks].
+  List<(int, Track)> removeTracksAt(String id, Set<int> indexes) {
+    final playlist = byId(id);
+    if (playlist == null || indexes.isEmpty) return const [];
+    final removed = [
+      for (var i = 0; i < playlist.tracks.length; i++)
+        if (indexes.contains(i)) (i, playlist.tracks[i]),
+    ];
+    _replace(
+      playlist.copyWith(
+        tracks: [
+          for (var i = 0; i < playlist.tracks.length; i++)
+            if (!indexes.contains(i)) playlist.tracks[i],
+        ],
+        updatedAt: _clock(),
+      ),
+    );
+    return removed;
+  }
+
+  /// Deshacer [removeTracksAt]: vuelve cada una a su lugar.
+  void insertTracks(String id, List<(int, Track)> removed) {
+    final playlist = byId(id);
+    if (playlist == null || removed.isEmpty) return;
+    final tracks = [...playlist.tracks];
+    for (final (index, track) in [...removed]..sort((a, b) => a.$1.compareTo(b.$1))) {
+      tracks.insert(index.clamp(0, tracks.length), track);
+    }
+    _replace(playlist.copyWith(tracks: tracks, updatedAt: _clock()));
+  }
+
   void insertTrack(String id, int index, Track track) {
     final playlist = byId(id);
     if (playlist == null) return;
