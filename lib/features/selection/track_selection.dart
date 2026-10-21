@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/track.dart';
@@ -93,110 +94,169 @@ class SelectionBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListenableBuilder(
-      listenable: selection,
-      builder: (context, _) {
-        if (!selection.active) return const SizedBox.shrink();
-        final tracks = selection.tracks;
-        void say(String message) => ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(message)));
+    return SelectionKeys(
+      selection: selection,
+      all: all,
+      child: ListenableBuilder(
+        listenable: selection,
+        builder: (context, _) {
+          if (!selection.active) return const SizedBox.shrink();
+          final tracks = selection.tracks;
+          void say(String message) => ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(message)));
 
-        Future<void> done(Future<void> Function() action) async {
-          await action();
-          selection.clear();
-        }
-
-        final actions = <_BarAction>[
-          _BarAction(Icons.library_add_rounded, tx.seleccionAPlaylist, () async {
-            await showAddToPlaylistSheet(context, ref, tracks);
+          Future<void> done(Future<void> Function() action) async {
+            await action();
             selection.clear();
-          }),
-          _BarAction(Icons.download_rounded, tx.seleccionDescargar, () => downloadSelection(context, ref, selection)),
-          _BarAction(
-            Icons.playlist_play_rounded,
-            tx.seleccionAContinuacion,
-            () => done(() async {
-              // Si no sonaba nada, empiezan a sonar ya (igual que con una sola): se avisa eso.
-              final idle = ref.read(playbackProvider).track == null;
-              await ref.read(playbackProvider.notifier).playNextAll(tracks);
-              say(idle ? tx.nEmpiezanASonar(tracks.length) : tx.nSuenanDespues(tracks.length));
-            }),
-          ),
-          _BarAction(
-            Icons.playlist_add_rounded,
-            tx.seleccionAlFinal,
-            () => done(() async {
-              final idle = ref.read(playbackProvider).track == null;
-              await ref.read(playbackProvider.notifier).addAllToQueue(tracks);
-              say(idle ? tx.nEmpiezanASonar(tracks.length) : tx.nAlFinalDeLaCola(tracks.length));
-            }),
-          ),
-          if (remove case final remove?)
-            _BarAction(remove.icon, remove.label, () async {
-              await remove.onRemove(selection.keys, tracks);
-              selection.clear();
-            }),
-          // Con una sola, el resto del menú de siempre (personalizar, compartir…).
-          if (tracks.length == 1)
-            _BarAction(Icons.more_horiz_rounded, tx.seleccionMas, () async {
-              final track = tracks.single;
-              selection.clear();
-              await showTrackActions(context, ref, track);
-            }),
-        ];
+          }
 
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-          child: Glass(
-            radius: KijiRadii.tile,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        tooltip: tx.quitarSeleccion,
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: selection.clear,
-                      ),
-                      Expanded(
-                        child: Text(
-                          tx.nSeleccionadas(selection.length),
-                          style: KijiText.title(size: 17),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+          final actions = <_BarAction>[
+            _BarAction(Icons.library_add_rounded, tx.seleccionAPlaylist, () async {
+              await showAddToPlaylistSheet(context, ref, tracks);
+              selection.clear();
+            }),
+            _BarAction(Icons.download_rounded, tx.seleccionDescargar, () => downloadSelection(context, ref, selection)),
+            _BarAction(
+              Icons.playlist_play_rounded,
+              tx.seleccionAContinuacion,
+              () => done(() async {
+                // Si no sonaba nada, empiezan a sonar ya (igual que con una sola): se avisa eso.
+                final idle = ref.read(playbackProvider).track == null;
+                await ref.read(playbackProvider.notifier).playNextAll(tracks);
+                say(idle ? tx.nEmpiezanASonar(tracks.length) : tx.nSuenanDespues(tracks.length));
+              }),
+            ),
+            _BarAction(
+              Icons.playlist_add_rounded,
+              tx.seleccionAlFinal,
+              () => done(() async {
+                final idle = ref.read(playbackProvider).track == null;
+                await ref.read(playbackProvider.notifier).addAllToQueue(tracks);
+                say(idle ? tx.nEmpiezanASonar(tracks.length) : tx.nAlFinalDeLaCola(tracks.length));
+              }),
+            ),
+            if (remove case final remove?)
+              _BarAction(remove.icon, remove.label, () async {
+                await remove.onRemove(selection.keys, tracks);
+                selection.clear();
+              }),
+            // Con una sola, el resto del menú de siempre (personalizar, compartir…).
+            if (tracks.length == 1)
+              _BarAction(Icons.more_horiz_rounded, tx.seleccionMas, () async {
+                final track = tracks.single;
+                selection.clear();
+                await showTrackActions(context, ref, track);
+              }),
+          ];
+
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+            child: Glass(
+              radius: KijiRadii.tile,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          tooltip: tx.quitarSeleccion,
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: selection.clear,
                         ),
-                      ),
-                      IconButton(
-                        tooltip: tx.seleccionarTodas,
-                        icon: Icon(
-                          all.keys.every(selection.contains) ? Icons.deselect_rounded : Icons.select_all_rounded,
+                        Expanded(
+                          child: Text(
+                            tx.nSeleccionadas(selection.length),
+                            style: KijiText.title(size: 17),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        onPressed: () => selection.toggleAll(all),
-                      ),
-                    ],
-                  ),
-                  // Los botones se reparten el ancho; si no entran ni a 64 px, se desplazan.
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = (constraints.maxWidth / actions.length).clamp(64.0, 96.0);
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(children: [for (final a in actions) _BarButton(action: a, width: width)]),
-                      );
-                    },
-                  ),
-                ],
+                        IconButton(
+                          tooltip: tx.seleccionarTodas,
+                          icon: Icon(
+                            all.keys.every(selection.contains) ? Icons.deselect_rounded : Icons.select_all_rounded,
+                          ),
+                          onPressed: () => selection.toggleAll(all),
+                        ),
+                      ],
+                    ),
+                    // Los botones se reparten el ancho; si no entran ni a 64 px, se desplazan.
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = (constraints.maxWidth / actions.length).clamp(64.0, 96.0);
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [for (final a in actions) _BarButton(action: a, width: width)],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
+}
+
+/// Atajos de la selección en la PC (o con teclado): **Esc** la quita y **Ctrl+A** (⌘A en Mac)
+/// elige todas. Solo con la selección activa, en la pantalla de adelante (no en una que quedó
+/// debajo de otra o de un diálogo) y sin estar escribiendo en un campo de texto.
+class SelectionKeys extends StatefulWidget {
+  const SelectionKeys({super.key, required this.selection, required this.all, required this.child});
+
+  final TrackSelection selection;
+  final Map<String, Track> all;
+  final Widget child;
+
+  @override
+  State<SelectionKeys> createState() => _SelectionKeysState();
+}
+
+class _SelectionKeysState extends State<SelectionKeys> {
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_onKey);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKey);
+    super.dispose();
+  }
+
+  bool _onKey(KeyEvent event) {
+    if (event is! KeyDownEvent || !mounted || !widget.selection.active) return false;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true) || _typing()) return false;
+    final keyboard = HardwareKeyboard.instance;
+    if (event.logicalKey == LogicalKeyboardKey.escape) {
+      widget.selection.clear();
+      return true;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.keyA && (keyboard.isControlPressed || keyboard.isMetaPressed)) {
+      // Elige todas (si ya estaban todas, se quedan elegidas: no es un interruptor).
+      if (!widget.all.keys.every(widget.selection.contains)) widget.selection.toggleAll(widget.all);
+      return true;
+    }
+    return false;
+  }
+
+  static bool _typing() {
+    final focused = FocusManager.instance.primaryFocus?.context;
+    if (focused == null) return false;
+    return focused.widget is EditableText || focused.findAncestorWidgetOfExactType<EditableText>() != null;
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// Descargar las elegidas: se confirma (cuántas, y cuántas se saltean) y van a la cola de
@@ -299,7 +359,10 @@ class _BarButton extends StatelessWidget {
     var widest = 0.0;
     for (final word in action.label.split(' ')) {
       final painter = TextPainter(
-        text: TextSpan(text: word, style: DefaultTextStyle.of(context).style.copyWith(fontSize: base)),
+        text: TextSpan(
+          text: word,
+          style: DefaultTextStyle.of(context).style.copyWith(fontSize: base),
+        ),
         textDirection: TextDirection.ltr,
         textScaler: scaler,
       )..layout();
