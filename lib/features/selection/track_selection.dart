@@ -291,6 +291,25 @@ class _BarButton extends StatelessWidget {
   final _BarAction action;
   final double width;
 
+  /// Tamaño de letra para que la palabra más larga ("continuación") entre entera en [width]:
+  /// 12 px si entra; si no, lo justo, y nunca menos de 9.
+  double _fontSize(BuildContext context) {
+    const base = 12.0;
+    final scaler = MediaQuery.textScalerOf(context);
+    var widest = 0.0;
+    for (final word in action.label.split(' ')) {
+      final painter = TextPainter(
+        text: TextSpan(text: word, style: DefaultTextStyle.of(context).style.copyWith(fontSize: base)),
+        textDirection: TextDirection.ltr,
+        textScaler: scaler,
+      )..layout();
+      if (painter.width > widest) widest = painter.width;
+      painter.dispose();
+    }
+    final room = width - 12;
+    return widest <= room ? base : (base * room / widest).clamp(9.0, base);
+  }
+
   @override
   Widget build(BuildContext context) => InkWell(
     borderRadius: BorderRadius.circular(14),
@@ -298,7 +317,7 @@ class _BarButton extends StatelessWidget {
     child: SizedBox(
       width: width,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         child: Column(
           children: [
             Icon(action.icon, size: 26, color: KijiColors.cyan),
@@ -308,7 +327,7 @@ class _BarButton extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, height: 1.15),
+              style: TextStyle(fontSize: _fontSize(context), height: 1.15),
             ),
           ],
         ),
