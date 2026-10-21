@@ -3993,4 +3993,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipografiaSistema => 'System font';
+
+  @override
+  String nEmpiezanASonar(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Nothing was playing: $n songs start playing',
+      one: 'Nothing was playing: 1 song starts playing',
+    );
+    return '$_temp0';
+  }
 }

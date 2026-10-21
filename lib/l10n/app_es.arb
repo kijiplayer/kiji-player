@@ -2481,5 +2481,7 @@
   "tipografia": "Tipografía",
   "tipografiaDescripcion": "La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema",
   "tipografiaKiji": "La de Kiji",
-  "tipografiaSistema": "La del sistema"
+  "tipografiaSistema": "La del sistema",
+  "nEmpiezanASonar": "{n, plural, =1{No sonaba nada: empieza a sonar 1 canción} other{No sonaba nada: empiezan a sonar {n} canciones}}",
+  "@nEmpiezanASonar": {"placeholders": {"n": {"type": "int"}}}
 }

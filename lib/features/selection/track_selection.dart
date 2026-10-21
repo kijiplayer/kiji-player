@@ -117,16 +117,19 @@ class SelectionBar extends ConsumerWidget {
             Icons.playlist_play_rounded,
             tx.seleccionAContinuacion,
             () => done(() async {
+              // Si no sonaba nada, empiezan a sonar ya (igual que con una sola): se avisa eso.
+              final idle = ref.read(playbackProvider).track == null;
               await ref.read(playbackProvider.notifier).playNextAll(tracks);
-              say(tx.nSuenanDespues(tracks.length));
+              say(idle ? tx.nEmpiezanASonar(tracks.length) : tx.nSuenanDespues(tracks.length));
             }),
           ),
           _BarAction(
             Icons.playlist_add_rounded,
             tx.seleccionAlFinal,
             () => done(() async {
+              final idle = ref.read(playbackProvider).track == null;
               await ref.read(playbackProvider.notifier).addAllToQueue(tracks);
-              say(tx.nAlFinalDeLaCola(tracks.length));
+              say(idle ? tx.nEmpiezanASonar(tracks.length) : tx.nAlFinalDeLaCola(tracks.length));
             }),
           ),
           if (remove case final remove?)

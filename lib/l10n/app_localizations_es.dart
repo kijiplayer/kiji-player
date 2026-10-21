@@ -4002,4 +4002,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tipografiaSistema => 'La del sistema';
+
+  @override
+  String nEmpiezanASonar(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'No sonaba nada: empiezan a sonar $n canciones',
+      one: 'No sonaba nada: empieza a sonar 1 canción',
+    );
+    return '$_temp0';
+  }
 }

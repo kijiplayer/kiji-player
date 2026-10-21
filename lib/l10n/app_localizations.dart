@@ -6454,6 +6454,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'La del sistema'**
   String get tipografiaSistema;
+
+  /// No description provided for @nEmpiezanASonar.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{No sonaba nada: empieza a sonar 1 canción} other{No sonaba nada: empiezan a sonar {n} canciones}}'**
+  String nEmpiezanASonar(int n);
 }
 
 class _AppLocalizationsDelegate

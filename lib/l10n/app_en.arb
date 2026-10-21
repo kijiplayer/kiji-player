@@ -1074,5 +1074,7 @@
   "tipografia": "Font",
   "tipografiaDescripcion": "Kiji's own (Space Grotesk and JetBrains Mono) or the system font",
   "tipografiaKiji": "Kiji's own",
-  "tipografiaSistema": "System font"
+  "tipografiaSistema": "System font",
+  "nEmpiezanASonar": "{n, plural, =1{Nothing was playing: 1 song starts playing} other{Nothing was playing: {n} songs start playing}}",
+  "@nEmpiezanASonar": {"placeholders": {"n": {"type": "int"}}}
 }
