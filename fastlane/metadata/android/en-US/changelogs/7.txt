@@ -1,0 +1,6 @@
+• Dark, darker or light theme, 5 accents, font, 12/24-hour time and lyrics size.
+• Long-press a song to select several: playlists, download, queue or remove.
+• "Download what I like" (off by default; respects "Wi-Fi only").
+• New lyrics ⋯ menu.
+• Internal copy before updating your data.
+• What's new in your language and Settings search with synonyms.

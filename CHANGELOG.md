@@ -1,5 +1,32 @@
 # Novedades de Kiji Player
 
+## 0.6.0 — 20 de octubre de 2026
+
+**A tu gusto**
+- Configuración → Apariencia: tema oscuro, **más oscuro** (negro puro) o **claro**; cinco colores
+  de acento; la tipografía de Kiji o la de tu teléfono, y la hora en 12 o 24 horas (de fábrica,
+  la del sistema). Todo se aplica al momento, sin reiniciar.
+- Las letras de las canciones se pueden ver chicas, normales o grandes.
+
+**Más rápido con muchas canciones**
+- Mantén presionada una canción en la Biblioteca, en Descargadas o en una playlist para elegir
+  varias: agregarlas a playlists, descargarlas, ponerlas a continuación o al final de la cola, o
+  quitarlas (de la playlist se puede deshacer).
+- Nueva opción "Descargar lo que me gusta" (apagada de fábrica): al dar me gusta, la canción se
+  baja sola. Respeta "solo con WiFi": si no hay WiFi, espera y sigue sola después.
+
+**Letras**
+- El menú ⋯ de la letra es nuevo: íconos grandes y agrupados, y "Buscar otra" e "Importar .lrc"
+  a un toque.
+
+**Actualizar sin perder nada**
+- Antes de poner al día tus datos en una versión nueva, Kiji guarda una copia interna. Si algo
+  sale mal, todo vuelve como estaba.
+- El aviso de versión nueva muestra las novedades en tu idioma, y después de actualizar aparece
+  una vez "Novedades de esta versión" (también en Configuración → Acerca de).
+- El buscador de Configuración entiende sinónimos en español e inglés ("dark", "tema", "sleep"…),
+  y arriba hay un índice para saltar a cada sección.
+
 ## 0.5.1 — 20 de octubre de 2026
 
 **Kiji tiene un identificador nuevo: hay que reinstalar una vez**
