@@ -67,7 +67,7 @@ class AccountScreen extends ConsumerWidget {
                   session == null
                       ? tx.kijiFuncionaSinCuenta
                       : tx.lasCancionesConRestriccionDeEdad,
-                  style: const TextStyle(color: KijiColors.muted, height: 1.4),
+                  style: TextStyle(color: KijiColors.muted, height: 1.4),
                 ),
               ],
             ),

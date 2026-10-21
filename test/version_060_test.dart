@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
+import 'package:kiji_player/theme/kiji_tokens.dart';
 import 'package:kiji_player/utils/clock_format.dart';
+import 'package:flutter/material.dart';
 
 /// Novedades de la 0.6.0.
 void main() {
@@ -77,6 +79,50 @@ void main() {
       final now = DateTime(2026, 10, 16, 12);
       expect(describeDate(DateTime(2026, 10, 15, 21, 10), now, use24Hour: false), 'ayer 9:10 PM');
       expect(describeDate(DateTime(2026, 10, 1, 9, 0), now, use24Hour: true), '01/10/2026 09:00');
+    });
+  });
+
+  group('Personalización', () {
+    test('De fábrica, la paleta es la Nocturne de siempre', () {
+      expect(KijiPalette.resolve(), KijiPalette.nocturne);
+      expect(KijiPalette.resolve().background, const Color(0xFF07070C));
+    });
+
+    test('Más oscuro: negro puro; claro: fondo claro y texto oscuro', () {
+      expect(KijiPalette.resolve(theme: 'darker').background, Colors.black);
+      final light = KijiPalette.resolve(theme: 'light');
+      expect(light.isLight, isTrue);
+      expect(light.background.computeLuminance(), greaterThan(0.8));
+      expect(light.text.computeLuminance(), lessThan(0.05));
+    });
+
+    test('Cada acento cambia el degradado; uno desconocido vuelve a Nocturne', () {
+      final colors = {for (final a in AppSettings.accents) KijiPalette.resolve(accent: a).violet};
+      expect(colors.length, AppSettings.accents.length);
+      expect(KijiPalette.resolve(accent: 'raro'), KijiPalette.nocturne);
+    });
+
+    test('Dos paletas iguales son iguales (no se redibuja todo de gusto)', () {
+      expect(
+        KijiPalette.resolve(theme: 'light', accent: 'ember'),
+        KijiPalette.resolve(theme: 'light', accent: 'ember'),
+      );
+      expect(KijiPalette.resolve(theme: 'light'), isNot(KijiPalette.resolve()));
+    });
+
+    test('Los colores siguen a la paleta activa', () {
+      addTearDown(() => KijiColors.palette = KijiPalette.nocturne);
+      KijiColors.palette = KijiPalette.resolve(theme: 'light', accent: 'ocean');
+      expect(KijiColors.background, const Color(0xFFF4F4FA));
+      expect(KijiColors.accentGradient.colors.first, KijiColors.violet);
+    });
+
+    test('Tipografía del sistema: sin familia propia', () {
+      addTearDown(() => KijiText.useSystemFont = false);
+      expect(KijiText.title().fontFamily, 'SpaceGrotesk');
+      KijiText.useSystemFont = true;
+      expect(KijiText.title().fontFamily, isNull);
+      expect(KijiText.mono().fontFamily, isNull);
     });
   });
 }

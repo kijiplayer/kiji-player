@@ -99,7 +99,7 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
               children: [
                 ListTile(title: Text(tx.agregarAPlaylist)),
                 ListTile(
-                  leading: const Icon(Icons.add_rounded, color: KijiColors.cyan),
+                  leading: Icon(Icons.add_rounded, color: KijiColors.cyan),
                   title: Text(tx.nuevaPlaylist),
                   onTap: () async {
                     final name = await promptPlaylistName(context);
@@ -111,7 +111,7 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
                 ),
                 for (final playlist in playlists)
                   ListTile(
-                    leading: const Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                    leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
                     title: Text(playlist.name),
                     subtitle: Text(_count(playlist.tracks.length)),
                     onTap: () {
@@ -162,7 +162,7 @@ class PlaylistsView extends ConsumerWidget {
         if (playlists.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(tx.todaviaNoCreasteNingunaMantenPresionada, style: const TextStyle(color: KijiColors.muted)),
+            child: Text(tx.todaviaNoCreasteNingunaMantenPresionada, style: TextStyle(color: KijiColors.muted)),
           ),
         for (final playlist in PlaylistOps.pinnedFirst(playlists))
           ListTile(
@@ -176,16 +176,16 @@ class PlaylistsView extends ConsumerWidget {
                 Expanded(child: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
               ],
             ),
-            subtitle: Text(_count(playlist.tracks.length), style: const TextStyle(color: KijiColors.muted)),
+            subtitle: Text(_count(playlist.tracks.length), style: TextStyle(color: KijiColors.muted)),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => PlaylistScreen.open(context, playlist.id),
           ),
         ListTile(
-          leading: const Icon(Icons.bookmarks_outlined, color: KijiColors.cyan),
+          leading: Icon(Icons.bookmarks_outlined, color: KijiColors.cyan),
           title: Text(tx.momentos2),
           subtitle: Text(
             tx.segundosGuardadosDeTusCanciones(ref.watch(momentsProvider).length),
-            style: const TextStyle(color: KijiColors.muted),
+            style: TextStyle(color: KijiColors.muted),
           ),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => MomentsScreen.open(context),
@@ -196,11 +196,11 @@ class PlaylistsView extends ConsumerWidget {
         ),
         for (final list in SmartList.values)
           ListTile(
-            leading: const Icon(Icons.auto_awesome_rounded, color: KijiColors.cyan),
+            leading: Icon(Icons.auto_awesome_rounded, color: KijiColors.cyan),
             title: Text(list.title),
             subtitle: Text(
               '${list.rule.replaceFirst(RegExp(r'\.$'), '')} · ${_count(list.compute(inputs).length)}',
-              style: const TextStyle(color: KijiColors.muted),
+              style: TextStyle(color: KijiColors.muted),
             ),
             onTap: () => SmartListScreen.open(context, list),
           ),
@@ -251,7 +251,7 @@ class _ListHeader extends ConsumerWidget {
                       children: [
                         Text(title, style: KijiText.title(size: 24)),
                         const SizedBox(height: 4),
-                        Text(subtitle, style: const TextStyle(color: KijiColors.muted)),
+                        Text(subtitle, style: TextStyle(color: KijiColors.muted)),
                       ],
                     ),
                   ),
@@ -424,7 +424,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
               ),
             IconButton(
               tooltip: tx.quitarDeLaPlaylist,
-              icon: const Icon(Icons.close_rounded, color: KijiColors.muted),
+              icon: Icon(Icons.close_rounded, color: KijiColors.muted),
               onPressed: () {
                 final removed = notifier.removeTrackAt(playlist.id, index);
                 if (removed == null) return;
@@ -529,7 +529,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                   )
                 : visible.isEmpty
                 ? Center(
-                    child: Text(tx.ningunaCancionConEsteFiltro, style: const TextStyle(color: KijiColors.muted)),
+                    child: Text(tx.ningunaCancionConEsteFiltro, style: TextStyle(color: KijiColors.muted)),
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.only(bottom: 120),
@@ -627,7 +627,7 @@ class SmartListScreen extends ConsumerWidget {
               child: Text(
                 tx.porAhoraNoHayCancionesQue,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: KijiColors.muted),
+                style: TextStyle(color: KijiColors.muted),
               ),
             ),
           for (final (index, track) in tracks.indexed)

@@ -116,7 +116,7 @@ class _Option extends StatelessWidget {
     color: KijiColors.glassFill,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(KijiRadii.tile),
-      side: const BorderSide(color: KijiColors.glassBorder),
+      side: BorderSide(color: KijiColors.glassBorder),
     ),
     clipBehavior: Clip.antiAlias,
     child: InkWell(
@@ -141,7 +141,7 @@ class _Option extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(text, style: const TextStyle(color: KijiColors.muted)),
+                  Text(text, style: TextStyle(color: KijiColors.muted)),
                 ],
               ),
             ),

@@ -131,7 +131,7 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
               child: Ink(
                 width: size,
                 height: size,
-                decoration: const BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
+                decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
                 child: InkWell(
                   onTap: _tap,
                   child: ScaleTransition(

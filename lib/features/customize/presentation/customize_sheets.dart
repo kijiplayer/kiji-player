@@ -79,7 +79,7 @@ Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track 
             children: [
               Text(tx.personalizarCancion, style: KijiText.title(size: 20)),
               const SizedBox(height: 4),
-              Text(tx.soloCambiaComoSeVeEn, style: const TextStyle(color: KijiColors.muted)),
+              Text(tx.soloCambiaComoSeVeEn, style: TextStyle(color: KijiColors.muted)),
               const SizedBox(height: 12),
               Row(
                 children: [

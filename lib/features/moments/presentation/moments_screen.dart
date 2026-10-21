@@ -57,7 +57,7 @@ class MomentsScreen extends ConsumerWidget {
       body: moments.isEmpty
           ? Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(tx.guardaElSegundoExactoDeUna, style: const TextStyle(color: KijiColors.muted)),
+              child: Text(tx.guardaElSegundoExactoDeUna, style: TextStyle(color: KijiColors.muted)),
             )
           : ListView.builder(
               padding: const EdgeInsets.only(bottom: 24),

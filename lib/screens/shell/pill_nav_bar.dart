@@ -34,7 +34,7 @@ class ShellDestination {
 class PillNavBar extends ConsumerWidget {
   const PillNavBar({super.key});
 
-  static const _labelStyle = TextStyle(color: KijiColors.onAccent, fontWeight: FontWeight.w700);
+  static TextStyle get _labelStyle => TextStyle(color: KijiColors.onAccent, fontWeight: FontWeight.w700);
   static const _iconOnly = 16 + 22 + 16.0;
 
   /// Ancho de cada pestaña: la activa lleva también el texto.
@@ -75,10 +75,10 @@ class PillNavBar extends ConsumerWidget {
               width: widths[index],
               top: 0,
               bottom: 0,
-              child: const DecoratedBox(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: KijiColors.accentGradient,
-                  borderRadius: BorderRadius.all(Radius.circular(KijiRadii.pill)),
+                  borderRadius: const BorderRadius.all(Radius.circular(KijiRadii.pill)),
                 ),
               ),
             ),

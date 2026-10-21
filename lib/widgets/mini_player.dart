@@ -69,14 +69,14 @@ class MiniPlayer extends ConsumerWidget {
                               track,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                              style: TextStyle(fontWeight: FontWeight.w600, color: KijiColors.text),
                             ),
                             const SizedBox(height: 2),
                             TrackArtistText(
                               track,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: KijiColors.muted, fontSize: 13),
+                              style: TextStyle(color: KijiColors.muted, fontSize: 13),
                             ),
                           ],
                         ),
@@ -86,14 +86,14 @@ class MiniPlayer extends ConsumerWidget {
                     IconButton(
                       onPressed: () => showAddToPlaylistSheet(nav(), ref, [track]),
                       icon: const Icon(Icons.playlist_add_rounded),
-                      color: Colors.white,
+                      color: KijiColors.text,
                       tooltip: tx.agregarAPlaylist,
                     ),
                     IconButton(
                       onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),
                       icon: Icon(playback.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
                       iconSize: 32,
-                      color: Colors.white,
+                      color: KijiColors.text,
                       tooltip: playback.isPlaying ? tx.pausar : tx.reproducir,
                     ),
                   ],
@@ -107,9 +107,9 @@ class MiniPlayer extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
                   widthFactor: playback.progress.clamp(0.0, 1.0),
-                  child: const DecoratedBox(
+                  child: DecoratedBox(
                     decoration: BoxDecoration(gradient: KijiColors.accentGradient),
-                    child: SizedBox.expand(),
+                    child: const SizedBox.expand(),
                   ),
                 ),
               ),

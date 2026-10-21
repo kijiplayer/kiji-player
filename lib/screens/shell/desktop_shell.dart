@@ -47,7 +47,7 @@ class DesktopShell extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(width: 240, child: _Sidebar()),
-                  const VerticalDivider(width: 1, color: KijiColors.glassBorder),
+                  VerticalDivider(width: 1, color: KijiColors.glassBorder),
                   const Expanded(
                     child: Column(
                       children: [
@@ -57,7 +57,7 @@ class DesktopShell extends ConsumerWidget {
                     ),
                   ),
                   if (showQueue) ...[
-                    const VerticalDivider(width: 1, color: KijiColors.glassBorder),
+                    VerticalDivider(width: 1, color: KijiColors.glassBorder),
                     const SizedBox(width: 320, child: _QueuePanel()),
                   ],
                 ],
@@ -109,7 +109,7 @@ class _Sidebar extends ConsumerWidget {
                     padding: const EdgeInsets.only(left: 8),
                     child: Text(
                       tx.tusPlaylistsVanAAparecerAqui,
-                      style: const TextStyle(color: KijiColors.muted, fontSize: 13),
+                      style: TextStyle(color: KijiColors.muted, fontSize: 13),
                     ),
                   );
                 }
@@ -120,7 +120,7 @@ class _Sidebar extends ConsumerWidget {
                       ListTile(
                         dense: true,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
-                        leading: const Icon(Icons.queue_music_rounded, size: 20, color: KijiColors.violet),
+                        leading: Icon(Icons.queue_music_rounded, size: 20, color: KijiColors.violet),
                         title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                         onTap: () => PlaylistScreen.open(context, playlist.id),
                       ),
@@ -131,7 +131,7 @@ class _Sidebar extends ConsumerWidget {
           ),
           ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
-            leading: const Icon(Icons.settings_outlined, color: KijiColors.muted),
+            leading: Icon(Icons.settings_outlined, color: KijiColors.muted),
             title: Text(tx.settingsTitle),
             onTap: () => SettingsScreen.open(context),
           ),
@@ -167,7 +167,7 @@ class _SidebarItem extends StatelessWidget {
           title: Text(
             destination.labelOf(context),
             style: TextStyle(
-              color: selected ? KijiColors.onAccent : Colors.white,
+              color: selected ? KijiColors.onAccent : KijiColors.text,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
@@ -256,10 +256,10 @@ class _SearchBarHint extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             child: Row(
               children: [
-                const Icon(Icons.search_rounded, color: KijiColors.muted),
+                Icon(Icons.search_rounded, color: KijiColors.muted),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(tx.buscarCancionesArtistas2, style: const TextStyle(color: KijiColors.muted)),
+                  child: Text(tx.buscarCancionesArtistas2, style: TextStyle(color: KijiColors.muted)),
                 ),
                 Text('Ctrl K', style: KijiText.mono(size: 11)), // l10n-ignore
               ],
@@ -303,7 +303,7 @@ class _PlayerBar extends ConsumerWidget {
     final showQueue = ref.watch(queuePanelVisibleProvider);
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: KijiColors.surface,
         border: Border(top: BorderSide(color: KijiColors.glassBorder)),
       ),
@@ -334,7 +334,7 @@ class _PlayerBar extends ConsumerWidget {
                           track,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+                          style: TextStyle(color: KijiColors.muted, fontSize: 12),
                         ),
                       ],
                     ),
@@ -368,7 +368,7 @@ class _PlayerBar extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Icon(Icons.volume_up_rounded, color: KijiColors.muted, size: 20),
+          Icon(Icons.volume_up_rounded, color: KijiColors.muted, size: 20),
           SizedBox(
             width: 120,
             child: Slider(

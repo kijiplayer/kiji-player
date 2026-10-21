@@ -142,7 +142,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: tr(context).settingsSearchHint,
-                  prefixIcon: const Icon(Icons.search_rounded, color: KijiColors.muted),
+                  prefixIcon: Icon(Icons.search_rounded, color: KijiColors.muted),
                   suffixIcon: query.isEmpty
                       ? null
                       : IconButton(
@@ -186,7 +186,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: Text(
                   tx.noHayNingunaOpcionConEse,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: KijiColors.muted),
+                  style: TextStyle(color: KijiColors.muted),
                 ),
               ),
             for (final section in SettingsSection.values)
@@ -436,6 +436,112 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.appearance,
+        title: tx.tema,
+        subtitle: tx.temaDescripcion,
+        keywords: const ['modo', 'fondo', 'oled', 'negro', 'blanco'],
+        builder: (context, ref) => choiceTile<String>(
+          context,
+          icon: Icons.contrast_rounded,
+          title: tx.tema,
+          value: ref.watch(settingsProvider.select((s) => s.theme)),
+          options: AppSettings.themes,
+          label: (t) => switch (t) {
+            'darker' => tx.temaMasOscuro,
+            'light' => tx.temaClaro,
+            _ => tx.temaOscuro,
+          },
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(theme: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.colorDeAcento,
+        subtitle: tx.colorDeAcentoDescripcion,
+        keywords: const ['degradado', 'violeta', 'naranja', 'verde', 'azul'],
+        builder: (context, ref) {
+          final accent = ref.watch(settingsProvider.select((s) => s.accent));
+          String name(String a) => switch (a) {
+            'aurora' => tx.acentoAurora,
+            'ember' => tx.acentoEmber,
+            'mint' => tx.acentoMint,
+            'ocean' => tx.acentoOcean,
+            _ => tx.acentoNocturne,
+          };
+          return ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: Text(tx.colorDeAcento),
+            subtitle: Text(name(accent)),
+            // Una muestra de cada acento: un toque y se aplica.
+            trailing: Wrap(
+              spacing: 6,
+              children: [
+                for (final a in AppSettings.accents)
+                  Tooltip(
+                    message: name(a),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => ref.read(settingsProvider.notifier).update((s) => s.copyWith(accent: a)),
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [KijiPalette.accents[a]!.$1, KijiPalette.accents[a]!.$2],
+                          ),
+                          border: Border.all(
+                            color: a == accent ? KijiColors.text : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onTap: () async {
+              final picked = await showDialog<String>(
+                context: context,
+                builder: (dialog) => SimpleDialog(
+                  title: Text(tx.colorDeAcento),
+                  children: [
+                    RadioGroup<String>(
+                      groupValue: accent,
+                      onChanged: (value) => Navigator.pop(dialog, value),
+                      child: Column(
+                        children: [
+                          for (final a in AppSettings.accents)
+                            RadioListTile<String>(value: a, title: Text(name(a))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (picked != null) {
+                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(accent: picked));
+              }
+            },
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.tipografia,
+        subtitle: tx.tipografiaDescripcion,
+        keywords: const ['letra', 'fuente', 'space grotesk', 'jetbrains'], // l10n-ignore
+        builder: (context, ref) => choiceTile<String>(
+          context,
+          icon: Icons.font_download_outlined,
+          title: tx.tipografia,
+          value: ref.watch(settingsProvider.select((s) => s.font)),
+          options: AppSettings.fonts,
+          label: (f) => f == 'system' ? tx.tipografiaSistema : tx.tipografiaKiji,
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(font: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
         title: tx.formatoDeHora,
         subtitle: tx.formatoDeHoraDescripcion,
         keywords: const ['reloj', 'am', 'pm', '12', '24', 'horas'], // l10n-ignore
@@ -599,7 +705,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: tx.sinCuentasSinAnunciosYSin,
         keywords: const ['datos', 'telemetria', 'cuenta', 'transparencia'],
         builder: (context, ref) => ListTile(
-          leading: const Icon(Icons.verified_user_outlined, color: KijiColors.cyan),
+          leading: Icon(Icons.verified_user_outlined, color: KijiColors.cyan),
           title: Text(tx.queGuardaKiji),
           subtitle: Text(tx.sinCuentasSinAnunciosYSin2),
         ),

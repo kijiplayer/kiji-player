@@ -130,7 +130,7 @@ Future<void> showDownloadFailureSheet(BuildContext context, WidgetRef ref, Strin
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Text(download.track.artist, style: const TextStyle(color: KijiColors.muted)),
+                Text(download.track.artist, style: TextStyle(color: KijiColors.muted)),
                 const SizedBox(height: 14),
                 _FailureReason(download: download),
                 const SizedBox(height: 16),
@@ -308,7 +308,7 @@ class _FailedCard extends ConsumerWidget {
           ),
           Text(
             download.track.artist,
-            style: const TextStyle(color: KijiColors.muted),
+            style: TextStyle(color: KijiColors.muted),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

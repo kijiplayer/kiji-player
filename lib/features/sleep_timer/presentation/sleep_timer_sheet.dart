@@ -64,7 +64,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         children: [
           Text(tx.temporizador, style: KijiText.title(size: 22)),
           const SizedBox(height: 4),
-          Text(tx.laMusicaBajaDeAPoco, style: const TextStyle(color: KijiColors.muted)),
+          Text(tx.laMusicaBajaDeAPoco, style: TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 16),
           if (timer != null) ..._active(timer, notifier) else ..._choices(notifier),
         ],
@@ -154,7 +154,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       const SizedBox(height: 8),
       ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.music_note_outlined, color: KijiColors.cyan),
+        leading: Icon(Icons.music_note_outlined, color: KijiColors.cyan),
         title: Text(SleepTimerMode.endOfTrack.label),
         onTap: () {
           notifier.start(SleepTimerMode.endOfTrack);
@@ -163,7 +163,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       ),
       ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.queue_music_rounded, color: KijiColors.cyan),
+        leading: Icon(Icons.queue_music_rounded, color: KijiColors.cyan),
         title: Text(SleepTimerMode.endOfQueue.label),
         subtitle: Text(tx.paraHastaUnaCancionEligelaEn),
         onTap: () {
@@ -173,7 +173,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       ),
       ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.timer_outlined, color: KijiColors.cyan),
+        leading: Icon(Icons.timer_outlined, color: KijiColors.cyan),
         title: Text(SleepTimerMode.atPosition.label),
         subtitle: Text(tx.eligeElSegundoDeLaCancion),
         enabled: playback.track != null && playback.duration > Duration.zero,
@@ -186,7 +186,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
       ),
       ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.bedtime_outlined, color: KijiColors.cyan),
+        leading: Icon(Icons.bedtime_outlined, color: KijiColors.cyan),
         title: Text(tx.marcarEnLaOnda),
         subtitle: Text(tx.tocaLaOndaDelReproductorDonde),
         enabled: playback.track != null && playback.duration > Duration.zero,
@@ -235,7 +235,7 @@ Future<Duration?> showExactMomentDialog(BuildContext context, Duration duration,
                   child: Text(
                     tx.eseMomentoYaPasoLaMusica,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+                    style: TextStyle(color: KijiColors.muted, fontSize: 12),
                   ),
                 ),
               Row(

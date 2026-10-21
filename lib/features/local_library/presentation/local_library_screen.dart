@@ -152,7 +152,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                       selectedBackgroundColor: KijiColors.violet,
                       selectedForegroundColor: Colors.white,
                       foregroundColor: KijiColors.muted,
-                      side: const BorderSide(color: KijiColors.glassBorder),
+                      side: BorderSide(color: KijiColors.glassBorder),
                       visualDensity: VisualDensity.compact,
                       textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
@@ -264,7 +264,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                   ListTile(title: Text(tx.carpetasQueLeeKiji), subtitle: Text(tx.quitarUnaCarpetaNoBorraNingun)),
                   for (final folder in folders)
                     ListTile(
-                      leading: const Icon(Icons.folder_outlined, color: KijiColors.violet),
+                      leading: Icon(Icons.folder_outlined, color: KijiColors.violet),
                       title: Text(folder, maxLines: 2, overflow: TextOverflow.ellipsis),
                       trailing: IconButton(
                         icon: const Icon(Icons.close_rounded),
@@ -276,7 +276,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                       ),
                     ),
                   ListTile(
-                    leading: const Icon(Icons.create_new_folder_outlined, color: KijiColors.cyan),
+                    leading: Icon(Icons.create_new_folder_outlined, color: KijiColors.cyan),
                     title: Text(tx.agregarCarpeta),
                     onTap: _chooseFolder,
                   ),
@@ -300,9 +300,9 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
         itemBuilder: (context, index) {
           final entry = byFolder.entries.elementAt(index);
           return ListTile(
-            leading: const Icon(Icons.folder_outlined, color: KijiColors.violet),
+            leading: Icon(Icons.folder_outlined, color: KijiColors.violet),
             title: Text(p.basename(entry.key), maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(tx.nCanciones(entry.value.length), style: const TextStyle(color: KijiColors.muted)),
+            subtitle: Text(tx.nCanciones(entry.value.length), style: TextStyle(color: KijiColors.muted)),
             trailing: const Icon(Icons.play_arrow_rounded),
             onTap: () => ref.read(playbackProvider.notifier).playQueue(entry.value),
           );
@@ -352,7 +352,7 @@ class _StorageCard extends ConsumerWidget {
                     Text(tx.usadosPorKiji(formatBytes(used)), style: KijiText.title(size: 16)),
                     Text(
                       free == null ? tx.nCanciones(songCount) : tx.libresCanciones(formatBytes(free), songCount),
-                      style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+                      style: TextStyle(color: KijiColors.muted, fontSize: 12),
                     ),
                   ],
                 ),
@@ -422,7 +422,7 @@ class _SongTile extends ConsumerWidget {
                 [track.artist, if (size != null) formatBytes(size)].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+                style: TextStyle(color: KijiColors.muted, fontSize: 12),
               ),
             ),
           ],
@@ -479,7 +479,7 @@ class _InfoCard extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: KijiColors.muted),
+            style: TextStyle(color: KijiColors.muted),
           ),
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 16),

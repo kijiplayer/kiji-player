@@ -17,6 +17,7 @@ import 'features/updates/whats_new.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
+import 'theme/kiji_tokens.dart';
 import 'widgets/global_mini_player.dart';
 import 'utils/clock_format.dart';
 import 'widgets/playback_shortcuts.dart';
@@ -160,8 +161,37 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     return locale;
   }
 
+  /// Tema, acento y tipografía (Configuración → Apariencia). Los colores salen de una paleta
+  /// global ([KijiColors.palette]): al cambiarla se redibuja todo, como con el idioma.
+  void _applyAppearance() {
+    final (theme, accent, font) = ref.watch(settingsProvider.select((s) => (s.theme, s.accent, s.font)));
+    final palette = KijiPalette.resolve(theme: theme, accent: accent);
+    final systemFont = font == 'system';
+    if (palette == KijiColors.palette && systemFont == KijiText.useSystemFont) return;
+    KijiColors.palette = palette;
+    KijiText.useSystemFont = systemFont;
+    // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
+    if (!_appearanceReady) return;
+    debugPrint('=== APARIENCIA: tema $theme, acento $accent, letra $font ===');
+    WidgetsBinding.instance.addPostFrameCallback((_) => _rebuildAll());
+  }
+
+  bool _appearanceReady = false;
+
+  void _rebuildAll() {
+    if (!mounted) return;
+    void rebuild(Element element) {
+      element.markNeedsBuild();
+      element.visitChildren(rebuild);
+    }
+
+    (context as Element).visitChildren(rebuild);
+  }
+
   @override
   Widget build(BuildContext context) {
+    _applyAppearance();
+    _appearanceReady = true;
     final locale = _applyLanguage();
     // Pausar al silenciar y retomar con el Bluetooth. Vive aquí y no
     // en el reproductor porque escucha al reproductor.
@@ -177,7 +207,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       locale: locale,
       theme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
       darkTheme: AppTheme.darkWith(reduceMotion: ref.watch(reduceMotionSettingProvider)),
-      themeMode: ThemeMode.dark,
+      themeMode: KijiColors.palette.isLight ? ThemeMode.light : ThemeMode.dark,
       // Atajos de teclado en todas las pantallas (PC y teclados físicos).
       // El mini-reproductor se ve en todas las pantallas.
       navigatorKey: kijiNavigatorKey,

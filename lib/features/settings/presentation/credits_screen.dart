@@ -112,11 +112,11 @@ class _CreditsBlockView extends StatelessWidget {
       ),
       CreditsParagraph(:final text) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text, style: const TextStyle(color: KijiColors.muted, height: 1.4)),
+        child: Text(text, style: TextStyle(color: KijiColors.muted, height: 1.4)),
       ),
       CreditsBullet(:final text) => Padding(
         padding: const EdgeInsets.only(bottom: 6, left: 8),
-        child: Text('•  $text', style: const TextStyle(color: KijiColors.muted, height: 1.4)),
+        child: Text('•  $text', style: TextStyle(color: KijiColors.muted, height: 1.4)),
       ),
       CreditsRow(:final cells, :final header) =>
         header
@@ -136,7 +136,7 @@ class _CreditsBlockView extends StatelessWidget {
                     for (final cell in cells.skip(1))
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text(cell, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
+                        child: Text(cell, style: TextStyle(color: KijiColors.muted, fontSize: 13)),
                       ),
                   ],
                 ),

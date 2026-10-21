@@ -76,7 +76,7 @@ class SelectionCheck extends StatelessWidget {
       gradient: selected ? KijiColors.accentGradientDiagonal : null,
       border: selected ? null : Border.all(color: KijiColors.muted, width: 1.5),
     ),
-    child: selected ? const Icon(Icons.check_rounded, size: 18, color: KijiColors.onAccent) : null,
+    child: selected ? Icon(Icons.check_rounded, size: 18, color: KijiColors.onAccent) : null,
   );
 }
 
@@ -220,7 +220,7 @@ Future<void> downloadSelection(BuildContext context, WidgetRef ref, TrackSelecti
           Text(tx.descargarNCancionesTexto),
           if (skipped > 0) ...[
             const SizedBox(height: 10),
-            Text(tx.nSeSaltean(skipped), style: const TextStyle(color: KijiColors.muted)),
+            Text(tx.nSeSaltean(skipped), style: TextStyle(color: KijiColors.muted)),
           ],
         ],
       ),

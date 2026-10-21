@@ -157,7 +157,7 @@ class _LiveLogState extends State<_LiveLog> {
         ),
         Expanded(
           child: visible.isEmpty
-              ? const Center(child: Text('Todavía no hay nada.', style: TextStyle(color: KijiColors.muted)))
+              ? Center(child: Text('Todavía no hay nada.', style: TextStyle(color: KijiColors.muted)))
               : ListView.builder(
                   controller: _scroll,
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
@@ -226,7 +226,7 @@ class _ExtractorTab extends ConsumerWidget {
               onPressed: () => ExtractorHealthScreen.open(context),
             ),
             _Heading('Últimas búsquedas (${entries.length})'),
-            if (entries.isEmpty) const Text('Ninguna desde que se abrió Kiji.', style: TextStyle(color: KijiColors.muted)),
+            if (entries.isEmpty) Text('Ninguna desde que se abrió Kiji.', style: TextStyle(color: KijiColors.muted)),
             for (final e in entries)
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
@@ -365,7 +365,7 @@ class _DownloadsTab extends ConsumerWidget {
         _KeyValue('Límite', state.settings.limitBytes == null ? 'sin límite' : formatBytes(state.settings.limitBytes!)),
         _KeyValue('Carpeta', state.directoryPath ?? '—'),
         const _Heading('Cola de descargas'),
-        if (active.isEmpty) const Text('Vacía.', style: TextStyle(color: KijiColors.muted)),
+        if (active.isEmpty) Text('Vacía.', style: TextStyle(color: KijiColors.muted)),
         for (final d in active)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -404,7 +404,7 @@ class _KeyValue extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(width: 110, child: Text(label, style: const TextStyle(color: KijiColors.muted))),
+            SizedBox(width: 110, child: Text(label, style: TextStyle(color: KijiColors.muted))),
             Expanded(child: SelectableText(value, style: KijiText.mono(size: 12, color: KijiColors.text))),
           ],
         ),

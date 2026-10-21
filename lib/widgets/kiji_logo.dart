@@ -59,7 +59,7 @@ class KijiLogoPainter extends CustomPainter {
           ..color = KijiColors.glassBorder,
       );
     }
-    const gradient = LinearGradient(colors: [KijiColors.violet, KijiColors.cyan]);
+    final gradient = LinearGradient(colors: [KijiColors.violet, KijiColors.cyan]);
     final shader = gradient.createShader(const Rect.fromLTWH(80, 0, 86, 200));
     for (var i = 0; i < kijiLogoBars.length; i++) {
       final bar = kijiLogoBars[i];

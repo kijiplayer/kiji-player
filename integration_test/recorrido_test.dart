@@ -44,6 +44,7 @@ import 'package:kiji_player/features/translation/presentation/lyrics_settings_sc
 import 'package:kiji_player/features/welcome/presentation/welcome_screen.dart';
 import 'package:kiji_player/features/yt_music/presentation/extractor_health_screen.dart';
 import 'package:kiji_player/models/track.dart';
+import 'package:kiji_player/version.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
 import 'package:kiji_player/screens/player/player_screen.dart';
 import 'package:kiji_player/widgets/global_mini_player.dart';
@@ -151,7 +152,12 @@ Future<Uint8List> _cover(int seed, Color a, Color b) async {
 }
 
 /// Escribe en [support] la biblioteca inventada y devuelve sus canciones.
-Future<List<Track>> _seed(Directory support, {required String language}) async {
+Future<List<Track>> _seed(
+  Directory support, {
+  required String language,
+  String theme = 'dark',
+  String accent = 'nocturne',
+}) async {
   void write(String name, Object json) {
     final f = File('${support.path}/$name')..parent.createSync(recursive: true);
     f.writeAsStringSync(jsonEncode(json));
@@ -221,7 +227,9 @@ Future<List<Track>> _seed(Directory support, {required String language}) async {
   write('moments.json', []);
   write(
     'settings.json',
-    const AppSettings(checkUpdates: false, autoExtractorTests: false).copyWith(language: language).toJson(),
+    const AppSettings(checkUpdates: false, autoExtractorTests: false)
+        .copyWith(language: language, theme: theme, accent: accent, lastSeenVersion: kijiVersion)
+        .toJson(),
   );
   write('welcome.json', {'seen': true, 'at': now.toIso8601String()});
   return tracks;
@@ -351,11 +359,12 @@ void main() {
   });
 
   Future<void> run(WidgetTester tester, String tag,
-      {required Size window, required bool online, required bool fresh, String language = 'es'}) async {
+      {required Size window, required bool online, required bool fresh, String language = 'es',
+      String theme = 'dark', String accent = 'nocturne'}) async {
     final data = Directory('${_root.path}/$tag')..createSync(recursive: true);
     PathProviderPlatform.instance = _TempPaths(data);
     final support = Directory('${data.path}/support')..createSync(recursive: true);
-    final tracks = fresh ? <Track>[] : await tester.runAsync(() => _seed(support, language: language)) ?? [];
+    final tracks = fresh ? <Track>[] : await tester.runAsync(() => _seed(support, language: language, theme: theme, accent: accent)) ?? [];
     HttpOverrides.global = online ? null : _Offline();
     addTearDown(() => HttpOverrides.global = null);
 
@@ -444,6 +453,16 @@ void main() {
 
   testWidgets('Con datos, ventana grande, en inglés', (tester) async {
     await run(tester, 'datos-grande-en', window: const Size(1440, 900), online: true, fresh: false, language: 'en');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Tema claro con acento Brasa, ventana chica', (tester) async {
+    await run(tester, 'claro-chica', window: const Size(420, 860), online: true, fresh: false, theme: 'light',
+        accent: 'ember');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Tema más oscuro con acento Aurora, ventana grande', (tester) async {
+    await run(tester, 'oscuro-grande', window: const Size(1440, 900), online: true, fresh: false, theme: 'darker',
+        accent: 'aurora');
   }, timeout: const Timeout(Duration(minutes: 10)));
 
   testWidgets('Con datos, sin internet', (tester) async {

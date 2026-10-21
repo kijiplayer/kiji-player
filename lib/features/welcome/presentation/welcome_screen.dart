@@ -261,7 +261,7 @@ class _HelloPageState extends ConsumerState<_HelloPage> {
         Text(
           tx.bienvenidaSoyKiji,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: KijiColors.muted, fontSize: 16, height: 1.4),
+          style: TextStyle(color: KijiColors.muted, fontSize: 16, height: 1.4),
         ),
         const SizedBox(height: 28),
         Text(tx.bienvenidaEligeTuIdioma.toUpperCase(), style: KijiText.mono(size: 11)),
@@ -277,7 +277,7 @@ class _HelloPageState extends ConsumerState<_HelloPage> {
                 selected: current == code,
                 onSelected: (_) => choose(code),
                 selectedColor: KijiColors.violet.withValues(alpha: 0.35),
-                side: const BorderSide(color: KijiColors.glassBorder),
+                side: BorderSide(color: KijiColors.glassBorder),
               ),
           ],
         ),
@@ -297,7 +297,7 @@ class _WhatPage extends StatelessWidget {
       children: [
         Text(tx.bienvenidaQueEsKiji, style: KijiText.title(size: 30)),
         const SizedBox(height: 8),
-        Text(tx.bienvenidaQueEsKijiNota, style: const TextStyle(color: KijiColors.muted, height: 1.4)),
+        Text(tx.bienvenidaQueEsKijiNota, style: TextStyle(color: KijiColors.muted, height: 1.4)),
         const SizedBox(height: 20),
         _Card(icon: Icons.shield_outlined, title: tx.bienvenidaTarjeta1Titulo, text: tx.bienvenidaTarjeta1Texto),
         _Card(icon: Icons.library_music_outlined, title: tx.bienvenidaTarjeta2Titulo, text: tx.bienvenidaTarjeta2Texto),
@@ -335,7 +335,7 @@ class _Card extends StatelessWidget {
                 children: [
                   Text(title, style: KijiText.title(size: 17)),
                   const SizedBox(height: 4),
-                  Text(text, style: const TextStyle(color: KijiColors.muted, height: 1.35)),
+                  Text(text, style: TextStyle(color: KijiColors.muted, height: 1.35)),
                 ],
               ),
             ),
@@ -386,7 +386,7 @@ class _OptionsPage extends ConsumerWidget {
       children: [
         Text(tx.bienvenidaAjustaATuGusto, style: KijiText.title(size: 30)),
         const SizedBox(height: 8),
-        Text(tx.bienvenidaOpcionalNota, style: const TextStyle(color: KijiColors.muted, height: 1.4)),
+        Text(tx.bienvenidaOpcionalNota, style: TextStyle(color: KijiColors.muted, height: 1.4)),
         const SizedBox(height: 18),
         Glass(
           blur: false,
@@ -486,7 +486,7 @@ class _PrivacyPage extends StatelessWidget {
         Text(
           tx.bienvenidaPrivacidadTexto,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: KijiColors.muted, fontSize: 16, height: 1.5),
+          style: TextStyle(color: KijiColors.muted, fontSize: 16, height: 1.5),
         ),
       ],
     );
@@ -539,9 +539,9 @@ class _GradientButton extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: KijiColors.accentGradient,
-          borderRadius: BorderRadius.all(Radius.circular(KijiRadii.pill)),
+          borderRadius: const BorderRadius.all(Radius.circular(KijiRadii.pill)),
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -555,7 +555,7 @@ class _GradientButton extends StatelessWidget {
                 child: Text(
                   label,
                   maxLines: 1,
-                  style: const TextStyle(color: KijiColors.onAccent, fontWeight: FontWeight.w700, fontSize: 16),
+                  style: TextStyle(color: KijiColors.onAccent, fontWeight: FontWeight.w700, fontSize: 16),
                 ),
               ),
             ),

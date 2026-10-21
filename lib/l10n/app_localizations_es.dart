@@ -3952,4 +3952,54 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tema => 'Tema';
+
+  @override
+  String get temaDescripcion => 'Oscuro, más oscuro (negro puro) o claro';
+
+  @override
+  String get temaOscuro => 'Oscuro';
+
+  @override
+  String get temaMasOscuro => 'Más oscuro (negro puro)';
+
+  @override
+  String get temaClaro => 'Claro';
+
+  @override
+  String get colorDeAcento => 'Color de acento';
+
+  @override
+  String get colorDeAcentoDescripcion =>
+      'El degradado de los botones, la onda y lo elegido';
+
+  @override
+  String get acentoNocturne => 'Nocturne (violeta y cian)';
+
+  @override
+  String get acentoAurora => 'Aurora (verde y violeta)';
+
+  @override
+  String get acentoEmber => 'Brasa (naranja y rosa)';
+
+  @override
+  String get acentoMint => 'Menta (verde y celeste)';
+
+  @override
+  String get acentoOcean => 'Océano (azul y cian)';
+
+  @override
+  String get tipografia => 'Tipografía';
+
+  @override
+  String get tipografiaDescripcion =>
+      'La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema';
+
+  @override
+  String get tipografiaKiji => 'La de Kiji';
+
+  @override
+  String get tipografiaSistema => 'La del sistema';
 }

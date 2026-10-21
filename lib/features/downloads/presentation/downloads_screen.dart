@@ -141,7 +141,7 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
               if (completed.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(tx.buscaUnaCancionYTocaEl, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+                  child: Text(tx.buscaUnaCancionYTocaEl, style: TextStyle(color: AppColors.onSurfaceMuted)),
                 ),
               for (final (index, track) in completed.indexed)
                 ListTile(

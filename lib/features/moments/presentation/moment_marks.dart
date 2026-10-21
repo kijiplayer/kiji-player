@@ -174,7 +174,7 @@ class MomentLoopChip extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: InputChip(
-        avatar: const Icon(Icons.repeat_one_rounded, size: 18, color: KijiColors.cyan),
+        avatar: Icon(Icons.repeat_one_rounded, size: 18, color: KijiColors.cyan),
         label: Text(tx.repitiendo(formatDuration(loop.position), formatDuration(loop.end!))),
         onDeleted: () => ref.read(momentLoopProvider.notifier).state = null,
         deleteButtonTooltipMessage: tx.dejarDeRepetir,

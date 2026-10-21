@@ -45,7 +45,7 @@ class QueueScreen extends ConsumerWidget {
                     : upNext <= 0
                     ? tx.esLaUltimaCancionDeLaCola
                     : tx.despuesDeEstaN(upNext),
-                style: const TextStyle(color: AppColors.onSurfaceMuted),
+                style: TextStyle(color: AppColors.onSurfaceMuted),
               ),
             ),
           ),
@@ -74,7 +74,7 @@ class QueueList extends ConsumerWidget {
 
     return queue.isEmpty
         ? Center(
-            child: Text(tx.eligeUnaCancionParaEmpezar, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+            child: Text(tx.eligeUnaCancionParaEmpezar, style: TextStyle(color: AppColors.onSurfaceMuted)),
           )
         : ReorderableListView.builder(
             // Agarradera propia: funciona igual con el dedo y con el mouse.
@@ -186,7 +186,7 @@ class _QueueTile extends StatelessWidget {
             subtitle: Row(
               children: [
                 if (pauseAfter) ...[
-                  const Icon(Icons.bedtime_rounded, size: 14, color: KijiColors.cyan),
+                  Icon(Icons.bedtime_rounded, size: 14, color: KijiColors.cyan),
                   const SizedBox(width: 4),
                 ],
                 Expanded(child: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis)),

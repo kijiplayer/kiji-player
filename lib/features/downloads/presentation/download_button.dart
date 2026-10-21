@@ -37,14 +37,14 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     }
     if (downloads.completed.containsKey(videoId)) {
       return IconButton(
-        icon: const Icon(Icons.download_done_rounded, color: KijiColors.cyan),
+        icon: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
         tooltip: tx.descargada,
         onPressed: () => confirmDeleteDownload(context, ref, widget.track.title, videoId),
       );
     }
     if (active == null) {
       return IconButton(
-        icon: const Icon(Icons.download_rounded, color: AppColors.onSurfaceMuted),
+        icon: Icon(Icons.download_rounded, color: AppColors.onSurfaceMuted),
         tooltip: tx.descargar,
         onPressed: _startFlow,
       );

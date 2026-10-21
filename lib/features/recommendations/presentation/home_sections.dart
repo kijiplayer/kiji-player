@@ -130,7 +130,7 @@ class TrackCard extends StatelessWidget {
               track,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+              style: TextStyle(color: KijiColors.muted, fontSize: 12),
             ),
           ],
         ),
@@ -153,7 +153,7 @@ class RecommendationSections extends ConsumerWidget {
           children: [
             const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
             const SizedBox(width: 10),
-            Text(tx.buscandoMusicaParaTi, style: const TextStyle(color: KijiColors.muted)),
+            Text(tx.buscandoMusicaParaTi, style: TextStyle(color: KijiColors.muted)),
           ],
         ),
       ),
@@ -187,7 +187,7 @@ class StartHereSection extends ConsumerWidget {
       loading: () => const Padding(padding: EdgeInsets.only(bottom: 28), child: LinearProgressIndicator()),
       error: (error, _) => Padding(
         padding: const EdgeInsets.only(bottom: 28),
-        child: Text(tx.sinConexionLosGenerosAparecenCuando, style: const TextStyle(color: KijiColors.muted)),
+        child: Text(tx.sinConexionLosGenerosAparecenCuando, style: TextStyle(color: KijiColors.muted)),
       ),
       data: (list) {
         if (list.isEmpty) return const SizedBox.shrink();
@@ -290,12 +290,12 @@ class _PlaylistCard extends StatelessWidget {
               child: SizedBox.square(
                 dimension: 140,
                 child: card.thumbnailUrl == null
-                    ? const ColoredBox(color: KijiColors.surfaceHigh, child: Icon(Icons.queue_music_rounded))
+                    ? ColoredBox(color: KijiColors.surfaceHigh, child: const Icon(Icons.queue_music_rounded))
                     : Image.network(
                         card.thumbnailUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (_, _, _) =>
-                            const ColoredBox(color: KijiColors.surfaceHigh, child: Icon(Icons.queue_music_rounded)),
+                            ColoredBox(color: KijiColors.surfaceHigh, child: const Icon(Icons.queue_music_rounded)),
                       ),
               ),
             ),

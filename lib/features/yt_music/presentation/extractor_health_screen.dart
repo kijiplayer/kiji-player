@@ -95,11 +95,11 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
             children: [
               Text(summary, style: KijiText.title(size: 18)),
               const SizedBox(height: 4),
-              Text(ageSummary, style: const TextStyle(color: KijiColors.muted)),
+              Text(ageSummary, style: TextStyle(color: KijiColors.muted)),
               const SizedBox(height: 4),
               Text(
                 tx.ultimaPruebaAutomaticaSePruebaCon(agoShort(_health.lastTestAt, now), controlVideos.length),
-                style: const TextStyle(color: KijiColors.muted, fontSize: 13),
+                style: TextStyle(color: KijiColors.muted, fontSize: 13),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
@@ -136,7 +136,7 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
                   for (final c in retired)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.block_rounded, color: KijiColors.muted),
+                      leading: Icon(Icons.block_rounded, color: KijiColors.muted),
                       title: Text(c.label),
                       subtitle: Text(c.retired!),
                     ),
@@ -261,7 +261,7 @@ class _YtDlpCardState extends ConsumerState<_YtDlpCard> {
         children: [
           Text(EngineId.c.label.toUpperCase(), style: KijiText.mono(size: 11)),
           const SizedBox(height: 6),
-          Text(tx.opcionalYSoloEnLaPc, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
+          Text(tx.opcionalYSoloEnLaPc, style: TextStyle(color: KijiColors.muted, fontSize: 13)),
           const SizedBox(height: 8),
           if (_progress != null)
             LinearProgressIndicator(value: _progress)

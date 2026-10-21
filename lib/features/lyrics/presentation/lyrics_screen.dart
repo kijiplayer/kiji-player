@@ -36,6 +36,10 @@ import 'package:kiji_player/l10n/l10n.dart';
 final _adjustingOffsetProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 /// Letra de la canción que suena.
+/// La pantalla de la letra es siempre oscura (se lee sobre la carátula difuminada), aunque el
+/// resto de Kiji use el tema claro.
+const _dark = KijiPalette.nocturne;
+
 class LyricsScreen extends ConsumerWidget {
   const LyricsScreen({super.key});
 
@@ -66,7 +70,7 @@ class LyricsScreen extends ConsumerWidget {
     final lyrics = ref.watch(lyricsProvider(request));
 
     return Scaffold(
-      backgroundColor: KijiColors.background,
+      backgroundColor: _dark.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -230,6 +234,7 @@ class _Header extends ConsumerWidget {
       child: Row(
         children: [
           GlassIconButton(
+            foreground: Colors.white,
             icon: Icons.keyboard_arrow_down_rounded,
             tooltip: tx.cerrarLaLetra,
             onPressed: () => Navigator.of(context).pop(),
@@ -239,7 +244,12 @@ class _Header extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 18)),
+                TrackTitleText(
+                  track,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: KijiText.title(size: 18, color: Colors.white),
+                ),
                 TrackArtistText(
                   track,
                   maxLines: 1,
@@ -250,6 +260,7 @@ class _Header extends ConsumerWidget {
             ),
           ),
           GlassIconButton(
+            foreground: Colors.white,
             icon: Icons.more_horiz_rounded,
             tooltip: tx.opcionesDeLaLetra,
             onPressed: () {
@@ -632,7 +643,7 @@ class _SelectionBar extends StatelessWidget {
                 count == 0
                     ? tx.tocaLasLineasQueQuieresCompartir
                     : tx.nLineasElegidas(count),
-                style: const TextStyle(color: KijiColors.muted),
+                style: TextStyle(color: _dark.muted),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -694,7 +705,7 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
             if (index == 0) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text(tx.letraSinSincronizar, style: KijiText.mono(size: 10)),
+                child: Text(tx.letraSinSincronizar, style: KijiText.mono(size: 10, color: _dark.muted)),
               );
             }
             final i = index - 1;
@@ -716,7 +727,7 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
                   children: [
                     Text(
                       lines[i],
-                      style: KijiText.title(size: 22 * scale, weight: FontWeight.w600).copyWith(height: 1.3),
+                      style: KijiText.title(size: 22 * scale, weight: FontWeight.w600, color: Colors.white).copyWith(height: 1.3),
                     ),
                     if (widget.translations != null &&
                         i < widget.translations!.length &&
@@ -768,12 +779,12 @@ class _Message extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 44, color: KijiColors.muted),
+            Icon(icon, size: 44, color: _dark.muted),
             const SizedBox(height: 12),
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: KijiColors.muted),
+              style: TextStyle(color: _dark.muted),
             ),
             if (actionLabel != null) ...[
               const SizedBox(height: 16),
@@ -836,8 +847,8 @@ class _LyricsBackdropState extends ConsumerState<LyricsBackdrop> {
               end: Alignment.bottomCenter,
               colors: [
                 accent.withValues(alpha: 0.4),
-                Color.lerp(accent, KijiColors.background, 0.75)!.withValues(alpha: 0.7),
-                KijiColors.background.withValues(alpha: 0.95),
+                Color.lerp(accent, _dark.background, 0.75)!.withValues(alpha: 0.7),
+                _dark.background.withValues(alpha: 0.95),
               ],
               stops: const [0, 0.45, 1],
             ),

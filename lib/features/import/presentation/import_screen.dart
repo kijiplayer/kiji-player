@@ -125,7 +125,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
-          Text(tx.traeTusPlaylistsMeGustaE, style: const TextStyle(color: KijiColors.muted)),
+          Text(tx.traeTusPlaylistsMeGustaE, style: TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 16),
           ..._stepWidgets(),
           if (history.isNotEmpty) ...[
@@ -137,7 +137,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                 title: Text(record.source),
                 subtitle: Text(
                   tx.playlistsSinEncontrar(_date(record.date), record.playlistIds.length, record.missing.length),
-                  style: const TextStyle(color: KijiColors.muted),
+                  style: TextStyle(color: KijiColors.muted),
                 ),
                 trailing: TextButton(onPressed: () => _confirmUndo(record), child: Text(tx.deshacer)),
               ),
@@ -189,12 +189,12 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                   for (final pl in plan.bundle.playlists.take(8))
                     Text(
                       '• ${pl.name} (${pl.songs.where((s) => plan.resolved.containsKey(s.key)).length})',
-                      style: const TextStyle(color: KijiColors.muted),
+                      style: TextStyle(color: KijiColors.muted),
                     ),
                   if (plan.bundle.playlists.length > 8)
-                    Text(tx.yMas(plan.bundle.playlists.length - 8), style: const TextStyle(color: KijiColors.muted)),
+                    Text(tx.yMas(plan.bundle.playlists.length - 8), style: TextStyle(color: KijiColors.muted)),
                   const SizedBox(height: 8),
-                  Text(tx.siYaTienesUnaPlaylistCon, style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
+                  Text(tx.siYaTienesUnaPlaylistCon, style: TextStyle(color: KijiColors.muted, fontSize: 12)),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 10,
@@ -235,7 +235,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                       for (final m in record.missing)
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('• $m', style: const TextStyle(color: KijiColors.muted)),
+                          child: Text('• $m', style: TextStyle(color: KijiColors.muted)),
                         ),
                     ],
                   ),
@@ -285,13 +285,13 @@ class _ExportSection extends ConsumerWidget {
         if (playlists.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(tx.todaviaNoTienesPlaylists, style: const TextStyle(color: KijiColors.muted)),
+            child: Text(tx.todaviaNoTienesPlaylists, style: TextStyle(color: KijiColors.muted)),
           ),
         for (final playlist in playlists)
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(playlist.name),
-            subtitle: Text(tx.nCanciones(playlist.tracks.length), style: const TextStyle(color: KijiColors.muted)),
+            subtitle: Text(tx.nCanciones(playlist.tracks.length), style: TextStyle(color: KijiColors.muted)),
             trailing: Wrap(
               spacing: 4,
               children: [

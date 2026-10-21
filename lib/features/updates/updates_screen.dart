@@ -41,7 +41,7 @@ Future<void> showReleaseSheet(BuildContext context, Release release) => showModa
         children: [
           Text(tx.kiji(release.version), style: KijiText.title(size: 22)),
           if (release.name != release.version && release.name != 'v${release.version}')
-            Text(release.name, style: const TextStyle(color: KijiColors.muted)),
+            Text(release.name, style: TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 12),
           Builder(
             builder: (_) {
@@ -51,7 +51,7 @@ Future<void> showReleaseSheet(BuildContext context, Release release) => showModa
             },
           ),
           const SizedBox(height: 16),
-          Text(tx.kijiNuncaSeActualizaSoloNi, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
+          Text(tx.kijiNuncaSeActualizaSoloNi, style: TextStyle(color: KijiColors.muted, fontSize: 13)),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => openReleasePage(release.url),

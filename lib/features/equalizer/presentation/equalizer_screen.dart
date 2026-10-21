@@ -47,7 +47,7 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
           if (!eq.supported)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(tx.enLaPcTodaviaNoHay, style: const TextStyle(color: KijiColors.muted)),
+              child: Text(tx.enLaPcTodaviaNoHay, style: TextStyle(color: KijiColors.muted)),
             ),
           Glass(
             blur: false,
@@ -130,7 +130,7 @@ class _EqualizerScreenState extends ConsumerState<EqualizerScreen> {
     if (bands == null) {
       return Text(
         eq.supported ? tx.lasBandasAparecenCuandoSuena : tx.enLaPcNoHayBandas,
-        style: const TextStyle(color: KijiColors.muted),
+        style: TextStyle(color: KijiColors.muted),
       );
     }
     final gains = profile.gainsFor(bands.centers, min: bands.minDb, max: bands.maxDb);

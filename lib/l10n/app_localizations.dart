@@ -6358,6 +6358,102 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{n, plural, =1{Se borró 1 descarga} other{Se borraron {n} descargas}}'**
   String nDescargasBorradas(int n);
+
+  /// No description provided for @tema.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema'**
+  String get tema;
+
+  /// No description provided for @temaDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Oscuro, más oscuro (negro puro) o claro'**
+  String get temaDescripcion;
+
+  /// No description provided for @temaOscuro.
+  ///
+  /// In es, this message translates to:
+  /// **'Oscuro'**
+  String get temaOscuro;
+
+  /// No description provided for @temaMasOscuro.
+  ///
+  /// In es, this message translates to:
+  /// **'Más oscuro (negro puro)'**
+  String get temaMasOscuro;
+
+  /// No description provided for @temaClaro.
+  ///
+  /// In es, this message translates to:
+  /// **'Claro'**
+  String get temaClaro;
+
+  /// No description provided for @colorDeAcento.
+  ///
+  /// In es, this message translates to:
+  /// **'Color de acento'**
+  String get colorDeAcento;
+
+  /// No description provided for @colorDeAcentoDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'El degradado de los botones, la onda y lo elegido'**
+  String get colorDeAcentoDescripcion;
+
+  /// No description provided for @acentoNocturne.
+  ///
+  /// In es, this message translates to:
+  /// **'Nocturne (violeta y cian)'**
+  String get acentoNocturne;
+
+  /// No description provided for @acentoAurora.
+  ///
+  /// In es, this message translates to:
+  /// **'Aurora (verde y violeta)'**
+  String get acentoAurora;
+
+  /// No description provided for @acentoEmber.
+  ///
+  /// In es, this message translates to:
+  /// **'Brasa (naranja y rosa)'**
+  String get acentoEmber;
+
+  /// No description provided for @acentoMint.
+  ///
+  /// In es, this message translates to:
+  /// **'Menta (verde y celeste)'**
+  String get acentoMint;
+
+  /// No description provided for @acentoOcean.
+  ///
+  /// In es, this message translates to:
+  /// **'Océano (azul y cian)'**
+  String get acentoOcean;
+
+  /// No description provided for @tipografia.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipografía'**
+  String get tipografia;
+
+  /// No description provided for @tipografiaDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema'**
+  String get tipografiaDescripcion;
+
+  /// No description provided for @tipografiaKiji.
+  ///
+  /// In es, this message translates to:
+  /// **'La de Kiji'**
+  String get tipografiaKiji;
+
+  /// No description provided for @tipografiaSistema.
+  ///
+  /// In es, this message translates to:
+  /// **'La del sistema'**
+  String get tipografiaSistema;
 }
 
 class _AppLocalizationsDelegate

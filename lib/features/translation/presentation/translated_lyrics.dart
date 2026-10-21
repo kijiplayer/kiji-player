@@ -141,7 +141,7 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
       return card([
         Text(
           tx.paraTraducirDelEnTuTelefono(languageName(plan.source).toLowerCase(), formatBytes(plan.missingBytes)),
-          style: const TextStyle(color: KijiColors.muted),
+          style: TextStyle(color: KijiPalette.nocturne.muted),
         ),
         if (_progress != null) ...[const SizedBox(height: 8), LinearProgressIndicator(value: _progress)],
         const SizedBox(height: 8),
@@ -162,7 +162,7 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
     }
     if (_message != null) {
       return card([
-        Text(_message!, style: const TextStyle(color: KijiColors.muted)),
+        Text(_message!, style: TextStyle(color: KijiPalette.nocturne.muted)),
         if (_offerLocal)
           Align(
             alignment: Alignment.centerRight,

@@ -195,7 +195,7 @@ class _ContinueCard extends ConsumerWidget {
                     track,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: KijiColors.muted),
+                    style: TextStyle(color: KijiColors.muted),
                   ),
                 ],
               ),
@@ -208,7 +208,7 @@ class _ContinueCard extends ConsumerWidget {
               child: Ink(
                 width: 48,
                 height: 48,
-                decoration: const BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
+                decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
                 child: InkWell(
                   onTap: () => ref.read(playbackProvider.notifier).togglePlayPause(),
                   child: Tooltip(
@@ -276,7 +276,7 @@ class _EmptyHome extends StatelessWidget {
         children: [
           Text(tx.eligeUnaCancion, style: KijiText.title(size: 20)),
           const SizedBox(height: 6),
-          Text(tx.loQueEscuchesApareceAquiTodo, style: const TextStyle(color: KijiColors.muted)),
+          Text(tx.loQueEscuchesApareceAquiTodo, style: TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 14),
           FilledButton.icon(onPressed: onSearch, icon: const Icon(Icons.search_rounded), label: Text(tx.buscarMusica)),
         ],
@@ -399,7 +399,7 @@ class _NewPlaylistCard extends ConsumerWidget {
                 border: Border.all(color: KijiColors.glassBorder),
                 color: KijiColors.glassFill,
               ),
-              child: const Icon(Icons.add_rounded, size: 44, color: KijiColors.cyan),
+              child: Icon(Icons.add_rounded, size: 44, color: KijiColors.cyan),
             ),
             const SizedBox(height: 8),
             Text(

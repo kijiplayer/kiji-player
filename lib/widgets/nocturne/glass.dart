@@ -59,13 +59,16 @@ class GradientBorder extends StatelessWidget {
     required this.child,
     this.radius = KijiRadii.card,
     this.width = 1,
-    this.fill = KijiColors.background,
+    this._fill,
   });
 
   final Widget child;
   final double radius;
   final double width;
-  final Color fill;
+  final Color? _fill;
+
+  /// Relleno de adentro; de fábrica, el fondo de la paleta activa.
+  Color get fill => _fill ?? KijiColors.background;
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +104,7 @@ class GlassIconButton extends StatelessWidget {
     this.size = 44,
     this.label,
     this.active = false,
+    this.foreground,
   });
 
   final IconData icon;
@@ -112,11 +116,14 @@ class GlassIconButton extends StatelessWidget {
   final String? label;
   final bool active;
 
+  /// Color del ícono en pantallas que son siempre oscuras (la letra), sea cual sea el tema.
+  final Color? foreground;
+
   @override
   Widget build(BuildContext context) {
     final color = onPressed == null
         ? KijiColors.muted.withValues(alpha: 0.4)
-        : (active ? KijiColors.cyan : Colors.white);
+        : (active ? KijiColors.cyan : foreground ?? KijiColors.text);
     final content = label == null
         ? SizedBox.square(dimension: size, child: Icon(icon, color: color, size: size * 0.5))
         : SizedBox(

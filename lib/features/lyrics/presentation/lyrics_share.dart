@@ -271,7 +271,7 @@ class _Background extends StatelessWidget {
         return Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: KijiColors.background),
+            ColoredBox(color: KijiColors.background),
             if (image != null)
               Image(
                 image: ResizeImage(image!, width: 24, height: 24),

@@ -175,7 +175,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           for (final query in recent.take(8))
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.history_rounded, color: KijiColors.muted),
+              leading: Icon(Icons.history_rounded, color: KijiColors.muted),
               title: Text(query, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: IconButton(
                 tooltip: tx.quitar,
@@ -233,11 +233,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 _search(query);
               },
               textInputAction: TextInputAction.search,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: KijiColors.text),
               decoration: InputDecoration(
                 hintText: tx.buscarCancionesArtistas,
-                hintStyle: const TextStyle(color: AppColors.onSurfaceMuted),
-                prefixIcon: const Icon(Icons.search_rounded, color: KijiColors.muted),
+                hintStyle: TextStyle(color: AppColors.onSurfaceMuted),
+                prefixIcon: Icon(Icons.search_rounded, color: KijiColors.muted),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               ),
@@ -262,7 +262,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       color: _kind == kind ? Colors.white : KijiColors.muted,
                       fontWeight: FontWeight.w600,
                     ),
-                    side: const BorderSide(color: KijiColors.glassBorder),
+                    side: BorderSide(color: KijiColors.glassBorder),
                     shape: const StadiumBorder(),
                     onSelected: (_) {
                       setState(() => _kind = kind);
@@ -289,13 +289,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return Center(
-        child: Text(_error!, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+        child: Text(_error!, style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
     if (_controller.text.trim().isEmpty) return _buildBeforeTyping();
     if (_collections.isEmpty) {
       return Center(
-        child: Text(tx.sinResultados, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+        child: Text(tx.sinResultados, style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
     return ListView.builder(
@@ -314,12 +314,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     if (query.trim().isEmpty) {
       return Center(
-        child: Text(tx.buscaEntreTuMusicaGuardadaY, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+        child: Text(tx.buscaEntreTuMusicaGuardadaY, style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
     if (results.isEmpty) {
       return Center(
-        child: Text(tx.noHayCoincidenciasEnTusArchivos, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+        child: Text(tx.noHayCoincidenciasEnTusArchivos, style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
     return ListView.builder(
@@ -344,13 +344,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
     if (_error != null) {
       return Center(
-        child: Text(_error!, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+        child: Text(_error!, style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
     if (_controller.text.trim().isEmpty) return _buildBeforeTyping();
     if (_results.isEmpty) {
       return Center(
-        child: Text(tx.sinResultados, style: const TextStyle(color: AppColors.onSurfaceMuted)),
+        child: Text(tx.sinResultados, style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
 
@@ -416,9 +416,9 @@ class _FallbackThumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
+    return ColoredBox(
       color: AppColors.surfaceContainer,
-      child: Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
+      child: const Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
     );
   }
 }

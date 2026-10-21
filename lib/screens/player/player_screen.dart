@@ -249,7 +249,7 @@ class _TitleRow extends ConsumerWidget {
                 track,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: KijiColors.muted, fontSize: 16),
+                style: TextStyle(color: KijiColors.muted, fontSize: 16),
               ),
             ],
           ),
@@ -258,8 +258,8 @@ class _TitleRow extends ConsumerWidget {
           downloaded
               ? Tooltip(
                   message: tx.descargadaSuenaSinConexion,
-                  child: const Padding(
-                    padding: EdgeInsets.all(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
                     child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
                   ),
                 )
@@ -268,14 +268,14 @@ class _TitleRow extends ConsumerWidget {
         IconButton(
           tooltip: tx.agregarAPlaylist,
           onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
-          icon: const Icon(Icons.playlist_add_rounded, color: Colors.white),
+          icon: Icon(Icons.playlist_add_rounded, color: KijiColors.text),
         ),
         IconButton(
           tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
           onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
           icon: Icon(
             liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            color: liked ? KijiColors.violet : Colors.white,
+            color: liked ? KijiColors.violet : KijiColors.text,
           ),
         ),
       ],
@@ -349,7 +349,7 @@ class PlaybackControlsRow extends ConsumerWidget {
           onPressed: notifier.previousTrack,
           icon: const Icon(Icons.skip_previous_rounded),
           iconSize: iconSize * 1.2,
-          color: Colors.white,
+          color: KijiColors.text,
         ),
         BreathingPlayButton(
           isPlaying: playback.isPlaying,
@@ -362,7 +362,7 @@ class PlaybackControlsRow extends ConsumerWidget {
           onPressed: notifier.nextTrack,
           icon: const Icon(Icons.skip_next_rounded),
           iconSize: iconSize * 1.2,
-          color: Colors.white,
+          color: KijiColors.text,
         ),
         IconButton(
           tooltip: repeatTooltip,

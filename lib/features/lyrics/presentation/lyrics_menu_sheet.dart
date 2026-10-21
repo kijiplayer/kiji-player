@@ -55,8 +55,8 @@ class LyricsMenuSheet extends ConsumerWidget {
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Material(
           color: const Color(0xCC0B0B12),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          shape: RoundedRectangleBorder(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             side: BorderSide(color: KijiColors.glassBorder),
           ),
           child: ConstrainedBox(

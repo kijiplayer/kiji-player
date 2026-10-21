@@ -177,7 +177,7 @@ Future<void> confirmPlaylistDownload(BuildContext context, WidgetRef ref, Playli
           Text(free == null ? tx.espacioLibreDesconocido : tx.espacioLibre(formatBytes(free))),
           if (downloads.settings.wifiOnly) ...[
             const SizedBox(height: 10),
-            Text(tx.tienesSoloConWifiSiNo, style: const TextStyle(color: KijiColors.muted)),
+            Text(tx.tienesSoloConWifiSiNo, style: TextStyle(color: KijiColors.muted)),
           ],
           if (!fits) ...[
             const SizedBox(height: 10),
@@ -261,7 +261,7 @@ class PlaylistDownloadCard extends ConsumerWidget {
             if (status.message != null)
               Padding(
                 padding: const EdgeInsets.only(top: 6, right: 8),
-                child: Text(status.message!, style: const TextStyle(color: KijiColors.muted, fontSize: 13)),
+                child: Text(status.message!, style: TextStyle(color: KijiColors.muted, fontSize: 13)),
               ),
             if (finished && status.failedIds.isNotEmpty)
               Padding(

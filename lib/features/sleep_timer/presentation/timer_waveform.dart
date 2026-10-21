@@ -77,10 +77,10 @@ class TimerWaveform extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.bedtime_outlined, size: 16, color: KijiColors.cyan),
+            Icon(Icons.bedtime_outlined, size: 16, color: KijiColors.cyan),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(tx.tocaLaOndaDondeQuieresQue, style: const TextStyle(color: KijiColors.cyan)),
+              child: Text(tx.tocaLaOndaDondeQuieresQue, style: TextStyle(color: KijiColors.cyan)),
             ),
             TextButton(
               onPressed: () => ref.read(sleepTimerMarkingProvider.notifier).state = false,

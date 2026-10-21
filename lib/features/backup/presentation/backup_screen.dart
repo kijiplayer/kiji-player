@@ -39,7 +39,7 @@ class BackupScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
-          Text(tx.unaCopiaDeTusPlaylistsMe, style: const TextStyle(color: KijiColors.muted)),
+          Text(tx.unaCopiaDeTusPlaylistsMe, style: TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 16),
           Glass(
             blur: false,
@@ -93,7 +93,7 @@ class BackupScreen extends ConsumerWidget {
           const SizedBox(height: 20),
           Text(tx.copias, style: KijiText.mono(size: 11)),
           const SizedBox(height: 8),
-          if (backup.copies.isEmpty) Text(tx.noHayCopiasEnEstaCarpeta, style: const TextStyle(color: KijiColors.muted)),
+          if (backup.copies.isEmpty) Text(tx.noHayCopiasEnEstaCarpeta, style: TextStyle(color: KijiColors.muted)),
           for (final copy in backup.copies)
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -112,7 +112,7 @@ class BackupScreen extends ConsumerWidget {
             label: Text(tx.restaurarDesdeUnArchivo),
           ),
           const SizedBox(height: 4),
-          Text(tx.porEjemploUnaCopiaDeOtro, style: const TextStyle(color: KijiColors.muted, fontSize: 12)),
+          Text(tx.porEjemploUnaCopiaDeOtro, style: TextStyle(color: KijiColors.muted, fontSize: 12)),
         ],
       ),
     );

@@ -2465,5 +2465,21 @@
   "@borrarNDescargas": {"placeholders": {"n": {"type": "int"}}},
   "borrarNDescargasTexto": "Se borra solo el audio guardado en Kiji; las canciones siguen en tus playlists y se pueden volver a bajar. Tus archivos de música no se tocan.",
   "nDescargasBorradas": "{n, plural, =1{Se borró 1 descarga} other{Se borraron {n} descargas}}",
-  "@nDescargasBorradas": {"placeholders": {"n": {"type": "int"}}}
+  "@nDescargasBorradas": {"placeholders": {"n": {"type": "int"}}},
+  "tema": "Tema",
+  "temaDescripcion": "Oscuro, más oscuro (negro puro) o claro",
+  "temaOscuro": "Oscuro",
+  "temaMasOscuro": "Más oscuro (negro puro)",
+  "temaClaro": "Claro",
+  "colorDeAcento": "Color de acento",
+  "colorDeAcentoDescripcion": "El degradado de los botones, la onda y lo elegido",
+  "acentoNocturne": "Nocturne (violeta y cian)",
+  "acentoAurora": "Aurora (verde y violeta)",
+  "acentoEmber": "Brasa (naranja y rosa)",
+  "acentoMint": "Menta (verde y celeste)",
+  "acentoOcean": "Océano (azul y cian)",
+  "tipografia": "Tipografía",
+  "tipografiaDescripcion": "La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema",
+  "tipografiaKiji": "La de Kiji",
+  "tipografiaSistema": "La del sistema"
 }

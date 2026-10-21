@@ -65,7 +65,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 KijiLogs.enabled
                     ? tx.elRegistroGuardadoOcupa(formatBytes(size))
                     : tx.elRegistroGuardadoEstaApagadoSolo,
-                style: const TextStyle(color: KijiColors.muted, height: 1.4),
+                style: TextStyle(color: KijiColors.muted, height: 1.4),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
@@ -89,7 +89,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               Text(tx.erroresDeEstaSesion, style: KijiText.mono(size: 11, color: KijiColors.cyan)),
               const SizedBox(height: 8),
               if (recent.isEmpty)
-                Text(tx.ninguno, style: const TextStyle(color: KijiColors.muted))
+                Text(tx.ninguno, style: TextStyle(color: KijiColors.muted))
               else
                 for (final r in recent)
                   ListTile(

@@ -66,7 +66,7 @@ class CollectionTile extends StatelessWidget {
         isArtist ? tx.artista : (collection.subtitle.isEmpty ? tx.album : collection.subtitle),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: KijiColors.muted),
+        style: TextStyle(color: KijiColors.muted),
       ),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () => openCollection(context, collection),
@@ -173,7 +173,7 @@ class _Header extends ConsumerWidget {
                         subtitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: KijiColors.muted),
+                        style: TextStyle(color: KijiColors.muted),
                       ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -212,7 +212,7 @@ Widget _loadingOrError(AsyncValue<Object?> value, VoidCallback retry) => value.h
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(tx.noSePudoAbrirRevisaTu, style: const TextStyle(color: KijiColors.muted)),
+              Text(tx.noSePudoAbrirRevisaTu, style: TextStyle(color: KijiColors.muted)),
               const SizedBox(height: 12),
               FilledButton(onPressed: retry, child: Text(tx.reintentar)),
             ],

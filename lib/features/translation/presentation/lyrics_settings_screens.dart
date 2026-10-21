@@ -48,7 +48,7 @@ class LyricsSourcesScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         header: Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Text(tx.kijiBuscaLaLetraPrimeroEn, style: const TextStyle(color: KijiColors.muted)),
+          child: Text(tx.kijiBuscaLaLetraPrimeroEn, style: TextStyle(color: KijiColors.muted)),
         ),
         onReorderItem: (from, to) {
           final next = [...order];
@@ -151,7 +151,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
         children: [
-          Text(tx.originalYTraduccionSeVenLinea, style: const TextStyle(color: KijiColors.muted)),
+          Text(tx.originalYTraduccionSeVenLinea, style: TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: settings.translationTarget,
@@ -170,14 +170,14 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
             const SizedBox(height: 8),
             Text(
               tx.motorYModelosDeFirefox,
-              style: const TextStyle(color: KijiColors.muted, fontSize: 12),
+              style: TextStyle(color: KijiColors.muted, fontSize: 12),
             ),
             const SizedBox(height: 8),
             Text(tx.idiomasBajados, style: KijiText.mono(size: 11)),
             if (_installed == null)
               const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator())
             else if (_installed!.isEmpty)
-              Text(tx.ningunoTodaviaSeBajanSolosAvisando, style: const TextStyle(color: KijiColors.muted))
+              Text(tx.ningunoTodaviaSeBajanSolosAvisando, style: TextStyle(color: KijiColors.muted))
             else
               for (final entry in _installed!.entries)
                 ListTile(
@@ -259,8 +259,8 @@ class GeminiConsentScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2, right: 10),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2, right: 10),
                     child: Icon(Icons.info_outline_rounded, size: 20, color: KijiColors.cyan),
                   ),
                   Expanded(child: Text(point)),
@@ -268,7 +268,7 @@ class GeminiConsentScreen extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 8),
-          Text(tx.siNoQuieresNadaDeEsto, style: const TextStyle(color: KijiColors.muted)),
+          Text(tx.siNoQuieresNadaDeEsto, style: TextStyle(color: KijiColors.muted)),
           const SizedBox(height: 24),
           FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(tx.entiendoActivar)),
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tx.mejorNo)),
@@ -431,7 +431,7 @@ class _GeminiSetupState extends ConsumerState<_GeminiSetup> {
         ] else if (settings.geminiModel != null)
           Text(
             tx.modelo2(settings.geminiModel!.replaceFirst('models/', '')),
-            style: const TextStyle(color: KijiColors.muted),
+            style: TextStyle(color: KijiColors.muted),
           ),
       ],
     );

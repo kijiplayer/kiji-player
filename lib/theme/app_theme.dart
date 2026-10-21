@@ -35,17 +35,20 @@ class KijiPageTransitionsBuilder extends PageTransitionsBuilder {
 abstract final class AppTheme {
   static ThemeData get dark => darkWith();
 
+  /// Tema de Material para la paleta activa ([KijiColors.palette]): oscuro, más oscuro o claro.
   static ThemeData darkWith({bool reduceMotion = false}) {
+    final brightness = KijiColors.palette.brightness;
     final colorScheme = ColorScheme.fromSeed(
       seedColor: KijiColors.violet,
-      brightness: Brightness.dark,
+      brightness: brightness,
       surface: KijiColors.surface,
     ).copyWith(
       primary: KijiColors.violet,
       secondary: KijiColors.cyan,
+      onSurface: KijiColors.text,
     );
 
-    final base = ThemeData(useMaterial3: true, brightness: Brightness.dark);
+    final base = ThemeData(useMaterial3: true, brightness: brightness);
     // Títulos en Space Grotesk; el cuerpo queda con la fuente del sistema.
     final textTheme = base.textTheme.copyWith(
       displaySmall: KijiText.title(size: 34),
@@ -70,10 +73,10 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
+        foregroundColor: KijiColors.text,
         titleTextStyle: KijiText.title(size: 22),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
+      bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: KijiColors.surfaceHigh,
         showDragHandle: true,
       ),
@@ -81,22 +84,22 @@ abstract final class AppTheme {
         backgroundColor: KijiColors.surfaceHigh,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(KijiRadii.card),
-          side: const BorderSide(color: KijiColors.glassBorder),
+          side: BorderSide(color: KijiColors.glassBorder),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: KijiColors.surfaceHigh,
-        contentTextStyle: const TextStyle(color: Colors.white),
+        contentTextStyle: TextStyle(color: KijiColors.text),
         actionTextColor: KijiColors.cyan,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(KijiRadii.tile),
-          side: const BorderSide(color: KijiColors.glassBorder),
+          side: BorderSide(color: KijiColors.glassBorder),
         ),
       ),
-      sliderTheme: const SliderThemeData(
+      sliderTheme: SliderThemeData(
         activeTrackColor: KijiColors.cyan,
-        thumbColor: Colors.white,
+        thumbColor: KijiColors.text,
         inactiveTrackColor: KijiColors.waveRest,
       ),
     );
