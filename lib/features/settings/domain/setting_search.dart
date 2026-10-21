@@ -79,5 +79,9 @@ bool settingMatches(
   // "cambiar" ni "red" encuentra "reducir".
   final tokens = haystack.split(RegExp(r'[^a-z0-9]+'));
   bool hasWord(String term) => term.length < 4 ? tokens.contains(term) : tokens.any((t) => t.startsWith(term));
-  return words.isNotEmpty && words.every((w) => haystack.contains(w) || _alternatives(w).any(hasWord));
+  // Lo escrito vale como comienzo de palabra: "anima" encuentra "animaciones", pero "tema" no
+  // encuentra "sistema".
+  bool typed(String w) =>
+      tokens.any((t) => t.startsWith(w)) || (w.contains(RegExp('[^a-z0-9]')) && haystack.contains(w));
+  return words.isNotEmpty && words.every((w) => typed(w) || _alternatives(w).any(hasWord));
 }

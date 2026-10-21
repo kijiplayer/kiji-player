@@ -131,6 +131,9 @@ void main() {
       expect(settingMatches('hora', title: 'Cambiar la carpeta', subtitle: 'Ampliar el espacio'), isFalse);
       expect(settingMatches('red', title: 'Reducir animaciones'), isTrue); // "red" escrito sí vale como texto
       expect(settingMatches('wifi', title: 'Reducir animaciones'), isFalse);
+      // Lo escrito tiene que ser el comienzo de una palabra.
+      expect(settingMatches('tema', title: 'Idioma', subtitle: 'Idioma del sistema'), isFalse);
+      expect(settingMatches('tema', title: 'Tema'), isTrue);
     });
   });
 
