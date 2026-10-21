@@ -84,18 +84,10 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
     final active = downloads.active.values.toList();
     final selecting = _selection.active;
 
-    return Column(
+    // La barra de la selección va encima (de las opciones de arriba): la lista no se corre.
+    return Stack(
       children: [
-        SelectionBar(
-          selection: _selection,
-          all: {for (final t in completed) t.videoId: t.toTrack()},
-          remove: SelectionRemoveAction(
-            label: tx.seleccionBorrarDescargas,
-            icon: Icons.delete_outline_rounded,
-            onRemove: (_, tracks) => deleteSelectedDownloads(context, ref, tracks),
-          ),
-        ),
-        Expanded(
+        Positioned.fill(
           child: ListView(
             padding: EdgeInsets.only(bottom: widget.bottomPadding),
             children: [
@@ -190,6 +182,20 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
                   ),
                 ),
             ],
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: SelectionBar(
+            selection: _selection,
+            all: {for (final t in completed) t.videoId: t.toTrack()},
+            remove: SelectionRemoveAction(
+              label: tx.seleccionBorrarDescargas,
+              icon: Icons.delete_outline_rounded,
+              onRemove: (_, tracks) => deleteSelectedDownloads(context, ref, tracks),
+            ),
           ),
         ),
       ],

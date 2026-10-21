@@ -459,84 +459,94 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
 
     return Scaffold(
       appBar: AppBar(),
-      body: Column(
+      // La barra de la selección va encima de la cabecera: la lista no se corre bajo el dedo.
+      body: Stack(
         children: [
-          _ListHeader(
-            cover: PlaylistCover(playlist: playlist, size: 84, radius: 14),
-            description: playlist.description,
-            title: playlist.name,
-            subtitle: playlist.importedFrom == null
-                ? _count(playlist.tracks.length)
-                : tx.importadaDe(_count(playlist.tracks.length), playlist.importedFrom),
-            tracks: playlist.tracks,
-            onMore: () => showPlaylistOptions(
-              context,
-              ref,
-              playlist,
-              onPlay: () => _play(ref, playlist.tracks),
-              onShuffle: () => _play(ref, playlist.tracks, shuffle: true),
-              onDelete: delete,
-            ),
-          ),
-          PlaylistDownloadCard(playlistId: playlist.id),
-          SelectionBar(
-            selection: _selection,
-            all: {for (final i in visible) '$i': playlist.tracks[i]},
-            remove: SelectionRemoveAction(
-              label: tx.quitarDeLaPlaylist,
-              icon: Icons.playlist_remove_rounded,
-              onRemove: (keys, _) async {
-                final removed = notifier.removeTracksAt(playlist.id, {for (final k in keys) int.parse(k)});
-                if (removed.isEmpty) return;
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(tx.nQuitadasDeLaPlaylist(removed.length)),
-                      duration: const Duration(seconds: 10),
-                      persist: false,
-                      action: SnackBarAction(
-                        label: tx.deshacer,
-                        onPressed: () => notifier.insertTracks(playlist.id, removed),
+          Column(
+            children: [
+              _ListHeader(
+                cover: PlaylistCover(playlist: playlist, size: 84, radius: 14),
+                description: playlist.description,
+                title: playlist.name,
+                subtitle: playlist.importedFrom == null
+                    ? _count(playlist.tracks.length)
+                    : tx.importadaDe(_count(playlist.tracks.length), playlist.importedFrom),
+                tracks: playlist.tracks,
+                onMore: () => showPlaylistOptions(
+                  context,
+                  ref,
+                  playlist,
+                  onPlay: () => _play(ref, playlist.tracks),
+                  onShuffle: () => _play(ref, playlist.tracks, shuffle: true),
+                  onDelete: delete,
+                ),
+              ),
+              PlaylistDownloadCard(playlistId: playlist.id),
+              if (fromYouTube > 0 && (downloaded > 0 || failed > 0))
+                _DownloadFilterBar(
+                  downloaded: downloaded,
+                  total: fromYouTube,
+                  failed: failed,
+                  filter: filter,
+                  onFilter: (f) {
+                    _selection.clear();
+                    setState(() => _filter = f);
+                  },
+                ),
+              Expanded(
+                child: filter == _TrackFilter.all
+                    ? ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
+                        padding: const EdgeInsets.only(bottom: 120),
+                        itemCount: playlist.tracks.length,
+                        onReorderItem: (from, to) {
+                          // Las claves son lugares: al mover, la selección ya no vale.
+                          _selection.clear();
+                          notifier.moveTrack(playlist.id, from, to);
+                        },
+                        itemBuilder: (context, index) => tile(index, reorderable: true),
+                      )
+                    : visible.isEmpty
+                    ? Center(
+                        child: Text(tx.ningunaCancionConEsteFiltro, style: TextStyle(color: KijiColors.muted)),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 120),
+                        itemCount: visible.length,
+                        itemBuilder: (context, i) => tile(visible[i], reorderable: false),
                       ),
-                    ),
-                  );
-              },
-            ),
+              ),
+            ],
           ),
-          if (fromYouTube > 0 && (downloaded > 0 || failed > 0))
-            _DownloadFilterBar(
-              downloaded: downloaded,
-              total: fromYouTube,
-              failed: failed,
-              filter: filter,
-              onFilter: (f) {
-                _selection.clear();
-                setState(() => _filter = f);
-              },
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SelectionBar(
+              selection: _selection,
+              all: {for (final i in visible) '$i': playlist.tracks[i]},
+              remove: SelectionRemoveAction(
+                label: tx.quitarDeLaPlaylist,
+                icon: Icons.playlist_remove_rounded,
+                onRemove: (keys, _) async {
+                  final removed = notifier.removeTracksAt(playlist.id, {for (final k in keys) int.parse(k)});
+                  if (removed.isEmpty) return;
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text(tx.nQuitadasDeLaPlaylist(removed.length)),
+                        duration: const Duration(seconds: 10),
+                        persist: false,
+                        action: SnackBarAction(
+                          label: tx.deshacer,
+                          onPressed: () => notifier.insertTracks(playlist.id, removed),
+                        ),
+                      ),
+                    );
+                },
+              ),
             ),
-          Expanded(
-            child: filter == _TrackFilter.all
-                ? ReorderableListView.builder(
-                    buildDefaultDragHandles: false,
-                    padding: const EdgeInsets.only(bottom: 120),
-                    itemCount: playlist.tracks.length,
-                    onReorderItem: (from, to) {
-                      // Las claves son lugares: al mover, la selección ya no vale.
-                      _selection.clear();
-                      notifier.moveTrack(playlist.id, from, to);
-                    },
-                    itemBuilder: (context, index) => tile(index, reorderable: true),
-                  )
-                : visible.isEmpty
-                ? Center(
-                    child: Text(tx.ningunaCancionConEsteFiltro, style: TextStyle(color: KijiColors.muted)),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 120),
-                    itemCount: visible.length,
-                    itemBuilder: (context, i) => tile(visible[i], reorderable: false),
-                  ),
           ),
         ],
       ),
