@@ -5,8 +5,12 @@
 // Todos llevan el mismo versionCode (se compila cada arquitectura por separado en vez de usar
 // --split-per-abi, que le suma un número distinto a cada una): así se puede pasar de uno a otro.
 // Al final muestra el SHA-256 de cada archivo y comprueba que estén firmados con la clave release.
+// Con `--sin-firma` no exige la clave release (prueba en GitHub Actions sin los Secrets cargados).
+// Funciona en Windows, Linux y macOS.
 
 import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 
 const _targets = {
   '': null, // universal
@@ -15,7 +19,8 @@ const _targets = {
   'x86_64': 'android-x64',
 };
 
-void main() async {
+void main(List<String> args) async {
+  final requireReleaseKey = !args.contains('--sin-firma');
   final version = RegExp(r'^version: ([^+\s]+)', multiLine: true)
       .firstMatch(File('pubspec.yaml').readAsStringSync())
       ?.group(1);
@@ -43,13 +48,10 @@ void main() async {
   for (final apk in built) {
     final cert = await Process.run(apksigner, ['verify', '--print-certs', apk.path], runInShell: true);
     final signer = RegExp(r'certificate DN: (.+)').firstMatch('${cert.stdout}')?.group(1)?.trim();
-    if (cert.exitCode != 0 || signer != 'CN=Kiji Player') _fail('${apk.path} no está firmado con la clave release.');
-    final hash = await Process.run('certutil', ['-hashfile', apk.path, 'SHA256'], runInShell: true);
-    final sha = '${hash.stdout}'.split('\n').map((l) => l.trim().replaceAll(' ', '')).firstWhere(
-          (l) => RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(l),
-          orElse: () => '?',
-        );
-    stdout.writeln('${apk.uri.pathSegments.last}  ${(apk.lengthSync() / 1048576).toStringAsFixed(1)} MB  ${sha.toLowerCase()}');
+    if (cert.exitCode != 0) _fail('${apk.path} no está firmado: ${cert.stderr}');
+    if (requireReleaseKey && signer != 'CN=Kiji Player') _fail('${apk.path} no está firmado con la clave release.');
+    final sha = sha256.convert(await apk.readAsBytes()).toString();
+    stdout.writeln('${apk.uri.pathSegments.last}  ${(apk.lengthSync() / 1048576).toStringAsFixed(1)} MB  $sha  ($signer)');
   }
 }
 

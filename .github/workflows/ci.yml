@@ -1,0 +1,75 @@
+# Análisis, pruebas y compilación de Android y Windows en cada subida a master y en cada PR.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  analizar-y-probar:
+    name: Análisis y pruebas (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Análisis
+        run: flutter analyze
+      - name: Pruebas
+        run: flutter test
+
+  android:
+    name: Compilar Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Parche de plugins viejos
+        run: dart run tool/patch_plugins.dart
+      # Sin la clave release (no hace falta para comprobar que compila): firma de depuración.
+      - name: APK release (Kiji)
+        run: flutter build apk --release --flavor prod
+      - name: APK de Kiji Dev
+        run: flutter build apk --debug --flavor dev
+
+  windows:
+    name: Compilar Windows
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Windows release
+        run: flutter build windows --release

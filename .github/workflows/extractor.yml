@@ -1,0 +1,73 @@
+# Prueba diaria del extractor contra YouTube real. Si falla, abre un issue (o comenta en el que
+# ya está abierto); cuando vuelve a andar, lo comenta y lo cierra. Qué hacer: docs/EXTRACTOR.md.
+name: Prueba diaria del extractor
+
+on:
+  schedule:
+    - cron: '17 9 * * *' # todos los días, 09:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+  TITULO: 'Prueba diaria del extractor: YouTube no da el audio'
+
+jobs:
+  extractor:
+    name: Extractor contra YouTube real
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+
+      - name: Prueba en vivo
+        id: prueba
+        continue-on-error: true
+        run: flutter test test_live/extractor_live_test.dart
+
+      - name: Resumen
+        if: always()
+        run: |
+          if [ -f build/extractor_live.md ]; then cat build/extractor_live.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Abrir o actualizar el issue
+        if: steps.prueba.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create extractor --color D93F0B --description "Extractor de YouTube" --force
+          gh label create error --color B60205 --description "Algo no funciona" --force
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          {
+            echo "La prueba diaria del extractor falló el $(date -u +%Y-%m-%d) ([ver la corrida]($run))."
+            echo
+            if [ -f build/extractor_live.md ]; then cat build/extractor_live.md; else echo "La prueba no llegó a escribir el resumen."; fi
+            echo
+            echo "Qué hacer: [docs/EXTRACTOR.md](../blob/master/docs/EXTRACTOR.md) → \"Diagnóstico paso a paso\"."
+          } > cuerpo.md
+          numero=$(gh issue list --state open --label extractor --search "in:title \"$TITULO\"" --json number --jq '.[0].number')
+          if [ -n "$numero" ]; then
+            gh issue comment "$numero" --body-file cuerpo.md
+          else
+            gh issue create --title "$TITULO" --label extractor --label error --body-file cuerpo.md
+          fi
+          exit 1
+
+      - name: Cerrar el issue si volvió a andar
+        if: steps.prueba.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          numero=$(gh issue list --state open --label extractor --search "in:title \"$TITULO\"" --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$numero" ]; then
+            gh issue close "$numero" --comment "La prueba diaria volvió a pasar el $(date -u +%Y-%m-%d)."
+          fi

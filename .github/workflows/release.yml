@@ -1,0 +1,170 @@
+# Release: al subir una etiqueta vX.Y.Z compila los 4 APK firmados y el instalador de Windows, y
+# crea la release de GitHub con las notas en inglés y español (desde fastlane).
+#
+# La clave de firma NO está en el repo: va en Settings → Secrets and variables → Actions:
+#   KIJI_KEYSTORE_BASE64   el archivo .jks en base64
+#   KIJI_KEYSTORE_PASSWORD contraseña del almacén
+#   KIJI_KEY_ALIAS         alias de la clave
+#   KIJI_KEY_PASSWORD      contraseña de la clave
+# Pasos en CONTRIBUTING.md → "Releases".
+#
+# "Run workflow" (a mano) es una prueba: compila todo y deja los archivos y las notas como
+# artefactos, pero NO publica nada. Si los Secrets no están cargados, firma con la clave de
+# depuración.
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  android:
+    name: APK firmados
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Parche de plugins viejos
+        run: dart run tool/patch_plugins.dart
+
+      - name: La etiqueta coincide con pubspec.yaml
+        if: github.ref_type == 'tag'
+        run: |
+          version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::La etiqueta $GITHUB_REF_NAME no coincide con la versión de pubspec.yaml ($version)."
+            exit 1
+          fi
+
+      - name: Clave de firma (desde los Secrets)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KIJI_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KIJI_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KIJI_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KIJI_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ "$GITHUB_REF_TYPE" = tag ]; then
+              echo "::error::Faltan los Secrets de la clave de firma (ver CONTRIBUTING.md → Releases)."
+              exit 1
+            fi
+            echo "::warning::Sin los Secrets de la clave: prueba firmada con la clave de depuración."
+            echo "SIN_FIRMA=--sin-firma" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          mkdir -p "$HOME/kiji-keys"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$HOME/kiji-keys/kiji-release.jks"
+          {
+            echo "storeFile=$HOME/kiji-keys/kiji-release.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > "$HOME/kiji-keys/key.properties"
+
+      - name: Compilar los 4 APK (universal y por arquitectura)
+        run: dart run tool/release_android.dart $SIN_FIRMA
+
+      - name: Borrar la clave del runner
+        if: always()
+        run: rm -rf "$HOME/kiji-keys"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: build/release/*.apk
+          if-no-files-found: error
+
+  windows:
+    name: Instalador de Windows
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Inno Setup 6
+        shell: pwsh
+        run: |
+          $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup --no-progress -y
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          "KIJI_ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Compilar el instalador
+        run: dart run tool/installer.dart
+      - name: Solo el instalador de esta versión
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version: ([^+\s]+)').Matches[0].Groups[1].Value
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item "build/installer/Kiji_Player_${version}_Windows_Setup.exe" dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*.exe
+          if-no-files-found: error
+
+  publicar:
+    name: Release de GitHub
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Notas en inglés y español (desde fastlane)
+        run: |
+          dart run tool/release_notes.dart dist notas.md
+          cat notas.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: notas
+          path: notas.md
+      - name: Crear la release (solo con una etiqueta)
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "Kiji Player $version" \
+            --notes-file notas.md \
+            --verify-tag \
+            --latest
