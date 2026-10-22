@@ -37,7 +37,7 @@ final smartListInputsProvider = Provider<SmartListInputs>(
     now: DateTime.now(),
     liked: ref.watch(favoritesProvider).values.toList(),
     history: ref.watch(listeningHistoryProvider),
-    downloaded: [for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack()],
+    downloaded: [for (final d in ref.watch(downloadsProvider.select((d) => d.completed)).values) d.toTrack()],
     local: ref.watch(localTracksProvider).value ?? const [],
   ),
 );

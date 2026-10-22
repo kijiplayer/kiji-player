@@ -84,73 +84,76 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
   @override
   Widget build(BuildContext context) {
     final size = widget.size;
-    return SizedBox.square(
-      dimension: size * 1.35,
-      child: AnimatedBuilder(
-        animation: _breath,
-        builder: (context, child) {
-          // Curva suave de "respiración" (0 → 1 → 0).
-          final t = Curves.easeInOut.transform(_breath.value);
-          final ringScale = 1.0 + 0.12 * t;
-          final ringOpacity = widget.isPlaying ? 0.35 + 0.35 * (1 - t) : 0.18;
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Transform.scale(
-                scale: ringScale,
-                child: Container(
-                  width: size * 1.18,
-                  height: size * 1.18,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(width: 2, color: KijiColors.cyan.withValues(alpha: ringOpacity)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: KijiColors.violet.withValues(alpha: 0.25 + 0.2 * t),
-                        blurRadius: 24 + 12 * t,
-                        spreadRadius: 1,
-                      ),
-                    ],
+    // Capa propia: el anillo que respira no obliga a redibujar el resto del reproductor.
+    return RepaintBoundary(
+      child: SizedBox.square(
+        dimension: size * 1.35,
+        child: AnimatedBuilder(
+          animation: _breath,
+          builder: (context, child) {
+            // Curva suave de "respiración" (0 → 1 → 0).
+            final t = Curves.easeInOut.transform(_breath.value);
+            final ringScale = 1.0 + 0.12 * t;
+            final ringOpacity = widget.isPlaying ? 0.35 + 0.35 * (1 - t) : 0.18;
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                Transform.scale(
+                  scale: ringScale,
+                  child: Container(
+                    width: size * 1.18,
+                    height: size * 1.18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(width: 2, color: KijiColors.cyan.withValues(alpha: ringOpacity)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: KijiColors.violet.withValues(alpha: 0.25 + 0.2 * t),
+                          blurRadius: 24 + 12 * t,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              child!,
-            ],
-          );
-        },
-        child: Semantics(
-          button: true,
-          label: widget.isPlaying ? tx.pausar : tx.reproducir,
-          child: Tooltip(
-            message: widget.isPlaying ? tx.pausar : tx.reproducir,
-            excludeFromSemantics: true,
-            child: Material(
-              shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              color: Colors.transparent,
-              child: Ink(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
-                child: InkWell(
-                  onTap: _tap,
-                  child: ScaleTransition(
-                    // Se achica un poco y vuelve con rebote.
-                    scale: _bounce.drive(
-                      TweenSequence([
-                        TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.82), weight: 30),
-                        TweenSequenceItem(
-                          tween: Tween(begin: 0.82, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
-                          weight: 70,
+                child!,
+              ],
+            );
+          },
+          child: Semantics(
+            button: true,
+            label: widget.isPlaying ? tx.pausar : tx.reproducir,
+            child: Tooltip(
+              message: widget.isPlaying ? tx.pausar : tx.reproducir,
+              excludeFromSemantics: true,
+              child: Material(
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                color: Colors.transparent,
+                child: Ink(
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
+                  child: InkWell(
+                    onTap: _tap,
+                    child: ScaleTransition(
+                      // Se achica un poco y vuelve con rebote.
+                      scale: _bounce.drive(
+                        TweenSequence([
+                          TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.82), weight: 30),
+                          TweenSequenceItem(
+                            tween: Tween(begin: 0.82, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)),
+                            weight: 70,
+                          ),
+                        ]),
+                      ),
+                      child: Center(
+                        child: AnimatedIcon(
+                          icon: AnimatedIcons.play_pause,
+                          progress: _morph,
+                          color: KijiColors.onAccent,
+                          size: size * 0.48,
                         ),
-                      ]),
-                    ),
-                    child: Center(
-                      child: AnimatedIcon(
-                        icon: AnimatedIcons.play_pause,
-                        progress: _morph,
-                        color: KijiColors.onAccent,
-                        size: size * 0.48,
                       ),
                     ),
                   ),

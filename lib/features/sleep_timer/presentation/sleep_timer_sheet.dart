@@ -108,7 +108,10 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
   }
 
   List<Widget> _choices(SleepTimerNotifier notifier) {
-    final playback = ref.watch(playbackProvider);
+    // Sin la posición (cambia varias veces por segundo): se lee recién al tocar.
+    final canPickMoment = ref.watch(
+      playbackProvider.select((p) => p.track != null && p.duration > Duration.zero),
+    );
     return [
       Text(tx.enUnosMinutos2, style: KijiText.mono(size: 11)),
       const SizedBox(height: 8),
@@ -177,8 +180,9 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         leading: Icon(Icons.timer_outlined, color: KijiColors.cyan),
         title: Text(SleepTimerMode.atPosition.label),
         subtitle: Text(tx.eligeElSegundoDeLaCancion),
-        enabled: playback.track != null && playback.duration > Duration.zero,
+        enabled: canPickMoment,
         onTap: () async {
+          final playback = ref.read(playbackProvider);
           final position = await showExactMomentDialog(context, playback.duration, playback.position);
           if (position == null) return;
           notifier.startAtPosition(position);
@@ -190,7 +194,7 @@ class _SleepTimerSheetState extends ConsumerState<_SleepTimerSheet> {
         leading: Icon(Icons.bedtime_outlined, color: KijiColors.cyan),
         title: Text(tx.marcarEnLaOnda),
         subtitle: Text(tx.tocaLaOndaDelReproductorDonde),
-        enabled: playback.track != null && playback.duration > Duration.zero,
+        enabled: canPickMoment,
         onTap: () {
           ref.read(sleepTimerMarkingProvider.notifier).state = true;
           Navigator.pop(context);

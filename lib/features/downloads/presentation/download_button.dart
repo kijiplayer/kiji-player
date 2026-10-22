@@ -29,13 +29,16 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     final videoId = widget.track.youtubeVideoId;
     if (videoId == null) return const SizedBox.shrink();
 
-    final downloads = ref.watch(downloadsProvider);
-    final active = downloads.active[videoId];
+    // Solo lo de ESTA canción: con varias descargas en curso, los demás botones de la lista no se
+    // redibujan con cada avance.
+    final (done, active) = ref.watch(
+      downloadsProvider.select((d) => (d.completed.containsKey(videoId), d.active[videoId])),
+    );
 
     if (_checking) {
       return const _Slot(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)));
     }
-    if (downloads.completed.containsKey(videoId)) {
+    if (done) {
       return IconButton(
         icon: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
         tooltip: tx.descargada,

@@ -26,6 +26,10 @@ abstract class JsChallengeSolver {
     List<String> n = const [],
     List<String> sig = const [],
   });
+
+  /// Cierra lo que tenga abierto (la WebView). Se llama al cerrar Kiji: en Windows, una WebView
+  /// destruida después de apagar el motor de Flutter cerraba la app con error.
+  Future<void> close();
 }
 
 class UnsupportedChallengeSolver implements JsChallengeSolver {
@@ -41,4 +45,7 @@ class UnsupportedChallengeSolver implements JsChallengeSolver {
     List<String> n = const [],
     List<String> sig = const [],
   }) async => ChallengeAnswers(error: tx.enEsteDispositivoNoHayWebview);
+
+  @override
+  Future<void> close() async {}
 }

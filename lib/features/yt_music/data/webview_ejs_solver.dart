@@ -16,6 +16,8 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../../utils/idle_closer.dart';
+
 import '../domain/js_challenge_solver.dart';
 
 /// Código del Web Worker: el solver de yt-dlp y las funciones propias. El
@@ -103,6 +105,36 @@ class WebViewEjsSolver implements JsChallengeSolver {
   String? _preparedHash;
   Future<void> _queue = Future.value();
 
+  /// La WebView se cierra tras 5 minutos sin uso (en Windows son varios procesos de Edge). El
+  /// reproductor preparado queda en disco: volver a abrirla tarda poco.
+  static const idleTimeout = Duration(minutes: 5);
+  late final IdleCloser _idle = IdleCloser(idleTimeout, () {
+    _queue = _queue.then((_) => _closeIdle('sin uso hace ${idleTimeout.inMinutes} min'));
+  });
+
+  @override
+  Future<void> close() {
+    _idle.cancel();
+    final done = _queue.then((_) => _closeIdle('Kiji se cierra'));
+    _queue = done;
+    return done;
+  }
+
+  Future<void> _closeIdle(String why) async {
+    final webView = _webView;
+    if (webView == null) return;
+    _webView = null;
+    _controller = null;
+    _starting = null;
+    _preparedHash = null;
+    try {
+      await webView.dispose();
+      debugPrint('=== YTM solver: WebView cerrada ($why) ===');
+    } catch (error) {
+      debugPrint('=== YTM solver: al cerrar la WebView: $error ===');
+    }
+  }
+
   /// Llama a una función del puente y decodifica su respuesta (texto JSON).
   static Future<Map<String, dynamic>> _call(
     InAppWebViewController controller,
@@ -135,6 +167,7 @@ class WebViewEjsSolver implements JsChallengeSolver {
     // De a un pedido por vez: la WebView es una sola.
     final result = _queue.then((_) => _solve(playerHash, playerJs, n, sig));
     _queue = result.then((_) {}, onError: (_) {});
+    result.whenComplete(_idle.touch).ignore();
     return result;
   }
 

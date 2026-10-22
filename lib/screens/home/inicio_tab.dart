@@ -48,7 +48,7 @@ class InicioTab extends ConsumerWidget {
     final top = HistoryLogic.forYou(history, excludeId: playback.track?.id, limit: 6);
     final downloaded = [
       for (final d in [
-        ...ref.watch(downloadsProvider).completed.values,
+        ...ref.watch(downloadsProvider.select((d) => d.completed)).values,
       ]..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt)))
         d.toTrack(),
     ].take(15).toList();

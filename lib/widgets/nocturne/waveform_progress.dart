@@ -100,67 +100,70 @@ class _WaveformProgressState extends State<WaveformProgress> with TickerProvider
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final count = max(8, (width / (widget.barWidth + widget.gap)).floor());
-        final bars = waveformBars(widget.seed, count);
-        final progress = (_drag ?? widget.progress).clamp(0.0, 1.0);
+    // Capa propia: la onda se anima sola sin redibujar lo que la rodea.
+    return RepaintBoundary(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final count = max(8, (width / (widget.barWidth + widget.gap)).floor());
+          final bars = waveformBars(widget.seed, count);
+          final progress = (_drag ?? widget.progress).clamp(0.0, 1.0);
 
-        return Semantics(
-          slider: true,
-          label: tx.progresoDeLaCancion,
-          value: '${(progress * 100).round()} %',
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapUp: (details) => widget.onSeek(_fraction(details.localPosition, width)),
-            onHorizontalDragStart: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
-            onHorizontalDragUpdate: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
-            onHorizontalDragEnd: (_) {
-              final value = _drag;
-              setState(() => _drag = null);
-              if (value != null) widget.onSeek(value);
-            },
-            child: SizedBox(
-              height: widget.height,
-              width: width,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: AnimatedBuilder(
-                      animation: Listenable.merge([_reveal, _live]),
-                      builder: (context, _) => CustomPaint(
-                        painter: _WaveformPainter(
-                          bars: bars,
-                          progress: progress,
-                          barWidth: widget.barWidth,
-                          gap: widget.gap,
-                          marker: widget.marker,
-                          reveal: Curves.easeOutCubic.transform(_reveal.value),
-                          phase: widget.alive ? _live.value : null,
+          return Semantics(
+            slider: true,
+            label: tx.progresoDeLaCancion,
+            value: '${(progress * 100).round()} %',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: (details) => widget.onSeek(_fraction(details.localPosition, width)),
+              onHorizontalDragStart: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
+              onHorizontalDragUpdate: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
+              onHorizontalDragEnd: (_) {
+                final value = _drag;
+                setState(() => _drag = null);
+                if (value != null) widget.onSeek(value);
+              },
+              child: SizedBox(
+                height: widget.height,
+                width: width,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge([_reveal, _live]),
+                        builder: (context, _) => CustomPaint(
+                          painter: _WaveformPainter(
+                            bars: bars,
+                            progress: progress,
+                            barWidth: widget.barWidth,
+                            gap: widget.gap,
+                            marker: widget.marker,
+                            reveal: Curves.easeOutCubic.transform(_reveal.value),
+                            phase: widget.alive ? _live.value : null,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  if (widget.marker != null)
-                    Positioned(
-                      left: (widget.marker!.clamp(0.0, 1.0) * width) - 9,
-                      top: -16,
-                      child: Icon(
-                        Icons.bedtime_rounded,
-                        key: const Key('waveform-moon'),
-                        size: 18,
-                        color: KijiColors.cyan,
-                        semanticLabel: tx.pausaDelTemporizador,
+                    if (widget.marker != null)
+                      Positioned(
+                        left: (widget.marker!.clamp(0.0, 1.0) * width) - 9,
+                        top: -16,
+                        child: Icon(
+                          Icons.bedtime_rounded,
+                          key: const Key('waveform-moon'),
+                          size: 18,
+                          color: KijiColors.cyan,
+                          semanticLabel: tx.pausaDelTemporizador,
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

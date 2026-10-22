@@ -112,7 +112,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   List<Track> _allSongs() {
     final settings = ref.watch(settingsProvider);
     return [
-      for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack(),
+      for (final d in ref.watch(downloadsProvider.select((d) => d.completed)).values) d.toTrack(),
       for (final track in _local)
         if (!settings.hides(track.durationMs)) track,
     ];
@@ -332,7 +332,10 @@ class _StorageCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final downloads = ref.watch(downloadsProvider);
+    // Solo cuando cambian las descargas terminadas (no con cada avance de una en curso): cada
+    // redibujado vuelve a medir el espacio en disco.
+    ref.watch(downloadsProvider.select((d) => (d.completed, d.directoryPath)));
+    final downloads = ref.read(downloadsProvider);
     return Glass(
       blur: false,
       padding: const EdgeInsets.all(16),

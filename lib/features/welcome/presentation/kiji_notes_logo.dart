@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -73,21 +72,23 @@ class _KijiNotesLogoState extends State<KijiNotesLogo> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: AnimatedBuilder(
-        animation: Listenable.merge([_intro, _breath]),
-        builder: (context, _) => CustomPaint(
-          size: Size.square(widget.size),
-          painter: KijiLogoPainter(
-            border: true,
-            grow: [
-              for (var i = 0; i < kijiLogoBars.length; i++)
-                Curves.easeOutBack.transform(
-                  ((_intro.value * _intro.duration!.inMilliseconds - _gap.inMilliseconds * i) / _grow.inMilliseconds)
-                      .clamp(0.0, 1.0),
-                ),
-            ],
-            breath: _breath.isAnimating ? _breath.value : null,
+    return RepaintBoundary(
+      child: ExcludeSemantics(
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_intro, _breath]),
+          builder: (context, _) => CustomPaint(
+            size: Size.square(widget.size),
+            painter: KijiLogoPainter(
+              border: true,
+              grow: [
+                for (var i = 0; i < kijiLogoBars.length; i++)
+                  Curves.easeOutBack.transform(
+                    ((_intro.value * _intro.duration!.inMilliseconds - _gap.inMilliseconds * i) / _grow.inMilliseconds)
+                        .clamp(0.0, 1.0),
+                  ),
+              ],
+              breath: _breath.isAnimating ? _breath.value : null,
+            ),
           ),
         ),
       ),

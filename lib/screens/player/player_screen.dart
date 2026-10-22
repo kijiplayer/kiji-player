@@ -72,7 +72,8 @@ class PlayerScreen extends ConsumerWidget {
       return Scaffold(body: Center(child: Text(tx.eligeUnaCancion)));
     }
     final downloaded =
-        track.youtubeVideoId != null && ref.watch(downloadsProvider).completed.containsKey(track.youtubeVideoId);
+        track.youtubeVideoId != null &&
+        ref.watch(downloadsProvider.select((d) => d.completed.containsKey(track.youtubeVideoId)));
 
     return Scaffold(
       body: Stack(
@@ -318,7 +319,9 @@ class PlaybackControlsRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.watch(
-      playbackProvider.select((s) => (repeatMode: s.repeatMode, shuffleEnabled: s.shuffleEnabled, isPlaying: s.isPlaying)),
+      playbackProvider.select(
+        (s) => (repeatMode: s.repeatMode, shuffleEnabled: s.shuffleEnabled, isPlaying: s.isPlaying),
+      ),
     );
     final notifier = ref.read(playbackProvider.notifier);
     final iconSize = compact ? 24.0 : 30.0;

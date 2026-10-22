@@ -50,6 +50,9 @@ dependencies:
   crop_your_image: ^2.0.1
   image: ^4.12.0
 
+  # PC: cerrar la ventana en orden (y, desde la 0.7.0, la bandeja del sistema).
+  window_manager: ^0.5.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

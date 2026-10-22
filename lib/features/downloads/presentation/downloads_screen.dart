@@ -88,99 +88,115 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
     return Stack(
       children: [
         Positioned.fill(
-          child: ListView(
-            padding: EdgeInsets.only(bottom: widget.bottomPadding),
-            children: [
-              _SettingsCard(downloads: downloads),
-              if (active.any((d) => d.status == ActiveDownloadStatus.failed))
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
-                    label: Text(
-                      tx.conErrorVerCuales(active.where((d) => d.status == ActiveDownloadStatus.failed).length),
-                    ),
-                    onPressed: () => showFailedDownloadsSheet(context, ref),
-                  ),
-                ),
-              if (active.isNotEmpty) ...[
-                _SectionTitle(tx.descargando),
-                for (final download in active)
-                  ListTile(
-                    leading: _Cover(color: download.track.coverColor),
-                    title: TrackTitleText(download.track, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(
-                      download.status == ActiveDownloadStatus.failed
-                          ? download.errorMessage ?? tx.falloLaDescarga
-                          : download.status == ActiveDownloadStatus.queued
-                          ? tx.enCola
-                          : download.total == null
-                          ? formatBytes(download.received)
-                          : tx.bytesDe(formatBytes(download.received), formatBytes(download.total!)),
-                      maxLines: 2,
-                    ),
-                    trailing: DownloadButton(track: download.track),
-                    onTap: download.status == ActiveDownloadStatus.failed && download.track.youtubeVideoId != null
-                        ? () => showDownloadFailureSheet(context, ref, download.track.youtubeVideoId!)
-                        : null,
-                  ),
-              ],
-              _SectionTitle(
-                completed.isEmpty
-                    ? tx.todaviaNoDescargasteNada
-                    : '${tx.nCanciones(completed.length)} · ${formatBytes(downloads.usedBytes)}',
-              ),
-              if (completed.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(tx.buscaUnaCancionYTocaEl, style: TextStyle(color: AppColors.onSurfaceMuted)),
-                ),
-              for (final (index, track) in completed.indexed)
-                ListTile(
-                  selected: _selection.contains(track.videoId),
-                  selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
-                  leading: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (selecting) ...[
-                        SelectionCheck(selected: _selection.contains(track.videoId)),
-                        const SizedBox(width: 10),
-                      ],
-                      _Cover(
-                        color: track.coverColor,
-                        imagePath: track.thumbnailFileName == null || downloads.directoryPath == null
-                            ? null
-                            : p.join(downloads.directoryPath!, track.thumbnailFileName!),
+          // Lo de arriba como lista común; las descargadas, de a poco (pueden ser cientos).
+          child: CustomScrollView(
+            slivers: [
+              SliverList.list(
+                children: [
+                  _SettingsCard(downloads: downloads),
+                  if (active.any((d) => d.status == ActiveDownloadStatus.failed))
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
+                        label: Text(
+                          tx.conErrorVerCuales(active.where((d) => d.status == ActiveDownloadStatus.failed).length),
+                        ),
+                        onPressed: () => showFailedDownloadsSheet(context, ref),
                       ),
-                    ],
+                    ),
+                  if (active.isNotEmpty) ...[
+                    _SectionTitle(tx.descargando),
+                    for (final download in active)
+                      ListTile(
+                        leading: _Cover(color: download.track.coverColor),
+                        title: TrackTitleText(download.track, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(
+                          download.status == ActiveDownloadStatus.failed
+                              ? download.errorMessage ?? tx.falloLaDescarga
+                              : download.status == ActiveDownloadStatus.queued
+                              ? tx.enCola
+                              : download.total == null
+                              ? formatBytes(download.received)
+                              : tx.bytesDe(formatBytes(download.received), formatBytes(download.total!)),
+                          maxLines: 2,
+                        ),
+                        trailing: DownloadButton(track: download.track),
+                        onTap: download.status == ActiveDownloadStatus.failed && download.track.youtubeVideoId != null
+                            ? () => showDownloadFailureSheet(context, ref, download.track.youtubeVideoId!)
+                            : null,
+                      ),
+                  ],
+                  _SectionTitle(
+                    completed.isEmpty
+                        ? tx.todaviaNoDescargasteNada
+                        : '${tx.nCanciones(completed.length)} · ${formatBytes(downloads.usedBytes)}',
                   ),
-                  title: TrackTitleText(track.toTrack(), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(
-                    '${track.artist} · ${formatBytes(track.sizeBytes)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    tooltip: tx.borrarDescarga,
-                    color: AppColors.onSurfaceMuted,
-                    onPressed: () => confirmDeleteDownload(context, ref, track.title, track.videoId),
-                  ),
-                  onTap: selecting
-                      ? () => _selection.toggle(track.videoId, track.toTrack())
-                      : () => _playAll(ref, completed, index),
-                  // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
-                  onLongPress: () => _selection.toggle(track.videoId, track.toTrack()),
+                  if (completed.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(tx.buscaUnaCancionYTocaEl, style: TextStyle(color: AppColors.onSurfaceMuted)),
+                    ),
+                ],
+              ),
+              SliverList.builder(
+                itemCount: completed.length,
+                itemBuilder: (context, index) {
+                  final track = completed[index];
+                  return ListTile(
+                    selected: _selection.contains(track.videoId),
+                    selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (selecting) ...[
+                          SelectionCheck(selected: _selection.contains(track.videoId)),
+                          const SizedBox(width: 10),
+                        ],
+                        _Cover(
+                          color: track.coverColor,
+                          imagePath: track.thumbnailFileName == null || downloads.directoryPath == null
+                              ? null
+                              : p.join(downloads.directoryPath!, track.thumbnailFileName!),
+                        ),
+                      ],
+                    ),
+                    title: TrackTitleText(track.toTrack(), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    subtitle: Text(
+                      '${track.artist} · ${formatBytes(track.sizeBytes)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      tooltip: tx.borrarDescarga,
+                      color: AppColors.onSurfaceMuted,
+                      onPressed: () => confirmDeleteDownload(context, ref, track.title, track.videoId),
+                    ),
+                    onTap: selecting
+                        ? () => _selection.toggle(track.videoId, track.toTrack())
+                        : () => _playAll(ref, completed, index),
+                    // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
+                    onLongPress: () => _selection.toggle(track.videoId, track.toTrack()),
+                  );
+                },
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    if (completed.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: OutlinedButton.icon(
+                          onPressed: () => confirmDeleteAllDownloads(context, ref, completed.length),
+                          icon: const Icon(Icons.delete_sweep_outlined),
+                          label: Text(tx.borrarTodasLasDescargas),
+                        ),
+                      ),
+                    SizedBox(height: widget.bottomPadding),
+                  ],
                 ),
-              if (completed.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: OutlinedButton.icon(
-                    onPressed: () => confirmDeleteAllDownloads(context, ref, completed.length),
-                    icon: const Icon(Icons.delete_sweep_outlined),
-                    label: Text(tx.borrarTodasLasDescargas),
-                  ),
-                ),
+              ),
             ],
           ),
         ),

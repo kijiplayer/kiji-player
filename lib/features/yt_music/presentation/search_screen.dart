@@ -309,7 +309,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _buildMyFiles() {
     final query = _controller.text;
     final local = ref.watch(localTracksProvider).value ?? const <Track>[];
-    final downloaded = [for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack()];
+    final downloaded = [for (final d in ref.watch(downloadsProvider.select((d) => d.completed)).values) d.toTrack()];
     final results = filterMyFiles([...downloaded, ...local], query);
 
     if (query.trim().isEmpty) {

@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
 import 'features/dev_tools/dev_build.dart';
+import 'features/desktop/desktop_window.dart';
 import 'features/dev_tools/frame_stats.dart';
 import 'features/migrations/data_migrations.dart';
 import 'features/reports/data/error_reporter.dart';
@@ -18,6 +19,11 @@ import 'utils/startup_log.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Caché de imágenes decodificadas: las carátulas ya se decodifican al tamaño en pantalla
+  // (album_cover.dart), así que 64 MB y 300 imágenes alcanzan (de fábrica: 100 MB y 1000).
+  PaintingBinding.instance.imageCache
+    ..maximumSizeBytes = 64 << 20
+    ..maximumSize = 300;
   // Registro en memoria para ver en vivo en Kiji Dev.
   AppLog.install();
   // Registro del arranque (bug de Windows): cada fase con su tiempo.
@@ -49,8 +55,14 @@ Future<void> main() async {
     }
   }, limit: const Duration(seconds: 20));
 
+  // PC: la ventana se cierra en orden (guardar y cerrar las WebView antes de apagar el motor).
+  await StartupLog.guard('ventana', DesktopWindow.init, limit: const Duration(seconds: 5));
+
   // Windows y Linux: just_audio no trae motor propio; usa media_kit (libmpv).
   // En Android/iOS/macOS no hace nada.
+  // Búfer de cada reproductor de mpv: 8 MB son más de 6 minutos de audio (de fábrica son 32 MB,
+  // y con la mezcla entre canciones hay dos reproductores).
+  JustAudioMediaKit.bufferSize = 8 * 1024 * 1024;
   JustAudioMediaKit.ensureInitialized(windows: true, linux: true);
   StartupLog.mark('media_kit registrado');
 

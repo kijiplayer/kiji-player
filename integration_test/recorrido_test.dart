@@ -440,7 +440,10 @@ void main() {
     final flutterErrors = <String>[];
     final previous = FlutterError.onError;
     FlutterError.onError = (details) {
-      final frame = details.stack.toString().split('\n').where((l) => l.contains('package:kiji_player/')).firstOrNull;
+      // En los desbordes, Flutter dice qué widget fue ("…/lib/x.dart:12:3"): eso sirve más que la pila.
+      final culprit = RegExp(r'lib[\\/][\w\\/]+\.dart:\d+').firstMatch(details.toString())?.group(0);
+      final frame =
+          culprit ?? details.stack.toString().split('\n').where((l) => l.contains('package:kiji_player/')).firstOrNull;
       flutterErrors.add('[$_where] ${details.exceptionAsString().split('\n').first} · ${frame?.trim() ?? 'sin pila de Kiji'}');
     };
     ErrorReporter.instance.reset();
@@ -529,6 +532,18 @@ void main() {
     await run(tester, 'oscuro-grande', window: const Size(1440, 900), online: true, fresh: false, theme: 'darker',
         accent: 'aurora');
   }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Ventana mínima (360 × 560), en inglés', (tester) async {
+    await run(tester, 'minima-en', window: const Size(360, 560), online: false, fresh: false, language: 'en');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Ventana ancha y baja (1000 × 560), tema claro', (tester) async {
+    await run(tester, 'ancha-baja', window: const Size(1000, 560), online: false, fresh: false, theme: 'light');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Usuario nuevo en ventana mínima', (tester) async {
+    await run(tester, 'nuevo-minima', window: const Size(360, 560), online: false, fresh: true);
+  }, timeout: const Timeout(Duration(minutes: 5)));
 
   testWidgets('Con datos, sin internet', (tester) async {
     await run(tester, 'sin-internet', window: const Size(1100, 800), online: false, fresh: false);

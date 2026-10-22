@@ -40,8 +40,7 @@ class PlayerHalo extends ConsumerStatefulWidget {
 }
 
 class _PlayerHaloState extends ConsumerState<PlayerHalo> with SingleTickerProviderStateMixin {
-  late final AnimationController _beat =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+  late final AnimationController _beat = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
   late Color _color = _coverColors[widget.track.id] ?? widget.track.coverColor;
   String? _pendingFor;
 
@@ -61,12 +60,15 @@ class _PlayerHaloState extends ConsumerState<PlayerHalo> with SingleTickerProvid
     _color = widget.track.coverColor;
     if (image == null || _pendingFor == id) return;
     _pendingFor = id;
-    ColorScheme.fromImageProvider(provider: image, brightness: Brightness.dark).then((scheme) {
-      _coverColors[id] = scheme.primary;
-      if (mounted && widget.track.id == id) setState(() => _color = scheme.primary);
-    }, onError: (Object error) {
-      debugPrint('=== REPRODUCTOR: sin color de la carátula ($error) ===');
-    });
+    ColorScheme.fromImageProvider(provider: image, brightness: Brightness.dark).then(
+      (scheme) {
+        _coverColors[id] = scheme.primary;
+        if (mounted && widget.track.id == id) setState(() => _color = scheme.primary);
+      },
+      onError: (Object error) {
+        debugPrint('=== REPRODUCTOR: sin color de la carátula ($error) ===');
+      },
+    );
   }
 
   @override
@@ -78,29 +80,32 @@ class _PlayerHaloState extends ConsumerState<PlayerHalo> with SingleTickerProvid
     } else if ((!widget.playing || still) && _beat.isAnimating) {
       _beat.stop();
     }
-    return TweenAnimationBuilder<Color?>(
-      tween: ColorTween(end: _color),
-      duration: still ? Duration.zero : const Duration(milliseconds: 700),
-      builder: (context, color, _) => AnimatedBuilder(
-        animation: _beat,
-        builder: (context, _) {
-          final t = Curves.easeInOut.transform(_beat.value);
-          final c = color ?? _color;
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0, -0.35),
-                radius: 0.95 + 0.05 * t,
-                colors: [
-                  c.withValues(alpha: 0.42 + 0.08 * t),
-                  c.withValues(alpha: 0.12),
-                  KijiColors.background,
-                ],
-                stops: const [0, 0.45, 1],
+    // Capa propia: el halo late sin redibujar la carátula ni los controles.
+    return RepaintBoundary(
+      child: TweenAnimationBuilder<Color?>(
+        tween: ColorTween(end: _color),
+        duration: still ? Duration.zero : const Duration(milliseconds: 700),
+        builder: (context, color, _) => AnimatedBuilder(
+          animation: _beat,
+          builder: (context, _) {
+            final t = Curves.easeInOut.transform(_beat.value);
+            final c = color ?? _color;
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.35),
+                  radius: 0.95 + 0.05 * t,
+                  colors: [
+                    c.withValues(alpha: 0.42 + 0.08 * t),
+                    c.withValues(alpha: 0.12),
+                    KijiColors.background,
+                  ],
+                  stops: const [0, 0.45, 1],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -131,10 +136,7 @@ class CoverMotion extends ConsumerWidget {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
-              position: Tween<Offset>(
-                begin: Offset(incoming ? 0.35 : -0.35, 0),
-                end: Offset.zero,
-              ).animate(animation),
+              position: Tween<Offset>(begin: Offset(incoming ? 0.35 : -0.35, 0), end: Offset.zero).animate(animation),
               child: child,
             ),
           );

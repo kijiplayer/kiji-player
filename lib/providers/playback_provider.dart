@@ -872,6 +872,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   // Memoria de reproducción
   // ---------------------------------------------------------------------
 
+  /// Guarda ya la cola y la posición (al cerrar la ventana en la PC, antes de apagar todo).
+  Future<void> saveNow() => _saveState();
+
   Future<void> _saveState() async {
     final queue = state.queue;
     if (queue.isEmpty || !ref.read(settingsProvider).rememberQueue) return;
