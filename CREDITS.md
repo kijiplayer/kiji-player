@@ -81,6 +81,9 @@ personas que los construyen y mantienen.
 | [flutter_svg](https://pub.dev/packages/flutter_svg) | MIT | Mostrar el logo (`assets/branding/kiji_logo.svg`) dentro de la app. |
 | [flutter_launcher_icons](https://pub.dev/packages/flutter_launcher_icons) (solo para desarrollo) | MIT | Generar el ícono adaptable de Android y el `.ico` de Windows desde el logo. |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (JetBrains) | SIL OFL 1.1 | Tipografía de tiempos y números, incluida en `assets/fonts/jetbrains_mono/` (con su `OFL.txt`). |
+| [window_manager](https://pub.dev/packages/window_manager) (LeanFlutter) | MIT | PC: cerrar la ventana en orden, tamaño mínimo y ocultarla en la bandeja. |
+| [tray_manager](https://pub.dev/packages/tray_manager) (LeanFlutter) | MIT | PC: ícono y menú de Kiji en la bandeja del sistema. |
+| [hotkey_manager](https://pub.dev/packages/hotkey_manager) (LeanFlutter) | MIT | PC: atajos de teclado globales (play/pausa, siguiente, anterior). |
 
 ## Cómo mantener este archivo
 

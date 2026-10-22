@@ -52,6 +52,8 @@ dependencies:
 
   # PC: cerrar la ventana en orden (y, desde la 0.7.0, la bandeja del sistema).
   window_manager: ^0.5.2
+  tray_manager: ^0.5.3
+  hotkey_manager: ^0.2.3
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +78,8 @@ flutter:
     - assets/translation/
     # Las 5 notas de Kiji (bienvenida); se generan con tool/make_kiji_notes.py.
     - assets/sounds/kiji_notes.wav
+    # Ícono de la bandeja del sistema (PC).
+    - assets/tray/
     # "Novedades de esta versión": las mismas notas de la tienda de apps (una por compilación).
     - fastlane/metadata/android/es-ES/changelogs/
     - fastlane/metadata/android/en-US/changelogs/

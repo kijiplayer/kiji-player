@@ -6460,6 +6460,156 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{n, plural, =1{No sonaba nada: empieza a sonar 1 canción} other{No sonaba nada: empiezan a sonar {n} canciones}}'**
   String nEmpiezanASonar(int n);
+
+  /// No description provided for @seccionPc.
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC'**
+  String get seccionPc;
+
+  /// No description provided for @alCerrarLaVentana.
+  ///
+  /// In es, this message translates to:
+  /// **'Al cerrar la ventana'**
+  String get alCerrarLaVentana;
+
+  /// No description provided for @alCerrarDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir sonando en la bandeja del sistema o cerrar Kiji del todo'**
+  String get alCerrarDescripcion;
+
+  /// No description provided for @alCerrarPreguntar.
+  ///
+  /// In es, this message translates to:
+  /// **'Preguntar'**
+  String get alCerrarPreguntar;
+
+  /// No description provided for @alCerrarBandeja.
+  ///
+  /// In es, this message translates to:
+  /// **'Minimizar a la bandeja'**
+  String get alCerrarBandeja;
+
+  /// No description provided for @alCerrarSalir.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir de Kiji'**
+  String get alCerrarSalir;
+
+  /// No description provided for @cerrarDialogoTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué hace la ✕?'**
+  String get cerrarDialogoTitulo;
+
+  /// No description provided for @cerrarDialogoTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede seguir sonando en la bandeja del sistema, junto al reloj, o cerrarse del todo. Puedes cambiarlo en Configuración → En la PC.'**
+  String get cerrarDialogoTexto;
+
+  /// No description provided for @bandejaAbrir.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir Kiji'**
+  String get bandejaAbrir;
+
+  /// No description provided for @bandejaSalir.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir'**
+  String get bandejaSalir;
+
+  /// No description provided for @atajosGlobales.
+  ///
+  /// In es, this message translates to:
+  /// **'Atajos globales'**
+  String get atajosGlobales;
+
+  /// No description provided for @atajosGlobalesDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Controlan la música aunque Kiji no esté al frente o esté en la bandeja'**
+  String get atajosGlobalesDescripcion;
+
+  /// No description provided for @atajoPlayPausa.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducir o pausar'**
+  String get atajoPlayPausa;
+
+  /// No description provided for @atajoSiguiente.
+  ///
+  /// In es, this message translates to:
+  /// **'Canción siguiente'**
+  String get atajoSiguiente;
+
+  /// No description provided for @atajoAnterior.
+  ///
+  /// In es, this message translates to:
+  /// **'Canción anterior'**
+  String get atajoAnterior;
+
+  /// No description provided for @atajoSinAsignar.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin asignar'**
+  String get atajoSinAsignar;
+
+  /// No description provided for @atajoGrabar.
+  ///
+  /// In es, this message translates to:
+  /// **'Presiona la combinación, con Ctrl, Alt, Shift o Win'**
+  String get atajoGrabar;
+
+  /// No description provided for @atajoNecesitaModificador.
+  ///
+  /// In es, this message translates to:
+  /// **'Tiene que llevar Ctrl, Alt, Shift o Win (o ser una tecla F)'**
+  String get atajoNecesitaModificador;
+
+  /// No description provided for @atajoEnUso.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese atajo ya lo usa otra acción'**
+  String get atajoEnUso;
+
+  /// No description provided for @atajosDeFabrica.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a los de fábrica'**
+  String get atajosDeFabrica;
+
+  /// No description provided for @atajosAviso.
+  ///
+  /// In es, this message translates to:
+  /// **'Si otro programa ya usa la misma combinación, en Kiji no va a funcionar: elige otra.'**
+  String get atajosAviso;
+
+  /// No description provided for @controlesDeWindows.
+  ///
+  /// In es, this message translates to:
+  /// **'Controles multimedia de Windows'**
+  String get controlesDeWindows;
+
+  /// No description provided for @controlesDeWindowsDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'La canción aparece en el control de volumen y la pantalla de bloqueo; las teclas multimedia funcionan siempre'**
+  String get controlesDeWindowsDescripcion;
+
+  /// No description provided for @teclaEspacio.
+  ///
+  /// In es, this message translates to:
+  /// **'Espacio'**
+  String get teclaEspacio;
+
+  /// No description provided for @atajoOcupado.
+  ///
+  /// In es, this message translates to:
+  /// **'Otro programa ya usa este atajo: elige otro'**
+  String get atajoOcupado;
 }
 
 class _AppLocalizationsDelegate

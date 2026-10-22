@@ -4004,4 +4004,87 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get seccionPc => 'On the computer';
+
+  @override
+  String get alCerrarLaVentana => 'When closing the window';
+
+  @override
+  String get alCerrarDescripcion =>
+      'Keep playing in the system tray or quit Kiji completely';
+
+  @override
+  String get alCerrarPreguntar => 'Ask';
+
+  @override
+  String get alCerrarBandeja => 'Minimize to tray';
+
+  @override
+  String get alCerrarSalir => 'Quit Kiji';
+
+  @override
+  String get cerrarDialogoTitulo => 'What should ✕ do?';
+
+  @override
+  String get cerrarDialogoTexto =>
+      'Kiji can keep playing in the system tray, next to the clock, or quit completely. You can change this in Settings → On the computer.';
+
+  @override
+  String get bandejaAbrir => 'Open Kiji';
+
+  @override
+  String get bandejaSalir => 'Quit';
+
+  @override
+  String get atajosGlobales => 'Global shortcuts';
+
+  @override
+  String get atajosGlobalesDescripcion =>
+      'Control the music even when Kiji is in the background or in the tray';
+
+  @override
+  String get atajoPlayPausa => 'Play or pause';
+
+  @override
+  String get atajoSiguiente => 'Next song';
+
+  @override
+  String get atajoAnterior => 'Previous song';
+
+  @override
+  String get atajoSinAsignar => 'Not set';
+
+  @override
+  String get atajoGrabar =>
+      'Press the combination, with Ctrl, Alt, Shift or Win';
+
+  @override
+  String get atajoNecesitaModificador =>
+      'It needs Ctrl, Alt, Shift or Win (or an F key)';
+
+  @override
+  String get atajoEnUso => 'That shortcut is already used by another action';
+
+  @override
+  String get atajosDeFabrica => 'Restore defaults';
+
+  @override
+  String get atajosAviso =>
+      'If another program already uses the same combination, it won\'t work in Kiji: pick another one.';
+
+  @override
+  String get controlesDeWindows => 'Windows media controls';
+
+  @override
+  String get controlesDeWindowsDescripcion =>
+      'The song shows up in the volume flyout and the lock screen; media keys always work';
+
+  @override
+  String get teclaEspacio => 'Space';
+
+  @override
+  String get atajoOcupado =>
+      'Another program already uses this shortcut: pick another one';
 }

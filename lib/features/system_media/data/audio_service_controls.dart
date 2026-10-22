@@ -28,6 +28,8 @@ class AudioServiceControls implements SystemMediaControls {
         androidNotificationChannelId: 'io.github.kijiplayer.kiji.playback',
         androidNotificationChannelName: tx.reproduccion2,
         androidNotificationChannelDescription: tx.controlesDeLaMusicaQueEsta,
+        // El logo de Kiji en blanco (res/drawable/ic_stat_kiji.xml); el de la app sale como un círculo.
+        androidNotificationIcon: 'drawable/ic_stat_kiji',
         // En pausa, la notificación se puede descartar deslizándola.
         androidStopForegroundOnPause: true,
       ),

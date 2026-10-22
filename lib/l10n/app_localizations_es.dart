@@ -4013,4 +4013,86 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get seccionPc => 'En la PC';
+
+  @override
+  String get alCerrarLaVentana => 'Al cerrar la ventana';
+
+  @override
+  String get alCerrarDescripcion =>
+      'Seguir sonando en la bandeja del sistema o cerrar Kiji del todo';
+
+  @override
+  String get alCerrarPreguntar => 'Preguntar';
+
+  @override
+  String get alCerrarBandeja => 'Minimizar a la bandeja';
+
+  @override
+  String get alCerrarSalir => 'Salir de Kiji';
+
+  @override
+  String get cerrarDialogoTitulo => '¿Qué hace la ✕?';
+
+  @override
+  String get cerrarDialogoTexto =>
+      'Kiji puede seguir sonando en la bandeja del sistema, junto al reloj, o cerrarse del todo. Puedes cambiarlo en Configuración → En la PC.';
+
+  @override
+  String get bandejaAbrir => 'Abrir Kiji';
+
+  @override
+  String get bandejaSalir => 'Salir';
+
+  @override
+  String get atajosGlobales => 'Atajos globales';
+
+  @override
+  String get atajosGlobalesDescripcion =>
+      'Controlan la música aunque Kiji no esté al frente o esté en la bandeja';
+
+  @override
+  String get atajoPlayPausa => 'Reproducir o pausar';
+
+  @override
+  String get atajoSiguiente => 'Canción siguiente';
+
+  @override
+  String get atajoAnterior => 'Canción anterior';
+
+  @override
+  String get atajoSinAsignar => 'Sin asignar';
+
+  @override
+  String get atajoGrabar =>
+      'Presiona la combinación, con Ctrl, Alt, Shift o Win';
+
+  @override
+  String get atajoNecesitaModificador =>
+      'Tiene que llevar Ctrl, Alt, Shift o Win (o ser una tecla F)';
+
+  @override
+  String get atajoEnUso => 'Ese atajo ya lo usa otra acción';
+
+  @override
+  String get atajosDeFabrica => 'Volver a los de fábrica';
+
+  @override
+  String get atajosAviso =>
+      'Si otro programa ya usa la misma combinación, en Kiji no va a funcionar: elige otra.';
+
+  @override
+  String get controlesDeWindows => 'Controles multimedia de Windows';
+
+  @override
+  String get controlesDeWindowsDescripcion =>
+      'La canción aparece en el control de volumen y la pantalla de bloqueo; las teclas multimedia funcionan siempre';
+
+  @override
+  String get teclaEspacio => 'Espacio';
+
+  @override
+  String get atajoOcupado => 'Otro programa ya usa este atajo: elige otro';
 }

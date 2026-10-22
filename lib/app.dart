@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
+import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
 import 'features/playback_extras/data/playback_automation.dart';
@@ -44,6 +45,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     // PC: al cerrar la ventana, guardar la cola antes de salir (ver DesktopWindow).
     DesktopWindow.instance.beforeExit = () => ref.read(playbackProvider.notifier).saveNow();
+    // PC: bandeja del sistema y atajos globales.
+    watchDesktop(ref);
     // Actualizaciones: como mucho una consulta por día, si está prendido.
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
     // Salud del Extractor: pruebas automáticas con canciones de control.

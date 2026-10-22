@@ -2,6 +2,8 @@
 // Archivos de referencia: app/src/main/kotlin/.../ui/screens/settings/ (secciones) y
 // SearchableSettings.kt (buscador de opciones).
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,6 +16,9 @@ import '../../../utils/clock_format.dart';
 import '../../../widgets/kiji_logo.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../backup/data/backup_notifier.dart';
+import '../../desktop/desktop_hotkeys.dart';
+import '../../desktop/desktop_settings.dart';
+import '../../desktop/desktop_window.dart';
 import '../../dev_tools/dev_build.dart';
 import '../../dev_tools/dev_tools_screen.dart';
 import '../../backup/presentation/backup_screen.dart';
@@ -45,6 +50,7 @@ import '../../welcome/presentation/welcome_screen.dart';
 /// Secciones de Configuración, en el orden en que se muestran.
 enum SettingsSection {
   player(Icons.play_circle_outline_rounded),
+  desktop(Icons.desktop_windows_outlined),
   content(Icons.library_music_outlined),
   lyrics(Icons.lyrics_outlined),
   appearance(Icons.palette_outlined),
@@ -60,6 +66,7 @@ enum SettingsSection {
   const SettingsSection(this.icon);
   String get label => switch (this) {
     SettingsSection.player => tx.reproductorYAudio,
+    SettingsSection.desktop => tx.seccionPc,
     SettingsSection.content => tx.contenido,
     SettingsSection.lyrics => tx.letras2,
     SettingsSection.appearance => tx.apariencia,
@@ -323,6 +330,56 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(resumeOnBluetooth: value)),
         ),
       ),
+      // En la PC (bandeja, atajos globales, controles de Windows)
+      if (DesktopWindow.isDesktop) ...[
+        SettingOption(
+          section: SettingsSection.desktop,
+          title: tx.alCerrarLaVentana,
+          subtitle: tx.alCerrarDescripcion,
+          keywords: const ['bandeja', 'tray', 'minimizar', 'cerrar', 'fondo', 'background', 'salir', 'quit'],
+          builder: (context, ref) => const CloseActionTile(),
+        ),
+        SettingOption(
+          section: SettingsSection.desktop,
+          title: tx.atajosGlobales,
+          subtitle: tx.atajosGlobalesDescripcion,
+          keywords: const ['teclado', 'keyboard', 'hotkey', 'shortcut', 'atajo', 'tecla', 'global'],
+          builder: (context, ref) => Column(
+            children: [
+              SwitchListTile(
+                secondary: const Icon(Icons.keyboard_rounded),
+                title: Text(tx.atajosGlobales),
+                subtitle: Text(tx.atajosGlobalesDescripcion),
+                value: ref.watch(settingsProvider.select((s) => s.globalHotkeys)),
+                onChanged: (value) =>
+                    ref.read(settingsProvider.notifier).update((s) => s.copyWith(globalHotkeys: value)),
+              ),
+              for (final action in HotkeyAction.values) HotkeyTile(action: action),
+              if (ref.watch(settingsProvider.select((s) => s.hotkeys.isNotEmpty)))
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () =>
+                        ref.read(settingsProvider.notifier).update((s) => s.copyWith(hotkeys: const {})),
+                    child: Text(tx.atajosDeFabrica),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (Platform.isWindows)
+          SettingOption(
+            section: SettingsSection.desktop,
+            title: tx.controlesDeWindows,
+            subtitle: tx.controlesDeWindowsDescripcion,
+            keywords: const ['smtc', 'multimedia', 'media', 'teclas', 'keys', 'bloqueo', 'lock', 'volumen'],
+            builder: (context, ref) => ListTile(
+              leading: const Icon(Icons.music_video_outlined),
+              title: Text(tx.controlesDeWindows),
+              subtitle: Text(tx.controlesDeWindowsDescripcion),
+            ),
+          ),
+      ],
       // Contenido
       SettingOption(
         section: SettingsSection.content,

@@ -37,6 +37,9 @@ class AppSettings {
     this.font = 'kiji',
     this.lyricsSize = 'normal',
     this.lastSeenVersion,
+    this.closeAction = 'ask',
+    this.globalHotkeys = false,
+    this.hotkeys = const {},
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -65,6 +68,9 @@ class AppSettings {
 
   /// Tamaño de la letra de las canciones.
   static const lyricsSizes = ['small', 'normal', 'large'];
+
+  /// PC: qué hace la ✕ de la ventana. 'ask' pregunta la primera vez.
+  static const closeActions = ['ask', 'tray', 'exit'];
 
   /// Duración mínima para no ser "audio corto" (sonidos de juegos, avisos).
   static const shortAudioMs = 30 * 1000;
@@ -159,6 +165,16 @@ class AppSettings {
   /// Última versión cuyas novedades se mostraron (para "Novedades de esta versión").
   final String? lastSeenVersion;
 
+  /// PC: al cerrar la ventana, 'ask' (preguntar), 'tray' (seguir en la bandeja) o 'exit'.
+  final String closeAction;
+
+  /// PC: atajos de teclado que funcionan aunque Kiji no esté al frente. Apagados de fábrica.
+  final bool globalHotkeys;
+
+  /// PC: atajo de cada acción ('playPause', 'next', 'previous'), como lo guarda hotkey_manager.
+  /// Las acciones que faltan usan el de fábrica.
+  final Map<String, Map<String, dynamic>> hotkeys;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -191,6 +207,9 @@ class AppSettings {
     String? font,
     String? lyricsSize,
     String? lastSeenVersion,
+    String? closeAction,
+    bool? globalHotkeys,
+    Map<String, Map<String, dynamic>>? hotkeys,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -223,6 +242,9 @@ class AppSettings {
         font: font ?? this.font,
         lyricsSize: lyricsSize ?? this.lyricsSize,
         lastSeenVersion: lastSeenVersion ?? this.lastSeenVersion,
+        closeAction: closeAction ?? this.closeAction,
+        globalHotkeys: globalHotkeys ?? this.globalHotkeys,
+        hotkeys: hotkeys ?? this.hotkeys,
       );
 
   Map<String, dynamic> toJson() => {
@@ -257,6 +279,9 @@ class AppSettings {
         'font': font,
         'lyricsSize': lyricsSize,
         if (lastSeenVersion != null) 'lastSeenVersion': lastSeenVersion,
+        'closeAction': closeAction,
+        'globalHotkeys': globalHotkeys,
+        'hotkeys': hotkeys,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -302,6 +327,13 @@ class AppSettings {
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,
       lastSeenVersion: json['lastSeenVersion'] is String ? json['lastSeenVersion'] as String : null,
+      closeAction: closeActions.contains(json['closeAction']) ? json['closeAction'] as String : d.closeAction,
+      globalHotkeys: read('globalHotkeys', d.globalHotkeys),
+      hotkeys: {
+        if (json['hotkeys'] is Map)
+          for (final MapEntry(:key, :value) in (json['hotkeys'] as Map).entries)
+            if (key is String && value is Map) key: Map<String, dynamic>.from(value),
+      },
     );
   }
 

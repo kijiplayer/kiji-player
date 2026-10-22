@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../models/track.dart';
 import '../domain/system_media_controls.dart';
 import 'audio_service_controls.dart';
+import 'windows_media_controls.dart';
 
 /// Elige los controles del sistema según la plataforma.
 Future<SystemMediaControls> createSystemMediaControls() async {
@@ -10,8 +11,16 @@ Future<SystemMediaControls> createSystemMediaControls() async {
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS);
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
+    try {
+      return await WindowsMediaControls.init() ?? const NoSystemMediaControls();
+    } catch (error) {
+      debugPrint('=== CONTROLES: no se pudieron iniciar los de Windows: $error ===');
+      return const NoSystemMediaControls();
+    }
+  }
   if (!supported) {
-    // Windows y Linux: sin controles del sistema (las teclas multimedia van por los atajos).
+    // Linux: sin controles del sistema (las teclas multimedia van por los atajos).
     return const NoSystemMediaControls();
   }
   try {

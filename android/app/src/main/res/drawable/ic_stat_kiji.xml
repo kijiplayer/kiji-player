@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícono chico de la notificación: la "K de onda" del logo, en blanco (Android la pinta del color
+     del sistema). Sale de assets/branding/kiji_logo.svg, sin el fondo. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="132"
+    android:viewportHeight="132">
+    <group android:translateX="-42" android:translateY="-34">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M58,46 a8,8 0 0 1 8,8 v92 a8,8 0 0 1 -16,0 v-92 a8,8 0 0 1 8,-8 z M87,88 a7,7 0 0 1 7,7 v10 a7,7 0 0 1 -14,0 v-10 a7,7 0 0 1 7,-7 z M111,76 a7,7 0 0 1 7,7 v34 a7,7 0 0 1 -14,0 v-34 a7,7 0 0 1 7,-7 z M135,62 a7,7 0 0 1 7,7 v62 a7,7 0 0 1 -14,0 v-62 a7,7 0 0 1 7,-7 z M159,48 a7,7 0 0 1 7,7 v90 a7,7 0 0 1 -14,0 v-90 a7,7 0 0 1 7,-7 z" />
+    </group>
+</vector>

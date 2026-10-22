@@ -28,6 +28,10 @@ class DesktopWindow with WindowListener {
   /// Qué hacer antes de salir (guardar la cola, etc.). Lo pone la app.
   Future<void> Function()? beforeExit;
 
+  /// Qué hacer con la ✕: true si la app ya se encargó (Kiji quedó en la bandeja o el usuario se
+  /// arrepintió) y no hay que salir. Lo pone la app; sin él, la ✕ cierra Kiji.
+  Future<bool> Function()? onCloseRequested;
+
   bool _exiting = false;
 
   /// Tamaño mínimo de la ventana.
@@ -60,7 +64,17 @@ class DesktopWindow with WindowListener {
   }
 
   @override
-  void onWindowClose() => unawaited(exit());
+  void onWindowClose() => unawaited(_onClose());
+
+  Future<void> _onClose() async {
+    final decide = onCloseRequested;
+    try {
+      if (decide != null && await decide()) return;
+    } catch (error) {
+      debugPrint('=== VENTANA: no se pudo decidir qué hacer al cerrar: $error ===');
+    }
+    await exit();
+  }
 
   /// Sale de Kiji en orden. Cada paso tiene un tiempo máximo: nada puede dejar la ventana colgada.
   Future<void> exit() async {

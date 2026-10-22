@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- audio_service busca el ícono de la notificación por nombre: que la reducción de recursos de la
+     versión publicada no lo borre. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_kiji" />
