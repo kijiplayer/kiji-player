@@ -572,41 +572,45 @@ class _DownloadFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget chip(_TrackFilter value, String label) => Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(label: Text(label), selected: filter == value, onSelected: (_) => onFilter(value)),
-    );
+    Widget chip(_TrackFilter value, String label) =>
+        ChoiceChip(label: Text(label), selected: filter == value, onSelected: (_) => onFilter(value));
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // Con letra grande el conteo no cabe en una sola fila.
+          Wrap(
+            spacing: 10,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(
-                downloaded == total ? Icons.download_done_rounded : Icons.download_rounded,
-                size: 18,
-                color: KijiColors.cyan,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    downloaded == total ? Icons.download_done_rounded : Icons.download_rounded,
+                    size: 18,
+                    color: KijiColors.cyan,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(tx.deDescargadas(downloaded, total), style: KijiText.mono(size: 13, color: KijiColors.text)),
+                ],
               ),
-              const SizedBox(width: 6),
-              Text(tx.deDescargadas(downloaded, total), style: KijiText.mono(size: 13, color: KijiColors.text)),
-              if (failed > 0) ...[
-                const SizedBox(width: 10),
-                Text(tx.conError(failed), style: KijiText.mono(size: 13, color: downloadWarningColor)),
-              ],
+              if (failed > 0) Text(tx.conError(failed), style: KijiText.mono(size: 13, color: downloadWarningColor)),
             ],
           ),
           const SizedBox(height: 6),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                chip(_TrackFilter.all, tx.todas),
-                chip(_TrackFilter.downloaded, tx.descargadas),
-                chip(_TrackFilter.missing, tx.sinDescargar),
-                if (failed > 0) chip(_TrackFilter.failed, tx.conError2),
-              ],
-            ),
+          // En un celular angosto la fila se cortaba: los chips bajan de línea.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              chip(_TrackFilter.all, tx.todas),
+              chip(_TrackFilter.downloaded, tx.descargadas),
+              chip(_TrackFilter.missing, tx.sinDescargar),
+              if (failed > 0) chip(_TrackFilter.failed, tx.conError2),
+            ],
           ),
         ],
       ),
