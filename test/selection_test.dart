@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -98,4 +99,65 @@ void main() {
     expect(removedKeys, {'a', 'b'});
     expect(selection.active, isFalse);
   });
+
+  testWidgets('Esc cierra la selección y Ctrl+A elige todas', (tester) async {
+    final selection = TrackSelection();
+    final all = {'a': _t('a'), 'b': _t('b'), 'c': _t('c')};
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(body: SelectionBar(selection: selection, all: all)),
+        ),
+      ),
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _pulsarCtrlA(tester);
+    expect(selection.active, isFalse);
+
+    selection.toggle('b', _t('b'));
+    await tester.pump();
+    await _pulsarCtrlA(tester);
+    expect(selection.keys, {'a', 'b', 'c'});
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    expect(selection.active, isFalse);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _pulsarCtrlA(tester);
+    expect(selection.active, isFalse);
+  });
+
+  testWidgets('Esc y Ctrl+A no actúan mientras se escribe', (tester) async {
+    final selection = TrackSelection();
+    final all = {'a': _t('a'), 'b': _t('b')};
+    selection.toggle('a', _t('a'));
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const TextField(),
+                SelectionBar(selection: selection, all: all),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _pulsarCtrlA(tester);
+    expect(selection.keys, {'a'});
+  });
+}
+
+Future<void> _pulsarCtrlA(WidgetTester tester) async {
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+  await tester.sendKeyDownEvent(LogicalKeyboardKey.keyA);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.keyA);
+  await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
 }
