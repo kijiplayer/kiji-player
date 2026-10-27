@@ -95,25 +95,26 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
             final t = Curves.easeInOut.transform(_breath.value);
             final ringScale = 1.0 + 0.12 * t;
             final ringOpacity = widget.isPlaying ? 0.35 + 0.35 * (1 - t) : 0.18;
+            final glowOpacity = (0.25 + 0.2 * t) / 0.45;
             return Stack(
               alignment: Alignment.center,
               children: [
+                // El brillo y el anillo se dibujan una sola vez (capas propias) y solo se escalan y
+                // atenúan: recalcular la sombra desenfocada en cada cuadro costaba tiempo de dibujo.
                 Transform.scale(
                   scale: ringScale,
-                  child: Container(
-                    width: size * 1.18,
-                    height: size * 1.18,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(width: 2, color: KijiColors.cyan.withValues(alpha: ringOpacity)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: KijiColors.violet.withValues(alpha: 0.25 + 0.2 * t),
-                          blurRadius: 24 + 12 * t,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Opacity(
+                        opacity: glowOpacity.clamp(0.0, 1.0),
+                        child: _RingGlow(size: size * 1.18),
+                      ),
+                      Opacity(
+                        opacity: (ringOpacity / 0.7).clamp(0.0, 1.0),
+                        child: _Ring(size: size * 1.18),
+                      ),
+                    ],
                   ),
                 ),
                 child!,
@@ -165,6 +166,46 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
       ),
     );
   }
+}
+
+/// Brillo violeta detrás del anillo (con la intensidad máxima; se atenúa con Opacity).
+class _RingGlow extends StatelessWidget {
+  const _RingGlow({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: SizedBox.square(
+      dimension: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: KijiColors.violet.withValues(alpha: 0.45), blurRadius: 30, spreadRadius: 1)],
+        ),
+      ),
+    ),
+  );
+}
+
+/// El anillo cian de 2 px (con la opacidad máxima; se atenúa con Opacity).
+class _Ring extends StatelessWidget {
+  const _Ring({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: SizedBox.square(
+      dimension: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(width: 2, color: KijiColors.cyan.withValues(alpha: 0.7)),
+        ),
+      ),
+    ),
+  );
 }
 
 /// El anillo solo se anima mientras suena y si no se pidió reducir

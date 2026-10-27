@@ -6610,6 +6610,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Otro programa ya usa este atajo: elige otro'**
   String get atajoOcupado;
+
+  /// No description provided for @modoAltoRendimiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo alto rendimiento'**
+  String get modoAltoRendimiento;
+
+  /// No description provided for @modoAltoRendimientoDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Animaciones a la máxima frecuencia de la pantalla, más partículas, desenfoques reales y colores más intensos. Gasta más batería.'**
+  String get modoAltoRendimientoDescripcion;
+
+  /// No description provided for @modoAltoRendimientoGamaBaja.
+  ///
+  /// In es, this message translates to:
+  /// **'Este equipo es de gama baja: te conviene dejarlo apagado.'**
+  String get modoAltoRendimientoGamaBaja;
+
+  /// No description provided for @modoAltoRendimientoPantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu pantalla llega a {hz} Hz.'**
+  String modoAltoRendimientoPantalla(int hz);
+
+  /// No description provided for @modoAltoRendimientoConfirmar.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Prenderlo igual?'**
+  String get modoAltoRendimientoConfirmar;
+
+  /// No description provided for @modoAltoRendimientoConfirmarTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'En este equipo puede ir más lento y gastar más batería. Puedes apagarlo cuando quieras.'**
+  String get modoAltoRendimientoConfirmarTexto;
+
+  /// No description provided for @prenderIgual.
+  ///
+  /// In es, this message translates to:
+  /// **'Prender igual'**
+  String get prenderIgual;
 }
 
 class _AppLocalizationsDelegate

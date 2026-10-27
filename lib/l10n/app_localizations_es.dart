@@ -4095,4 +4095,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get atajoOcupado => 'Otro programa ya usa este atajo: elige otro';
+
+  @override
+  String get modoAltoRendimiento => 'Modo alto rendimiento';
+
+  @override
+  String get modoAltoRendimientoDescripcion =>
+      'Animaciones a la máxima frecuencia de la pantalla, más partículas, desenfoques reales y colores más intensos. Gasta más batería.';
+
+  @override
+  String get modoAltoRendimientoGamaBaja =>
+      'Este equipo es de gama baja: te conviene dejarlo apagado.';
+
+  @override
+  String modoAltoRendimientoPantalla(int hz) {
+    return 'Tu pantalla llega a $hz Hz.';
+  }
+
+  @override
+  String get modoAltoRendimientoConfirmar => '¿Prenderlo igual?';
+
+  @override
+  String get modoAltoRendimientoConfirmarTexto =>
+      'En este equipo puede ir más lento y gastar más batería. Puedes apagarlo cuando quieras.';
+
+  @override
+  String get prenderIgual => 'Prender igual';
 }

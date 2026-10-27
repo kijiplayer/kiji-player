@@ -191,6 +191,20 @@ abstract final class KijiSizes {
   static const progressLine = 2.0;
 }
 
+/// Efectos visuales elegidos en Configuración → Apariencia. KijiApp los pone al abrir y al
+/// cambiarlos (y redibuja todo), igual que la paleta.
+abstract final class KijiEffects {
+  /// "Modo alto rendimiento": animaciones a la frecuencia máxima de la pantalla, más partículas,
+  /// desenfoques reales y colores más intensos. Apagado de fábrica.
+  static bool rich = false;
+
+  /// "Reducir animaciones" de Kiji (el del sistema se mira con MediaQuery en cada widget).
+  static bool calm = false;
+
+  /// true si hay que evitar el movimiento decorativo en [context].
+  static bool still(BuildContext context) => calm || MediaQuery.disableAnimationsOf(context);
+}
+
 abstract final class KijiMotion {
   /// Transiciones de 200-300 ms.
   static const fast = Duration(milliseconds: 200);

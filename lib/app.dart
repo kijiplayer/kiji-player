@@ -7,6 +7,7 @@ import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
 import 'features/playback_extras/data/playback_automation.dart';
 import 'features/extractor/data/auto_tests.dart';
+import 'features/performance/device_performance.dart';
 import 'features/reports/data/error_reporter.dart';
 import 'l10n/l10n.dart';
 import 'features/reports/data/kiji_logs.dart';
@@ -47,6 +48,15 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     DesktopWindow.instance.beforeExit = () => ref.read(playbackProvider.notifier).saveNow();
     // PC: bandeja del sistema y atajos globales.
     watchDesktop(ref);
+    // Modo alto rendimiento: la pantalla a su frecuencia más alta (Android).
+    ref.listenManual(
+      settingsProvider.select((s) => s.highPerformance),
+      (before, on) {
+        // Al abrir con el modo apagado no hace falta pedir nada.
+        if (before != null || on) applyHighRefreshRate(on);
+      },
+      fireImmediately: true,
+    );
     // Actualizaciones: como mucho una consulta por día, si está prendido.
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
     // Salud del Extractor: pruebas automáticas con canciones de control.
@@ -170,15 +180,24 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   /// Tema, acento y tipografía (Configuración → Apariencia). Los colores salen de una paleta
   /// global ([KijiColors.palette]): al cambiarla se redibuja todo, como con el idioma.
   void _applyAppearance() {
-    final (theme, accent, font) = ref.watch(settingsProvider.select((s) => (s.theme, s.accent, s.font)));
+    final (theme, accent, font, rich, calm) = ref.watch(
+      settingsProvider.select((s) => (s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion)),
+    );
     final palette = KijiPalette.resolve(theme: theme, accent: accent);
     final systemFont = font == 'system';
-    if (palette == KijiColors.palette && systemFont == KijiText.useSystemFont) return;
+    if (palette == KijiColors.palette &&
+        systemFont == KijiText.useSystemFont &&
+        rich == KijiEffects.rich &&
+        calm == KijiEffects.calm) {
+      return;
+    }
     KijiColors.palette = palette;
     KijiText.useSystemFont = systemFont;
+    KijiEffects.rich = rich;
+    KijiEffects.calm = calm;
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
     if (!_appearanceReady) return;
-    debugPrint('=== APARIENCIA: tema $theme, acento $accent, letra $font ===');
+    debugPrint('=== APARIENCIA: tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
     WidgetsBinding.instance.addPostFrameCallback((_) => _rebuildAll());
   }
 

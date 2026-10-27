@@ -17,7 +17,10 @@ import '../../providers/downloads_provider.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
 import '../../utils/clock_format.dart';
+import '../../providers/appearance_provider.dart';
 import '../../theme/kiji_tokens.dart';
+import '../../widgets/nocturne/aurora_background.dart';
+import '../player/player_motion.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/kiji_logo.dart';
 import '../../widgets/nocturne/staggered.dart';
@@ -54,7 +57,36 @@ class InicioTab extends ConsumerWidget {
     ].take(15).toList();
     final isNew = history.isEmpty;
 
+    // Arriba, la aurora con los colores de lo que suena (o los de Kiji), más tenue que en el
+    // reproductor y desvanecida hacia abajo.
+    final aurora = Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 380,
+      child: IgnorePointer(
+        child: AuroraBackground(
+          colors: playback.track == null ? [KijiColors.violet, KijiColors.cyan] : auroraColorsFor(playback.track!),
+          moving: playback.isPlaying && !reduceMotion(context, ref),
+          intensity: 0.6,
+          fadeOut: true,
+        ),
+      ),
+    );
+
     // Orden de Inicio: nunca se ve vacío.
+    return Stack(children: [aurora, _feed(context, ref, playback, recent, top, downloaded, isNew)]);
+  }
+
+  Widget _feed(
+    BuildContext context,
+    WidgetRef ref,
+    ({Track? track, bool isPlaying}) playback,
+    List<Track> recent,
+    List<Track> top,
+    List<Track> downloaded,
+    bool isNew,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         refreshHomeFeed(ref);
@@ -315,8 +347,12 @@ class _PlaylistsRow extends ConsumerWidget {
         SizedBox(
           // Debajo de la portada van dos líneas de texto: se miden con la letra del teléfono
           // (con letra grande no se cortan).
-          height: _cover + 8 + _lineHeight(context, const TextStyle(fontWeight: FontWeight.w600)) +
-              _lineHeight(context, KijiText.mono(size: 11)) + 4,
+          height:
+              _cover +
+              8 +
+              _lineHeight(context, const TextStyle(fontWeight: FontWeight.w600)) +
+              _lineHeight(context, KijiText.mono(size: 11)) +
+              4,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: playlists.length + 1,
@@ -356,10 +392,7 @@ class _PlaylistsRow extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      Text(
-                        tx.nCanciones(playlist.tracks.length),
-                        style: KijiText.mono(size: 11),
-                      ),
+                      Text(tx.nCanciones(playlist.tracks.length), style: KijiText.mono(size: 11)),
                     ],
                   ),
                 ),

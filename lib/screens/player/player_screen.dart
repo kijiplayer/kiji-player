@@ -23,6 +23,7 @@ import '../../widgets/mini_player.dart' show coverHeroTag;
 import 'lyrics_swipe.dart';
 import 'player_motion.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
+import '../../widgets/nocturne/micro_motion.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 import '../../features/playlists/presentation/playlist_screens.dart';
@@ -100,11 +101,13 @@ class PlayerScreen extends ConsumerWidget {
                         children: [
                           _TopBar(track: track, downloaded: downloaded),
                           const SizedBox(height: 16),
-                          _Cover(track: track, size: coverSize),
+                          // Capas propias: la sombra grande de la carátula no se vuelve a
+                          // rasterizar con cada avance de la posición.
+                          RepaintBoundary(child: _Cover(track: track, size: coverSize)),
                           const SizedBox(height: 24),
                           _TitleRow(track: track, downloaded: downloaded),
                           const SizedBox(height: 20),
-                          const _Progress(),
+                          const RepaintBoundary(child: _Progress()),
                           const SizedBox(height: 12),
                           const PlaybackControlsRow(),
                           const SizedBox(height: 20),
@@ -275,10 +278,7 @@ class _TitleRow extends ConsumerWidget {
         IconButton(
           tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
           onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
-          icon: Icon(
-            liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            color: liked ? KijiColors.violet : KijiColors.text,
-          ),
+          icon: LikeHeart(liked: liked),
         ),
       ],
     );
@@ -340,20 +340,29 @@ class PlaybackControlsRow extends ConsumerWidget {
       mainAxisAlignment: compact ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
-        IconButton(
-          tooltip: playback.shuffleEnabled ? tx.aleatorioActivado : tx.aleatorioApagado,
-          onPressed: notifier.toggleShuffle,
-          icon: const Icon(Icons.shuffle_rounded),
-          iconSize: iconSize * 0.85,
-          visualDensity: VisualDensity.compact,
-          color: playback.shuffleEnabled ? KijiColors.cyan : KijiColors.muted,
+        PressScale(
+          child: IconButton(
+            tooltip: playback.shuffleEnabled ? tx.aleatorioActivado : tx.aleatorioApagado,
+            onPressed: notifier.toggleShuffle,
+            icon: PopSwitcher(
+              child: Icon(
+                Icons.shuffle_rounded,
+                key: ValueKey(playback.shuffleEnabled),
+                color: playback.shuffleEnabled ? KijiColors.cyan : KijiColors.muted,
+              ),
+            ),
+            iconSize: iconSize * 0.85,
+            visualDensity: VisualDensity.compact,
+          ),
         ),
-        IconButton(
-          tooltip: tx.anterior,
-          onPressed: notifier.previousTrack,
-          icon: const Icon(Icons.skip_previous_rounded),
-          iconSize: iconSize * 1.2,
-          color: KijiColors.text,
+        PressScale(
+          child: IconButton(
+            tooltip: tx.anterior,
+            onPressed: notifier.previousTrack,
+            icon: const Icon(Icons.skip_previous_rounded),
+            iconSize: iconSize * 1.2,
+            color: KijiColors.text,
+          ),
         ),
         BreathingPlayButton(
           isPlaying: playback.isPlaying,
@@ -361,20 +370,29 @@ class PlaybackControlsRow extends ConsumerWidget {
           reduceMotion: reduceMotion(context, ref),
           size: compact ? 52 : KijiSizes.playButton,
         ),
-        IconButton(
-          tooltip: tx.siguiente,
-          onPressed: notifier.nextTrack,
-          icon: const Icon(Icons.skip_next_rounded),
-          iconSize: iconSize * 1.2,
-          color: KijiColors.text,
+        PressScale(
+          child: IconButton(
+            tooltip: tx.siguiente,
+            onPressed: notifier.nextTrack,
+            icon: const Icon(Icons.skip_next_rounded),
+            iconSize: iconSize * 1.2,
+            color: KijiColors.text,
+          ),
         ),
-        IconButton(
-          tooltip: repeatTooltip,
-          onPressed: notifier.toggleRepeatMode,
-          icon: Icon(repeatIcon),
-          iconSize: iconSize * 0.85,
-          visualDensity: VisualDensity.compact,
-          color: playback.repeatMode == PlaybackRepeatMode.off ? KijiColors.muted : KijiColors.cyan,
+        PressScale(
+          child: IconButton(
+            tooltip: repeatTooltip,
+            onPressed: notifier.toggleRepeatMode,
+            icon: PopSwitcher(
+              child: Icon(
+                repeatIcon,
+                key: ValueKey(playback.repeatMode),
+                color: playback.repeatMode == PlaybackRepeatMode.off ? KijiColors.muted : KijiColors.cyan,
+              ),
+            ),
+            iconSize: iconSize * 0.85,
+            visualDensity: VisualDensity.compact,
+          ),
         ),
       ],
     );

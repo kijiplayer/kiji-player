@@ -5,6 +5,7 @@ import '../models/track.dart';
 import '../providers/playback_provider.dart';
 import '../screens/player/player_screen.dart';
 import '../theme/kiji_tokens.dart';
+import 'nocturne/micro_motion.dart';
 import 'album_cover.dart';
 import 'global_mini_player.dart';
 import 'nocturne/glass.dart';
@@ -90,12 +91,19 @@ class MiniPlayer extends ConsumerWidget {
                       color: KijiColors.text,
                       tooltip: tx.agregarAPlaylist,
                     ),
-                    IconButton(
-                      onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),
-                      icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                      iconSize: 32,
-                      color: KijiColors.text,
-                      tooltip: isPlaying ? tx.pausar : tx.reproducir,
+                    PressScale(
+                      child: IconButton(
+                        onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),
+                        icon: PopSwitcher(
+                          child: Icon(
+                            isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                            key: ValueKey(isPlaying),
+                          ),
+                        ),
+                        iconSize: 32,
+                        color: KijiColors.text,
+                        tooltip: isPlaying ? tx.pausar : tx.reproducir,
+                      ),
                     ),
                   ],
                 ),

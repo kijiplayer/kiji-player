@@ -20,6 +20,7 @@ import '../../desktop/desktop_hotkeys.dart';
 import '../../desktop/desktop_settings.dart';
 import '../../desktop/desktop_window.dart';
 import '../../dev_tools/dev_build.dart';
+import '../../performance/high_performance_tile.dart';
 import '../../dev_tools/dev_tools_screen.dart';
 import '../../backup/presentation/backup_screen.dart';
 import '../../downloads/data/auto_downloads.dart';
@@ -633,6 +634,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           value: ref.watch(settingsProvider).reduceMotion,
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(reduceMotion: value)),
         ),
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.modoAltoRendimiento,
+        subtitle: tx.modoAltoRendimientoDescripcion,
+        keywords: const ['rendimiento', 'performance', 'fps', 'hz', '120', 'fluido', 'smooth', 'blur', 'efectos', 'aurora'],
+        builder: (context, ref) => const HighPerformanceTile(),
       ),
       // Almacenamiento
       SettingOption(

@@ -153,7 +153,7 @@ void main() {
     });
   });
 
-  testWidgets('Configuración: buscar "animacion" deja solo esa opción, y se puede activar', (tester) async {
+  testWidgets('Configuración: buscar "animacion" deja solo las opciones de animaciones, y se puede activar', (tester) async {
     // En testWidgets el tiempo es simulado y el disco real no responde: sin
     // carpeta, las preferencias quedan en memoria (mismo camino que un error).
     Future<Directory> noDisk() async => throw const FileSystemException('sin disco en el test');
@@ -181,7 +181,11 @@ void main() {
     expect(find.text('APARIENCIA'), findsOneWidget);
     expect(find.text('ALMACENAMIENTO'), findsNothing);
 
-    await tester.tap(find.byType(Switch));
+    // "Modo alto rendimiento" también habla de animaciones: aparece, pero se toca la de reducir.
+    expect(find.text('Modo alto rendimiento'), findsOneWidget);
+    await tester.tap(
+      find.descendant(of: find.widgetWithText(SwitchListTile, 'Reducir animaciones'), matching: find.byType(Switch)),
+    );
     await tester.pump();
     final container = ProviderScope.containerOf(tester.element(find.byType(SettingsScreen)));
     expect(container.read(settingsProvider).reduceMotion, isTrue);

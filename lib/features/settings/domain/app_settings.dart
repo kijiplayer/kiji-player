@@ -40,6 +40,7 @@ class AppSettings {
     this.closeAction = 'ask',
     this.globalHotkeys = false,
     this.hotkeys = const {},
+    this.highPerformance = false,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -175,6 +176,10 @@ class AppSettings {
   /// Las acciones que faltan usan el de fábrica.
   final Map<String, Map<String, dynamic>> hotkeys;
 
+  /// Apariencia: "Modo alto rendimiento" (pantalla a su máxima frecuencia, más partículas,
+  /// desenfoques reales, colores más intensos). Apagado de fábrica: gasta más batería.
+  final bool highPerformance;
+
   AppSettings copyWith({
     bool? rememberQueue,
     bool? reduceMotion,
@@ -210,6 +215,7 @@ class AppSettings {
     String? closeAction,
     bool? globalHotkeys,
     Map<String, Map<String, dynamic>>? hotkeys,
+    bool? highPerformance,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -245,6 +251,7 @@ class AppSettings {
         closeAction: closeAction ?? this.closeAction,
         globalHotkeys: globalHotkeys ?? this.globalHotkeys,
         hotkeys: hotkeys ?? this.hotkeys,
+        highPerformance: highPerformance ?? this.highPerformance,
       );
 
   Map<String, dynamic> toJson() => {
@@ -282,6 +289,7 @@ class AppSettings {
         'closeAction': closeAction,
         'globalHotkeys': globalHotkeys,
         'hotkeys': hotkeys,
+        'highPerformance': highPerformance,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -334,6 +342,7 @@ class AppSettings {
           for (final MapEntry(:key, :value) in (json['hotkeys'] as Map).entries)
             if (key is String && value is Map) key: Map<String, dynamic>.from(value),
       },
+      highPerformance: read('highPerformance', d.highPerformance),
     );
   }
 

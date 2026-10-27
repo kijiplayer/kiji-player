@@ -1101,5 +1101,12 @@
   "controlesDeWindows": "Windows media controls",
   "controlesDeWindowsDescripcion": "The song shows up in the volume flyout and the lock screen; media keys always work",
   "teclaEspacio": "Space",
-  "atajoOcupado": "Another program already uses this shortcut: pick another one"
+  "atajoOcupado": "Another program already uses this shortcut: pick another one",
+  "modoAltoRendimiento": "High performance mode",
+  "modoAltoRendimientoDescripcion": "Animations at the screen's highest refresh rate, more particles, real blur and richer colors. Uses more battery.",
+  "modoAltoRendimientoGamaBaja": "This device is low-end: better to keep it off.",
+  "modoAltoRendimientoPantalla": "Your screen goes up to {hz} Hz.",
+  "modoAltoRendimientoConfirmar": "Turn it on anyway?",
+  "modoAltoRendimientoConfirmarTexto": "On this device it may run slower and use more battery. You can turn it off anytime.",
+  "prenderIgual": "Turn on anyway"
 }

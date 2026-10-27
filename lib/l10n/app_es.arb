@@ -2508,5 +2508,13 @@
   "controlesDeWindows": "Controles multimedia de Windows",
   "controlesDeWindowsDescripcion": "La canción aparece en el control de volumen y la pantalla de bloqueo; las teclas multimedia funcionan siempre",
   "teclaEspacio": "Espacio",
-  "atajoOcupado": "Otro programa ya usa este atajo: elige otro"
+  "atajoOcupado": "Otro programa ya usa este atajo: elige otro",
+  "modoAltoRendimiento": "Modo alto rendimiento",
+  "modoAltoRendimientoDescripcion": "Animaciones a la máxima frecuencia de la pantalla, más partículas, desenfoques reales y colores más intensos. Gasta más batería.",
+  "modoAltoRendimientoGamaBaja": "Este equipo es de gama baja: te conviene dejarlo apagado.",
+  "modoAltoRendimientoPantalla": "Tu pantalla llega a {hz} Hz.",
+  "@modoAltoRendimientoPantalla": {"placeholders": {"hz": {"type": "int"}}},
+  "modoAltoRendimientoConfirmar": "¿Prenderlo igual?",
+  "modoAltoRendimientoConfirmarTexto": "En este equipo puede ir más lento y gastar más batería. Puedes apagarlo cuando quieras.",
+  "prenderIgual": "Prender igual"
 }

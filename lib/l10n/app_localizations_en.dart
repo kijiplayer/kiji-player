@@ -4087,4 +4087,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get atajoOcupado =>
       'Another program already uses this shortcut: pick another one';
+
+  @override
+  String get modoAltoRendimiento => 'High performance mode';
+
+  @override
+  String get modoAltoRendimientoDescripcion =>
+      'Animations at the screen\'s highest refresh rate, more particles, real blur and richer colors. Uses more battery.';
+
+  @override
+  String get modoAltoRendimientoGamaBaja =>
+      'This device is low-end: better to keep it off.';
+
+  @override
+  String modoAltoRendimientoPantalla(int hz) {
+    return 'Your screen goes up to $hz Hz.';
+  }
+
+  @override
+  String get modoAltoRendimientoConfirmar => 'Turn it on anyway?';
+
+  @override
+  String get modoAltoRendimientoConfirmarTexto =>
+      'On this device it may run slower and use more battery. You can turn it off anytime.';
+
+  @override
+  String get prenderIgual => 'Turn on anyway';
 }

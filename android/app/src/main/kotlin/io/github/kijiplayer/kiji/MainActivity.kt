@@ -1,8 +1,10 @@
 package io.github.kijiplayer.kiji
 
+import android.app.ActivityManager
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
@@ -40,6 +42,42 @@ class MainActivity : AudioServiceActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        // Modo alto rendimiento: la pantalla a su frecuencia más alta (120/144 Hz) y datos del
+        // equipo para sugerir dejarlo apagado en los de gama baja.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kiji/display")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "setHighRefreshRate" -> {
+                        val on = call.arguments as? Boolean ?: false
+                        @Suppress("DEPRECATION")
+                        val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display else windowManager.defaultDisplay
+                        val current = display?.mode
+                        val best = display?.supportedModes
+                            ?.filter { it.physicalWidth == current?.physicalWidth && it.physicalHeight == current?.physicalHeight }
+                            ?.maxByOrNull { it.refreshRate }
+                        val params = window.attributes
+                        // 0 = lo que decida el sistema (como siempre).
+                        params.preferredDisplayModeId = if (on && best != null) best.modeId else 0
+                        window.attributes = params
+                        result.success((if (on) best?.refreshRate else current?.refreshRate)?.toDouble())
+                    }
+                    "deviceInfo" -> {
+                        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                        val memory = ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+                        @Suppress("DEPRECATION")
+                        val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) display else windowManager.defaultDisplay
+                        result.success(
+                            mapOf(
+                                "totalRam" to memory.totalMem,
+                                "lowRam" to am.isLowRamDevice,
+                                "maxRefresh" to (display?.supportedModes?.maxOfOrNull { it.refreshRate }?.toDouble() ?: 60.0),
+                            )
+                        )
+                    }
+                    else -> result.notImplemented()
+                }
+            }
 
         // Espacio libre en disco, para avisar antes de descargar.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "kiji/storage")
