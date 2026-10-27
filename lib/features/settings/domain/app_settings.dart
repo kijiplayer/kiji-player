@@ -14,6 +14,8 @@ class AppSettings {
     this.pauseOnMute = false,
     this.resumeOnBluetooth = true,
     this.batteryAsked = false,
+    this.style = 'nocturne',
+    this.styleChosen = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.autoBackup = true,
@@ -68,6 +70,9 @@ class AppSettings {
   /// Tipografía de los títulos: la de Kiji (Space Grotesk) o la del sistema.
   static const fonts = ['kiji', 'system'];
 
+  /// Estilos de Kiji (ver `KijiStyle`): Nocturne (de fábrica), Grafito y Papel.
+  static const styles = ['nocturne', 'graphite', 'paper'];
+
   /// Tamaño de la letra de las canciones.
   static const lyricsSizes = ['small', 'normal', 'large'];
 
@@ -100,6 +105,12 @@ class AppSettings {
 
   /// Android: ya se explicó y pidió una vez quitar la optimización de batería.
   final bool batteryAsked;
+
+  /// Estilo de Kiji: 'nocturne', 'graphite' o 'paper'.
+  final String style;
+
+  /// Ya se mostró "¿Cómo quieres que se vea Kiji?" (al instalar o, una vez, al actualizar a la 0.7).
+  final bool styleChosen;
 
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
@@ -192,6 +203,8 @@ class AppSettings {
     bool? pauseOnMute,
     bool? resumeOnBluetooth,
     bool? batteryAsked,
+    String? style,
+    bool? styleChosen,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? autoBackup,
@@ -230,6 +243,8 @@ class AppSettings {
         pauseOnMute: pauseOnMute ?? this.pauseOnMute,
         resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
         batteryAsked: batteryAsked ?? this.batteryAsked,
+        style: style ?? this.style,
+        styleChosen: styleChosen ?? this.styleChosen,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         autoBackup: autoBackup ?? this.autoBackup,
@@ -269,6 +284,8 @@ class AppSettings {
         'pauseOnMute': pauseOnMute,
         'resumeOnBluetooth': resumeOnBluetooth,
         'batteryAsked': batteryAsked,
+        'style': style,
+        'styleChosen': styleChosen,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'autoBackup': autoBackup,
@@ -314,6 +331,8 @@ class AppSettings {
       pauseOnMute: read('pauseOnMute', d.pauseOnMute),
       resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),
       batteryAsked: read('batteryAsked', d.batteryAsked),
+      style: styles.contains(json['style']) ? json['style'] as String : d.style,
+      styleChosen: read('styleChosen', d.styleChosen),
       crossfadeSeconds: crossfadeOptions.contains(crossfade) ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       autoBackup: read('autoBackup', d.autoBackup),

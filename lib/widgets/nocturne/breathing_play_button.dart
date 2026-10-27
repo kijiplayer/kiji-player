@@ -50,7 +50,9 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
     widget.onPressed();
   }
 
-  bool get _animate => breathingShouldAnimate(isPlaying: widget.isPlaying, reduceMotion: widget.reduceMotion);
+  // Grafito y Papel: círculo liso, sin anillo ni brillo.
+  bool get _animate =>
+      KijiLook.nocturne && breathingShouldAnimate(isPlaying: widget.isPlaying, reduceMotion: widget.reduceMotion);
 
   @override
   void initState() {
@@ -96,6 +98,7 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
             final ringScale = 1.0 + 0.12 * t;
             final ringOpacity = widget.isPlaying ? 0.35 + 0.35 * (1 - t) : 0.18;
             final glowOpacity = (0.25 + 0.2 * t) / 0.45;
+            if (KijiLook.flat) return Center(child: child);
             return Stack(
               alignment: Alignment.center,
               children: [

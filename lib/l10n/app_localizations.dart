@@ -6440,7 +6440,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipografiaDescripcion.
   ///
   /// In es, this message translates to:
-  /// **'La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema'**
+  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema'**
   String get tipografiaDescripcion;
 
   /// No description provided for @tipografiaKiji.
@@ -6694,6 +6694,78 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Borrar la búsqueda'**
   String get borrarBusqueda;
+
+  /// Configuración → Apariencia: Nocturne, Grafito o Papel.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo'**
+  String get estilo;
+
+  /// No description provided for @estiloDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Las mismas funciones con otro aspecto'**
+  String get estiloDescripcion;
+
+  /// Título de la pantalla para elegir el estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cómo quieres que se vea Kiji?'**
+  String get estiloPregunta;
+
+  /// No description provided for @estiloPreguntaTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Las funciones son las mismas; solo cambia el aspecto. Puedes cambiarlo cuando quieras en Configuración → Apariencia.'**
+  String get estiloPreguntaTexto;
+
+  /// No description provided for @estiloNocturne.
+  ///
+  /// In es, this message translates to:
+  /// **'Nocturne'**
+  String get estiloNocturne;
+
+  /// No description provided for @estiloNocturneFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Oscuro, con vidrio, brillos y la aurora del color de cada canción.'**
+  String get estiloNocturneFrase;
+
+  /// No description provided for @estiloGrafito.
+  ///
+  /// In es, this message translates to:
+  /// **'Grafito'**
+  String get estiloGrafito;
+
+  /// No description provided for @estiloGrafitoFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Minimalista y serio: grises, blanco y nada que distraiga.'**
+  String get estiloGrafitoFrase;
+
+  /// No description provided for @estiloPapel.
+  ///
+  /// In es, this message translates to:
+  /// **'Papel'**
+  String get estiloPapel;
+
+  /// No description provided for @estiloPapelFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Claro y tranquilo, como leer un libro.'**
+  String get estiloPapelFrase;
+
+  /// Botón para confirmar el estilo elegido.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con {estilo}'**
+  String continuarConEstilo(String estilo);
+
+  /// El tema y el color de acento solo cambian Nocturne.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo en el estilo Nocturne'**
+  String get soloEnNocturne;
 }
 
 class _AppLocalizationsDelegate

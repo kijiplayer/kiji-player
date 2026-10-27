@@ -48,8 +48,9 @@ abstract final class AppTheme {
       onSurface: KijiColors.text,
     );
 
-    final base = ThemeData(useMaterial3: true, brightness: brightness);
-    // Títulos en Space Grotesk; el cuerpo queda con la fuente del sistema.
+    // El cuerpo: la fuente del sistema en Nocturne; Inter en Grafito y Papel.
+    final base = ThemeData(useMaterial3: true, brightness: brightness, fontFamily: KijiText.bodyFamily);
+    // Títulos con la letra del estilo (Space Grotesk, Inter o Newsreader).
     final textTheme = base.textTheme.copyWith(
       displaySmall: KijiText.title(size: 34),
       headlineMedium: KijiText.title(size: 28),

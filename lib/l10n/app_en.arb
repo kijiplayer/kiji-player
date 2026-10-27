@@ -1072,7 +1072,7 @@
   "acentoMint": "Mint (green and sky blue)",
   "acentoOcean": "Ocean (blue and cyan)",
   "tipografia": "Font",
-  "tipografiaDescripcion": "Kiji's own (Space Grotesk and JetBrains Mono) or the system font",
+  "tipografiaDescripcion": "The style's own (Space Grotesk in Nocturne, Inter in Graphite, Newsreader and Inter in Paper) or the system font",
   "tipografiaKiji": "Kiji's own",
   "tipografiaSistema": "System font",
   "nEmpiezanASonar": "{n, plural, =1{Nothing was playing: 1 song starts playing} other{Nothing was playing: {n} songs start playing}}",
@@ -1115,5 +1115,17 @@
   "bateriaActiva": "Done: Android doesn't hold Kiji back in the background.",
   "bateriaPendiente": "Android may hold Kiji back with the screen off. Tap to let it keep playing.",
   "buscarEnLaPlaylist": "Search this playlist",
-  "borrarBusqueda": "Clear search"
+  "borrarBusqueda": "Clear search",
+  "estilo": "Style",
+  "estiloDescripcion": "Same features, a different look",
+  "estiloPregunta": "How do you want Kiji to look?",
+  "estiloPreguntaTexto": "The features are the same; only the look changes. You can change it anytime in Settings → Appearance.",
+  "estiloNocturne": "Nocturne",
+  "estiloNocturneFrase": "Dark, with glass, glow and an aurora in the colors of each song.",
+  "estiloGrafito": "Graphite",
+  "estiloGrafitoFrase": "Minimal and serious: greys, white and nothing to distract you.",
+  "estiloPapel": "Paper",
+  "estiloPapelFrase": "Light and calm, like reading a book.",
+  "continuarConEstilo": "Continue with {estilo}",
+  "soloEnNocturne": "Only in the Nocturne style"
 }

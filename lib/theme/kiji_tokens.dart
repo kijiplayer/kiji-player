@@ -1,6 +1,40 @@
 // l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+/// Estilo de Kiji (Configuración → Apariencia): las mismas funciones con otro aspecto.
+/// Nocturne es el de fábrica.
+enum KijiStyle {
+  /// Oscuro, vidrio, aurora y acento en degradado.
+  nocturne,
+
+  /// Minimalista y serio: grises, el acento es el blanco, sin brillos ni degradados.
+  graphite,
+
+  /// Claro y tranquilo, como un libro: papel, tinta y un solo acento.
+  paper;
+
+  static KijiStyle parse(String? name) => values.asNameMap()[name] ?? nocturne;
+}
+
+/// El estilo activo. [KijiApp] lo pone (como la paleta) y redibuja todo al cambiarlo.
+abstract final class KijiLook {
+  static KijiStyle style = KijiStyle.nocturne;
+
+  static bool get nocturne => style == KijiStyle.nocturne;
+
+  /// Sin aurora, brillos, degradados ni desenfoques (Grafito y Papel).
+  static bool get flat => style != KijiStyle.nocturne;
+
+  /// Esquinas de las portadas: las de cada pantalla en Nocturne; como mucho 6 px en Grafito y 4 en Papel.
+  static double cover(double radius) => switch (style) {
+    KijiStyle.nocturne => radius,
+    KijiStyle.graphite => math.min(radius, 6),
+    KijiStyle.paper => math.min(radius, 4),
+  };
+}
 
 /// Tokens de diseño de **Kiji Nocturne**. Todo color, radio, tamaño y tipografía de la app sale
 /// de aquí, para cambiarlos en un solo lugar.
@@ -21,6 +55,7 @@ class KijiPalette {
     required this.waveRest,
     required this.surface,
     required this.surfaceHigh,
+    this.like,
   });
 
   final Brightness brightness;
@@ -38,11 +73,14 @@ class KijiPalette {
   final Color surface;
   final Color surfaceHigh;
 
+  /// Color del "me gusta" (null = el primer color del acento).
+  final Color? like;
+
   bool get isLight => brightness == Brightness.light;
 
-  List<Object> get _fields => [
+  List<Object?> get _fields => [
     brightness, background, violet, cyan, onAccent, text, muted, glassFill, glassBorder, waveRest, surface,
-    surfaceHigh,
+    surfaceHigh, like,
   ];
 
   @override
@@ -67,6 +105,49 @@ class KijiPalette {
     surface: Color(0xFF12121C),
     surfaceHigh: Color(0xFF1A1A28),
   );
+
+  /// Grafito: fondo #0F0F10, superficies #1A1A1D, líneas #2A2A2D, texto #F2F2F2 y secundario #9A9A9E.
+  /// Sin color de acento: el acento es el blanco.
+  static const graphite = KijiPalette(
+    brightness: Brightness.dark,
+    background: Color(0xFF0F0F10),
+    violet: Color(0xFFF2F2F2),
+    cyan: Color(0xFFF2F2F2),
+    onAccent: Color(0xFF0F0F10),
+    text: Color(0xFFF2F2F2),
+    muted: Color(0xFF9A9A9E),
+    glassFill: Color(0xFF1A1A1D),
+    glassBorder: Color(0xFF2A2A2D),
+    waveRest: Color(0xFF2A2A2D),
+    surface: Color(0xFF1A1A1D),
+    surfaceHigh: Color(0xFF1A1A1D),
+  );
+
+  /// Papel: fondo #F3F1EC, tinta #1B1B1A, secundario #5E5B55 y líneas #D9D5CC. El único color es
+  /// #B4462B, el del "me gusta"; el resto de lo activo va en tinta.
+  static const paper = KijiPalette(
+    brightness: Brightness.light,
+    background: Color(0xFFF3F1EC),
+    violet: Color(0xFF1B1B1A),
+    cyan: Color(0xFF1B1B1A),
+    onAccent: Color(0xFFF3F1EC),
+    text: Color(0xFF1B1B1A),
+    muted: Color(0xFF5E5B55),
+    glassFill: Color(0xFFF9F8F4),
+    glassBorder: Color(0xFFD9D5CC),
+    waveRest: Color(0xFFD9D5CC),
+    surface: Color(0xFFF9F8F4),
+    surfaceHigh: Color(0xFFF9F8F4),
+    like: Color(0xFFB4462B),
+  );
+
+  /// La paleta de [style]: Nocturne con el [theme] y el [accent] elegidos; Grafito y Papel son fijos.
+  static KijiPalette forStyle(KijiStyle style, {String theme = 'dark', String accent = 'nocturne'}) =>
+      switch (style) {
+        KijiStyle.graphite => graphite,
+        KijiStyle.paper => paper,
+        KijiStyle.nocturne => resolve(theme: theme, accent: accent),
+      };
 
   /// Acentos (el primer color y el segundo del degradado). En el tema claro el segundo se
   /// oscurece un poco para que se lea sobre blanco.
@@ -161,6 +242,9 @@ abstract final class KijiColors {
   static Color get surface => palette.surface;
   static Color get surfaceHigh => palette.surfaceHigh;
 
+  /// El "me gusta".
+  static Color get like => palette.like ?? palette.violet;
+
   static LinearGradient get accentGradient => LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
@@ -224,7 +308,8 @@ abstract final class KijiMotion {
   static const waveReveal = Duration(milliseconds: 600);
 }
 
-/// Tipografía: Space Grotesk para títulos y JetBrains Mono para tiempos y
+/// Tipografía de cada estilo (Nocturne: Space Grotesk y JetBrains Mono; Grafito: Inter; Papel:
+/// Newsreader e Inter). Space Grotesk para títulos y JetBrains Mono para tiempos y
 /// números. Son fuentes variables: el peso se pide con `fontVariations`
 /// (además de `fontWeight`) para que se vea igual en todas las plataformas.
 abstract final class KijiText {
@@ -232,8 +317,23 @@ abstract final class KijiText {
   /// fuente del teléfono o la PC (null = la de siempre del sistema).
   static bool useSystemFont = false;
 
-  static String? get titleFamily => useSystemFont ? null : 'SpaceGrotesk';
-  static String? get monoFamily => useSystemFont ? null : 'JetBrainsMono';
+  static String? get titleFamily => useSystemFont ? null : titleFamilyOf(KijiLook.style);
+
+  /// Letra de los títulos de cada estilo (también para las miniaturas de la elección de estilo).
+  static String titleFamilyOf(KijiStyle style) => switch (style) {
+    KijiStyle.nocturne => 'SpaceGrotesk',
+    KijiStyle.graphite => 'Inter',
+    KijiStyle.paper => 'Newsreader',
+  };
+
+  /// Letra del cuerpo en Grafito y Papel.
+  static const inter = 'Inter';
+
+  /// Tiempos y números: JetBrains Mono en Nocturne; Inter (con cifras tabulares) en los demás.
+  static String? get monoFamily => useSystemFont ? null : (KijiLook.nocturne ? 'JetBrainsMono' : inter);
+
+  /// El resto del texto: el del sistema en Nocturne; Inter en Grafito y Papel.
+  static String? get bodyFamily => useSystemFont || KijiLook.nocturne ? null : inter;
 
   static TextStyle title({double size = 20, FontWeight weight = FontWeight.w700, Color? color}) =>
       TextStyle(
@@ -252,7 +352,8 @@ abstract final class KijiText {
         fontWeight: weight,
         fontVariations: [FontVariation('wght', weight.value.toDouble())],
         color: color ?? KijiColors.muted,
-        letterSpacing: 0.5,
+        // Papel: etiquetas chicas (en mayúsculas) con más espaciado.
+        letterSpacing: KijiLook.style == KijiStyle.paper ? 1.4 : 0.5,
         fontFeatures: const [FontFeature.tabularFigures()],
       );
 }

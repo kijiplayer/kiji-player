@@ -111,7 +111,7 @@ class _LikeHeartState extends State<LikeHeart> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final likedColor = widget.likedColor ?? KijiColors.violet;
+    final likedColor = widget.likedColor ?? KijiColors.like;
     final icon = Icon(
       widget.liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
       color: widget.liked ? likedColor : widget.color ?? KijiColors.text,

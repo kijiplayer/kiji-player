@@ -107,7 +107,8 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
     super.dispose();
   }
 
-  bool get _shouldRun => _visible && (widget.moving || _blend < 1) && !KijiEffects.still(context);
+  bool get _shouldRun =>
+      KijiLook.nocturne && _visible && (widget.moving || _blend < 1) && !KijiEffects.still(context);
 
   void _sync() {
     if (_shouldRun && !_ticker.isActive) {
@@ -117,7 +118,7 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
     } else if (!_shouldRun && _ticker.isActive) {
       _ticker.stop();
       if (_blend < 1) _blend = 1;
-      _render(); // Un último cuadro con los colores finales.
+      if (KijiLook.nocturne) _render(); // Un último cuadro con los colores finales.
     }
   }
 
@@ -187,6 +188,11 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    // Grafito y Papel no tienen aurora: queda el fondo liso del estilo.
+    if (KijiLook.flat) {
+      _sync();
+      return const SizedBox.expand();
+    }
     return RepaintBoundary(
       child: LayoutBuilder(
         builder: (context, constraints) {

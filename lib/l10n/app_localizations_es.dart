@@ -3995,7 +3995,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tipografiaDescripcion =>
-      'La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema';
+      'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema';
 
   @override
   String get tipografiaKiji => 'La de Kiji';
@@ -4145,4 +4145,45 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get borrarBusqueda => 'Borrar la búsqueda';
+
+  @override
+  String get estilo => 'Estilo';
+
+  @override
+  String get estiloDescripcion => 'Las mismas funciones con otro aspecto';
+
+  @override
+  String get estiloPregunta => '¿Cómo quieres que se vea Kiji?';
+
+  @override
+  String get estiloPreguntaTexto =>
+      'Las funciones son las mismas; solo cambia el aspecto. Puedes cambiarlo cuando quieras en Configuración → Apariencia.';
+
+  @override
+  String get estiloNocturne => 'Nocturne';
+
+  @override
+  String get estiloNocturneFrase =>
+      'Oscuro, con vidrio, brillos y la aurora del color de cada canción.';
+
+  @override
+  String get estiloGrafito => 'Grafito';
+
+  @override
+  String get estiloGrafitoFrase =>
+      'Minimalista y serio: grises, blanco y nada que distraiga.';
+
+  @override
+  String get estiloPapel => 'Papel';
+
+  @override
+  String get estiloPapelFrase => 'Claro y tranquilo, como leer un libro.';
+
+  @override
+  String continuarConEstilo(String estilo) {
+    return 'Continuar con $estilo';
+  }
+
+  @override
+  String get soloEnNocturne => 'Solo en el estilo Nocturne';
 }

@@ -48,6 +48,7 @@ import '../../account/presentation/account_screens.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
+import '../../style/presentation/style_chooser_screen.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran.
 enum SettingsSection {
@@ -503,10 +504,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.appearance,
+        title: tx.estilo,
+        subtitle: tx.estiloDescripcion,
+        keywords: const ['nocturne', 'grafito', 'graphite', 'papel', 'paper', 'look', 'aspecto', 'diseño'], // l10n-ignore
+        builder: (context, ref) {
+          final style = KijiStyle.parse(ref.watch(settingsProvider.select((s) => s.style)));
+          return ListTile(
+            leading: const Icon(Icons.style_outlined),
+            title: Text(tx.estilo),
+            subtitle: Text(styleName(style)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => StyleChooserScreen.open(context, ref),
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
         title: tx.tema,
         subtitle: tx.temaDescripcion,
         keywords: const ['modo', 'fondo', 'oled', 'negro', 'blanco'],
-        builder: (context, ref) => choiceTile<String>(
+        builder: (context, ref) => _onlyInNocturne(ref, Icons.contrast_rounded, tx.tema) ?? choiceTile<String>(
           context,
           icon: Icons.contrast_rounded,
           title: tx.tema,
@@ -526,6 +543,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: tx.colorDeAcentoDescripcion,
         keywords: const ['degradado', 'violeta', 'naranja', 'verde', 'azul'],
         builder: (context, ref) {
+          final disabled = _onlyInNocturne(ref, Icons.palette_outlined, tx.colorDeAcento);
+          if (disabled != null) return disabled;
           final accent = ref.watch(settingsProvider.select((s) => s.accent));
           String name(String a) => switch (a) {
             'aurora' => tx.acentoAurora,
@@ -1123,6 +1142,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _done(BuildContext context, String message) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+}
+
+/// Tema y acento solo cambian Nocturne: en Grafito y Papel la opción se ve apagada y dice por qué.
+/// null en Nocturne.
+Widget? _onlyInNocturne(WidgetRef ref, IconData icon, String title) {
+  if (ref.watch(settingsProvider.select((s) => s.style)) == KijiStyle.nocturne.name) return null;
+  return ListTile(enabled: false, leading: Icon(icon), title: Text(title), subtitle: Text(tx.soloEnNocturne));
 }
 
 /// Una opción con varias alternativas (formato de hora, tema, acento…): muestra la elegida y,

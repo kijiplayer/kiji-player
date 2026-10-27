@@ -98,6 +98,13 @@ flutter:
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/jetbrains_mono/JetBrainsMono-Variable.ttf
+    # Estilos Grafito y Papel (incluidas en la app, OFL; nunca se descargan).
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter/Inter-Variable.ttf
+    - family: Newsreader
+      fonts:
+        - asset: assets/fonts/newsreader/Newsreader-Variable.ttf
 
 # Ícono de la app, generado desde assets/branding/kiji_logo.svg (ver tool/render_logo.dart).
 flutter_launcher_icons:

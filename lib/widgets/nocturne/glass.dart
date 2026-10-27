@@ -35,7 +35,8 @@ class Glass extends StatelessWidget {
     );
     return ClipRRect(
       borderRadius: borderRadius,
-      child: blur
+      // Grafito y Papel: superficie sólida, sin desenfoque.
+      child: blur && KijiLook.nocturne
           // Agrupado (rendimiento): todos los vidrios de la pantalla comparten una sola pasada
           // de desenfoque del fondo (BackdropGroup en app.dart).
           ? BackdropFilter.grouped(
@@ -63,7 +64,9 @@ class GradientBorder extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: KijiColors.accentGradientDiagonal,
+        // Grafito y Papel: sin degradado, una línea lisa.
+        gradient: KijiLook.nocturne ? KijiColors.accentGradientDiagonal : null,
+        color: KijiLook.nocturne ? null : KijiColors.glassBorder,
         borderRadius: BorderRadius.circular(radius),
       ),
       child: Padding(

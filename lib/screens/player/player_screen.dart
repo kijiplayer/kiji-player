@@ -213,18 +213,22 @@ class _Cover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = KijiLook.cover(KijiRadii.cover);
     return CoverMotion(
       trackId: track.id,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(KijiRadii.cover),
-          boxShadow: [BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4)],
+          borderRadius: BorderRadius.circular(radius),
+          // El halo del color de la carátula es de Nocturne (Grafito y Papel no tienen brillos).
+          boxShadow: KijiLook.nocturne
+              ? [BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4)]
+              : null,
         ),
         child: GradientBorder(
-          radius: KijiRadii.cover,
+          radius: radius,
           child: Hero(
             tag: coverHeroTag(track),
-            child: TrackArtwork(track: track, size: size - 2, radius: KijiRadii.cover - 1),
+            child: TrackArtwork(track: track, size: size - 2, radius: radius - 1),
           ),
         ),
       ),

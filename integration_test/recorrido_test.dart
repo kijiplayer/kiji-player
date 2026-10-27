@@ -43,6 +43,7 @@ import 'package:kiji_player/features/sleep_timer/presentation/sleep_timer_sheet.
 import 'package:kiji_player/features/translation/presentation/lyrics_settings_screens.dart';
 import 'package:kiji_player/features/updates/whats_new.dart';
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:kiji_player/features/style/presentation/style_chooser_screen.dart';
 import 'package:kiji_player/features/welcome/presentation/welcome_screen.dart';
 import 'package:kiji_player/features/yt_music/presentation/extractor_health_screen.dart';
 import 'package:kiji_player/models/track.dart';
@@ -159,6 +160,7 @@ Future<List<Track>> _seed(
   required String language,
   String theme = 'dark',
   String accent = 'nocturne',
+  String style = 'nocturne',
 }) async {
   void write(String name, Object json) {
     final f = File('${support.path}/$name')..parent.createSync(recursive: true);
@@ -230,7 +232,14 @@ Future<List<Track>> _seed(
   write(
     'settings.json',
     const AppSettings(checkUpdates: false, autoExtractorTests: false)
-        .copyWith(language: language, theme: theme, accent: accent, lastSeenVersion: kijiVersion)
+        .copyWith(
+          language: language,
+          theme: theme,
+          accent: accent,
+          style: style,
+          styleChosen: true,
+          lastSeenVersion: kijiVersion,
+        )
         .toJson(),
   );
   write('welcome.json', {'seen': true, 'at': now.toIso8601String()});
@@ -369,11 +378,12 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
     await tester.tap(find.byTooltip(tx.opcionesDeLaLetra).first);
     await _settle(tester);
     await _shot(tester, '$tag-letra-menu');
-    // Se cierra deslizando hacia abajo desde la mitad de la hoja.
-    await tester.timedDrag(find.text(tx.tamanoDeLasLetras.toUpperCase()), const Offset(0, 260),
+    // Se cierra deslizando hacia abajo desde la hoja (desde su primer título: con una letra más
+    // ancha, como Inter en Grafito, los de más abajo quedan fuera de una ventana baja).
+    await tester.timedDrag(find.text(tx.menuLetraLeer.toUpperCase()), const Offset(0, 260),
         const Duration(milliseconds: 500));
     await _settle(tester);
-    if (find.text(tx.tamanoDeLasLetras.toUpperCase()).evaluate().isNotEmpty) {
+    if (find.text(tx.menuLetraLeer.toUpperCase()).evaluate().isNotEmpty) {
       throw StateError('la hoja no se cerró deslizando desde la mitad');
     }
   });
@@ -412,6 +422,13 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
   await _visit(tester, '$tag-creditos', () => CreditsScreen.open(_ctx), scroll: true);
   await _visit(tester, '$tag-configuracion', () => SettingsScreen.open(_ctx), scroll: true);
   await _visit(tester, '$tag-bienvenida', () => WelcomeScreen.open(_ctx, instant: true));
+  await _visit(
+    tester,
+    '$tag-estilo',
+    () => Navigator.of(_ctx).push(MaterialPageRoute<void>(
+        settings: const RouteSettings(name: KijiRoutes.style), builder: (_) => const StyleChooserScreen())),
+    scroll: true,
+  );
 }
 
 void main() {
@@ -425,11 +442,13 @@ void main() {
 
   Future<void> run(WidgetTester tester, String tag,
       {required Size window, required bool online, required bool fresh, String language = 'es',
-      String theme = 'dark', String accent = 'nocturne'}) async {
+      String theme = 'dark', String accent = 'nocturne', String style = 'nocturne'}) async {
+    // Cada pasada cuenta solo sus problemas (antes un problema se repetía en las siguientes).
+    _problems.clear();
     final data = Directory('${_root.path}/$tag')..createSync(recursive: true);
     PathProviderPlatform.instance = _TempPaths(data);
     final support = Directory('${data.path}/support')..createSync(recursive: true);
-    final tracks = fresh ? <Track>[] : await tester.runAsync(() => _seed(support, language: language, theme: theme, accent: accent)) ?? [];
+    final tracks = fresh ? <Track>[] : await tester.runAsync(() => _seed(support, language: language, theme: theme, accent: accent, style: style)) ?? [];
     HttpOverrides.global = online ? null : _Offline();
     addTearDown(() => HttpOverrides.global = null);
 
@@ -469,6 +488,15 @@ void main() {
       final start = find.textContaining(RegExp(r'^(Empezar|Start)$'));
       if (start.evaluate().isNotEmpty) {
         await tester.tap(start.last);
+        await _settle(tester);
+      }
+      // Después de la bienvenida, una sola vez: "¿Cómo quieres que se vea Kiji?".
+      await _shot(tester, '$tag-estilo');
+      final keep = find.textContaining(RegExp(r'^(Continuar con|Continue with) '));
+      if (keep.evaluate().isEmpty) {
+        _problems.add('$tag: no apareció la elección de estilo después de la bienvenida');
+      } else {
+        await tester.tap(keep.last);
         await _settle(tester);
       }
       // Usuario nuevo sin nada: Inicio, Buscar y Biblioteca vacíos.
@@ -544,6 +572,29 @@ void main() {
   testWidgets('Usuario nuevo en ventana mínima', (tester) async {
     await run(tester, 'nuevo-minima', window: const Size(360, 560), online: false, fresh: true);
   }, timeout: const Timeout(Duration(minutes: 5)));
+
+  testWidgets('Grafito, ventana chica, con internet', (tester) async {
+    await run(tester, 'grafito-chica', window: const Size(420, 860), online: true, fresh: false, style: 'graphite');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Grafito, ventana mínima (360 × 560), en inglés', (tester) async {
+    await run(tester, 'grafito-minima-en', window: const Size(360, 560), online: false, fresh: false,
+        language: 'en', style: 'graphite');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Papel, ventana grande, en inglés', (tester) async {
+    await run(tester, 'papel-grande-en', window: const Size(1440, 900), online: true, fresh: false,
+        language: 'en', style: 'paper');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Papel, ventana mínima (360 × 560)', (tester) async {
+    await run(tester, 'papel-minima', window: const Size(360, 560), online: false, fresh: false, style: 'paper');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Papel, ventana ancha y baja (1000 × 560)', (tester) async {
+    await run(tester, 'papel-ancha-baja', window: const Size(1000, 560), online: false, fresh: false,
+        style: 'paper');
+  }, timeout: const Timeout(Duration(minutes: 10)));
 
   testWidgets('Con datos, sin internet', (tester) async {
     await run(tester, 'sin-internet', window: const Size(1100, 800), online: false, fresh: false);

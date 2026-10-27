@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/battery_optimization.dart';
+import 'features/style/presentation/style_chooser_screen.dart';
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
@@ -118,16 +119,33 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       await ref.read(settingsProvider.notifier).update((s) => s.copyWith(lastSeenVersion: kijiVersion));
     }
 
+    // "¿Cómo quieres que se vea Kiji?": al instalar (después de la bienvenida) y, a quien
+    // actualiza, una sola vez.
+    Future<void> chooseStyleOnce() async {
+      if (ref.read(settingsProvider).styleChosen) return;
+      final context = kijiNavigatorKey.currentContext;
+      if (context != null && context.mounted) await StyleChooserScreen.open(context, ref);
+    }
+
     if (fresh) {
       // Se anota al cerrar la bienvenida: si Kiji se cierra a mitad, la bienvenida vuelve.
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final context = kijiNavigatorKey.currentContext;
         if (context != null && context.mounted) await WelcomeScreen.open(context, instant: true);
         await markSeen();
+        await chooseStyleOnce();
       });
       return;
     }
     await markSeen();
+    if (!settings.styleChosen) {
+      final done = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await chooseStyleOnce();
+        done.complete();
+      });
+      await done.future;
+    }
     if (!showNews) return;
     final notes = await loadBundledWhatsNew(kijiLanguage);
     if (notes == null) return;
@@ -196,24 +214,27 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   /// Tema, acento y tipografía (Configuración → Apariencia). Los colores salen de una paleta
   /// global ([KijiColors.palette]): al cambiarla se redibuja todo, como con el idioma.
   void _applyAppearance() {
-    final (theme, accent, font, rich, calm) = ref.watch(
-      settingsProvider.select((s) => (s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion)),
+    final (styleName, theme, accent, font, rich, calm) = ref.watch(
+      settingsProvider.select((s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion)),
     );
-    final palette = KijiPalette.resolve(theme: theme, accent: accent);
+    final style = KijiStyle.parse(styleName);
+    final palette = KijiPalette.forStyle(style, theme: theme, accent: accent);
     final systemFont = font == 'system';
-    if (palette == KijiColors.palette &&
+    if (style == KijiLook.style &&
+        palette == KijiColors.palette &&
         systemFont == KijiText.useSystemFont &&
         rich == KijiEffects.rich &&
         calm == KijiEffects.calm) {
       return;
     }
+    KijiLook.style = style;
     KijiColors.palette = palette;
     KijiText.useSystemFont = systemFont;
     KijiEffects.rich = rich;
     KijiEffects.calm = calm;
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
     if (!_appearanceReady) return;
-    debugPrint('=== APARIENCIA: tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
+    debugPrint('=== APARIENCIA: estilo ${style.name}, tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
     WidgetsBinding.instance.addPostFrameCallback((_) => _rebuildAll());
   }
 
