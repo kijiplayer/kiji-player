@@ -26,6 +26,7 @@ import '../features/extractor/data/ytdlp_engine.dart';
 import '../features/extractor/domain/extraction_failure.dart';
 import '../features/stream_cache/data/chunked_source.dart';
 import '../features/stream_cache/data/stream_cache.dart';
+import '../utils/duration_formatter.dart';
 import '../utils/startup_log.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/ytm_client.dart';
@@ -427,6 +428,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (_shownInSystem) unawaited(_controls.showTrack(track));
 
     try {
+      final loading = Stopwatch()..start();
       final result = await _setSource(track, initialPosition, token, skipClients);
       if (token != _loadToken) return LoadResult.cancelled;
       if (result != LoadResult.loaded) {
@@ -439,8 +441,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       _consecutiveFailures = 0;
       state = state.copyWith(isInitialized: true, position: _audioPlayer.position);
       debugPrint(
-        '=== REPRODUCCION: "${track.title}" cargada en '
-        '${_audioPlayer.position.inSeconds} s ===',
+        '=== REPRODUCCION: "${track.title}" cargada en ${loading.elapsedMilliseconds} ms, '
+        'desde ${formatDuration(_audioPlayer.position)} ===',
       );
       unawaited(_saveState());
       if (autoPlay) {
@@ -998,7 +1000,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       repeatMode: PlaybackRepeatMode.values.asNameMap()[snapshot.repeatMode] ?? PlaybackRepeatMode.off,
       shuffleEnabled: snapshot.shuffleEnabled,
     );
-    debugPrint('=== MEMORIA: restaurada "${queue[index].title}" en ${position.inSeconds} s ===');
+    debugPrint('=== MEMORIA: restaurada "${queue[index].title}", posición ${formatDuration(position)} ===');
     await _loadTrack(queue[index], index, autoPlay: false, initialPosition: position);
   }
 
