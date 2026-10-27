@@ -157,6 +157,14 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   @override
   void didChangeLocales(List<Locale>? locales) => setState(() {});
 
+  /// Si Kiji arrancó sin pantalla (desde los auriculares), la frecuencia se pide al aparecer la ventana.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && ref.read(settingsProvider).highPerformance) {
+      applyHighRefreshRate(true);
+    }
+  }
+
   /// Idioma de la app (Configuración → Idioma): se aplica sin reiniciar. Los textos salen de
   /// [tx], así que después de cambiarlo se vuelve a dibujar todo.
   Locale _applyLanguage() {

@@ -1,0 +1,19 @@
+name: kiji_channels
+description: Registra los canales nativos de Kiji en cada motor de Flutter, también en el que crea el servicio de audio sin pantalla.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.github.kijiplayer.kiji.channels
+        pluginClass: KijiChannelsPlugin

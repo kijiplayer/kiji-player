@@ -205,17 +205,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     ref.read(equalizerProvider);
     ref.onDispose(_dispose);
 
-    _controls = ref.read(systemMediaControlsProvider)
-      ..attach(
-        MediaCommands(
-          play: play,
-          pause: () => pause(reason: 'notificación, pantalla de bloqueo o auriculares'), // l10n-ignore
-          next: nextTrack,
-          previous: previousTrack,
-          seek: seekTo,
-          stop: () => pause(reason: 'el sistema pidió detener'), // l10n-ignore
-        ),
-      );
+    _controls = ref.read(systemMediaControlsProvider);
 
     _listenToPlayer();
     unawaited(PathHealth.instance.load());
@@ -254,6 +244,18 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       StartupLog.mark('el primer cuadro tardó; se restaura la cola igual'); // l10n-ignore
     }
     await StartupLog.guard('restaurar la cola', _restoreState, limit: const Duration(seconds: 30)); // l10n-ignore
+    // Los botones del sistema se conectan con la cola ya restaurada: un play de los auriculares
+    // que despertó a Kiji espera hasta acá en vez de perderse.
+    _controls.attach(
+      MediaCommands(
+        play: play,
+        pause: () => pause(reason: 'notificación, pantalla de bloqueo o auriculares'), // l10n-ignore
+        next: nextTrack,
+        previous: previousTrack,
+        seek: seekTo,
+        stop: () => pause(reason: 'el sistema pidió detener'), // l10n-ignore
+      ),
+    );
   }
 
   AudioPlayer get _audioPlayer {

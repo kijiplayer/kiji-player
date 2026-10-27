@@ -1,0 +1,18 @@
+group = "io.github.kijiplayer.kiji.channels"
+version = "1.0"
+
+apply plugin: "com.android.library"
+
+android {
+    namespace = "io.github.kijiplayer.kiji.channels"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 21
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}

@@ -11,6 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Registra los canales nativos de Kiji también en el motor del servicio de audio (sin pantalla).
+  kiji_channels:
+    path: packages/kiji_channels
   # Textos de la app en archivos ARB: español base, inglés listo para traducir.
   flutter_localizations:
     sdk: flutter

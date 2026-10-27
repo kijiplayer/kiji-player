@@ -588,6 +588,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.16"
+  kiji_channels:
+    dependency: "direct main"
+    description:
+      path: "packages/kiji_channels"
+      relative: true
+    source: path
+    version: "0.0.1"
   leak_tracker:
     dependency: transitive
     description:
