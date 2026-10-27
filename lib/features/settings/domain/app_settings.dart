@@ -13,6 +13,7 @@ class AppSettings {
     this.hideShortAudios = false,
     this.pauseOnMute = false,
     this.resumeOnBluetooth = true,
+    this.batteryAsked = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.autoBackup = true,
@@ -96,6 +97,9 @@ class AppSettings {
   /// Reproductor: si se cortó la música al desconectarse los
   /// auriculares Bluetooth, seguir al reconectarlos (dentro de 10 minutos).
   final bool resumeOnBluetooth;
+
+  /// Android: ya se explicó y pidió una vez quitar la optimización de batería.
+  final bool batteryAsked;
 
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
@@ -187,6 +191,7 @@ class AppSettings {
     bool? hideShortAudios,
     bool? pauseOnMute,
     bool? resumeOnBluetooth,
+    bool? batteryAsked,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? autoBackup,
@@ -224,6 +229,7 @@ class AppSettings {
         hideShortAudios: hideShortAudios ?? this.hideShortAudios,
         pauseOnMute: pauseOnMute ?? this.pauseOnMute,
         resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
+        batteryAsked: batteryAsked ?? this.batteryAsked,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         autoBackup: autoBackup ?? this.autoBackup,
@@ -262,6 +268,7 @@ class AppSettings {
         'hideShortAudios': hideShortAudios,
         'pauseOnMute': pauseOnMute,
         'resumeOnBluetooth': resumeOnBluetooth,
+        'batteryAsked': batteryAsked,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'autoBackup': autoBackup,
@@ -306,6 +313,7 @@ class AppSettings {
       hideShortAudios: read('hideShortAudios', d.hideShortAudios),
       pauseOnMute: read('pauseOnMute', d.pauseOnMute),
       resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),
+      batteryAsked: read('batteryAsked', d.batteryAsked),
       crossfadeSeconds: crossfadeOptions.contains(crossfade) ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       autoBackup: read('autoBackup', d.autoBackup),

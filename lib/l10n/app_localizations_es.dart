@@ -4121,4 +4121,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get prenderIgual => 'Prender igual';
+
+  @override
+  String get bateriaTitulo => 'Música sin cortes en segundo plano';
+
+  @override
+  String get bateriaExplicacion =>
+      'Con la pantalla apagada, Android puede frenar a Kiji para ahorrar batería y la música se corta (pasa mucho en Motorola, Xiaomi y Samsung). Si lo permites, Android deja a Kiji seguir sonando. Puedes cambiarlo cuando quieras en Configuración → Reproductor y audio.';
+
+  @override
+  String get bateriaPermitir => 'Permitir';
+
+  @override
+  String get bateriaActiva =>
+      'Listo: Android no frena a Kiji en segundo plano.';
+
+  @override
+  String get bateriaPendiente =>
+      'Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando.';
 }

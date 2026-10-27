@@ -4113,4 +4113,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prenderIgual => 'Turn on anyway';
+
+  @override
+  String get bateriaTitulo => 'Uninterrupted music in the background';
+
+  @override
+  String get bateriaExplicacion =>
+      'With the screen off, Android may hold Kiji back to save battery and the music stops (it happens a lot on Motorola, Xiaomi and Samsung). If you allow it, Android lets Kiji keep playing. You can change it anytime in Settings → Player and audio.';
+
+  @override
+  String get bateriaPermitir => 'Allow';
+
+  @override
+  String get bateriaActiva =>
+      'Done: Android doesn\'t hold Kiji back in the background.';
+
+  @override
+  String get bateriaPendiente =>
+      'Android may hold Kiji back with the screen off. Tap to let it keep playing.';
 }

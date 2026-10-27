@@ -1,8 +1,12 @@
 package io.github.kijiplayer.kiji
 
 import android.app.ActivityManager
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.database.ContentObserver
+import android.net.Uri
+import android.os.PowerManager
 import android.hardware.display.DisplayManager
 import android.media.AudioManager
 import android.os.Environment
@@ -62,6 +66,28 @@ object KijiChannels {
                 "documentsDir" -> result.success(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
                 )
+                else -> result.notImplemented()
+            }
+        }
+
+        // Optimización de batería: con ella, Android (y más Motorola y otras marcas) puede cortar la
+        // música en segundo plano. Kiji lo explica y abre el pedido del sistema; nunca lo cambia sola.
+        MethodChannel(messenger, "kiji/battery").setMethodCallHandler { call, result ->
+            val power = app.getSystemService(Context.POWER_SERVICE) as PowerManager
+            when (call.method) {
+                "isIgnoring" -> result.success(power.isIgnoringBatteryOptimizations(app.packageName))
+                "request" -> try {
+                    val ask = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${app.packageName}"))
+                    try {
+                        app.startActivity(ask.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    } catch (e: ActivityNotFoundException) {
+                        // Algunas marcas no tienen el diálogo: la lista de apps de la batería.
+                        app.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }
+                    result.success(null)
+                } catch (e: Exception) {
+                    result.error("bateria", e.javaClass.simpleName, null)
+                }
                 else -> result.notImplemented()
             }
         }

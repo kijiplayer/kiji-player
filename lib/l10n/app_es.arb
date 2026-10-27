@@ -2516,5 +2516,11 @@
   "@modoAltoRendimientoPantalla": {"placeholders": {"hz": {"type": "int"}}},
   "modoAltoRendimientoConfirmar": "¿Prenderlo igual?",
   "modoAltoRendimientoConfirmarTexto": "En este equipo puede ir más lento y gastar más batería. Puedes apagarlo cuando quieras.",
-  "prenderIgual": "Prender igual"
+  "prenderIgual": "Prender igual",
+  "bateriaTitulo": "Música sin cortes en segundo plano",
+  "@bateriaTitulo": {"description": "Título del pedido para quitar la optimización de batería de Android."},
+  "bateriaExplicacion": "Con la pantalla apagada, Android puede frenar a Kiji para ahorrar batería y la música se corta (pasa mucho en Motorola, Xiaomi y Samsung). Si lo permites, Android deja a Kiji seguir sonando. Puedes cambiarlo cuando quieras en Configuración → Reproductor y audio.",
+  "bateriaPermitir": "Permitir",
+  "bateriaActiva": "Listo: Android no frena a Kiji en segundo plano.",
+  "bateriaPendiente": "Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando."
 }

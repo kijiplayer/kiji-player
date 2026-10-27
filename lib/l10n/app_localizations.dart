@@ -6652,6 +6652,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Prender igual'**
   String get prenderIgual;
+
+  /// Título del pedido para quitar la optimización de batería de Android.
+  ///
+  /// In es, this message translates to:
+  /// **'Música sin cortes en segundo plano'**
+  String get bateriaTitulo;
+
+  /// No description provided for @bateriaExplicacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Con la pantalla apagada, Android puede frenar a Kiji para ahorrar batería y la música se corta (pasa mucho en Motorola, Xiaomi y Samsung). Si lo permites, Android deja a Kiji seguir sonando. Puedes cambiarlo cuando quieras en Configuración → Reproductor y audio.'**
+  String get bateriaExplicacion;
+
+  /// No description provided for @bateriaPermitir.
+  ///
+  /// In es, this message translates to:
+  /// **'Permitir'**
+  String get bateriaPermitir;
+
+  /// No description provided for @bateriaActiva.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo: Android no frena a Kiji en segundo plano.'**
+  String get bateriaActiva;
+
+  /// No description provided for @bateriaPendiente.
+  ///
+  /// In es, this message translates to:
+  /// **'Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando.'**
+  String get bateriaPendiente;
 }
 
 class _AppLocalizationsDelegate

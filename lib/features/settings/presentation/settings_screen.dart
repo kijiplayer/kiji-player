@@ -47,6 +47,7 @@ import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
+import '../../playback_extras/data/battery_optimization.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran.
 enum SettingsSection {
@@ -331,6 +332,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(resumeOnBluetooth: value)),
         ),
       ),
+      if (BatteryOptimization.applies)
+        SettingOption(
+          section: SettingsSection.player,
+          title: tx.bateriaTitulo,
+          subtitle: tx.bateriaPendiente,
+          keywords: const ['batería', 'battery', 'segundo plano', 'background', 'optimización', 'se corta', 'motorola'], // l10n-ignore
+          builder: (context, ref) => const BatteryOptimizationTile(),
+        ),
       // En la PC (bandeja, atajos globales, controles de Windows)
       if (DesktopWindow.isDesktop) ...[
         SettingOption(

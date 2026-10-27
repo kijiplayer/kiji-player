@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
+import 'features/playback_extras/data/battery_optimization.dart';
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
@@ -57,6 +60,11 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       },
       fireImmediately: true,
     );
+    // Android: la primera vez que suena música, explicar por qué conviene quitar la optimización de batería.
+    ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
+      final context = kijiNavigatorKey.currentContext;
+      if (playing && context != null && context.mounted) unawaited(offerBatteryExemptionOnce(context, ref));
+    });
     // Actualizaciones: como mucho una consulta por día, si está prendido.
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
     // Salud del Extractor: pruebas automáticas con canciones de control.

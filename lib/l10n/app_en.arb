@@ -1108,5 +1108,10 @@
   "modoAltoRendimientoPantalla": "Your screen goes up to {hz} Hz.",
   "modoAltoRendimientoConfirmar": "Turn it on anyway?",
   "modoAltoRendimientoConfirmarTexto": "On this device it may run slower and use more battery. You can turn it off anytime.",
-  "prenderIgual": "Turn on anyway"
+  "prenderIgual": "Turn on anyway",
+  "bateriaTitulo": "Uninterrupted music in the background",
+  "bateriaExplicacion": "With the screen off, Android may hold Kiji back to save battery and the music stops (it happens a lot on Motorola, Xiaomi and Samsung). If you allow it, Android lets Kiji keep playing. You can change it anytime in Settings → Player and audio.",
+  "bateriaPermitir": "Allow",
+  "bateriaActiva": "Done: Android doesn't hold Kiji back in the background.",
+  "bateriaPendiente": "Android may hold Kiji back with the screen off. Tap to let it keep playing."
 }
