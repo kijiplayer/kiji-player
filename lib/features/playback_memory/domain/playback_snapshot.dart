@@ -10,6 +10,7 @@ class PlaybackSnapshot {
     required this.positionMs,
     required this.repeatMode,
     required this.shuffleEnabled,
+    this.unshuffledIds,
   });
 
   static const _version = 1;
@@ -22,6 +23,9 @@ class PlaybackSnapshot {
   final String repeatMode;
   final bool shuffleEnabled;
 
+  /// Con aleatorio: el orden original de la cola (ids), para volver a él al apagarlo.
+  final List<String>? unshuffledIds;
+
   Map<String, dynamic> toJson() => {
         'version': _version,
         'queue': [for (final track in queue) track.toJson()],
@@ -29,6 +33,7 @@ class PlaybackSnapshot {
         'positionMs': positionMs,
         'repeatMode': repeatMode,
         'shuffleEnabled': shuffleEnabled,
+        if (unshuffledIds != null) 'unshuffledIds': unshuffledIds,
       };
 
   /// Lanza [FormatException] si el contenido no tiene sentido (versión
@@ -51,6 +56,7 @@ class PlaybackSnapshot {
       positionMs: json['positionMs'] as int? ?? 0,
       repeatMode: json['repeatMode'] as String? ?? 'off',
       shuffleEnabled: json['shuffleEnabled'] as bool? ?? false,
+      unshuffledIds: (json['unshuffledIds'] as List<dynamic>?)?.whereType<String>().toList(),
     );
   }
 }

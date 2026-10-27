@@ -185,6 +185,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// sonaron. Ganan sobre el aleatorio.
   final Set<String> _requestedNext = {};
 
+  /// Con aleatorio: el orden original de la cola (ids), para volver a él al apagarlo.
+  List<String>? _unshuffledIds;
+
   /// Por qué se pausó (para el registro).
   String? _pauseReason;
   static const _userPause = 'botón de pausa'; // l10n-ignore
@@ -749,6 +752,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> playTrack(Track track, {Duration startAt = Duration.zero}) async {
     await _stopTail();
     _requestedNext.clear();
+    _unshuffledIds = null;
     state = state.copyWith(queue: [track], currentIndex: 0);
     await _loadOrRecover(track, 0, initialPosition: startAt);
   }
@@ -759,10 +763,15 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> playQueue(List<Track> tracks, {int startIndex = 0}) async {
     await _stopTail();
     if (tracks.isEmpty) return;
-    final index = startIndex.clamp(0, tracks.length - 1);
+    var queue = QueueSnapshot(tracks, startIndex.clamp(0, tracks.length - 1));
     _requestedNext.clear();
-    state = state.copyWith(queue: tracks, currentIndex: index);
-    await _loadOrRecover(tracks[index], index);
+    _unshuffledIds = null;
+    if (state.shuffleEnabled) {
+      _unshuffledIds = [for (final track in tracks) track.id];
+      queue = queue.shuffled(_random);
+    }
+    state = state.copyWith(queue: queue.tracks, currentIndex: queue.currentIndex);
+    await _loadOrRecover(queue.current!, queue.currentIndex);
   }
 
   // ---------------------------------------------------------------------
@@ -813,6 +822,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         currentIndex: 0,
         repeatMode: state.repeatMode,
       );
+      _unshuffledIds = null;
       await _memory.clear();
       return removed;
     }
@@ -920,6 +930,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         positionMs: position.inMilliseconds,
         repeatMode: state.repeatMode.name,
         shuffleEnabled: state.shuffleEnabled,
+        unshuffledIds: _unshuffledIds,
       ),
     );
   }
@@ -942,11 +953,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (state.queue.isNotEmpty) return;
 
     // Colas guardadas antes del arreglo del artista ("Canción • Daft Punk").
-    final queue = [
+    var queue = [
       for (final track in snapshot.queue)
         track.source == TrackSource.youtube ? track.copyWith(artist: cleanArtistText(track.artist)) : track,
     ];
     var index = snapshot.currentIndex;
+    _unshuffledIds = snapshot.unshuffledIds;
+    // Guardada antes de que el aleatorio mezclara la cola de verdad: se mezcla ahora.
+    if (snapshot.shuffleEnabled && _unshuffledIds == null) {
+      _unshuffledIds = [for (final track in queue) track.id];
+      final mixed = QueueSnapshot(queue, index).shuffled(_random);
+      queue = mixed.tracks;
+      index = mixed.currentIndex;
+    }
     var position = Duration(milliseconds: snapshot.positionMs);
 
     // Local: si el archivo ya no existe, saltar a la siguiente que exista.
@@ -1058,8 +1077,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     await _audioPlayer.seek(position);
   }
 
+  /// Al prender el aleatorio la cola se mezcla de verdad (la que suena queda primera): lo que se
+  /// ve en la cola es el orden en que van a sonar. Al apagarlo vuelve al orden original.
   void toggleShuffle() {
-    state = state.copyWith(shuffleEnabled: !state.shuffleEnabled);
+    final QueueSnapshot queue;
+    if (state.shuffleEnabled) {
+      final original = _unshuffledIds;
+      queue = original == null ? _queueSnapshot : _queueSnapshot.unshuffled(original);
+      _unshuffledIds = null;
+    } else {
+      _unshuffledIds = [for (final track in state.queue) track.id];
+      queue = _queueSnapshot.shuffled(_random);
+    }
+    state = state.copyWith(shuffleEnabled: !state.shuffleEnabled, queue: queue.tracks, currentIndex: queue.currentIndex);
     unawaited(_saveState());
   }
 
@@ -1136,7 +1166,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   bool get _hasNextForCrossfade {
     final queue = state.queue;
     if (queue.length <= 1 || state.repeatMode == PlaybackRepeatMode.one) return false;
-    return state.shuffleEnabled || state.currentIndex + 1 < queue.length || state.repeatMode == PlaybackRepeatMode.all;
+    return state.currentIndex + 1 < queue.length || state.repeatMode == PlaybackRepeatMode.all;
   }
 
   Future<void> _prepareTail() async {
@@ -1331,15 +1361,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       return;
     }
 
-    if (state.shuffleEnabled) {
-      int candidate;
-      do {
-        candidate = _random.nextInt(queue.length);
-      } while (candidate == state.currentIndex);
-      await _playAtIndex(candidate);
-      return;
-    }
-
+    // Con aleatorio la cola ya está mezclada: se sigue en orden.
     final next = state.currentIndex + 1;
     if (next < queue.length) {
       await _playAtIndex(next);

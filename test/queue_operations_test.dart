@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -133,6 +135,33 @@ void main() {
 
     test('La que suena no cuenta como pedida', () {
       expect(queue.nextRequestedIndex({'yt-c'}), isNull);
+    });
+  });
+
+  group('Aleatorio', () {
+    test('La que suena queda primera y la cola tiene las mismas canciones', () {
+      final q = queue.shuffled(Random(7));
+      expect(q.currentIndex, 0);
+      expect(q.current!.title, 'c');
+      expect(_ids(q).toSet(), {'a', 'b', 'c', 'd', 'e'});
+      expect(_ids(q).length, 5);
+    });
+
+    test('Al apagarlo vuelve al orden original, siguiendo a la que suena', () {
+      final original = [for (final t in queue.tracks) t.id];
+      final mixed = queue.shuffled(Random(3));
+      // Suena otra (la tercera de la mezcla) y se agregó una nueva mientras estaba mezclada.
+      final later = QueueSnapshot([...mixed.tracks, _t('z')], 2);
+      final back = later.unshuffled(original);
+      expect(_ids(back), ['a', 'b', 'c', 'd', 'e', 'z']);
+      expect(back.current!.title, later.current!.title);
+    });
+
+    test('Una que se quitó mientras estaba mezclada no vuelve', () {
+      final original = [for (final t in queue.tracks) t.id];
+      final mixed = queue.shuffled(Random(1));
+      final without = mixed.remove(mixed.tracks.indexWhere((t) => t.title == 'a'));
+      expect(_ids(without.unshuffled(original)), ['b', 'c', 'd', 'e']);
     });
   });
 }
