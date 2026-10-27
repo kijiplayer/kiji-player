@@ -79,6 +79,37 @@ void main() {
     expect(container.read(playlistsProvider).single.tracks.first.id, 'yt-a');
   });
 
+  testWidgets('Buscar dentro de la playlist: sin importar mayúsculas ni tildes', (tester) async {
+    Future<Directory> noDisk() async => throw const FileSystemException('sin disco en el test');
+    final container = ProviderContainer(overrides: [
+      playlistsProvider.overrideWith(() => PlaylistsNotifier(directory: noDisk)),
+      playbackProvider.overrideWith(_EmptyPlayback.new),
+    ]);
+    addTearDown(container.dispose);
+    final otra = _t('b').copyWith(title: 'Río de cristal', artist: 'The Velvet Tides');
+    final playlist = container.read(playlistsProvider.notifier).create('Mía', tracks: [_t('a'), otra, _t('c')]);
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(home: PlaylistScreen(playlistId: playlist.id)),
+    ));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'RIO');
+    await tester.pump();
+    expect(find.text('Río de cristal'), findsOneWidget);
+    expect(find.text('Canción a'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'velvet');
+    await tester.pump();
+    expect(find.text('Río de cristal'), findsOneWidget, reason: 'también por artista');
+
+    await tester.tap(find.byTooltip('Borrar la búsqueda'));
+    await tester.pump();
+    expect(find.text('Canción a'), findsOneWidget);
+    expect(find.text('Canción c'), findsOneWidget);
+  });
+
   testWidgets('Celular angosto: los cuatro filtros de descarga se ven enteros', (tester) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;

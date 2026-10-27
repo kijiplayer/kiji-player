@@ -4131,4 +4131,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get bateriaPendiente =>
       'Android may hold Kiji back with the screen off. Tap to let it keep playing.';
+
+  @override
+  String get buscarEnLaPlaylist => 'Search this playlist';
+
+  @override
+  String get borrarBusqueda => 'Clear search';
 }

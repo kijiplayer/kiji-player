@@ -20,6 +20,7 @@ import '../../moments/data/moments_store.dart';
 import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
+import '../../settings/domain/setting_search.dart';
 import '../domain/smart_lists.dart';
 import '../playlists_provider.dart';
 import '../../customize/presentation/track_text.dart';
@@ -317,6 +318,10 @@ class PlaylistScreen extends ConsumerStatefulWidget {
 class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
   _TrackFilter _filter = _TrackFilter.all;
 
+  /// Buscador: título, artista o álbum, sin importar mayúsculas ni tildes.
+  final _search = TextEditingController();
+  String _query = '';
+
   /// Selección múltiple: la clave de cada fila es su lugar en la playlist.
   final _selection = TrackSelection();
 
@@ -333,6 +338,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     _selection
       ..removeListener(_onSelection)
       ..dispose();
+    _search.dispose();
     super.dispose();
   }
 
@@ -380,12 +386,16 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     final failed = marks.where((m) => m == DownloadMark.failed).length;
     var filter = _filter;
     if (filter == _TrackFilter.failed && failed == 0) filter = _TrackFilter.all;
-    bool matches(int i) => switch (filter) {
-      _TrackFilter.all => true,
-      _TrackFilter.downloaded => marks[i] == DownloadMark.done,
-      _TrackFilter.missing => playlist.tracks[i].youtubeVideoId != null && marks[i] != DownloadMark.done,
-      _TrackFilter.failed => marks[i] == DownloadMark.failed,
-    };
+    final searching = _query.isNotEmpty;
+    bool found(Track t) => normalizeForSearch('${t.title} ${t.artist} ${t.album ?? ''}').contains(_query);
+    bool matches(int i) =>
+        (!searching || found(playlist.tracks[i])) &&
+        switch (filter) {
+          _TrackFilter.all => true,
+          _TrackFilter.downloaded => marks[i] == DownloadMark.done,
+          _TrackFilter.missing => playlist.tracks[i].youtubeVideoId != null && marks[i] != DownloadMark.done,
+          _TrackFilter.failed => marks[i] == DownloadMark.failed,
+        };
     final visible = [
       for (var i = 0; i < playlist.tracks.length; i++)
         if (matches(i)) i,
@@ -499,8 +509,37 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                     setState(() => _filter = f);
                   },
                 ),
+              if (playlist.tracks.length > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                  child: TextField(
+                    controller: _search,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      hintText: tx.buscarEnLaPlaylist,
+                      suffixIcon: searching
+                          ? IconButton(
+                              tooltip: tx.borrarBusqueda,
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () {
+                                _search.clear();
+                                _selection.clear();
+                                setState(() => _query = '');
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (text) {
+                      _selection.clear();
+                      setState(() => _query = normalizeForSearch(text.trim()));
+                    },
+                  ),
+                ),
               Expanded(
-                child: filter == _TrackFilter.all
+                // Con búsqueda o filtro, la lista no se reordena (los lugares visibles no son los reales).
+                child: filter == _TrackFilter.all && !searching
                     ? ReorderableListView.builder(
                         buildDefaultDragHandles: false,
                         padding: const EdgeInsets.only(bottom: 120),

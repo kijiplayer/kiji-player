@@ -4139,4 +4139,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get bateriaPendiente =>
       'Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando.';
+
+  @override
+  String get buscarEnLaPlaylist => 'Buscar en la playlist';
+
+  @override
+  String get borrarBusqueda => 'Borrar la búsqueda';
 }

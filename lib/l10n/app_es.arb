@@ -2522,5 +2522,8 @@
   "bateriaExplicacion": "Con la pantalla apagada, Android puede frenar a Kiji para ahorrar batería y la música se corta (pasa mucho en Motorola, Xiaomi y Samsung). Si lo permites, Android deja a Kiji seguir sonando. Puedes cambiarlo cuando quieras en Configuración → Reproductor y audio.",
   "bateriaPermitir": "Permitir",
   "bateriaActiva": "Listo: Android no frena a Kiji en segundo plano.",
-  "bateriaPendiente": "Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando."
+  "bateriaPendiente": "Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando.",
+  "buscarEnLaPlaylist": "Buscar en la playlist",
+  "@buscarEnLaPlaylist": {"description": "Campo para buscar canciones dentro de una playlist (título, artista o álbum)."},
+  "borrarBusqueda": "Borrar la búsqueda"
 }

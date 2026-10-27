@@ -6682,6 +6682,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando.'**
   String get bateriaPendiente;
+
+  /// Campo para buscar canciones dentro de una playlist (título, artista o álbum).
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en la playlist'**
+  String get buscarEnLaPlaylist;
+
+  /// No description provided for @borrarBusqueda.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar la búsqueda'**
+  String get borrarBusqueda;
 }
 
 class _AppLocalizationsDelegate
