@@ -213,7 +213,16 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     _listenToPlayer();
     unawaited(PathHealth.instance.load());
     // Paga los costos en frío del motor A (config, solver, BotGuard) fuera del primer play.
-    unawaited(Future<void>.delayed(const Duration(seconds: 2), _resolver.prewarm));
+    // Sin red (p. ej. el teléfono recién sale del reposo) no se intenta: fallaría y no sirve.
+    unawaited(
+      Future<void>.delayed(const Duration(seconds: 2), () async {
+        if (await _isOnline()) {
+          await _resolver.prewarm();
+        } else {
+          debugPrint('=== EXTRACTOR: sin conexión al abrir; no se precalienta ===');
+        }
+      }),
+    );
 
     // Guardado periódico mientras suena y al pasar a segundo plano.
     _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) {
