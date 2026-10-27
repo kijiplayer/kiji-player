@@ -118,6 +118,9 @@ object KijiChannels {
         // Motor A de extracción: InnerTubeX (solo Android).
         ExtractorChannel.register(app, messenger)
 
+        // Volumen del archivo para la onda en vivo (alto rendimiento).
+        LoudnessAnalyzer.register(messenger)
+
         // Volumen de la música del sistema (0 a 1), para "Pausar al silenciar".
         // Solo se escucha mientras Dart está suscrito.
         EventChannel(messenger, "kiji/volume").setStreamHandler(object : EventChannel.StreamHandler {

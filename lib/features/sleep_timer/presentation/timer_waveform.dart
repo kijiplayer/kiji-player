@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/appearance_provider.dart';
+import '../../loudness/data/loudness_analyzer.dart';
+import '../../settings/data/settings_store.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/nocturne/waveform_progress.dart';
@@ -35,6 +37,9 @@ class TimerWaveform extends ConsumerWidget {
     final marking = ref.watch(sleepTimerMarkingProvider);
     final track = playback.track;
     if (track == null) return SizedBox(height: height);
+    // Modo alto rendimiento: la onda salta con el volumen real (se analiza el archivo una vez).
+    final highPerformance = ref.watch(settingsProvider.select((s) => s.highPerformance));
+    final loudness = highPerformance ? ref.watch(loudnessProvider(track.id)).value : null;
 
     final wave = WaveformProgress(
       seed: track.id,
@@ -45,6 +50,8 @@ class TimerWaveform extends ConsumerWidget {
       // Se dibuja de izquierda a derecha y se mueve mientras suena.
       animateIn: !reduceMotion(context, ref),
       alive: playback.isPlaying && !reduceMotion(context, ref),
+      loudness: loudness,
+      position: playback.position,
       onSeek: marking
           ? (fraction) {
               final target = Duration(milliseconds: (playback.duration.inMilliseconds * fraction).round());
