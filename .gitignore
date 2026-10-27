@@ -69,4 +69,10 @@ secrets/
 
 # Configuración local del entorno de desarrollo
 CLAUDE.md
-.claude/
+.claude/*
+# Las skills de proyecto sí se suben (no tienen nada privado).
+!.claude/skills/
+
+# Graphify: grafo local del código (no se sube)
+graphify-out/
+.graphifyignore
