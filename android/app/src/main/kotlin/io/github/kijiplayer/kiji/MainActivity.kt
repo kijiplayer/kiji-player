@@ -30,7 +30,9 @@ class MainActivity : AudioServiceActivity() {
                         // 0 = lo que decida el sistema (como siempre).
                         params.preferredDisplayModeId = if (on && best != null) best.modeId else 0
                         window.attributes = params
-                        result.success((if (on) best?.refreshRate else current?.refreshRate)?.toDouble())
+                        // Apagado: null = la decide el sistema. El modo actual no sirve como respuesta:
+                        // el cambio se aplica un momento después (antes el registro decía "120 Hz").
+                        result.success(if (on) best?.refreshRate?.toDouble() else null)
                     }
                     "deviceInfo" -> result.success(KijiChannels.deviceInfo(this, display))
                     else -> result.notImplemented()
