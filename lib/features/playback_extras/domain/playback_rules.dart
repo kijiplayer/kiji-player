@@ -68,6 +68,34 @@ class BluetoothResumeRule {
   bool onConnected({required bool isPlaying, required bool hasTrack}) => hasTrack && !isPlaying;
 }
 
+/// Se cortó el Bluetooth o los audífonos mientras sonaba: pausa (nunca sigue
+/// por el parlante) y, si la salida vuelve antes de [window], sigue sola. Así
+/// un microcorte no deja la música detenida.
+class OutputLossRule {
+  OutputLossRule({this.window = const Duration(seconds: 15), DateTime Function()? now}) : _now = now ?? DateTime.now;
+
+  final Duration window;
+  final DateTime Function() _now;
+  DateTime? _lostAt;
+
+  /// true si hay que pausar y esperar.
+  bool onLost({required bool isPlaying}) {
+    if (!isPlaying) return false;
+    _lostAt = _now();
+    return true;
+  }
+
+  /// Volvió una salida privada: true si fue a tiempo y hay que seguir.
+  bool onBack() {
+    final lost = _lostAt;
+    _lostAt = null;
+    return lost != null && _now().difference(lost) <= window;
+  }
+
+  /// La persona tocó play o pausa: manda ella.
+  void userTookControl() => _lostAt = null;
+}
+
 /// Texto para compartir una canción. Las de YouTube llevan un enlace de
 /// song.link (Odesli), que abre la canción en la app de música de quien lo
 /// recibe (Spotify, Apple Music, YouTube Music…). Kiji no consulta a Odesli:

@@ -185,18 +185,36 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// sonaron. Ganan sobre el aleatorio.
   final Set<String> _requestedNext = {};
 
+  /// Por qué se pausó (para el registro).
+  String? _pauseReason;
+  static const _userPause = 'botón de pausa'; // l10n-ignore
+
+  /// Esperando que vuelva la salida de audio (ver [pause]).
+  Timer? _outputWait;
+
   @override
   PlaybackState build() {
     // Ecualizador del sistema (solo Android): el efecto se conecta
     // al crear el reproductor y el notificador aplica el perfil guardado.
     final equalizer = ref.read(androidEqualizerProvider);
-    _player = AudioPlayer(audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]));
+    // Las pausas por desconexión e interrupciones las maneja PlaybackAutomation (con su motivo).
+    _player = AudioPlayer(
+      handleInterruptions: false,
+      audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]),
+    );
     ref.read(equalizerProvider);
     ref.onDispose(_dispose);
 
     _controls = ref.read(systemMediaControlsProvider)
       ..attach(
-        MediaCommands(play: play, pause: pause, next: nextTrack, previous: previousTrack, seek: seekTo, stop: pause),
+        MediaCommands(
+          play: play,
+          pause: () => pause(reason: 'notificación, pantalla de bloqueo o auriculares'), // l10n-ignore
+          next: nextTrack,
+          previous: previousTrack,
+          seek: seekTo,
+          stop: () => pause(reason: 'el sistema pidió detener'), // l10n-ignore
+        ),
       );
 
     _listenToPlayer();
@@ -255,7 +273,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           state = state.copyWith(isPlaying: playerState.playing);
 
           // Guardar al pausar (solo en la transición, no en cada evento).
-          if (_wasPlaying && !playerState.playing) unawaited(_saveState());
+          if (_wasPlaying && !playerState.playing) {
+            debugPrint('=== PAUSA: ${_pauseReason ?? 'el reproductor o el sistema'} ===');
+            _pauseReason = null;
+            unawaited(_saveState());
+          }
           _wasPlaying = playerState.playing;
 
           if (playerState.processingState == ProcessingState.completed) {
@@ -314,15 +336,18 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       _shownInSystem = true;
       unawaited(_controls.showTrack(track, duration: player.duration));
     }
+    final waiting = _outputWait != null;
     _controls.updatePlayback(
-      playing: player.playing,
-      processing: switch (player.processingState) {
-        ProcessingState.idle => MediaProcessing.idle,
-        ProcessingState.loading => MediaProcessing.loading,
-        ProcessingState.buffering => MediaProcessing.buffering,
-        ProcessingState.ready => MediaProcessing.ready,
-        ProcessingState.completed => MediaProcessing.completed,
-      },
+      playing: player.playing || waiting,
+      processing: waiting
+          ? MediaProcessing.buffering
+          : switch (player.processingState) {
+              ProcessingState.idle => MediaProcessing.idle,
+              ProcessingState.loading => MediaProcessing.loading,
+              ProcessingState.buffering => MediaProcessing.buffering,
+              ProcessingState.ready => MediaProcessing.ready,
+              ProcessingState.completed => MediaProcessing.completed,
+            },
       position: player.position,
       bufferedPosition: player.bufferedPosition,
     );
@@ -384,7 +409,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       if (result != LoadResult.loaded) {
         state = state.copyWith(isInitialized: false, position: initialPosition);
         // Que la UI no siga mostrando "Reproduciendo" sobre una carga fallida.
-        await _audioPlayer.pause();
+        await _pausePlayer('no se pudo cargar la canción'); // l10n-ignore
         return result;
       }
 
@@ -408,7 +433,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('$error');
       debugPrint('$stackTrace');
       state = state.copyWith(isInitialized: false);
-      await _audioPlayer.pause();
+      await _pausePlayer('error al cargar la canción'); // l10n-ignore
       return await _isOnline() ? LoadResult.unplayable : LoadResult.offline;
     }
   }
@@ -620,7 +645,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       }
       // Nada para escuchar sin red: queda en pausa en el mismo punto, y al
       // tocar play se reintenta desde ahí.
-      await _audioPlayer.pause();
+      await _pausePlayer('sin conexión'); // l10n-ignore
       state = state.copyWith(track: track, currentIndex: index, position: position, isInitialized: false);
       _notify(PlaybackNotice(tx.sinConexionLaMusicaQuedoEn, action: NoticeAction.openDownloads));
       return;
@@ -646,7 +671,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         ref.read(accountOfferProvider.notifier).state = AccountOffer(track: track);
       }
       if (next == null || next == index) {
-        await _audioPlayer.pause();
+        await _pausePlayer('contenido bloqueado y no hay otra canción'); // l10n-ignore
         state = state.copyWith(position: position, isInitialized: false);
         return;
       }
@@ -658,14 +683,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final next = index + 1 < queue.length ? index + 1 : (state.repeatMode == PlaybackRepeatMode.off ? null : 0);
     if (next == null || next == index || _consecutiveFailures >= 3) {
       _consecutiveFailures = 0;
-      await _audioPlayer.pause();
+      await _pausePlayer('YouTube no deja reproducir'); // l10n-ignore
       state = state.copyWith(position: position, isInitialized: false);
       final suggestC = YtDlpEngine.platformSupported && !ref.read(settingsProvider).ytDlpAccepted;
       _notify(
         PlaybackNotice(
-          suggestC
-              ? tx.youtubeNoDejaProbarMotorC
-              : tx.youtubeNoEstaDejandoReproducirAhora,
+          suggestC ? tx.youtubeNoDejaProbarMotorC : tx.youtubeNoEstaDejandoReproducirAhora,
           action: NoticeAction.openDownloads,
         ),
       );
@@ -859,7 +882,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       final next = await _nextAvailableIndex(queue, index);
       if (next == null) {
         _notify(PlaybackNotice(tx.lasCancionesDeEstaColaYa));
-        await _audioPlayer.pause();
+        await _pausePlayer('las canciones de la cola ya no están'); // l10n-ignore
         return;
       }
       _notify(PlaybackNotice(tx.yaNoEstaEnElDispositivo(missing.title)));
@@ -960,6 +983,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> _dispose() async {
     await _stopTail();
     _saveTimer?.cancel();
+    _outputWait?.cancel();
     _lifecycleListener?.dispose();
     for (final subscription in _subscriptions) {
       await subscription.cancel();
@@ -984,6 +1008,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> play() async {
     final track = state.track;
     if (track == null) return;
+    _outputWait?.cancel();
+    _outputWait = null;
     if (!state.isInitialized) {
       // Pista restaurada que no se pudo cargar al abrir (p. ej. YouTube sin
       // red): reintentar ahora, desde la posición guardada.
@@ -993,9 +1019,26 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     }
   }
 
-  Future<void> pause() async {
+  /// [reason] queda en el registro. Con [keepAliveFor] (se cortó el Bluetooth), el sistema sigue
+  /// viendo "cargando" ese tiempo: Kiji queda en primer plano y Android no la congela antes de
+  /// que vuelva la salida.
+  Future<void> pause({String reason = _userPause, Duration? keepAliveFor}) async {
+    _outputWait?.cancel();
+    // Antes de pausar, para que el sistema nunca vea "en pausa" y saque a Kiji del primer plano.
+    _outputWait = keepAliveFor == null
+        ? null
+        : Timer(keepAliveFor, () {
+            _outputWait = null;
+            debugPrint('=== PAUSA: la salida no volvió en ${keepAliveFor.inSeconds} s; queda en pausa ===');
+            _pushSystemState();
+          });
     await _stopTail();
-    await _audioPlayer.pause();
+    await _pausePlayer(reason);
+  }
+
+  Future<void> _pausePlayer(String reason) {
+    if (_audioPlayer.playing) _pauseReason = reason;
+    return _audioPlayer.pause();
   }
 
   Future<void> seekTo(Duration position) async {
@@ -1260,7 +1303,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
     if (queue.length == 1) {
       if (state.repeatMode == PlaybackRepeatMode.off) {
-        await _audioPlayer.pause();
+        await _pausePlayer('terminó la canción'); // l10n-ignore
         await _audioPlayer.seek(Duration.zero);
       } else {
         await _audioPlayer.seek(Duration.zero);
@@ -1294,7 +1337,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
     // Llegamos al final de la cola.
     if (state.repeatMode == PlaybackRepeatMode.off) {
-      await _audioPlayer.pause();
+      await _pausePlayer('terminó la cola'); // l10n-ignore
       await _audioPlayer.seek(Duration.zero);
     } else {
       await _playAtIndex(0);

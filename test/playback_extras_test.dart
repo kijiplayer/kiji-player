@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:audio_session/audio_session.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,9 +36,13 @@ class _FakeControl implements PlaybackControl {
     isPlaying = true;
   }
 
+  final reasons = <String>[];
+  Duration? keptAlive;
   @override
-  Future<void> pause() async {
+  Future<void> pause({required String reason, Duration? keepAliveFor}) async {
     calls.add('pause');
+    reasons.add(reason);
+    keptAlive = keepAliveFor;
     isPlaying = false;
   }
 }
@@ -49,7 +54,7 @@ class _FakeVolume implements SystemVolumeMonitor {
   Future<void> close() => controller.close();
 }
 
-class _FakeOutputs implements AudioOutputMonitor {
+class _FakeOutputs extends AudioOutputMonitor {
   final controller = StreamController<AudioOutputKind>.broadcast();
   Future<void> close() => controller.close();
   @override
@@ -202,9 +207,8 @@ void main() {
       final automation = c.read(automationProvider);
       await _settle();
 
-      // Apagadas: nadie escucha el volumen ni los dispositivos.
+      // Apagadas: nadie escucha el volumen (la salida se sigue siempre, para el corte de 15 s).
       expect(volume.controller.hasListener, isFalse);
-      expect(outputs.controller.hasListener, isFalse);
 
       await c.read(settingsProvider.notifier)
           .update((s) => s.copyWith(pauseOnMute: true, resumeOnBluetooth: true));
@@ -219,21 +223,89 @@ void main() {
       automation.onPlayingChanged(true);
       expect(control.calls, ['pause', 'play']);
 
-      // Se desconecta el Bluetooth: el sistema pausa. Al volver a conectarlo, sigue.
+      // Se desconecta el Bluetooth mientras suena: pausa (nunca por el parlante), sigue
+      // en primer plano y, al volver en menos de 15 s, sigue sola.
       outputs.controller.add(AudioOutputKind.speaker);
       await _settle();
-      await control.pause();
       automation.onPlayingChanged(false);
+      expect(control.keptAlive, const Duration(seconds: 15));
       outputs.controller.add(AudioOutputKind.bluetooth);
       await _settle();
+      automation.onPlayingChanged(true);
       expect(control.calls, ['pause', 'play', 'pause', 'play']);
 
-      // Al apagar las opciones deja de escuchar.
+      // En pausa a mano y con "Retomar con el Bluetooth" prendido, también sigue al conectar.
+      await control.pause(reason: 'botón de pausa');
+      automation.onPlayingChanged(false);
+      outputs.controller.add(AudioOutputKind.speaker);
+      outputs.controller.add(AudioOutputKind.bluetooth);
+      await _settle();
+      expect(control.calls.last, 'play');
+      automation.onPlayingChanged(true);
+
+      // Al apagar las opciones deja de escuchar el volumen.
       await c.read(settingsProvider.notifier)
           .update((s) => s.copyWith(pauseOnMute: false, resumeOnBluetooth: false));
       await _settle();
       expect(volume.controller.hasListener, isFalse);
-      expect(outputs.controller.hasListener, isFalse);
+
+      // Sin "Retomar con el Bluetooth", el corte corto igual sigue solo; el largo no.
+      control.calls.clear();
+      automation.onBecomingNoisy();
+      automation.onPlayingChanged(false);
+      outputs.controller.add(AudioOutputKind.speaker);
+      outputs.controller.add(AudioOutputKind.bluetooth);
+      await _settle();
+      expect(control.calls, ['pause', 'play'], reason: 'el aviso y el cambio al parlante pausan una sola vez');
+      expect(control.reasons.last, contains('Bluetooth'));
+      automation.onPlayingChanged(true);
     });
+
+    test('interrupciones: pausa con motivo y sigue solo si la pausa fue de ellas', () async {
+      final control = _FakeControl()..isPlaying = true;
+      final outputs = _FakeOutputs();
+      final automationProvider = Provider((ref) => PlaybackAutomation(ref)..start());
+      final c = ProviderContainer(overrides: [
+        settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => dir)),
+        playbackControlProvider.overrideWithValue(control),
+        audioOutputMonitorProvider.overrideWithValue(outputs),
+      ]);
+      addTearDown(c.dispose);
+      final automation = c.read(automationProvider);
+      await _settle();
+
+      automation.onInterruption(AudioInterruptionEvent(true, AudioInterruptionType.pause));
+      automation.onPlayingChanged(false);
+      automation.onInterruption(AudioInterruptionEvent(false, AudioInterruptionType.pause));
+      automation.onPlayingChanged(true);
+      expect(control.calls, ['pause', 'play']);
+      expect(control.reasons.single, contains('otra app'));
+
+      // Si la persona pausó durante la llamada, no la arranca al terminar.
+      automation.onInterruption(AudioInterruptionEvent(true, AudioInterruptionType.pause));
+      automation.onPlayingChanged(false);
+      automation.onPlayingChanged(true); // play a mano
+      await control.pause(reason: 'botón de pausa');
+      automation.onPlayingChanged(false);
+      automation.onInterruption(AudioInterruptionEvent(false, AudioInterruptionType.pause));
+      expect(control.calls, ['pause', 'play', 'pause', 'pause']);
+    });
+  });
+
+  test('corte de la salida: sigue solo si vuelve en 15 s', () {
+    var now = DateTime(2026, 10, 27, 12);
+    final rule = OutputLossRule(now: () => now);
+    expect(rule.onLost(isPlaying: false), isFalse, reason: 'en pausa no hay nada que cuidar');
+    expect(rule.onBack(), isFalse);
+    expect(rule.onLost(isPlaying: true), isTrue);
+    now = now.add(const Duration(seconds: 14));
+    expect(rule.onBack(), isTrue);
+    expect(rule.onBack(), isFalse, reason: 'una sola vez');
+    rule.onLost(isPlaying: true);
+    now = now.add(const Duration(seconds: 16));
+    expect(rule.onBack(), isFalse);
+    rule.onLost(isPlaying: true);
+    rule.userTookControl();
+    expect(rule.onBack(), isFalse);
   });
 }

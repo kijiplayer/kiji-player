@@ -107,11 +107,18 @@ AudioOutputKind outputKindFrom(Iterable<AudioDeviceType> outputs) {
 
 /// Salida de audio actual y sus cambios.
 abstract class AudioOutputMonitor {
+  const AudioOutputMonitor();
   Future<AudioOutputKind> current();
   Stream<AudioOutputKind> get changes;
+
+  /// Android avisa que el audio va a salir por el parlante (se desconectó el Bluetooth o los audífonos).
+  Stream<void> get becomingNoisy => const Stream.empty();
+
+  /// Otra app tomó o devolvió el audio (llamada, alarma, asistente…).
+  Stream<AudioInterruptionEvent> get interruptions => const Stream.empty();
 }
 
-class AudioSessionOutputMonitor implements AudioOutputMonitor {
+class AudioSessionOutputMonitor extends AudioOutputMonitor {
   @override
   Future<AudioOutputKind> current() async {
     try {
@@ -131,9 +138,19 @@ class AudioSessionOutputMonitor implements AudioOutputMonitor {
       yield await current();
     }
   }
+
+  @override
+  Stream<void> get becomingNoisy async* {
+    yield* (await AudioSession.instance).becomingNoisyEventStream;
+  }
+
+  @override
+  Stream<AudioInterruptionEvent> get interruptions async* {
+    yield* (await AudioSession.instance).interruptionEventStream;
+  }
 }
 
-class FixedOutputMonitor implements AudioOutputMonitor {
+class FixedOutputMonitor extends AudioOutputMonitor {
   const FixedOutputMonitor([this.kind = AudioOutputKind.speaker]);
   final AudioOutputKind kind;
   @override
