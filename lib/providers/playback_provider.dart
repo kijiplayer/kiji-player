@@ -256,6 +256,15 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
         stop: () => pause(reason: 'el sistema pidió detener'), // l10n-ignore
       ),
     );
+    // Windows: la canción restaurada (en pausa) queda en los controles del sistema, así las teclas
+    // multimedia la arrancan aunque Kiji esté minimizada. En Android la notificación espera al
+    // primer play (Cero Sorpresas).
+    final track = state.track;
+    if (Platform.isWindows && track != null && !_shownInSystem) {
+      _shownInSystem = true;
+      await _controls.showTrack(track, duration: _player?.duration);
+      _pushSystemState();
+    }
   }
 
   AudioPlayer get _audioPlayer {
