@@ -329,6 +329,15 @@ Future<void> _step(WidgetTester tester, String name, Future<void> Function() bod
 Future<void> _selection(WidgetTester tester, String name) async {
   final rows = find.byType(ListTile);
   if (rows.evaluate().isEmpty) throw StateError('no hay filas para elegir');
+  // En una ventana baja (teléfono girado) la primera fila queda debajo del mini-reproductor: se sube
+  // la lista primero, como haría una persona.
+  final list = find.ancestor(of: rows.first, matching: find.byType(Scrollable));
+  final height = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+  final row = tester.getRect(rows.first);
+  if (list.evaluate().isNotEmpty && row.bottom > height - 120) {
+    await tester.drag(list.first, Offset(0, -(row.bottom - (height - 160))), warnIfMissed: false);
+    await _settle(tester, 6);
+  }
   await tester.longPress(rows.first, warnIfMissed: false);
   await _settle(tester, 6);
   await _shot(tester, name);
