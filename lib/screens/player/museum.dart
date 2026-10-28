@@ -14,6 +14,7 @@ import '../../models/track.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/appearance_provider.dart';
 import '../../theme/kiji_tokens.dart';
+import '../../utils/shared_events.dart';
 import '../../widgets/album_cover.dart';
 
 /// "Vidrio de museo" de Grafito: el fondo del reproductor, el grano, el brillo al abrir, la
@@ -462,13 +463,7 @@ class _CoverTiltState extends ConsumerState<CoverTilt> with SingleTickerProvider
 /// El título y el artista entran deslizándose, una línea después de la otra, al cambiar de canción
 /// (y al abrir el reproductor). Fuera de Grafito o con "Reducir animaciones", quedan quietos.
 class MuseumLineIn extends ConsumerStatefulWidget {
-  const MuseumLineIn({
-    super.key,
-    required this.trackId,
-    required this.line,
-    required this.child,
-    this.always = false,
-  });
+  const MuseumLineIn({super.key, required this.trackId, required this.line, required this.child, this.always = false});
 
   final String trackId;
 
@@ -663,7 +658,6 @@ class MuseumReflection extends ConsumerStatefulWidget {
 }
 
 class _MuseumReflectionState extends ConsumerState<MuseumReflection> with SingleTickerProviderStateMixin {
-  static const _tilt = EventChannel('kiji/tilt');
   final _light = ValueNotifier<Offset>(Offset.zero);
   Offset _target = Offset.zero;
   StreamSubscription<dynamic>? _sensor;
@@ -683,7 +677,7 @@ class _MuseumReflectionState extends ConsumerState<MuseumReflection> with Single
     if (on && !_ticker.isActive) {
       _ticker.start();
       if (android) {
-        _sensor = _tilt.receiveBroadcastStream().listen((value) {
+        _sensor = SharedEvents.tilt.stream.listen((value) {
           final v = (value as List).cast<double>();
           // Inclinar a la derecha corre la luz a la derecha; hacia uno, hacia abajo.
           _target = Offset(-v[0], v[1] - 0.6).scale(1.2, 1.2);

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/playback_provider.dart';
@@ -11,6 +10,7 @@ import '../../equalizer/data/equalizer_engine.dart';
 import '../../equalizer/domain/equalizer_model.dart';
 import '../../settings/data/settings_store.dart';
 import '../domain/playback_rules.dart';
+import '../../../utils/shared_events.dart';
 
 /// Volumen de la música del sistema (0 a 1), detrás de una interfaz
 ///: en Android sale de `MainActivity` por el canal
@@ -20,11 +20,10 @@ abstract class SystemVolumeMonitor {
 }
 
 class AndroidVolumeMonitor implements SystemVolumeMonitor {
-  static const _channel = EventChannel('kiji/volume');
-
+  // Un solo flujo del canal para toda la app (ver SharedEvents).
   @override
   Stream<double> get volume =>
-      _channel.receiveBroadcastStream().map((value) => value is num ? value.toDouble() : 1.0).distinct();
+      SharedEvents.volume.stream.map((value) => value is num ? value.toDouble() : 1.0).distinct();
 }
 
 class NoVolumeMonitor implements SystemVolumeMonitor {

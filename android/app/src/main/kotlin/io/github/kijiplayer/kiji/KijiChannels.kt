@@ -131,6 +131,8 @@ object KijiChannels {
             private var observer: ContentObserver? = null
 
             override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+                // Si quedaba un oyente de antes, se suelta primero (nunca dos a la vez).
+                onCancel(null)
                 val audio = app.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 fun send() {
                     val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
@@ -145,9 +147,11 @@ object KijiChannels {
                 send()
             }
 
+            // Se puede llamar dos veces (o sin haber escuchado): la segunda no hace nada.
             override fun onCancel(arguments: Any?) {
-                observer?.let { app.contentResolver.unregisterContentObserver(it) }
+                val current = observer ?: return
                 observer = null
+                app.contentResolver.unregisterContentObserver(current)
             }
         })
 
@@ -158,6 +162,8 @@ object KijiChannels {
             private var listener: SensorEventListener? = null
 
             override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+                // Si quedaba un oyente de antes, se suelta primero (nunca dos a la vez).
+                onCancel(null)
                 val sensors = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
                 val sensor = sensors.getDefaultSensor(Sensor.TYPE_GRAVITY)
                     ?: sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -182,10 +188,11 @@ object KijiChannels {
                 listener = handler
             }
 
+            // Se puede llamar dos veces (o sin haber escuchado): la segunda no hace nada.
             override fun onCancel(arguments: Any?) {
-                val sensors = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-                listener?.let { sensors.unregisterListener(it) }
+                val current = listener ?: return
                 listener = null
+                (app.getSystemService(Context.SENSOR_SERVICE) as SensorManager).unregisterListener(current)
             }
         })
     }
