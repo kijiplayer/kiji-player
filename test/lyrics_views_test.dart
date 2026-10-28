@@ -30,8 +30,8 @@ class _Playback extends PlaybackNotifier {
   PlaybackState build() => PlaybackState(
     track: _track,
     isPlaying: playing,
-    position: Duration(seconds: 30),
-    duration: Duration(minutes: 3),
+    position: const Duration(seconds: 30),
+    duration: const Duration(minutes: 3),
     shuffleEnabled: false,
     isInitialized: true,
     queue: [_track],
@@ -42,7 +42,7 @@ class _Playback extends PlaybackNotifier {
 
 Widget _app(Widget child, Directory dir) => ProviderScope(
   overrides: [
-    playbackProvider.overrideWith(() => _Playback()),
+    playbackProvider.overrideWith(_Playback.new),
     // Sin datos de volumen (como una canción por streaming): la portada queda quieta.
     loudnessProvider.overrideWith((ref, id) async => null),
     settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => dir)),
