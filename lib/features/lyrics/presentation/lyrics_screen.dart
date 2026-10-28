@@ -55,10 +55,9 @@ class LyricsScreen extends ConsumerWidget {
       pageBuilder: (_, _, _) => const LyricsScreen(),
       // Sube desde abajo, como si la letra estuviera debajo del reproductor.
       transitionsBuilder: (context, animation, _, child) => SlideTransition(
-        position: Tween(
-          begin: const Offset(0, 1),
-          end: Offset.zero,
-        ).chain(CurveTween(curve: KijiLook.museum ? KijiMotion.softSpring : KijiMotion.emphasizedCurve)).animate(animation),
+        position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+            .chain(CurveTween(curve: KijiLook.museum ? KijiMotion.softSpring : KijiMotion.emphasizedCurve))
+            .animate(animation),
         child: child,
       ),
     ),
@@ -379,6 +378,7 @@ class _OffsetBar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Glass(
         blur: false,
+        onDark: true,
         radius: KijiRadii.tile,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -391,7 +391,8 @@ class _OffsetBar extends ConsumerWidget {
                       ? tx.sinDesfase
                       : '${seconds > 0 ? '+' : ''}${seconds.toStringAsFixed(1).replaceAll('.', kijiLanguage == 'es' ? ',' : '.')} s',
                   textAlign: TextAlign.center,
-                  style: KijiText.mono(size: 13, color: KijiColors.cyan),
+                  // La letra es siempre oscura: con un estilo claro, el acento (tinta) no se vería.
+                  style: KijiText.mono(size: 13, color: KijiColors.palette.isLight ? Colors.white : KijiColors.cyan),
                 ),
               ),
               IconButton(onPressed: () => move(500), icon: const Text('+0,5 s'), tooltip: tx.laLetraVaAntes),

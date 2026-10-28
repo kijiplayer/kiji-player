@@ -52,46 +52,51 @@ class LyricsSidePanel extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(KijiRadii.card),
                 border: Border.all(color: KijiColors.glassBorder),
               ),
-              child: LayoutBuilder(
-                builder: (context, box) => SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: TrackArtwork(
-                          track: track,
-                          size: min(box.maxWidth - 48, 320),
-                          radius: KijiLook.cover(KijiRadii.cover),
-                          showDownloadState: false,
+              // Material propio: el interruptor y los botones pintan aquí su efecto al tocar.
+              child: Material(
+                type: MaterialType.transparency,
+                child: LayoutBuilder(
+                  builder: (context, box) => SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: TrackArtwork(
+                            track: track,
+                            size: min(box.maxWidth - 48, 320),
+                            radius: KijiLook.cover(KijiRadii.cover),
+                            showDownloadState: false,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      TrackTitleText(
-                        track,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: KijiText.title(size: 24),
-                      ),
-                      const SizedBox(height: 4),
-                      TrackArtistText(
-                        track,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: KijiColors.muted, fontSize: 15),
-                      ),
-                      const SizedBox(height: 16),
-                      const TimerWaveform(height: 40),
-                      const _Times(),
-                      const SizedBox(height: 8),
-                      const PlaybackControlsRow(),
-                      const SizedBox(height: 20),
-                      Divider(color: KijiColors.glassBorder, height: 1),
-                      const SizedBox(height: 16),
-                      Text(tx.ajustesDeLaLetra, style: KijiText.mono(size: 11)),
-                      const SizedBox(height: 12),
-                      _LyricsSettings(trackId: track.id, synced: synced),
-                    ],
+                        const SizedBox(height: 20),
+                        TrackTitleText(
+                          track,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: KijiText.title(size: 24),
+                        ),
+                        const SizedBox(height: 4),
+                        TrackArtistText(
+                          track,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: KijiColors.muted, fontSize: 15),
+                        ),
+                        const SizedBox(height: 16),
+                        const TimerWaveform(height: 40),
+                        const _Times(),
+                        const SizedBox(height: 8),
+                        // Compactos, y más chicos si la columna es angosta (ventana de 1000 px).
+                        const FittedBox(fit: BoxFit.scaleDown, child: PlaybackControlsRow(compact: true)),
+                        const SizedBox(height: 20),
+                        Divider(color: KijiColors.glassBorder, height: 1),
+                        const SizedBox(height: 16),
+                        Text(tx.ajustesDeLaLetra, style: KijiText.mono(size: 11)),
+                        const SizedBox(height: 12),
+                        _LyricsSettings(trackId: track.id, synced: synced),
+                      ],
+                    ),
                   ),
                 ),
               ),

@@ -8,7 +8,14 @@ import 'micro_motion.dart';
 /// Superficie de "vidrio": translúcida, con blur del fondo y un borde
 /// de 1 px que brilla apenas (Grafito: vidrio esmerilado; Papel: superficie sólida).
 class Glass extends StatelessWidget {
-  const Glass({super.key, required this.child, this.radius = KijiRadii.card, this.padding, this.blur = true});
+  const Glass({
+    super.key,
+    required this.child,
+    this.radius = KijiRadii.card,
+    this.padding,
+    this.blur = true,
+    this.onDark = false,
+  });
 
   final Widget child;
   final double radius;
@@ -17,17 +24,24 @@ class Glass extends StatelessWidget {
   /// El blur es caro en listas largas: se puede apagar y queda solo el vidrio.
   final bool blur;
 
+  /// Sobre una pantalla que es siempre oscura (la letra): el vidrio de Nocturne, aunque el estilo
+  /// sea claro (en Papel el vidrio es claro y opaco, y el ícono blanco no se vería).
+  final bool onDark;
+
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(radius);
     // Papel: superficie sólida. Grafito: vidrio esmerilado; con desenfoque va sobre cualquier
     // contenido (mini-reproductor, barra de navegación), así que lleva el ahumado para que se lea.
     final frosted = blur && KijiLook.style != KijiStyle.paper;
+    final dark = onDark && KijiColors.palette.isLight;
     final body = DecoratedBox(
       decoration: BoxDecoration(
-        color: frosted && KijiLook.museum ? KijiMuseum.pane : KijiColors.glassFill,
+        color: dark
+            ? KijiPalette.nocturne.glassFill
+            : (frosted && KijiLook.museum ? KijiMuseum.pane : KijiColors.glassFill),
         borderRadius: borderRadius,
-        border: Border.all(color: KijiColors.glassBorder),
+        border: Border.all(color: dark ? KijiPalette.nocturne.glassBorder : KijiColors.glassBorder),
       ),
       // Material propio: los ListTile y botones de adentro pintan aquí su efecto al tocar
       // (si no, lo pintan detrás del vidrio y no se ve).
@@ -156,6 +170,7 @@ class GlassIconButton extends StatelessWidget {
           pressed: 0.94,
           child: Glass(
             radius: KijiRadii.pill,
+            onDark: foreground != null,
             // Sin desenfoque del fondo: sobre la aurora animada se recalculaba en cada cuadro
             // (en la PC bajaba a ~40 fps). El desenfoque real está en la aurora misma.
             blur: false,
