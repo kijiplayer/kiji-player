@@ -462,9 +462,18 @@ class _CoverTiltState extends ConsumerState<CoverTilt> with SingleTickerProvider
 /// El título y el artista entran deslizándose, una línea después de la otra, al cambiar de canción
 /// (y al abrir el reproductor). Fuera de Grafito o con "Reducir animaciones", quedan quietos.
 class MuseumLineIn extends ConsumerStatefulWidget {
-  const MuseumLineIn({super.key, required this.trackId, required this.line, required this.child});
+  const MuseumLineIn({
+    super.key,
+    required this.trackId,
+    required this.line,
+    required this.child,
+    this.always = false,
+  });
 
   final String trackId;
+
+  /// También fuera de Grafito (el Escaparate de la letra, en los tres estilos).
+  final bool always;
 
   /// 0 = título, 1 = artista (entra un poco después).
   final int line;
@@ -479,7 +488,7 @@ class _MuseumLineInState extends ConsumerState<MuseumLineIn> with SingleTickerPr
   bool _started = false;
   bool _reduce = false;
 
-  bool get _active => KijiLook.museum && !_reduce;
+  bool get _active => (widget.always || KijiLook.museum) && !_reduce;
 
   @override
   void didChangeDependencies() {

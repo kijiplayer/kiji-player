@@ -36,6 +36,7 @@ import 'package:kiji_player/features/playlists/presentation/playlist_screens.dar
 import 'package:kiji_player/features/queue/presentation/queue_screen.dart';
 import 'package:kiji_player/features/reports/data/error_reporter.dart';
 import 'package:kiji_player/features/reports/presentation/reports_screen.dart';
+import 'package:kiji_player/features/settings/data/settings_store.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
 import 'package:kiji_player/features/settings/presentation/credits_screen.dart';
 import 'package:kiji_player/features/settings/presentation/settings_screen.dart';
@@ -387,6 +388,16 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
       throw StateError('la hoja no se cerró deslizando desde la mitad');
     }
   });
+  // Las otras dos vistas de la letra (Simple y Escaparate) y de vuelta a Completo.
+  for (final panel in ['simple', 'showcase']) {
+    await tester.runAsync(
+      () => container.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: panel)),
+    );
+    await _visit(tester, '$tag-letra-$panel', () => LyricsScreen.open(_ctx));
+  }
+  await tester.runAsync(
+    () => container.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: 'full')),
+  );
   await _visit(tester, '$tag-momentos', () => MomentsScreen.open(_ctx));
   await _visit(tester, '$tag-temporizador', () => showSleepTimerSheet(_ctx));
   await tester.runAsync(player.nextTrack);
@@ -575,6 +586,11 @@ void main() {
 
   testWidgets('Grafito, ventana chica, con internet', (tester) async {
     await run(tester, 'grafito-chica', window: const Size(420, 860), online: true, fresh: false, style: 'graphite');
+  }, timeout: const Timeout(Duration(minutes: 10)));
+
+  testWidgets('Grafito, teléfono en horizontal (915 × 412)', (tester) async {
+    await run(tester, 'grafito-horizontal', window: const Size(915, 412), online: false, fresh: false,
+        style: 'graphite');
   }, timeout: const Timeout(Duration(minutes: 10)));
 
   testWidgets('Grafito, ventana mínima (360 × 560), en inglés', (tester) async {

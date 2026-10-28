@@ -123,6 +123,14 @@ class LyricsMenuSheet extends ConsumerWidget {
                     onChanged: (value) =>
                         ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsLayout: value)),
                   ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(tx.mostrarMarcaKiji),
+                    subtitle: Text(tx.mostrarMarcaKijiDescripcion),
+                    value: ref.watch(settingsProvider.select((s) => s.showcaseMark)),
+                    onChanged: (on) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(showcaseMark: on)),
+                  ),
                 ],
               ),
             ),

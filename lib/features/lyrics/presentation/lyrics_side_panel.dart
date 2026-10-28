@@ -36,6 +36,60 @@ class LyricsSidePanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return LyricsPanelFrame(
+      child: LayoutBuilder(
+        builder: (context, box) => SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: TrackArtwork(
+                  track: track,
+                  size: min(min(box.maxWidth - 48, 320), max(120, box.maxHeight * 0.5)),
+                  radius: KijiLook.cover(KijiRadii.cover),
+                  showDownloadState: false,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TrackTitleText(track, maxLines: 2, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 24)),
+              const SizedBox(height: 4),
+              TrackArtistText(
+                track,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: KijiColors.muted, fontSize: 15),
+              ),
+              const SizedBox(height: 16),
+              const TimerWaveform(height: 40),
+              const LyricsTimes(),
+              const SizedBox(height: 8),
+              // Compactos, y más chicos si la columna es angosta (ventana de 1000 px).
+              const FittedBox(fit: BoxFit.scaleDown, child: PlaybackControlsRow(compact: true)),
+              const SizedBox(height: 20),
+              Divider(color: KijiColors.glassBorder, height: 1),
+              const SizedBox(height: 16),
+              Text(tx.ajustesDeLaLetra, style: KijiText.mono(size: 11)),
+              const SizedBox(height: 12),
+              _LyricsSettings(trackId: track.id, synced: synced),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Marco de los paneles de la letra (Completo y Simple): con los colores del estilo, no con los de
+/// la letra (siempre oscura). En un estilo claro es una tarjeta clara sobre el fondo oscuro.
+class LyricsPanelFrame extends ConsumerWidget {
+  const LyricsPanelFrame({super.key, required this.child, this.padding = const EdgeInsets.fromLTRB(0, 8, 24, 24)});
+
+  final Widget child;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final light = KijiColors.palette.isLight;
     return Theme(
       // Vuelve al tema del estilo (la pantalla de la letra fuerza el oscuro).
@@ -45,7 +99,7 @@ class LyricsSidePanel extends ConsumerWidget {
         child: IconTheme.merge(
           data: IconThemeData(color: KijiColors.text),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 8, 24, 24),
+            padding: padding,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: light ? KijiColors.surface : KijiColors.glassFill,
@@ -53,53 +107,7 @@ class LyricsSidePanel extends ConsumerWidget {
                 border: Border.all(color: KijiColors.glassBorder),
               ),
               // Material propio: el interruptor y los botones pintan aquí su efecto al tocar.
-              child: Material(
-                type: MaterialType.transparency,
-                child: LayoutBuilder(
-                  builder: (context, box) => SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Center(
-                          child: TrackArtwork(
-                            track: track,
-                            size: min(min(box.maxWidth - 48, 320), max(120, box.maxHeight * 0.5)),
-                            radius: KijiLook.cover(KijiRadii.cover),
-                            showDownloadState: false,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        TrackTitleText(
-                          track,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: KijiText.title(size: 24),
-                        ),
-                        const SizedBox(height: 4),
-                        TrackArtistText(
-                          track,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: KijiColors.muted, fontSize: 15),
-                        ),
-                        const SizedBox(height: 16),
-                        const TimerWaveform(height: 40),
-                        const _Times(),
-                        const SizedBox(height: 8),
-                        // Compactos, y más chicos si la columna es angosta (ventana de 1000 px).
-                        const FittedBox(fit: BoxFit.scaleDown, child: PlaybackControlsRow(compact: true)),
-                        const SizedBox(height: 20),
-                        Divider(color: KijiColors.glassBorder, height: 1),
-                        const SizedBox(height: 16),
-                        Text(tx.ajustesDeLaLetra, style: KijiText.mono(size: 11)),
-                        const SizedBox(height: 12),
-                        _LyricsSettings(trackId: track.id, synced: synced),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              child: Material(type: MaterialType.transparency, child: child),
             ),
           ),
         ),
@@ -108,8 +116,9 @@ class LyricsSidePanel extends ConsumerWidget {
   }
 }
 
-class _Times extends ConsumerWidget {
-  const _Times();
+/// Tiempo transcurrido y duración, debajo de la onda o de la barra.
+class LyricsTimes extends ConsumerWidget {
+  const LyricsTimes({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -200,6 +209,13 @@ class _LyricsSettings extends ConsumerWidget {
           // Prendida: se elige cómo traducir (teléfono o IA). Apagada: se quita.
           onChanged: (on) =>
               on ? showTranslateSheet(context, ref) : ref.read(lyricsTranslationOnProvider.notifier).state = false,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(tx.mostrarMarcaKiji),
+          subtitle: Text(tx.mostrarMarcaKijiDescripcion),
+          value: ref.watch(settingsProvider.select((s) => s.showcaseMark)),
+          onChanged: (on) => notifier.update((s) => s.copyWith(showcaseMark: on)),
         ),
         if (synced) ...[
           label(tx.sincroniaDeLaLetra),
