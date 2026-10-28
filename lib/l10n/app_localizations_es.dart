@@ -4201,4 +4201,23 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ajustesDeLaLetra => 'AJUSTES DE LA LETRA';
+
+  @override
+  String get calculadoEnEstaPc => 'calculado en esta PC';
+
+  @override
+  String vecesEscuchada(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count veces',
+      one: '1 vez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String puestoN(int n) {
+    return 'Puesto $n';
+  }
 }

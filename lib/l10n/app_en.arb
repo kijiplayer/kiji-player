@@ -1132,5 +1132,8 @@
   "alinearIzquierda": "Left",
   "alinearCentro": "Centered",
   "sincroniaDeLaLetra": "Sync",
-  "ajustesDeLaLetra": "LYRICS SETTINGS"
+  "ajustesDeLaLetra": "LYRICS SETTINGS",
+  "calculadoEnEstaPc": "calculated on this PC",
+  "vecesEscuchada": "{count, plural, =1{1 time} other{{count} times}}",
+  "puestoN": "No. {n}"
 }

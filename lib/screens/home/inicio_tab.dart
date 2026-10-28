@@ -27,6 +27,8 @@ import '../../widgets/nocturne/staggered.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 
+import 'top_listened.dart';
+
 import 'package:kiji_player/l10n/l10n.dart';
 
 /// Saludo según la hora (5–12 mañana, 12–20 tarde, resto noche).
@@ -48,7 +50,7 @@ class InicioTab extends ConsumerWidget {
     final playback = ref.watch(playbackProvider.select((s) => (track: s.track, isPlaying: s.isPlaying)));
     final history = ref.watch(listeningHistoryProvider);
     final recent = HistoryLogic.recent(history);
-    final top = HistoryLogic.forYou(history, excludeId: playback.track?.id, limit: 6);
+    final top = HistoryLogic.top(history, excludeId: playback.track?.id, limit: 6);
     final downloaded = [
       for (final d in [
         ...ref.watch(downloadsProvider.select((d) => d.completed)).values,
@@ -83,7 +85,7 @@ class InicioTab extends ConsumerWidget {
     WidgetRef ref,
     ({Track? track, bool isPlaying}) playback,
     List<Track> recent,
-    List<Track> top,
+    List<HistoryEntry> top,
     List<Track> downloaded,
     bool isNew,
   ) {
@@ -117,22 +119,7 @@ class InicioTab extends ConsumerWidget {
               const RecommendationSections(),
             TrackShelf(title: tx.escuchadoRecientemente, tracks: recent),
             if (top.isNotEmpty) ...[
-              SectionTitle(tx.tusMasEscuchadas, note: tx.calculadoEnTuTelefono),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 2.6,
-                children: [
-                  for (final (index, track) in top.indexed)
-                    _ForYouTile(
-                      track: track,
-                      onTap: () => ref.read(playbackProvider.notifier).playQueue(top, startIndex: index),
-                    ),
-                ],
-              ),
+              TopListened(entries: top),
               const SizedBox(height: 28),
             ],
             TrackShelf(title: tx.descargadas, note: tx.sinInternet, tracks: downloaded),
@@ -251,42 +238,6 @@ class _ContinueCard extends ConsumerWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ForYouTile extends StatelessWidget {
-  const _ForYouTile({required this.track, required this.onTap});
-
-  final Track track;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Glass(
-      radius: KijiRadii.tile,
-      blur: false,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: onTap,
-          child: Row(
-            children: [
-              TrackArtwork(track: track, size: 56, radius: KijiRadii.tile),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TrackTitleText(
-                  track,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
         ),
       ),
     );

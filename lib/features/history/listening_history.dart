@@ -54,12 +54,16 @@ abstract final class HistoryLogic {
   /// "Para ti · calculado en tu teléfono": las que más escuchaste (empate:
   /// la más reciente), sin la que está sonando.
   static List<Track> forYou(List<HistoryEntry> entries, {String? excludeId, int limit = 4}) =>
+      top(entries, excludeId: excludeId, limit: limit).map((e) => e.track).toList();
+
+  /// "Tus más escuchadas": las que más veces escuchaste, con cuántas (empate: la más reciente),
+  /// sin la que está sonando.
+  static List<HistoryEntry> top(List<HistoryEntry> entries, {String? excludeId, int limit = 6}) =>
       ([...entries.where((e) => e.track.id != excludeId)]..sort((a, b) {
             final byCount = b.playCount.compareTo(a.playCount);
             return byCount != 0 ? byCount : b.lastPlayed.compareTo(a.lastPlayed);
           }))
           .take(limit)
-          .map((e) => e.track)
           .toList();
 }
 

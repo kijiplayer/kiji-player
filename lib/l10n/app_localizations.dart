@@ -6796,6 +6796,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'AJUSTES DE LA LETRA'**
   String get ajustesDeLaLetra;
+
+  /// No description provided for @calculadoEnEstaPc.
+  ///
+  /// In es, this message translates to:
+  /// **'calculado en esta PC'**
+  String get calculadoEnEstaPc;
+
+  /// Cuántas veces escuchaste una canción (Tus más escuchadas).
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 vez} other{{count} veces}}'**
+  String vecesEscuchada(int count);
+
+  /// Lector de pantalla: el puesto en Tus más escuchadas.
+  ///
+  /// In es, this message translates to:
+  /// **'Puesto {n}'**
+  String puestoN(int n);
 }
 
 class _AppLocalizationsDelegate

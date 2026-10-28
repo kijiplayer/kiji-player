@@ -2547,5 +2547,10 @@
   "alinearCentro": "Centrada",
   "sincroniaDeLaLetra": "Sincronía",
   "ajustesDeLaLetra": "AJUSTES DE LA LETRA",
-  "@ajustesDeLaLetra": {"description": "Letra en la PC: título de los ajustes del panel derecho."}
+  "@ajustesDeLaLetra": {"description": "Letra en la PC: título de los ajustes del panel derecho."},
+  "calculadoEnEstaPc": "calculado en esta PC",
+  "vecesEscuchada": "{count, plural, =1{1 vez} other{{count} veces}}",
+  "@vecesEscuchada": {"description": "Cuántas veces escuchaste una canción (Tus más escuchadas).", "placeholders": {"count": {"type": "int"}}},
+  "puestoN": "Puesto {n}",
+  "@puestoN": {"description": "Lector de pantalla: el puesto en Tus más escuchadas.", "placeholders": {"n": {"type": "int"}}}
 }

@@ -4193,4 +4193,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ajustesDeLaLetra => 'LYRICS SETTINGS';
+
+  @override
+  String get calculadoEnEstaPc => 'calculated on this PC';
+
+  @override
+  String vecesEscuchada(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      one: '1 time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String puestoN(int n) {
+    return 'No. $n';
+  }
 }
