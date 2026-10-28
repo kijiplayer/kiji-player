@@ -1,0 +1,9 @@
+• Three styles: Nocturne, Graphite and Paper.
+• Live wave with the real loudness (high performance).
+• Lyrics: Full, Simple and Showcase views, and two columns in landscape and on PC.
+• Music keeps going if Bluetooth drops for a moment.
+• Real shuffle and search inside playlists.
+• "Your most played" on Home.
+• New Settings with search.
+• PC: system tray, global shortcuts and media keys.
+• Fixes: startup, downloads and channels.

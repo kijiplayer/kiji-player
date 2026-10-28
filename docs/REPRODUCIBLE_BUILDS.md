@@ -3,7 +3,7 @@
 The APK published on [Releases](https://github.com/kijiplayer/kiji-player/releases) can be rebuilt
 from the tagged source and compared file by file, except for the signature.
 
-## Environment used for 0.5.1 and 0.6.0
+## Environment used for 0.5.1, 0.6.0 and 0.7.0
 
 | | |
 |---|---|
@@ -15,7 +15,7 @@ from the tagged source and compared file by file, except for the signature.
 ## Build
 
 ```bash
-git checkout v0.6.0
+git checkout v0.7.0
 flutter pub get
 dart run tool/patch_plugins.dart
 flutter build apk --release --flavor prod
