@@ -6952,6 +6952,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Completo, Simple o Escaparate (para grabar y compartir)'**
   String get modoDelPanelDescripcion;
+
+  /// Pantalla que aparece una vez después de actualizar, con lo nuevo de la versión.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué hay de nuevo'**
+  String get queHayDeNuevo;
+
+  /// No description provided for @queHayDeNuevoSubtitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que trae Kiji 0.7, en pocas palabras.'**
+  String get queHayDeNuevoSubtitulo;
+
+  /// No description provided for @queHayDeNuevoDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo nuevo de esta versión, en tarjetas'**
+  String get queHayDeNuevoDescripcion;
+
+  /// No description provided for @empezar.
+  ///
+  /// In es, this message translates to:
+  /// **'Empezar'**
+  String get empezar;
+
+  /// No description provided for @nuevoEstilosTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres estilos'**
+  String get nuevoEstilosTitulo;
+
+  /// No description provided for @nuevoEstilosTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Nocturne, Grafito y Papel: las mismas funciones con otro aspecto. Se cambia en Configuración → Apariencia.'**
+  String get nuevoEstilosTexto;
+
+  /// No description provided for @nuevoOndaTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'La onda en vivo'**
+  String get nuevoOndaTitulo;
+
+  /// No description provided for @nuevoOndaTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Con el alto rendimiento, la onda del reproductor salta con el volumen real de la canción, sin usar el micrófono.'**
+  String get nuevoOndaTexto;
+
+  /// No description provided for @nuevoLetrasTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Letras a tu manera'**
+  String get nuevoLetrasTitulo;
+
+  /// No description provided for @nuevoLetrasTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres vistas (Completo, Simple y Escaparate) y dos columnas en la PC y con el teléfono en horizontal.'**
+  String get nuevoLetrasTexto;
+
+  /// No description provided for @nuevoBluetoothTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'La música sigue con el Bluetooth'**
+  String get nuevoBluetoothTitulo;
+
+  /// No description provided for @nuevoBluetoothTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Si los auriculares se desconectan un momento, Kiji espera y retoma sola. Nunca suena por el parlante sin que lo pidas.'**
+  String get nuevoBluetoothTexto;
+
+  /// No description provided for @nuevoAleatorioTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Aleatorio de verdad'**
+  String get nuevoAleatorioTitulo;
+
+  /// No description provided for @nuevoAleatorioTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'La cola muestra el orden real en que van a sonar las canciones.'**
+  String get nuevoAleatorioTexto;
+
+  /// No description provided for @nuevoBuscarPlaylistTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar dentro de una playlist'**
+  String get nuevoBuscarPlaylistTitulo;
+
+  /// No description provided for @nuevoBuscarPlaylistTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada playlist tiene su buscador, para encontrar una canción sin bajar toda la lista.'**
+  String get nuevoBuscarPlaylistTexto;
+
+  /// No description provided for @nuevoMasEscuchadasTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus más escuchadas'**
+  String get nuevoMasEscuchadasTitulo;
+
+  /// No description provided for @nuevoMasEscuchadasTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Un top en Inicio con cuántas veces escuchaste cada una, calculado en tu equipo.'**
+  String get nuevoMasEscuchadasTexto;
+
+  /// No description provided for @nuevoPcTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC'**
+  String get nuevoPcTitulo;
+
+  /// No description provided for @nuevoPcTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.'**
+  String get nuevoPcTexto;
 }
 
 class _AppLocalizationsDelegate

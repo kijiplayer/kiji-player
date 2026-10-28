@@ -42,7 +42,7 @@ import 'package:kiji_player/features/settings/presentation/credits_screen.dart';
 import 'package:kiji_player/features/settings/presentation/settings_screen.dart';
 import 'package:kiji_player/features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import 'package:kiji_player/features/translation/presentation/lyrics_settings_screens.dart';
-import 'package:kiji_player/features/updates/whats_new.dart';
+import 'package:kiji_player/features/updates/whats_new_screen.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/features/style/presentation/style_chooser_screen.dart';
 import 'package:kiji_player/features/welcome/presentation/welcome_screen.dart';
@@ -419,10 +419,7 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
     await _settle(tester);
     await _selection(tester, '$tag-playlist-seleccion');
   });
-  await _visit(tester, '$tag-novedades', () async {
-    final notes = await tester.runAsync(() => loadBundledWhatsNew(kijiLanguage));
-    await showWhatsNewSheet(_ctx, notes ?? '');
-  });
+  await _visit(tester, '$tag-novedades', () => WhatsNewScreen.open(_ctx), scroll: true);
   await _step(tester, '$tag-apariencia', () async {
     unawaited(SettingsScreen.open(_ctx));
     await _settle(tester);

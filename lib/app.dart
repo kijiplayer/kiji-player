@@ -21,6 +21,7 @@ import 'features/settings/domain/app_settings.dart';
 import 'providers/playback_provider.dart';
 import 'features/updates/update_checker.dart';
 import 'features/updates/whats_new.dart';
+import 'features/updates/whats_new_screen.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
@@ -146,13 +147,12 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       });
       await done.future;
     }
+    // Después de los estilos (si hacía falta elegir), "Qué hay de nuevo", una sola vez.
     if (!showNews) return;
-    final notes = await loadBundledWhatsNew(kijiLanguage);
-    if (notes == null) return;
-    debugPrint('=== NOVEDADES: se muestran las de $kijiVersion ===');
+    debugPrint('=== NOVEDADES: se muestra "Qué hay de nuevo" de $kijiVersion ===');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = kijiNavigatorKey.currentContext;
-      if (context != null && context.mounted) showWhatsNewSheet(context, notes);
+      if (context != null && context.mounted) WhatsNewScreen.open(context);
     });
   }
 

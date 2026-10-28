@@ -35,7 +35,7 @@ import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
 import '../../reports/presentation/reports_screen.dart';
 import '../../recommendations/data/search_history.dart';
 import '../../updates/updates_screen.dart';
-import '../../updates/whats_new.dart';
+import '../../updates/whats_new_screen.dart';
 import '../../translation/domain/languages.dart';
 import '../../translation/presentation/lyrics_settings_screens.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
@@ -1128,18 +1128,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.about,
-        title: tx.novedadesDeEstaVersion,
-        subtitle: tx.novedadesDeEstaVersionDescripcion(kijiVersion),
-        keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new'], // l10n-ignore
+        title: tx.queHayDeNuevo,
+        subtitle: tx.queHayDeNuevoDescripcion,
+        keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new', 'nuevo', 'new'], // l10n-ignore
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.auto_awesome_outlined),
-          title: Text(tx.novedadesDeEstaVersion),
-          subtitle: Text(tx.novedadesDeEstaVersionDescripcion(kijiVersion)),
+          title: Text(tx.queHayDeNuevo),
+          subtitle: Text(tx.queHayDeNuevoDescripcion),
           trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () async {
-            final notes = await loadBundledWhatsNew(kijiLanguage);
-            if (context.mounted) await showWhatsNewSheet(context, notes ?? tx.estaVersionNoTraeNovedades);
-          },
+          onTap: () => WhatsNewScreen.open(context),
         ),
       ),
       SettingOption(

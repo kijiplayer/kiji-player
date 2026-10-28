@@ -4293,4 +4293,73 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get modoDelPanelDescripcion =>
       'Full, Simple or Showcase (to record and share)';
+
+  @override
+  String get queHayDeNuevo => 'What\'s new';
+
+  @override
+  String get queHayDeNuevoSubtitulo => 'What Kiji 0.7 brings, in a few words.';
+
+  @override
+  String get queHayDeNuevoDescripcion =>
+      'What\'s new in this version, in cards';
+
+  @override
+  String get empezar => 'Get started';
+
+  @override
+  String get nuevoEstilosTitulo => 'Three styles';
+
+  @override
+  String get nuevoEstilosTexto =>
+      'Nocturne, Graphite and Paper: the same features with a different look. Change it in Settings → Appearance.';
+
+  @override
+  String get nuevoOndaTitulo => 'The live wave';
+
+  @override
+  String get nuevoOndaTexto =>
+      'With high performance on, the player\'s wave jumps with the song\'s real loudness, without using the microphone.';
+
+  @override
+  String get nuevoLetrasTitulo => 'Lyrics your way';
+
+  @override
+  String get nuevoLetrasTexto =>
+      'Three views (Full, Simple and Showcase) and two columns on the computer and with the phone in landscape.';
+
+  @override
+  String get nuevoBluetoothTitulo => 'Music keeps going with Bluetooth';
+
+  @override
+  String get nuevoBluetoothTexto =>
+      'If your headphones disconnect for a moment, Kiji waits and resumes on its own. It never plays through the speaker unless you ask.';
+
+  @override
+  String get nuevoAleatorioTitulo => 'Real shuffle';
+
+  @override
+  String get nuevoAleatorioTexto =>
+      'The queue shows the actual order the songs will play in.';
+
+  @override
+  String get nuevoBuscarPlaylistTitulo => 'Search inside a playlist';
+
+  @override
+  String get nuevoBuscarPlaylistTexto =>
+      'Every playlist has its own search, to find a song without scrolling the whole list.';
+
+  @override
+  String get nuevoMasEscuchadasTitulo => 'Your most played';
+
+  @override
+  String get nuevoMasEscuchadasTexto =>
+      'A top list on Home with how many times you played each one, worked out on your device.';
+
+  @override
+  String get nuevoPcTitulo => 'On the computer';
+
+  @override
+  String get nuevoPcTexto =>
+      'Kiji can stay in the system tray, has global shortcuts and responds to the media keys.';
 }

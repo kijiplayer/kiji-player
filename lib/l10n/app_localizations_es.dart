@@ -4301,4 +4301,74 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get modoDelPanelDescripcion =>
       'Completo, Simple o Escaparate (para grabar y compartir)';
+
+  @override
+  String get queHayDeNuevo => 'Qué hay de nuevo';
+
+  @override
+  String get queHayDeNuevoSubtitulo =>
+      'Lo que trae Kiji 0.7, en pocas palabras.';
+
+  @override
+  String get queHayDeNuevoDescripcion =>
+      'Lo nuevo de esta versión, en tarjetas';
+
+  @override
+  String get empezar => 'Empezar';
+
+  @override
+  String get nuevoEstilosTitulo => 'Tres estilos';
+
+  @override
+  String get nuevoEstilosTexto =>
+      'Nocturne, Grafito y Papel: las mismas funciones con otro aspecto. Se cambia en Configuración → Apariencia.';
+
+  @override
+  String get nuevoOndaTitulo => 'La onda en vivo';
+
+  @override
+  String get nuevoOndaTexto =>
+      'Con el alto rendimiento, la onda del reproductor salta con el volumen real de la canción, sin usar el micrófono.';
+
+  @override
+  String get nuevoLetrasTitulo => 'Letras a tu manera';
+
+  @override
+  String get nuevoLetrasTexto =>
+      'Tres vistas (Completo, Simple y Escaparate) y dos columnas en la PC y con el teléfono en horizontal.';
+
+  @override
+  String get nuevoBluetoothTitulo => 'La música sigue con el Bluetooth';
+
+  @override
+  String get nuevoBluetoothTexto =>
+      'Si los auriculares se desconectan un momento, Kiji espera y retoma sola. Nunca suena por el parlante sin que lo pidas.';
+
+  @override
+  String get nuevoAleatorioTitulo => 'Aleatorio de verdad';
+
+  @override
+  String get nuevoAleatorioTexto =>
+      'La cola muestra el orden real en que van a sonar las canciones.';
+
+  @override
+  String get nuevoBuscarPlaylistTitulo => 'Buscar dentro de una playlist';
+
+  @override
+  String get nuevoBuscarPlaylistTexto =>
+      'Cada playlist tiene su buscador, para encontrar una canción sin bajar toda la lista.';
+
+  @override
+  String get nuevoMasEscuchadasTitulo => 'Tus más escuchadas';
+
+  @override
+  String get nuevoMasEscuchadasTexto =>
+      'Un top en Inicio con cuántas veces escuchaste cada una, calculado en tu equipo.';
+
+  @override
+  String get nuevoPcTitulo => 'En la PC';
+
+  @override
+  String get nuevoPcTexto =>
+      'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.';
 }
