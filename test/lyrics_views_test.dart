@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/loudness/data/loudness_analyzer.dart';
+import 'package:kiji_player/features/loudness/domain/loudness.dart';
 import 'package:kiji_player/features/lyrics/presentation/lyrics_views.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
@@ -20,10 +22,14 @@ const _track = Track(
 );
 
 class _Playback extends PlaybackNotifier {
+  _Playback({this.playing = true});
+
+  final bool playing;
+
   @override
-  PlaybackState build() => const PlaybackState(
+  PlaybackState build() => PlaybackState(
     track: _track,
-    isPlaying: true,
+    isPlaying: playing,
     position: Duration(seconds: 30),
     duration: Duration(minutes: 3),
     shuffleEnabled: false,
@@ -36,7 +42,7 @@ class _Playback extends PlaybackNotifier {
 
 Widget _app(Widget child, Directory dir) => ProviderScope(
   overrides: [
-    playbackProvider.overrideWith(_Playback.new),
+    playbackProvider.overrideWith(() => _Playback()),
     // Sin datos de volumen (como una canción por streaming): la portada queda quieta.
     loudnessProvider.overrideWith((ref, id) async => null),
     settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => dir)),
@@ -83,7 +89,9 @@ void main() {
       ),
     );
     double opacity() => tester
-        .widget<AnimatedOpacity>(find.ancestor(of: find.text('barra de arriba'), matching: find.byType(AnimatedOpacity)))
+        .widget<AnimatedOpacity>(
+          find.ancestor(of: find.text('barra de arriba'), matching: find.byType(AnimatedOpacity)),
+        )
         .opacity;
     expect(opacity(), 1);
     await tester.pump(const Duration(seconds: 2));
@@ -105,9 +113,7 @@ void main() {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        _app(const LyricsShowcase(track: _track, line: 'The sun is warm today'), dir),
-      );
+      await tester.pumpWidget(_app(const LyricsShowcase(track: _track, line: 'The sun is warm today'), dir));
       await tester.pump(const Duration(seconds: 1));
       expect(tester.takeException(), isNull);
       expect(find.text('Paper Lanterns'), findsOneWidget);
@@ -123,4 +129,59 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  group('el Escaparate se detiene', () {
+    // Una canción inventada con volumen (como una descargada): con él, la portada late.
+    final loud = Loudness(Uint8List.fromList([for (var i = 0; i < 4000; i++) (i * 37) % 256]));
+
+    Future<void> pump(WidgetTester tester, {bool playing = true, bool calm = false}) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            playbackProvider.overrideWith(() => _Playback(playing: playing)),
+            loudnessProvider.overrideWith((ref, id) async => loud),
+            settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => dir)),
+          ],
+          child: MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(size: const Size(400, 800), disableAnimations: calm),
+              child: const Scaffold(body: LyricsShowcase(track: _track)),
+            ),
+          ),
+        ),
+      );
+      // Que termine la entrada del título y llegue el volumen.
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 2));
+    }
+
+    testWidgets('mientras suena, late (pide cuadros)', (tester) async {
+      await pump(tester);
+      expect(tester.binding.hasScheduledFrame, isTrue);
+    });
+
+    testWidgets('en pausa no pide cuadros', (tester) async {
+      await pump(tester, playing: false);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    testWidgets('con "Reducir animaciones" no pide cuadros', (tester) async {
+      await pump(tester, calm: true);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    testWidgets('en segundo plano deja de latir', (tester) async {
+      await pump(tester);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      await tester.pump();
+      await tester.pump();
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    });
+  });
 }
