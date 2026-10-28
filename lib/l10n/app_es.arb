@@ -2552,5 +2552,17 @@
   "vecesEscuchada": "{count, plural, =1{1 vez} other{{count} veces}}",
   "@vecesEscuchada": {"description": "Cuántas veces escuchaste una canción (Tus más escuchadas).", "placeholders": {"count": {"type": "int"}}},
   "puestoN": "Puesto {n}",
-  "@puestoN": {"description": "Lector de pantalla: el puesto en Tus más escuchadas.", "placeholders": {"n": {"type": "int"}}}
+  "@puestoN": {"description": "Lector de pantalla: el puesto en Tus más escuchadas.", "placeholders": {"n": {"type": "int"}}},
+  "disenoDeLaLetra": "Diseño",
+  "disenoAutomatico": "Automático",
+  "disenoUnaColumna": "Una columna",
+  "disenoDosColumnas": "Dos columnas",
+  "modoDelPanel": "Vista",
+  "panelCompleto": "Completo",
+  "panelSimple": "Simple",
+  "panelEscaparate": "Escaparate",
+  "cambiarVistaDeLaLetra": "Cambiar la vista: {modo}",
+  "mostrarMarcaKiji": "Mostrar marca Kiji",
+  "mostrarMarcaKijiDescripcion": "Un logo chico en una esquina del escaparate",
+  "@cambiarVistaDeLaLetra": {"description": "Botón de la letra que cambia de vista (Completo, Simple, Escaparate).", "placeholders": {"modo": {"type": "String"}}}
 }

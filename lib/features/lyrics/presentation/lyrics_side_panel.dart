@@ -18,7 +18,7 @@ import '../../sleep_timer/presentation/timer_waveform.dart';
 import '../../translation/presentation/translate_sheet.dart';
 import '../../translation/presentation/translated_lyrics.dart';
 import '../lyrics_provider.dart';
-import 'lyrics_menu_sheet.dart' show lyricsSizeLabel;
+import 'lyrics_menu_sheet.dart' show LyricsLayoutPicker, lyricsSizeLabel;
 
 import 'package:kiji_player/l10n/l10n.dart';
 
@@ -64,7 +64,7 @@ class LyricsSidePanel extends ConsumerWidget {
                         Center(
                           child: TrackArtwork(
                             track: track,
-                            size: min(box.maxWidth - 48, 320),
+                            size: min(min(box.maxWidth - 48, 320), max(120, box.maxHeight * 0.5)),
                             radius: KijiLook.cover(KijiRadii.cover),
                             showDownloadState: false,
                           ),
@@ -136,7 +136,9 @@ class _LyricsSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider.select((s) => (size: s.lyricsSize, align: s.lyricsAlign)));
+    final settings = ref.watch(
+      settingsProvider.select((s) => (size: s.lyricsSize, align: s.lyricsAlign, layout: s.lyricsLayout)),
+    );
     final notifier = ref.read(settingsProvider.notifier);
     final translating = ref.watch(lyricsTranslationOnProvider);
     final offset = ref.watch(lyricsOffsetProvider(trackId)).valueOrNull ?? Duration.zero;
@@ -164,6 +166,12 @@ class _LyricsSettings extends ConsumerWidget {
           ],
           selected: {settings.size},
           onSelectionChanged: (v) => notifier.update((s) => s.copyWith(lyricsSize: v.first)),
+        ),
+        const SizedBox(height: 14),
+        label(tx.disenoDeLaLetra),
+        LyricsLayoutPicker(
+          layout: settings.layout,
+          onChanged: (value) => notifier.update((s) => s.copyWith(lyricsLayout: value)),
         ),
         const SizedBox(height: 14),
         label(tx.alineacionDeLaLetra),

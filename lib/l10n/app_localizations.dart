@@ -6814,6 +6814,72 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Puesto {n}'**
   String puestoN(int n);
+
+  /// No description provided for @disenoDeLaLetra.
+  ///
+  /// In es, this message translates to:
+  /// **'Diseño'**
+  String get disenoDeLaLetra;
+
+  /// No description provided for @disenoAutomatico.
+  ///
+  /// In es, this message translates to:
+  /// **'Automático'**
+  String get disenoAutomatico;
+
+  /// No description provided for @disenoUnaColumna.
+  ///
+  /// In es, this message translates to:
+  /// **'Una columna'**
+  String get disenoUnaColumna;
+
+  /// No description provided for @disenoDosColumnas.
+  ///
+  /// In es, this message translates to:
+  /// **'Dos columnas'**
+  String get disenoDosColumnas;
+
+  /// No description provided for @modoDelPanel.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista'**
+  String get modoDelPanel;
+
+  /// No description provided for @panelCompleto.
+  ///
+  /// In es, this message translates to:
+  /// **'Completo'**
+  String get panelCompleto;
+
+  /// No description provided for @panelSimple.
+  ///
+  /// In es, this message translates to:
+  /// **'Simple'**
+  String get panelSimple;
+
+  /// No description provided for @panelEscaparate.
+  ///
+  /// In es, this message translates to:
+  /// **'Escaparate'**
+  String get panelEscaparate;
+
+  /// Botón de la letra que cambia de vista (Completo, Simple, Escaparate).
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar la vista: {modo}'**
+  String cambiarVistaDeLaLetra(String modo);
+
+  /// No description provided for @mostrarMarcaKiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar marca Kiji'**
+  String get mostrarMarcaKiji;
+
+  /// No description provided for @mostrarMarcaKijiDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Un logo chico en una esquina del escaparate'**
+  String get mostrarMarcaKijiDescripcion;
 }
 
 class _AppLocalizationsDelegate

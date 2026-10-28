@@ -1135,5 +1135,16 @@
   "ajustesDeLaLetra": "LYRICS SETTINGS",
   "calculadoEnEstaPc": "calculated on this PC",
   "vecesEscuchada": "{count, plural, =1{1 time} other{{count} times}}",
-  "puestoN": "No. {n}"
+  "puestoN": "No. {n}",
+  "disenoDeLaLetra": "Layout",
+  "disenoAutomatico": "Automatic",
+  "disenoUnaColumna": "One column",
+  "disenoDosColumnas": "Two columns",
+  "modoDelPanel": "View",
+  "panelCompleto": "Full",
+  "panelSimple": "Simple",
+  "panelEscaparate": "Showcase",
+  "cambiarVistaDeLaLetra": "Change the view: {modo}",
+  "mostrarMarcaKiji": "Show Kiji mark",
+  "mostrarMarcaKijiDescripcion": "A small logo in a corner of the showcase"
 }

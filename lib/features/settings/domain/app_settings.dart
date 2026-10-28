@@ -40,6 +40,9 @@ class AppSettings {
     this.font = 'kiji',
     this.lyricsSize = 'normal',
     this.lyricsAlign = 'start',
+    this.lyricsLayout = 'auto',
+    this.lyricsPanel = 'full',
+    this.showcaseMark = false,
     this.lastSeenVersion,
     this.closeAction = 'ask',
     this.globalHotkeys = false,
@@ -79,6 +82,13 @@ class AppSettings {
 
   /// Alineación de la letra: a la izquierda o centrada.
   static const lyricsAligns = ['start', 'center'];
+
+  /// Diseño de la letra: automático (dos columnas en la PC y con el teléfono en horizontal), una
+  /// columna o dos columnas.
+  static const lyricsLayouts = ['auto', 'single', 'double'];
+
+  /// Modo del panel de la letra: completo, simple o escaparate (para grabar y compartir).
+  static const lyricsPanels = ['full', 'simple', 'showcase'];
 
   /// PC: qué hace la ✕ de la ventana. 'ask' pregunta la primera vez.
   static const closeActions = ['ask', 'tray', 'exit'];
@@ -185,6 +195,13 @@ class AppSettings {
   /// Alineación de la letra (`lyricsAligns`).
   final String lyricsAlign;
 
+  /// Diseño de la letra (`lyricsLayouts`) y modo del panel (`lyricsPanels`).
+  final String lyricsLayout;
+  final String lyricsPanel;
+
+  /// Escaparate: un logo chico de Kiji en una esquina (apagado de fábrica).
+  final bool showcaseMark;
+
   /// Última versión cuyas novedades se mostraron (para "Novedades de esta versión").
   final String? lastSeenVersion;
 
@@ -237,6 +254,9 @@ class AppSettings {
     String? font,
     String? lyricsSize,
     String? lyricsAlign,
+    String? lyricsLayout,
+    String? lyricsPanel,
+    bool? showcaseMark,
     String? lastSeenVersion,
     String? closeAction,
     bool? globalHotkeys,
@@ -277,6 +297,9 @@ class AppSettings {
         font: font ?? this.font,
         lyricsSize: lyricsSize ?? this.lyricsSize,
         lyricsAlign: lyricsAlign ?? this.lyricsAlign,
+        lyricsLayout: lyricsLayout ?? this.lyricsLayout,
+        lyricsPanel: lyricsPanel ?? this.lyricsPanel,
+        showcaseMark: showcaseMark ?? this.showcaseMark,
         lastSeenVersion: lastSeenVersion ?? this.lastSeenVersion,
         closeAction: closeAction ?? this.closeAction,
         globalHotkeys: globalHotkeys ?? this.globalHotkeys,
@@ -319,6 +342,9 @@ class AppSettings {
         'font': font,
         'lyricsSize': lyricsSize,
         'lyricsAlign': lyricsAlign,
+        'lyricsLayout': lyricsLayout,
+        'lyricsPanel': lyricsPanel,
+        'showcaseMark': showcaseMark,
         if (lastSeenVersion != null) 'lastSeenVersion': lastSeenVersion,
         'closeAction': closeAction,
         'globalHotkeys': globalHotkeys,
@@ -372,6 +398,9 @@ class AppSettings {
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,
       lyricsAlign: lyricsAligns.contains(json['lyricsAlign']) ? json['lyricsAlign'] as String : d.lyricsAlign,
+      lyricsLayout: lyricsLayouts.contains(json['lyricsLayout']) ? json['lyricsLayout'] as String : d.lyricsLayout,
+      lyricsPanel: lyricsPanels.contains(json['lyricsPanel']) ? json['lyricsPanel'] as String : d.lyricsPanel,
+      showcaseMark: read('showcaseMark', d.showcaseMark),
       lastSeenVersion: json['lastSeenVersion'] is String ? json['lastSeenVersion'] as String : null,
       closeAction: closeActions.contains(json['closeAction']) ? json['closeAction'] as String : d.closeAction,
       globalHotkeys: read('globalHotkeys', d.globalHotkeys),

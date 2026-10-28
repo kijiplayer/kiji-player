@@ -4212,4 +4212,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String puestoN(int n) {
     return 'No. $n';
   }
+
+  @override
+  String get disenoDeLaLetra => 'Layout';
+
+  @override
+  String get disenoAutomatico => 'Automatic';
+
+  @override
+  String get disenoUnaColumna => 'One column';
+
+  @override
+  String get disenoDosColumnas => 'Two columns';
+
+  @override
+  String get modoDelPanel => 'View';
+
+  @override
+  String get panelCompleto => 'Full';
+
+  @override
+  String get panelSimple => 'Simple';
+
+  @override
+  String get panelEscaparate => 'Showcase';
+
+  @override
+  String cambiarVistaDeLaLetra(String modo) {
+    return 'Change the view: $modo';
+  }
+
+  @override
+  String get mostrarMarcaKiji => 'Show Kiji mark';
+
+  @override
+  String get mostrarMarcaKijiDescripcion =>
+      'A small logo in a corner of the showcase';
 }

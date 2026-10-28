@@ -52,6 +52,7 @@ class LyricsMenuSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = ref.watch(settingsProvider.select((s) => s.lyricsSize));
+    final layout = ref.watch(settingsProvider.select((s) => s.lyricsLayout));
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       child: BackdropFilter(
@@ -115,6 +116,13 @@ class LyricsMenuSheet extends ConsumerWidget {
                     onSelectionChanged: (value) =>
                         ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsSize: value.first)),
                   ),
+                  const SizedBox(height: 18),
+                  _GroupTitle(tx.disenoDeLaLetra),
+                  LyricsLayoutPicker(
+                    layout: layout,
+                    onChanged: (value) =>
+                        ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsLayout: value)),
+                  ),
                 ],
               ),
             ),
@@ -124,6 +132,41 @@ class LyricsMenuSheet extends ConsumerWidget {
     );
   }
 }
+
+/// "Diseño" de la letra: Automático / Una columna / Dos columnas.
+class LyricsLayoutPicker extends StatelessWidget {
+  const LyricsLayoutPicker({super.key, required this.layout, required this.onChanged});
+
+  final String layout;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) => SegmentedButton<String>(
+    showSelectedIcon: false,
+    segments: [
+      for (final option in AppSettings.lyricsLayouts)
+        ButtonSegment(
+          value: option,
+          tooltip: lyricsLayoutLabel(option),
+          icon: Icon(switch (option) {
+            'single' => Icons.view_agenda_outlined,
+            'double' => Icons.vertical_split_outlined,
+            _ => Icons.auto_awesome_mosaic_outlined,
+          }),
+          label: Text(lyricsLayoutLabel(option), maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+    ],
+    selected: {layout},
+    onSelectionChanged: (value) => onChanged(value.first),
+  );
+}
+
+/// "Automático", "Una columna" o "Dos columnas".
+String lyricsLayoutLabel(String layout) => switch (layout) {
+  'single' => tx.disenoUnaColumna,
+  'double' => tx.disenoDosColumnas,
+  _ => tx.disenoAutomatico,
+};
 
 /// "Chico", "Normal" o "Grande".
 String lyricsSizeLabel(String size) => switch (size) {

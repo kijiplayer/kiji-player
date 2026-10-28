@@ -82,9 +82,10 @@ class LyricsScreen extends ConsumerWidget {
             SafeArea(
               child: LayoutBuilder(
                 builder: (context, box) {
-                  // PC (ventana ancha): la letra a la izquierda y, a la derecha, la canción, los
-                  // controles y los ajustes de la letra.
-                  final wide = box.maxWidth >= KijiSizes.desktopBreakpoint;
+                  // Dos columnas (la letra a la izquierda y, a la derecha, la canción, los controles
+                  // y los ajustes): en la PC y con el teléfono en horizontal, o siempre/nunca según
+                  // "Diseño".
+                  final wide = lyricsTwoColumns(ref.watch(settingsProvider.select((s) => s.lyricsLayout)), box.biggest);
                   final column = Column(
                     children: [
                       _Header(track: track, request: request, lyrics: lyrics.valueOrNull, showTitle: !wide),
@@ -164,6 +165,14 @@ class LyricsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// ¿La letra va a dos columnas? "Automático": en ventanas anchas (PC) y en horizontal. "Dos
+/// columnas": siempre que entren (al menos 560 de ancho; si no, la letra no se podría leer).
+bool lyricsTwoColumns(String layout, Size size) {
+  if (layout == 'single' || size.width < 560) return false;
+  if (layout == 'double') return true;
+  return size.width >= KijiSizes.desktopBreakpoint || size.width > size.height;
 }
 
 /// La duración real (si ya se sabe) ayuda a las fuentes a elegir la versión
