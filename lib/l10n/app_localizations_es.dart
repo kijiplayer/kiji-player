@@ -4256,4 +4256,49 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get mostrarMarcaKijiDescripcion =>
       'Un logo chico en una esquina del escaparate';
+
+  @override
+  String get descargasYAlmacenamiento => 'Descargas y almacenamiento';
+
+  @override
+  String get privacidadYDatos => 'Privacidad y datos';
+
+  @override
+  String get seccionAparienciaDescripcion =>
+      'Estilo, tema, colores, letra, idioma y animaciones';
+
+  @override
+  String get seccionReproductorDescripcion =>
+      'Ecualizador, transición, Bluetooth y batería';
+
+  @override
+  String get seccionLetrasDescripcion =>
+      'Tamaño, fuentes y traducción de las letras';
+
+  @override
+  String get seccionDescargasDescripcion =>
+      'Descargas, caché, espacio, datos móviles y audios cortos';
+
+  @override
+  String get seccionPcDescripcion =>
+      'Bandeja, atajos globales y controles de Windows';
+
+  @override
+  String get seccionPrivacidadDescripcion =>
+      'Qué guarda Kiji, historial, copias, registros y cuenta';
+
+  @override
+  String get seccionAcercaDescripcion =>
+      'Versión, novedades, actualizaciones y créditos';
+
+  @override
+  String get seccionDevDescripcion => 'Herramientas de Kiji Dev';
+
+  @override
+  String get disenoDeLaLetraDescripcion =>
+      'Una o dos columnas (automático: dos en la PC y en horizontal)';
+
+  @override
+  String get modoDelPanelDescripcion =>
+      'Completo, Simple o Escaparate (para grabar y compartir)';
 }

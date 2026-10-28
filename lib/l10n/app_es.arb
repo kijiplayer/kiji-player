@@ -2564,5 +2564,18 @@
   "cambiarVistaDeLaLetra": "Cambiar la vista: {modo}",
   "mostrarMarcaKiji": "Mostrar marca Kiji",
   "mostrarMarcaKijiDescripcion": "Un logo chico en una esquina del escaparate",
-  "@cambiarVistaDeLaLetra": {"description": "Botón de la letra que cambia de vista (Completo, Simple, Escaparate).", "placeholders": {"modo": {"type": "String"}}}
+  "@cambiarVistaDeLaLetra": {"description": "Botón de la letra que cambia de vista (Completo, Simple, Escaparate).", "placeholders": {"modo": {"type": "String"}}},
+  "descargasYAlmacenamiento": "Descargas y almacenamiento",
+  "privacidadYDatos": "Privacidad y datos",
+  "seccionAparienciaDescripcion": "Estilo, tema, colores, letra, idioma y animaciones",
+  "seccionReproductorDescripcion": "Ecualizador, transición, Bluetooth y batería",
+  "seccionLetrasDescripcion": "Tamaño, fuentes y traducción de las letras",
+  "seccionDescargasDescripcion": "Descargas, caché, espacio, datos móviles y audios cortos",
+  "seccionPcDescripcion": "Bandeja, atajos globales y controles de Windows",
+  "seccionPrivacidadDescripcion": "Qué guarda Kiji, historial, copias, registros y cuenta",
+  "seccionAcercaDescripcion": "Versión, novedades, actualizaciones y créditos",
+  "seccionDevDescripcion": "Herramientas de Kiji Dev",
+  "@seccionAparienciaDescripcion": {"description": "Configuración: descripción corta debajo del nombre de cada sección."},
+  "disenoDeLaLetraDescripcion": "Una o dos columnas (automático: dos en la PC y en horizontal)",
+  "modoDelPanelDescripcion": "Completo, Simple o Escaparate (para grabar y compartir)"
 }

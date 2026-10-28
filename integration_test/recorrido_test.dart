@@ -441,6 +441,44 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
   await _visit(tester, '$tag-registros', () => ReportsScreen.open(_ctx));
   await _visit(tester, '$tag-creditos', () => CreditsScreen.open(_ctx), scroll: true);
   await _visit(tester, '$tag-configuracion', () => SettingsScreen.open(_ctx), scroll: true);
+  // Cada sección de Configuración (en la PC se abre al costado; en el teléfono, en su pantalla).
+  await _step(tester, '$tag-config-secciones', () async {
+    unawaited(SettingsScreen.open(_ctx));
+    await _settle(tester);
+    for (final section in SettingsSection.values) {
+      final card = find.byKey(ValueKey('seccion-${section.name}'));
+      if (card.evaluate().isEmpty) continue;
+      await tester.ensureVisible(card);
+      await _settle(tester, 4);
+      await tester.tap(card);
+      await _settle(tester, 6);
+      final page = find.byType(SettingsSectionScreen);
+      final list = find.descendant(
+        of: page.evaluate().isEmpty ? find.byType(SettingsSectionView) : page,
+        matching: find.byType(Scrollable),
+      );
+      for (var i = 0; i < 12 && list.evaluate().isNotEmpty; i++) {
+        await tester.drag(list.first, const Offset(0, -400), warnIfMissed: false);
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await _shot(tester, '$tag-config-${section.name}');
+      if (page.evaluate().isNotEmpty) {
+        await kijiNavigatorKey.currentState?.maybePop();
+        await _settle(tester, 6);
+      }
+    }
+    // Un resultado de la búsqueda abre su sección con el ajuste resaltado.
+    await tester.enterText(find.byType(TextField).first, tx.tema);
+    await _settle(tester, 4);
+    await tester.tap(find.byKey(ValueKey('resultado-${tx.tema}')));
+    await _settle(tester, 4);
+    if (find.byType(SettingHighlight).evaluate().isEmpty) throw StateError('no se resaltó el ajuste buscado');
+    await _shot(tester, '$tag-config-resaltado');
+    if (find.byType(SettingsSectionScreen).evaluate().isNotEmpty) {
+      await kijiNavigatorKey.currentState?.maybePop();
+      await _settle(tester, 6);
+    }
+  });
   await _visit(tester, '$tag-bienvenida', () => WelcomeScreen.open(_ctx, instant: true));
   await _visit(
     tester,

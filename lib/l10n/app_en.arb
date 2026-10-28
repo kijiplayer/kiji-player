@@ -1146,5 +1146,17 @@
   "panelEscaparate": "Showcase",
   "cambiarVistaDeLaLetra": "Change the view: {modo}",
   "mostrarMarcaKiji": "Show Kiji mark",
-  "mostrarMarcaKijiDescripcion": "A small logo in a corner of the showcase"
+  "mostrarMarcaKijiDescripcion": "A small logo in a corner of the showcase",
+  "descargasYAlmacenamiento": "Downloads and storage",
+  "privacidadYDatos": "Privacy and data",
+  "seccionAparienciaDescripcion": "Style, theme, colors, font, language and animations",
+  "seccionReproductorDescripcion": "Equalizer, crossfade, Bluetooth and battery",
+  "seccionLetrasDescripcion": "Size, sources and translation of the lyrics",
+  "seccionDescargasDescripcion": "Downloads, cache, space, mobile data and short audios",
+  "seccionPcDescripcion": "Tray, global shortcuts and Windows controls",
+  "seccionPrivacidadDescripcion": "What Kiji keeps, history, backups, logs and account",
+  "seccionAcercaDescripcion": "Version, what's new, updates and credits",
+  "seccionDevDescripcion": "Kiji Dev tools",
+  "disenoDeLaLetraDescripcion": "One or two columns (automatic: two on the computer and in landscape)",
+  "modoDelPanelDescripcion": "Full, Simple or Showcase (to record and share)"
 }

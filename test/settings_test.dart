@@ -153,14 +153,14 @@ void main() {
     });
   });
 
-  testWidgets('Configuración: buscar "animacion" deja solo las opciones de animaciones, y se puede activar', (tester) async {
+  Future<Directory> noDisk() async => throw const FileSystemException('sin disco en el test');
+
+  Future<void> pumpSettings(WidgetTester tester, Size size) async {
     // En testWidgets el tiempo es simulado y el disco real no responde: sin
     // carpeta, las preferencias quedan en memoria (mismo camino que un error).
-    Future<Directory> noDisk() async => throw const FileSystemException('sin disco en el test');
-    tester.view.physicalSize = const Size(400, 1600);
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-
     await tester.pumpWidget(ProviderScope(
       overrides: [
         settingsProvider.overrideWith(() => SettingsNotifier(directory: noDisk)),
@@ -169,29 +169,75 @@ void main() {
       child: const MaterialApp(home: SettingsScreen()),
     ));
     await tester.pump();
+  }
 
-    for (final section in ['REPRODUCTOR Y AUDIO', 'CONTENIDO', 'LETRAS']) {
+  testWidgets('Configuración: secciones con descripción; buscar abre la sección y resalta el ajuste', (tester) async {
+    await pumpSettings(tester, const Size(400, 1600));
+
+    for (final section in ['Apariencia', 'Reproductor y audio', 'Letras', 'Descargas y almacenamiento',
+        'Privacidad y datos', 'Acerca de']) {
       expect(find.text(section), findsOneWidget, reason: section);
     }
+    expect(find.text('Ecualizador, transición, Bluetooth y batería'), findsOneWidget, reason: 'cada una con su descripción');
 
-    await tester.enterText(find.byType(TextField), 'animacion');
+    await tester.enterText(find.byType(TextField), 'ANIMACION');
     await tester.pump();
-    expect(find.text('Reducir animaciones'), findsOneWidget);
+    expect(find.text('Reducir animaciones'), findsOneWidget, reason: 'sin importar mayúsculas ni tildes');
     expect(find.text('Recordar la cola al cerrar'), findsNothing);
-    expect(find.text('APARIENCIA'), findsOneWidget);
-    expect(find.text('ALMACENAMIENTO'), findsNothing);
-
     // "Modo alto rendimiento" también habla de animaciones: aparece, pero se toca la de reducir.
     expect(find.text('Modo alto rendimiento'), findsOneWidget);
+
+    await tester.tap(find.text('Reducir animaciones'));
+    await tester.pumpAndSettle();
+    // Se abrió Apariencia con el ajuste resaltado, y se puede activar ahí mismo.
+    expect(find.byType(SettingHighlight), findsOneWidget);
+    expect(find.descendant(of: find.byType(SettingHighlight), matching: find.text('Reducir animaciones')), findsOneWidget);
     await tester.tap(
       find.descendant(of: find.widgetWithText(SwitchListTile, 'Reducir animaciones'), matching: find.byType(Switch)),
     );
-    await tester.pump();
-    final container = ProviderScope.containerOf(tester.element(find.byType(SettingsScreen)));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(SettingsSectionView)));
     expect(container.read(settingsProvider).reduceMotion, isTrue);
 
+    await tester.pageBack();
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'xyz nada');
     await tester.pump();
     expect(find.text('No hay ninguna opción con ese nombre.'), findsOneWidget);
+  });
+
+  testWidgets('Configuración: sinónimos ("oscuro" → tema, "volumen" → ecualizador, "dark" en español)', (tester) async {
+    await pumpSettings(tester, const Size(400, 1600));
+    Future<void> search(String text) async {
+      await tester.enterText(find.byType(TextField), text);
+      await tester.pump();
+    }
+
+    await search('oscuro');
+    expect(find.text('Tema'), findsOneWidget);
+    await search('negro');
+    expect(find.text('Tema'), findsOneWidget, reason: 'negro es como oscuro y noche');
+    await search('volumen');
+    expect(find.text('Ecualizador'), findsOneWidget);
+    expect(find.text('Pausar al silenciar'), findsOneWidget);
+    await search('dark');
+    expect(find.text('Tema'), findsOneWidget, reason: 'en inglés también, con la app en español');
+    await search('escaparate');
+    expect(find.text('Vista'), findsOneWidget);
+  });
+
+  testWidgets('Configuración en la PC: secciones a la izquierda y la elegida a la derecha', (tester) async {
+    await pumpSettings(tester, const Size(1400, 900));
+    expect(find.byType(SettingsSectionView), findsOneWidget, reason: 'Apariencia abierta de entrada');
+    await tester.tap(find.text('Letras'));
+    await tester.pumpAndSettle();
+    expect(find.text('Tamaño de las letras'), findsWidgets);
+    await tester.enterText(find.byType(TextField), 'transicion');
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('resultado-Transición suave entre canciones')));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byType(SettingHighlight), matching: find.text('Transición suave entre canciones')),
+        findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

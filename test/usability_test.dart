@@ -133,6 +133,8 @@ void main() {
     ));
     await tester.pump();
 
+    await tester.tap(find.text('Reproductor y audio'));
+    await tester.pumpAndSettle();
     // Se toca el título (antes solo respondía el "No" chiquito de la derecha).
     await tester.tap(find.text('Transición suave entre canciones'));
     await tester.pumpAndSettle();

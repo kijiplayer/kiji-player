@@ -6880,6 +6880,78 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Un logo chico en una esquina del escaparate'**
   String get mostrarMarcaKijiDescripcion;
+
+  /// No description provided for @descargasYAlmacenamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargas y almacenamiento'**
+  String get descargasYAlmacenamiento;
+
+  /// No description provided for @privacidadYDatos.
+  ///
+  /// In es, this message translates to:
+  /// **'Privacidad y datos'**
+  String get privacidadYDatos;
+
+  /// Configuración: descripción corta debajo del nombre de cada sección.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo, tema, colores, letra, idioma y animaciones'**
+  String get seccionAparienciaDescripcion;
+
+  /// No description provided for @seccionReproductorDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador, transición, Bluetooth y batería'**
+  String get seccionReproductorDescripcion;
+
+  /// No description provided for @seccionLetrasDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño, fuentes y traducción de las letras'**
+  String get seccionLetrasDescripcion;
+
+  /// No description provided for @seccionDescargasDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargas, caché, espacio, datos móviles y audios cortos'**
+  String get seccionDescargasDescripcion;
+
+  /// No description provided for @seccionPcDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Bandeja, atajos globales y controles de Windows'**
+  String get seccionPcDescripcion;
+
+  /// No description provided for @seccionPrivacidadDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué guarda Kiji, historial, copias, registros y cuenta'**
+  String get seccionPrivacidadDescripcion;
+
+  /// No description provided for @seccionAcercaDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión, novedades, actualizaciones y créditos'**
+  String get seccionAcercaDescripcion;
+
+  /// No description provided for @seccionDevDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas de Kiji Dev'**
+  String get seccionDevDescripcion;
+
+  /// No description provided for @disenoDeLaLetraDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Una o dos columnas (automático: dos en la PC y en horizontal)'**
+  String get disenoDeLaLetraDescripcion;
+
+  /// No description provided for @modoDelPanelDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Completo, Simple o Escaparate (para grabar y compartir)'**
+  String get modoDelPanelDescripcion;
 }
 
 class _AppLocalizationsDelegate

@@ -4248,4 +4248,49 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mostrarMarcaKijiDescripcion =>
       'A small logo in a corner of the showcase';
+
+  @override
+  String get descargasYAlmacenamiento => 'Downloads and storage';
+
+  @override
+  String get privacidadYDatos => 'Privacy and data';
+
+  @override
+  String get seccionAparienciaDescripcion =>
+      'Style, theme, colors, font, language and animations';
+
+  @override
+  String get seccionReproductorDescripcion =>
+      'Equalizer, crossfade, Bluetooth and battery';
+
+  @override
+  String get seccionLetrasDescripcion =>
+      'Size, sources and translation of the lyrics';
+
+  @override
+  String get seccionDescargasDescripcion =>
+      'Downloads, cache, space, mobile data and short audios';
+
+  @override
+  String get seccionPcDescripcion =>
+      'Tray, global shortcuts and Windows controls';
+
+  @override
+  String get seccionPrivacidadDescripcion =>
+      'What Kiji keeps, history, backups, logs and account';
+
+  @override
+  String get seccionAcercaDescripcion =>
+      'Version, what\'s new, updates and credits';
+
+  @override
+  String get seccionDevDescripcion => 'Kiji Dev tools';
+
+  @override
+  String get disenoDeLaLetraDescripcion =>
+      'One or two columns (automatic: two on the computer and in landscape)';
+
+  @override
+  String get modoDelPanelDescripcion =>
+      'Full, Simple or Showcase (to record and share)';
 }
