@@ -6766,6 +6766,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Solo en el estilo Nocturne'**
   String get soloEnNocturne;
+
+  /// No description provided for @alineacionDeLaLetra.
+  ///
+  /// In es, this message translates to:
+  /// **'Alineación'**
+  String get alineacionDeLaLetra;
+
+  /// No description provided for @alinearIzquierda.
+  ///
+  /// In es, this message translates to:
+  /// **'Izquierda'**
+  String get alinearIzquierda;
+
+  /// No description provided for @alinearCentro.
+  ///
+  /// In es, this message translates to:
+  /// **'Centrada'**
+  String get alinearCentro;
+
+  /// No description provided for @sincroniaDeLaLetra.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronía'**
+  String get sincroniaDeLaLetra;
+
+  /// Letra en la PC: título de los ajustes del panel derecho.
+  ///
+  /// In es, this message translates to:
+  /// **'AJUSTES DE LA LETRA'**
+  String get ajustesDeLaLetra;
 }
 
 class _AppLocalizationsDelegate

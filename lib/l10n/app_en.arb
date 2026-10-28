@@ -1127,5 +1127,10 @@
   "estiloPapel": "Paper",
   "estiloPapelFrase": "Light and calm, like reading a book.",
   "continuarConEstilo": "Continue with {estilo}",
-  "soloEnNocturne": "Only in the Nocturne style"
+  "soloEnNocturne": "Only in the Nocturne style",
+  "alineacionDeLaLetra": "Alignment",
+  "alinearIzquierda": "Left",
+  "alinearCentro": "Centered",
+  "sincroniaDeLaLetra": "Sync",
+  "ajustesDeLaLetra": "LYRICS SETTINGS"
 }

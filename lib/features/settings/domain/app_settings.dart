@@ -39,6 +39,7 @@ class AppSettings {
     this.theme = 'dark',
     this.font = 'kiji',
     this.lyricsSize = 'normal',
+    this.lyricsAlign = 'start',
     this.lastSeenVersion,
     this.closeAction = 'ask',
     this.globalHotkeys = false,
@@ -75,6 +76,9 @@ class AppSettings {
 
   /// Tamaño de la letra de las canciones.
   static const lyricsSizes = ['small', 'normal', 'large'];
+
+  /// Alineación de la letra: a la izquierda o centrada.
+  static const lyricsAligns = ['start', 'center'];
 
   /// PC: qué hace la ✕ de la ventana. 'ask' pregunta la primera vez.
   static const closeActions = ['ask', 'tray', 'exit'];
@@ -178,6 +182,9 @@ class AppSettings {
   final String font;
   final String lyricsSize;
 
+  /// Alineación de la letra (`lyricsAligns`).
+  final String lyricsAlign;
+
   /// Última versión cuyas novedades se mostraron (para "Novedades de esta versión").
   final String? lastSeenVersion;
 
@@ -229,6 +236,7 @@ class AppSettings {
     String? theme,
     String? font,
     String? lyricsSize,
+    String? lyricsAlign,
     String? lastSeenVersion,
     String? closeAction,
     bool? globalHotkeys,
@@ -268,6 +276,7 @@ class AppSettings {
         theme: theme ?? this.theme,
         font: font ?? this.font,
         lyricsSize: lyricsSize ?? this.lyricsSize,
+        lyricsAlign: lyricsAlign ?? this.lyricsAlign,
         lastSeenVersion: lastSeenVersion ?? this.lastSeenVersion,
         closeAction: closeAction ?? this.closeAction,
         globalHotkeys: globalHotkeys ?? this.globalHotkeys,
@@ -309,6 +318,7 @@ class AppSettings {
         'theme': theme,
         'font': font,
         'lyricsSize': lyricsSize,
+        'lyricsAlign': lyricsAlign,
         if (lastSeenVersion != null) 'lastSeenVersion': lastSeenVersion,
         'closeAction': closeAction,
         'globalHotkeys': globalHotkeys,
@@ -361,6 +371,7 @@ class AppSettings {
       theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,
+      lyricsAlign: lyricsAligns.contains(json['lyricsAlign']) ? json['lyricsAlign'] as String : d.lyricsAlign,
       lastSeenVersion: json['lastSeenVersion'] is String ? json['lastSeenVersion'] as String : null,
       closeAction: closeActions.contains(json['closeAction']) ? json['closeAction'] as String : d.closeAction,
       globalHotkeys: read('globalHotkeys', d.globalHotkeys),

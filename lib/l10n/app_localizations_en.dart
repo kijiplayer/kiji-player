@@ -4178,4 +4178,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get soloEnNocturne => 'Only in the Nocturne style';
+
+  @override
+  String get alineacionDeLaLetra => 'Alignment';
+
+  @override
+  String get alinearIzquierda => 'Left';
+
+  @override
+  String get alinearCentro => 'Centered';
+
+  @override
+  String get sincroniaDeLaLetra => 'Sync';
+
+  @override
+  String get ajustesDeLaLetra => 'LYRICS SETTINGS';
 }

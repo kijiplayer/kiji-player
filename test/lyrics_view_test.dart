@@ -17,6 +17,7 @@ const _lrc = '''
 ''';
 
 void main() {
+  const nl = '\n';
   testWidgets('La línea que suena se resalta y tocar otra línea va a ese momento', (tester) async {
     final playback = _FakePlayback();
     await tester.pumpWidget(ProviderScope(
@@ -35,6 +36,25 @@ void main() {
     await tester.pumpAndSettle(); // termina de desplazarse hasta la línea que suena
     await tester.tap(find.text('The sun is warm today'));
     expect(playback.sought, const Duration(minutes: 1, seconds: 4, milliseconds: 70));
+  });
+
+  testWidgets('En la PC la línea que suena queda nítida y las lejanas, más transparentes y borrosas', (tester) async {
+    final playback = _FakePlayback();
+    final lrc = [for (var i = 0; i < 12; i++) '[00:${(i * 2).toString().padLeft(2, '0')}.00] Línea de prueba $i'].join(nl);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [playbackProvider.overrideWith(() => playback)],
+      child: MaterialApp(home: Scaffold(body: SyncedLyricsView(lines: parseLrc(lrc), depth: true))),
+    ));
+    playback.at(const Duration(seconds: 6)); // la línea 3
+    await tester.pump();
+    await tester.pumpAndSettle();
+    double opacityOf(String text) =>
+        tester.widget<AnimatedOpacity>(find.ancestor(of: find.text(text), matching: find.byType(AnimatedOpacity))).opacity;
+    expect(opacityOf('Línea de prueba 3'), 1);
+    expect(opacityOf('Línea de prueba 4'), lessThan(1));
+    expect(opacityOf('Línea de prueba 7'), lessThan(opacityOf('Línea de prueba 4')));
+    final blur = find.ancestor(of: find.text('Línea de prueba 7'), matching: find.byType(ImageFiltered));
+    expect(blur, findsOneWidget, reason: 'las lejanas, con un leve desenfoque');
   });
 
   testWidgets('"Volver a la canción" vuelve a la línea que suena aunque te hayas ido muy lejos', (tester) async {

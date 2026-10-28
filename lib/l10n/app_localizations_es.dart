@@ -4186,4 +4186,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get soloEnNocturne => 'Solo en el estilo Nocturne';
+
+  @override
+  String get alineacionDeLaLetra => 'Alineación';
+
+  @override
+  String get alinearIzquierda => 'Izquierda';
+
+  @override
+  String get alinearCentro => 'Centrada';
+
+  @override
+  String get sincroniaDeLaLetra => 'Sincronía';
+
+  @override
+  String get ajustesDeLaLetra => 'AJUSTES DE LA LETRA';
 }

@@ -2541,5 +2541,11 @@
   "continuarConEstilo": "Continuar con {estilo}",
   "@continuarConEstilo": {"description": "Botón para confirmar el estilo elegido.", "placeholders": {"estilo": {"type": "String"}}},
   "soloEnNocturne": "Solo en el estilo Nocturne",
-  "@soloEnNocturne": {"description": "El tema y el color de acento solo cambian Nocturne."}
+  "@soloEnNocturne": {"description": "El tema y el color de acento solo cambian Nocturne."},
+  "alineacionDeLaLetra": "Alineación",
+  "alinearIzquierda": "Izquierda",
+  "alinearCentro": "Centrada",
+  "sincroniaDeLaLetra": "Sincronía",
+  "ajustesDeLaLetra": "AJUSTES DE LA LETRA",
+  "@ajustesDeLaLetra": {"description": "Letra en la PC: título de los ajustes del panel derecho."}
 }
