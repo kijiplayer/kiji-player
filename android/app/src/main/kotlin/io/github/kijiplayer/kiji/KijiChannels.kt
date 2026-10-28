@@ -7,6 +7,10 @@ import android.content.Intent
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.PowerManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.display.DisplayManager
 import android.media.AudioManager
 import android.os.Environment
@@ -144,6 +148,44 @@ object KijiChannels {
             override fun onCancel(arguments: Any?) {
                 observer?.let { app.contentResolver.unregisterContentObserver(it) }
                 observer = null
+            }
+        })
+
+        // Inclinación del teléfono (gravedad x/y, -1..1) para el reflejo del vidrio de Grafito. Los
+        // sensores de movimiento no piden permiso. Solo se escucha mientras Dart está suscrito
+        // (reproductor abierto, sonando y en primer plano), a ~30 por segundo.
+        EventChannel(messenger, "kiji/tilt").setStreamHandler(object : EventChannel.StreamHandler {
+            private var listener: SensorEventListener? = null
+
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+                val sensors = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+                val sensor = sensors.getDefaultSensor(Sensor.TYPE_GRAVITY)
+                    ?: sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+                if (sensor == null) {
+                    events.endOfStream()
+                    return
+                }
+                val handler = object : SensorEventListener {
+                    override fun onSensorChanged(event: SensorEvent) {
+                        val g = SensorManager.GRAVITY_EARTH
+                        events.success(
+                            doubleArrayOf(
+                                (event.values[0] / g).toDouble().coerceIn(-1.0, 1.0),
+                                (event.values[1] / g).toDouble().coerceIn(-1.0, 1.0),
+                            )
+                        )
+                    }
+
+                    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+                }
+                sensors.registerListener(handler, sensor, 33_000, Handler(Looper.getMainLooper()))
+                listener = handler
+            }
+
+            override fun onCancel(arguments: Any?) {
+                val sensors = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+                listener?.let { sensors.unregisterListener(it) }
+                listener = null
             }
         })
     }

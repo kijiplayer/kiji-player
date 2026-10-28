@@ -63,6 +63,32 @@ void main() {
     }
   });
 
+  test('Grafito: la luz que respira no le quita contraste al texto de arriba de la portada', () {
+    const p = KijiPalette.graphite;
+    // Desenfoque gaussiano del halo: cuánta luz llega a [d] px por fuera del borde (borde recto).
+    double erfc(double x) {
+      final t = 1 / (1 + 0.3275911 * x);
+      final y = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+      return y * exp(-x * x);
+    }
+
+    const sigma = KijiMuseum.haloBlur * 0.57735 + 0.5;
+    // "REPRODUCIENDO DESDE" queda ~25 px arriba de la portada (de 320 px); el halo late hasta un 5 %
+    // más grande (8 px por lado) y está corrido hacia abajo.
+    const gap = 25.0, grow = 8.0;
+    const d = gap + KijiMuseum.haloShift - grow;
+    final light = KijiMuseum.haloOpacity * 0.5 * erfc(d / (sigma * sqrt2));
+    Color white(double o) => Colors.white.withValues(alpha: o);
+    final backdrop = Color.alphaBlend(
+      white(light),
+      Color.alphaBlend(
+        white(KijiMuseum.grainOpacity),
+        Color.alphaBlend(white(KijiMuseum.backdropBrightness * KijiMuseum.backdropOpacity), p.background),
+      ),
+    );
+    expect(contrast(p.muted, backdrop), greaterThanOrEqualTo(4.5));
+  });
+
   test('la onda de Grafito y Papel es monocroma, con los grises pedidos', () {
     expect(KijiPalette.graphite.violet, const Color(0xFFF2F2F2));
     expect(KijiPalette.graphite.cyan, const Color(0xFFF2F2F2));

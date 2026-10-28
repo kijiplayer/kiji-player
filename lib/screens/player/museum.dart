@@ -1,12 +1,17 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/loudness/data/loudness_analyzer.dart';
+import '../../features/loudness/domain/loudness.dart';
+import '../../features/settings/data/settings_store.dart';
 import '../../models/track.dart';
+import '../../providers/playback_provider.dart';
 import '../../providers/appearance_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
@@ -403,7 +408,7 @@ class _CoverTiltState extends ConsumerState<CoverTilt> with SingleTickerProvider
   static const _maxAngle = 0.12;
 
   late final AnimationController _back = AnimationController(vsync: this, duration: const Duration(milliseconds: 520))
-    ..addListener(() => setState(() => _tilt = _released * (1 - Curves.easeOutBack.transform(_back.value))));
+    ..addListener(() => setState(() => _tilt = _released * (1 - KijiMotion.spring.transform(_back.value))));
   Offset _tilt = Offset.zero;
   Offset _released = Offset.zero;
   bool _pressed = false;
@@ -470,7 +475,7 @@ class MuseumLineIn extends ConsumerStatefulWidget {
 }
 
 class _MuseumLineInState extends ConsumerState<MuseumLineIn> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 620));
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 820));
   bool _started = false;
   bool _reduce = false;
 
@@ -503,15 +508,237 @@ class _MuseumLineInState extends ConsumerState<MuseumLineIn> with SingleTickerPr
     final start = widget.line * 0.18;
     final curve = CurvedAnimation(
       parent: _c,
-      curve: Interval(start, start + 0.7, curve: Curves.easeOutCubic),
+      curve: Interval(start, start + 0.7, curve: KijiMotion.spring),
     );
     return AnimatedBuilder(
       animation: curve,
-      builder: (context, child) => Opacity(
-        opacity: curve.value,
-        child: Transform.translate(offset: Offset(28 * (1 - curve.value), 0), child: child),
-      ),
+      builder: (context, child) {
+        final t = curve.value;
+        Widget moved = Transform.translate(offset: Offset(28 * (1 - t), 0), child: child);
+        // El título, además, llega desenfocado y se enfoca (solo mientras entra).
+        if (widget.line == 0 && t < 1) {
+          final sigma = 6 * (1 - t);
+          moved = ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+            child: moved,
+          );
+        }
+        return Opacity(opacity: t.clamp(0.0, 1.0), child: moved);
+      },
       child: widget.child,
     );
   }
+}
+
+/// Luz que respira (Grafito, alto rendimiento): un halo blanco suave detrás de la portada que late
+/// con el volumen real de la canción (los mismos datos que la onda en vivo; nunca el micrófono).
+/// Sin datos de volumen, en pausa, en segundo plano o con "Reducir animaciones", no se muestra.
+class MuseumHalo extends ConsumerStatefulWidget {
+  const MuseumHalo({super.key, required this.track, required this.size});
+
+  final Track track;
+
+  /// Lado de la portada.
+  final double size;
+
+  @override
+  ConsumerState<MuseumHalo> createState() => _MuseumHaloState();
+}
+
+class _MuseumHaloState extends ConsumerState<MuseumHalo> with SingleTickerProviderStateMixin {
+  final _level = ValueNotifier<double>(0);
+  late final _ticker = createTicker(_tick);
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
+    onStateChange: (_) => mounted ? setState(() {}) : null,
+  );
+  Loudness? _loudness;
+  Duration _anchor = Duration.zero;
+  final _sinceAnchor = Stopwatch();
+
+  void _tick(Duration _) {
+    final loudness = _loudness;
+    if (loudness == null) return;
+    final now = _anchor + Duration(milliseconds: min(1000, _sinceAnchor.elapsedMilliseconds));
+    final target = loudness.at(now);
+    // Sube rápido con cada golpe y baja despacio, como una respiración.
+    final current = _level.value;
+    _level.value = target > current ? current + (target - current) * 0.5 : current + (target - current) * 0.08;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    _ticker.dispose();
+    _level.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rich = ref.watch(settingsProvider.select((s) => s.highPerformance));
+    final playing = ref.watch(playbackProvider.select((p) => p.isPlaying));
+    _loudness = rich ? ref.watch(loudnessProvider(widget.track.id)).value : null;
+    ref.listen(playbackProvider.select((p) => p.position), (_, position) {
+      _anchor = position;
+      _sinceAnchor
+        ..reset()
+        ..start();
+    });
+    final on = _loudness != null && playing && !reduceMotion(context, ref) && _appVisible();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (on && !_ticker.isActive) {
+        _ticker.start();
+      } else if (!on && _ticker.isActive) {
+        _ticker.stop();
+        _level.value = 0;
+      }
+    });
+    if (!on) return const SizedBox.shrink();
+    return IgnorePointer(
+      child: RepaintBoundary(
+        child: CustomPaint(
+          painter: _HaloPainter(_level, radius: KijiLook.cover(KijiRadii.cover)),
+          size: Size.infinite,
+        ),
+      ),
+    );
+  }
+}
+
+/// El halo: la sombra desenfocada de un rectángulo redondeado (Impeller la dibuja sin desenfocar
+/// píxeles, con una fórmula), con el brillo y el tamaño según [level].
+class _HaloPainter extends CustomPainter {
+  _HaloPainter(this.level, {required this.radius}) : super(repaint: level);
+
+  final ValueNotifier<double> level;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final l = level.value.clamp(0.0, 1.0);
+    // Corrido hacia abajo: así la luz no le quita contraste a "REPRODUCIENDO DESDE", arriba.
+    final rect = (const Offset(0, KijiMuseum.haloShift) & size).inflate(size.width * 0.025 * l);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(radius)),
+      Paint()
+        ..color = Colors.white.withValues(alpha: KijiMuseum.haloOpacity * (0.25 + 0.75 * l))
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, KijiMuseum.haloBlur * 0.57735 + 0.5),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_HaloPainter old) => old.radius != radius;
+}
+
+/// Dónde está el mouse sobre el reproductor (PC), de -1 a 1 en cada eje. Lo escribe el
+/// reproductor y lo lee el reflejo del vidrio.
+final museumPointer = ValueNotifier<Offset>(Offset.zero);
+
+/// Reflejo en el vidrio de la portada (Grafito): una franja de luz que se corre con la inclinación
+/// del teléfono (sensor de gravedad, sin permisos) o con el mouse en la PC. Solo se mueve mientras
+/// suena, en primer plano y sin "Reducir animaciones"; si no, queda quieta.
+class MuseumReflection extends ConsumerStatefulWidget {
+  const MuseumReflection({super.key, required this.playing});
+
+  final bool playing;
+
+  @override
+  ConsumerState<MuseumReflection> createState() => _MuseumReflectionState();
+}
+
+class _MuseumReflectionState extends ConsumerState<MuseumReflection> with SingleTickerProviderStateMixin {
+  static const _tilt = EventChannel('kiji/tilt');
+  final _light = ValueNotifier<Offset>(Offset.zero);
+  Offset _target = Offset.zero;
+  StreamSubscription<dynamic>? _sensor;
+  late final _ticker = createTicker((_) {
+    // Se acerca suave a donde apunta la luz (el sensor llega ~30 veces por segundo).
+    final next = Offset.lerp(_light.value, _target, 0.12)!;
+    if ((next - _light.value).distance > 0.0005) _light.value = next;
+  });
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
+    onStateChange: (_) => mounted ? setState(() {}) : null,
+  );
+
+  void _onPointer() => _target = museumPointer.value;
+
+  void _sync(bool on) {
+    final android = defaultTargetPlatform == TargetPlatform.android;
+    if (on && !_ticker.isActive) {
+      _ticker.start();
+      if (android) {
+        _sensor = _tilt.receiveBroadcastStream().listen((value) {
+          final v = (value as List).cast<double>();
+          // Inclinar a la derecha corre la luz a la derecha; hacia uno, hacia abajo.
+          _target = Offset(-v[0], v[1] - 0.6).scale(1.2, 1.2);
+        }, onError: (Object error) => debugPrint('=== GRAFITO: sin sensor de inclinación ($error) ==='));
+      } else {
+        museumPointer.addListener(_onPointer);
+      }
+    } else if (!on && _ticker.isActive) {
+      _ticker.stop();
+      _sensor?.cancel();
+      _sensor = null;
+      museumPointer.removeListener(_onPointer);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    _sync(false);
+    _ticker.dispose();
+    _light.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final on = widget.playing && !reduceMotion(context, ref) && _appVisible();
+    WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _sync(on) : null);
+    return IgnorePointer(
+      child: RepaintBoundary(
+        child: CustomPaint(painter: _ReflectionPainter(_light), size: Size.infinite),
+      ),
+    );
+  }
+}
+
+class _ReflectionPainter extends CustomPainter {
+  _ReflectionPainter(this.light) : super(repaint: light);
+
+  final ValueNotifier<Offset> light;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final o = Offset(light.value.dx.clamp(-1.0, 1.0), light.value.dy.clamp(-1.0, 1.0));
+    final center = 0.35 + 0.3 * o.dx;
+    const glow = Color.fromRGBO(255, 255, 255, KijiMuseum.reflectionOpacity);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment(-1, -1 + o.dy * 0.6),
+          end: Alignment(1, 1 + o.dy * 0.6),
+          colors: [glow.withValues(alpha: 0), glow, glow.withValues(alpha: 0)],
+          stops: [(center - 0.18).clamp(0.0, 1.0), center.clamp(0.0, 1.0), (center + 0.18).clamp(0.0, 1.0)],
+        ).createShader(Offset.zero & size),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ReflectionPainter old) => false;
 }

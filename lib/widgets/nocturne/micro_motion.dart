@@ -44,9 +44,11 @@ class _PressScaleState extends State<PressScale> with SingleTickerProviderStateM
       child: AnimatedBuilder(
         animation: _press,
         builder: (context, child) {
-          // De vuelta, un pequeño rebote (easeOutBack); al apretar, directo.
+          // De vuelta, un pequeño rebote (Grafito: un resorte); al apretar, directo.
           final t = _press.status == AnimationStatus.reverse
-              ? Curves.easeOutBack.transform(_press.value)
+              ? (KijiLook.museum
+                    ? 1 - KijiMotion.spring.transform(1 - _press.value)
+                    : Curves.easeOutBack.transform(_press.value))
               : Curves.easeOut.transform(_press.value);
           return Transform.scale(scale: 1 - (1 - widget.pressed) * t, child: child);
         },

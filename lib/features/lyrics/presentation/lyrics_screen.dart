@@ -58,7 +58,7 @@ class LyricsScreen extends ConsumerWidget {
         position: Tween(
           begin: const Offset(0, 1),
           end: Offset.zero,
-        ).chain(CurveTween(curve: KijiMotion.emphasizedCurve)).animate(animation),
+        ).chain(CurveTween(curve: KijiLook.museum ? KijiMotion.softSpring : KijiMotion.emphasizedCurve)).animate(animation),
         child: child,
       ),
     ),

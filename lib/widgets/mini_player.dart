@@ -56,6 +56,7 @@ class MiniPlayer extends ConsumerWidget {
                     else
                       Hero(
                         tag: coverHeroTag(track),
+                        curve: KijiLook.museum ? KijiMotion.spring : Curves.fastOutSlowIn,
                         child: TrackArtwork(track: track, size: 44, radius: 12),
                       ),
                     const SizedBox(width: 12),

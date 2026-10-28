@@ -55,7 +55,11 @@ class PlayerScreen extends ConsumerWidget {
         pageBuilder: (context, animation, secondaryAnimation) => const PlayerScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           if (MediaQuery.disableAnimationsOf(context)) return child;
-          final curve = CurvedAnimation(parent: animation, curve: KijiMotion.emphasizedCurve);
+          // Grafito: sube con un resorte casi sin rebote (si rebotara, se vería el borde de abajo).
+          final curve = CurvedAnimation(
+            parent: animation,
+            curve: KijiLook.museum ? KijiMotion.softSpring : KijiMotion.emphasizedCurve,
+          );
           return SlideTransition(
             position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(curve),
             child: child,
@@ -77,7 +81,7 @@ class PlayerScreen extends ConsumerWidget {
         track.youtubeVideoId != null &&
         ref.watch(downloadsProvider.select((d) => d.completed.containsKey(track.youtubeVideoId)));
 
-    return Scaffold(
+    final screen = Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -104,7 +108,9 @@ class PlayerScreen extends ConsumerWidget {
                           const SizedBox(height: 16),
                           // Capas propias: la sombra grande de la carátula no se vuelve a
                           // rasterizar con cada avance de la posición.
-                          RepaintBoundary(child: _Cover(track: track, size: coverSize)),
+                          RepaintBoundary(
+                            child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
+                          ),
                           const SizedBox(height: 24),
                           _TitleRow(track: track, downloaded: downloaded),
                           const SizedBox(height: 20),
@@ -124,6 +130,15 @@ class PlayerScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+    if (!KijiLook.museum) return screen;
+    // Grafito en la PC: el reflejo del vidrio sigue al mouse.
+    return MouseRegion(
+      onHover: (event) {
+        final size = MediaQuery.sizeOf(context);
+        museumPointer.value = Offset(event.position.dx / size.width * 2 - 1, event.position.dy / size.height * 2 - 1);
+      },
+      child: screen,
     );
   }
 }
@@ -207,10 +222,11 @@ class _TopBar extends StatelessWidget {
 
 /// Carátula de 320 px, radio 28, borde degradado de 1 px y halo de su color.
 class _Cover extends StatelessWidget {
-  const _Cover({required this.track, required this.size});
+  const _Cover({required this.track, required this.size, required this.playing});
 
   final Track track;
   final double size;
+  final bool playing;
 
   @override
   Widget build(BuildContext context) {
@@ -229,19 +245,35 @@ class _Cover extends StatelessWidget {
           radius: radius,
           child: Hero(
             tag: coverHeroTag(track),
+            // Grafito: la portada vuela del mini-reproductor al reproductor (y vuelve) con un resorte.
+            curve: KijiLook.museum ? KijiMotion.spring : Curves.fastOutSlowIn,
             child: TrackArtwork(track: track, size: size - 2, radius: radius - 1),
           ),
         ),
       ),
     );
     if (!KijiLook.museum) return cover;
-    // Grafito: un brillo recorre el vidrio una vez al abrir, y se inclina (3D) al tocarla o arrastrarla.
+    // Grafito: detrás, la luz que respira con la música; encima, el brillo de la apertura y el
+    // reflejo que sigue la inclinación (o el mouse). Se inclina (3D) al tocarla o arrastrarla.
     return CoverTilt(
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
+          Positioned.fill(
+            child: MuseumHalo(track: track, size: size),
+          ),
           cover,
           Positioned.fill(
-            child: ClipRRect(borderRadius: BorderRadius.circular(radius), child: const MuseumSheen()),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(radius),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const MuseumSheen(),
+                  MuseumReflection(playing: playing),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -273,7 +305,10 @@ class _TitleRow extends ConsumerWidget {
                   track,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: KijiText.title(size: 26),
+                  // Grafito: grande y fino.
+                  style: KijiLook.museum
+                      ? KijiText.title(size: 34, weight: FontWeight.w300).copyWith(letterSpacing: -0.6, height: 1.08)
+                      : KijiText.title(size: 26),
                 ),
               ),
               const SizedBox(height: 4),

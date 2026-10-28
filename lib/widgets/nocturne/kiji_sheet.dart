@@ -19,8 +19,16 @@ Future<T?> showKijiSheet<T>({
   BoxConstraints? constraints,
   bool useSafeArea = false,
 }) {
+  // Grafito: la hoja sube con un resorte.
+  final spring = KijiLook.museum
+      ? const AnimationStyle(
+          curve: KijiMotion.spring,
+          duration: Duration(milliseconds: 520),
+          reverseDuration: Duration(milliseconds: 280),
+        )
+      : null;
   // Controlador propio: así el arrastre sobre la lista mueve la hoja igual que la barrita.
-  final controller = BottomSheet.createAnimationController(Navigator.of(context));
+  final controller = BottomSheet.createAnimationController(Navigator.of(context), sheetAnimationStyle: spring);
   // Grafito: la hoja es de vidrio esmerilado (la dibuja [FrostedSheet], con su barrita).
   final frosted = KijiLook.museum && backgroundColor == null;
   final handle = showDragHandle ?? Theme.of(context).bottomSheetTheme.showDragHandle ?? false;
@@ -34,6 +42,7 @@ Future<T?> showKijiSheet<T>({
     constraints: constraints,
     useSafeArea: useSafeArea,
     transitionAnimationController: controller,
+    sheetAnimationStyle: spring,
     builder: (sheet) {
       final child = builder(sheet);
       return SheetDragToDismiss(
