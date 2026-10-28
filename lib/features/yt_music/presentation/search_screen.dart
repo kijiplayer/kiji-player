@@ -257,12 +257,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     label: Text(kind.label),
                     selected: _kind == kind,
                     showCheckmark: false,
-                    selectedColor: KijiColors.violet,
-                    labelStyle: TextStyle(
-                      color: _kind == kind ? Colors.white : KijiColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    side: BorderSide(color: KijiColors.glassBorder),
+                    // Colores de lo elegido: los del tema (KijiSelected).
                     shape: const StadiumBorder(),
                     onSelected: (_) {
                       setState(() => _kind = kind);

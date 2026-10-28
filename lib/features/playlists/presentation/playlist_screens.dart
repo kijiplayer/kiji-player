@@ -11,6 +11,7 @@ import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../providers/local_library_provider.dart';
 import '../../../providers/playback_provider.dart';
+import '../../../theme/app_theme.dart' show KijiSelected;
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
@@ -408,7 +409,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
       return ListTile(
         key: ValueKey('${track.id}#$index'),
         selected: selected,
-        selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
+        selectedTileColor: KijiSelected.tile,
         leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

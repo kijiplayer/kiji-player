@@ -163,6 +163,16 @@ class KijiPalette {
     'ocean': (Color(0xFF3D7BFF), Color(0xFF3DF5FF)),
   };
 
+  /// [color] oscurecido de a poco hasta tener contraste de 4,5:1 con el blanco encima y con el
+  /// fondo claro (#F4F4FA) detrás: luminancia de 0,16 como mucho.
+  static Color _readableUnderWhite(Color color) {
+    var c = color;
+    while (c.computeLuminance() > 0.16) {
+      c = Color.lerp(c, Colors.black, 0.05)!;
+    }
+    return c;
+  }
+
   /// La paleta para el [theme] ('dark', 'darker' o 'light') y el [accent] elegidos.
   static KijiPalette resolve({String theme = 'dark', String accent = 'nocturne'}) {
     final (first, second) = accents[accent] ?? accents['nocturne']!;
@@ -185,8 +195,9 @@ class KijiPalette {
       'light' => KijiPalette(
         brightness: Brightness.light,
         background: const Color(0xFFF4F4FA),
-        violet: Color.lerp(first, Colors.black, 0.08)!,
-        cyan: Color.lerp(second, Colors.black, 0.35)!,
+        // Oscurecidos lo justo para que el texto blanco encima (pestaña elegida, play) se lea.
+        violet: _readableUnderWhite(Color.lerp(first, Colors.black, 0.08)!),
+        cyan: _readableUnderWhite(Color.lerp(second, Colors.black, 0.35)!),
         onAccent: Colors.white,
         text: const Color(0xFF14141F),
         muted: const Color(0xFF5C5C78),

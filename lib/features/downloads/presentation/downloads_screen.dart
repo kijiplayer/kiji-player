@@ -11,7 +11,7 @@ import '../../../utils/byte_formatter.dart';
 import '../domain/download_settings.dart';
 import '../domain/downloaded_track.dart';
 import '../../selection/track_selection.dart';
-import '../../../theme/kiji_tokens.dart';
+import '../../../theme/app_theme.dart' show KijiSelected;
 import 'download_button.dart';
 import '../../customize/presentation/track_text.dart';
 import 'download_status.dart';
@@ -145,7 +145,7 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
                   final track = completed[index];
                   return ListTile(
                     selected: _selection.contains(track.videoId),
-                    selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
+                    selectedTileColor: KijiSelected.tile,
                     leading: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

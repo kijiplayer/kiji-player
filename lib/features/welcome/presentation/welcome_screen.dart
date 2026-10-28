@@ -276,8 +276,6 @@ class _HelloPageState extends ConsumerState<_HelloPage> {
                 label: Text(name),
                 selected: current == code,
                 onSelected: (_) => choose(code),
-                selectedColor: KijiColors.violet.withValues(alpha: 0.35),
-                side: BorderSide(color: KijiColors.glassBorder),
               ),
           ],
         ),

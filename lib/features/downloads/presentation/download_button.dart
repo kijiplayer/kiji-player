@@ -89,7 +89,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
               value: active.status == ActiveDownloadStatus.queued ? null : active.progress,
             ),
             if (active.progress != null)
-              Text('${(active.progress! * 100).round()}', style: KijiText.mono(size: 9, color: Colors.white)),
+              Text('${(active.progress! * 100).round()}', style: KijiText.mono(size: 9, color: KijiColors.text)),
           ],
         ),
       ),

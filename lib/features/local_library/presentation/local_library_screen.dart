@@ -6,6 +6,7 @@ import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../providers/local_library_provider.dart';
 import '../../../providers/playback_provider.dart';
+import '../../../theme/app_theme.dart' show KijiSelected;
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/byte_formatter.dart';
 import '../../../utils/duration_formatter.dart';
@@ -148,11 +149,8 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                     ],
                     selected: {_tab},
                     showSelectedIcon: false,
+                    // Colores de lo elegido: los del tema (KijiSelected), con texto oscuro en Grafito.
                     style: SegmentedButton.styleFrom(
-                      selectedBackgroundColor: KijiColors.violet,
-                      selectedForegroundColor: Colors.white,
-                      foregroundColor: KijiColors.muted,
-                      side: BorderSide(color: KijiColors.glassBorder),
                       visualDensity: VisualDensity.compact,
                       textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
@@ -407,7 +405,7 @@ class _SongTile extends ConsumerWidget {
       onSecondaryTap: () => showTrackActions(context, ref, track),
       child: ListTile(
         selected: selected,
-        selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
+        selectedTileColor: KijiSelected.tile,
         leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

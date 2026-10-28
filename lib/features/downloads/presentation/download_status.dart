@@ -90,7 +90,7 @@ class DownloadStateOverlay extends ConsumerWidget {
                   if (percent != null && size >= 40)
                     Text(
                       '$percent',
-                      style: KijiText.mono(size: size * 0.22, color: Colors.white),
+                      style: KijiText.mono(size: size * 0.22, color: KijiColors.text),
                     ),
                 ],
               ),
