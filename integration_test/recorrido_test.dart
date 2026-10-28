@@ -465,7 +465,20 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
       }
     }
     // Un resultado de la búsqueda abre su sección con el ajuste resaltado.
-    await tester.enterText(find.byType(TextField).first, tx.tema);
+    if (find.byType(SettingsScreen).evaluate().isEmpty) {
+      debugPrint('=== RECORRIDO: Configuración ya no estaba abierta; se vuelve a abrir ===');
+      unawaited(SettingsScreen.open(_ctx));
+      await _settle(tester);
+    }
+    // La lista quedó abajo (en la última sección) y el buscador, arriba, ya no existe: se sube.
+    final home = find.descendant(of: find.byType(SettingsScreen), matching: find.byType(Scrollable));
+    for (var i = 0; i < 8 && home.evaluate().isNotEmpty; i++) {
+      await tester.drag(home.first, const Offset(0, 600), warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 60));
+    }
+    await _settle(tester, 4);
+    final field = find.descendant(of: find.byType(SettingsScreen), matching: find.byType(TextField));
+    await tester.enterText(field.first, tx.tema);
     await _settle(tester, 4);
     await tester.tap(find.byKey(ValueKey('resultado-${tx.tema}')));
     await _settle(tester, 4);
