@@ -62,7 +62,7 @@ object ExtractorChannel {
             else -> result.notImplemented()
           }
         } catch (e: Exception) {
-          result.error("innertubex", e.javaClass.simpleName, null)
+          result.error("innertubex", "${e.javaClass.simpleName}: ${e.message}", null)
         }
       }
     }

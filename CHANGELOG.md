@@ -1,5 +1,49 @@
 # Novedades de Kiji Player
 
+## 0.7.0 — 28 de octubre de 2026
+
+**Tres estilos**
+- Nocturne (el de siempre), Grafito (blanco y negro, vidrio esmerilado y movimientos con resorte) y
+  Papel (claro, como un libro). Las mismas funciones con otro aspecto. Se elige al actualizar y se
+  cambia cuando quieras en Configuración → Apariencia → Estilo.
+- La onda del reproductor existe en los tres estilos. Con el alto rendimiento salta con el volumen
+  real de la canción, que se lee del archivo (nunca del micrófono).
+
+**Letras**
+- Tres vistas: Completo, Simple y Escaparate (para grabar y compartir: la portada late con la música
+  y la barra se esconde sola).
+- Dos columnas en la PC y con el teléfono en horizontal: la letra a la izquierda y la canción a la
+  derecha. Se puede elegir una o dos columnas.
+- Alineación de la letra (izquierda o centrada) y una marca chica de Kiji opcional en el Escaparate.
+
+**Escuchar sin cortes**
+- Si los auriculares Bluetooth se desconectan un momento, Kiji espera unos segundos y retoma sola.
+  Nunca sigue sonando por el parlante sin que lo pidas, y el registro dice por qué se pausó.
+- El aleatorio es de verdad: la cola muestra el orden en que van a sonar.
+- Las canciones descargadas suenan siempre desde el archivo, también en aleatorio.
+- Kiji puede pedir que Android no la frene en segundo plano, explicando para qué.
+
+**Más fácil de encontrar**
+- Configuración nueva: siete secciones con su descripción y un buscador que entiende sinónimos en
+  español e inglés y lleva directo al ajuste.
+- Cada playlist tiene su buscador.
+- "Tus más escuchadas" en Inicio: un top con cuántas veces escuchaste cada una, calculado en tu
+  equipo.
+- "Qué hay de nuevo" aparece una vez después de actualizar.
+
+**En la PC**
+- Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas
+  multimedia, también con Kiji minimizada.
+- Las ventanas anchas aprovechan el espacio en la letra y en Configuración.
+
+**Arreglos**
+- Abrir Kiji desde los auriculares, con la app cerrada, ya no da error.
+- La canción descargada que se restaura al abrir carga en la mitad del tiempo.
+- Se arregló un error al cerrar el reproductor ("No active stream to cancel").
+- Lo elegido (pestañas, chips, interruptores) se lee bien en los tres estilos, con contraste de 4,5:1.
+- Filtros de las playlists que ya no se cortan en celulares angostos; Esc y Ctrl+A en la selección
+  múltiple de la PC; espacio libre en Linux y macOS.
+
 ## 0.6.0 — 21 de octubre de 2026
 
 **A tu gusto**
@@ -35,9 +79,9 @@
 ## 0.5.1 — 20 de octubre de 2026
 
 **Kiji tiene un identificador nuevo: hay que reinstalar una vez**
-- En Android, Kiji pasa a llamarse por dentro `io.github.kijiplayer.kiji`, su nombre definitivo
-  para repositorios como IzzyOnDroid. Android la ve como otra app, así que esta vez no se actualiza
-  encima: se instala al lado de la anterior.
+- En Android, Kiji pasa a llamarse por dentro `io.github.kijiplayer.kiji`, su nombre definitivo.
+  Android la ve como otra app, así que esta vez no se actualiza encima: se instala al lado de la
+  anterior.
 - Para llevarte todo: en la Kiji anterior, Configuración → Copia de seguridad → "Hacer una copia
   ahora". En la nueva, Configuración → Copia de seguridad → elige esa copia (está en
   Documentos/Kiji) y restaúrala. Cuando veas todo bien, desinstala la anterior.

@@ -115,9 +115,14 @@ class StreamResolver {
     }
   }
 
+  /// Corre suelto al abrir: nunca deja escapar un error.
   Future<void> prewarm() async {
     for (final engine in engines) {
-      if (engine.isSupported) await engine.prewarm();
+      try {
+        if (engine.isSupported) await engine.prewarm();
+      } catch (error) {
+        debugPrint('=== EXTRACTOR: no se pudo precalentar el motor ${engine.id}: $error ===');
+      }
     }
   }
 }

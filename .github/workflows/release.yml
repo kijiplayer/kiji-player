@@ -101,7 +101,7 @@ jobs:
         if: always()
         run: rm -rf "$HOME/kiji-keys"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: apk
           path: build/release/*.apk
@@ -137,7 +137,7 @@ jobs:
           $version = (Select-String -Path pubspec.yaml -Pattern '^version: ([^+\s]+)').Matches[0].Groups[1].Value
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item "build/installer/Kiji_Player_${version}_Windows_Setup.exe" dist/
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: windows
           path: dist/*.exe
@@ -159,7 +159,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
@@ -167,7 +167,7 @@ jobs:
         run: |
           dart run tool/release_notes.dart dist notas.md
           cat notas.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: notas
           path: notas.md

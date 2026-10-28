@@ -126,6 +126,9 @@ void main() {
     await _settle(tester);
     await tester.enterText(find.byType(TextField).first, 'idioma');
     await _settle(tester);
+    // El resultado abre Apariencia; ahí se toca la opción.
+    await tester.tap(find.text('Idioma').last);
+    await _settle(tester);
     await tester.tap(find.text('Idioma').last);
     await _settle(tester);
     await tester.tap(find.text('English'));

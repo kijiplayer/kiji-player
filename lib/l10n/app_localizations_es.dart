@@ -3995,7 +3995,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tipografiaDescripcion =>
-      'La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema';
+      'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema';
 
   @override
   String get tipografiaKiji => 'La de Kiji';
@@ -4013,4 +4013,362 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get seccionPc => 'En la PC';
+
+  @override
+  String get alCerrarLaVentana => 'Al cerrar la ventana';
+
+  @override
+  String get alCerrarDescripcion =>
+      'Seguir sonando en la bandeja del sistema o cerrar Kiji del todo';
+
+  @override
+  String get alCerrarPreguntar => 'Preguntar';
+
+  @override
+  String get alCerrarBandeja => 'Minimizar a la bandeja';
+
+  @override
+  String get alCerrarSalir => 'Salir de Kiji';
+
+  @override
+  String get cerrarDialogoTitulo => '¿Qué hace la ✕?';
+
+  @override
+  String get cerrarDialogoTexto =>
+      'Kiji puede seguir sonando en la bandeja del sistema, junto al reloj, o cerrarse del todo. Puedes cambiarlo en Configuración → En la PC.';
+
+  @override
+  String get bandejaAbrir => 'Abrir Kiji';
+
+  @override
+  String get bandejaSalir => 'Salir';
+
+  @override
+  String get atajosGlobales => 'Atajos globales';
+
+  @override
+  String get atajosGlobalesDescripcion =>
+      'Controlan la música aunque Kiji no esté al frente o esté en la bandeja';
+
+  @override
+  String get atajoPlayPausa => 'Reproducir o pausar';
+
+  @override
+  String get atajoSiguiente => 'Canción siguiente';
+
+  @override
+  String get atajoAnterior => 'Canción anterior';
+
+  @override
+  String get atajoSinAsignar => 'Sin asignar';
+
+  @override
+  String get atajoGrabar =>
+      'Presiona la combinación, con Ctrl, Alt, Shift o Win';
+
+  @override
+  String get atajoNecesitaModificador =>
+      'Tiene que llevar Ctrl, Alt, Shift o Win (o ser una tecla F)';
+
+  @override
+  String get atajoEnUso => 'Ese atajo ya lo usa otra acción';
+
+  @override
+  String get atajosDeFabrica => 'Volver a los de fábrica';
+
+  @override
+  String get atajosAviso =>
+      'Si otro programa ya usa la misma combinación, en Kiji no va a funcionar: elige otra.';
+
+  @override
+  String get controlesDeWindows => 'Controles multimedia de Windows';
+
+  @override
+  String get controlesDeWindowsDescripcion =>
+      'La canción aparece en el control de volumen y la pantalla de bloqueo; las teclas multimedia funcionan siempre';
+
+  @override
+  String get teclaEspacio => 'Espacio';
+
+  @override
+  String get atajoOcupado => 'Otro programa ya usa este atajo: elige otro';
+
+  @override
+  String get modoAltoRendimiento => 'Modo alto rendimiento';
+
+  @override
+  String get modoAltoRendimientoDescripcion =>
+      'Animaciones a la máxima frecuencia de la pantalla, más partículas, desenfoques reales y colores más intensos. Gasta más batería.';
+
+  @override
+  String get modoAltoRendimientoGamaBaja =>
+      'Este equipo es de gama baja: te conviene dejarlo apagado.';
+
+  @override
+  String modoAltoRendimientoPantalla(int hz) {
+    return 'Tu pantalla llega a $hz Hz.';
+  }
+
+  @override
+  String get modoAltoRendimientoConfirmar => '¿Prenderlo igual?';
+
+  @override
+  String get modoAltoRendimientoConfirmarTexto =>
+      'En este equipo puede ir más lento y gastar más batería. Puedes apagarlo cuando quieras.';
+
+  @override
+  String get prenderIgual => 'Prender igual';
+
+  @override
+  String get bateriaTitulo => 'Música sin cortes en segundo plano';
+
+  @override
+  String get bateriaExplicacion =>
+      'Con la pantalla apagada, Android puede frenar a Kiji para ahorrar batería y la música se corta (pasa mucho en Motorola, Xiaomi y Samsung). Si lo permites, Android deja a Kiji seguir sonando. Puedes cambiarlo cuando quieras en Configuración → Reproductor y audio.';
+
+  @override
+  String get bateriaPermitir => 'Permitir';
+
+  @override
+  String get bateriaActiva =>
+      'Listo: Android no frena a Kiji en segundo plano.';
+
+  @override
+  String get bateriaPendiente =>
+      'Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando.';
+
+  @override
+  String get buscarEnLaPlaylist => 'Buscar en la playlist';
+
+  @override
+  String get borrarBusqueda => 'Borrar la búsqueda';
+
+  @override
+  String get estilo => 'Estilo';
+
+  @override
+  String get estiloDescripcion => 'Las mismas funciones con otro aspecto';
+
+  @override
+  String get estiloPregunta => '¿Cómo quieres que se vea Kiji?';
+
+  @override
+  String get estiloPreguntaTexto =>
+      'Las funciones son las mismas; solo cambia el aspecto. Puedes cambiarlo cuando quieras en Configuración → Apariencia.';
+
+  @override
+  String get estiloNocturne => 'Nocturne';
+
+  @override
+  String get estiloNocturneFrase =>
+      'Oscuro, con vidrio, brillos y la aurora del color de cada canción.';
+
+  @override
+  String get estiloGrafito => 'Grafito';
+
+  @override
+  String get estiloGrafitoFrase =>
+      'Vidrio de museo: blanco y negro, grises y transparencias.';
+
+  @override
+  String get estiloPapel => 'Papel';
+
+  @override
+  String get estiloPapelFrase => 'Claro y tranquilo, como leer un libro.';
+
+  @override
+  String continuarConEstilo(String estilo) {
+    return 'Continuar con $estilo';
+  }
+
+  @override
+  String get soloEnNocturne => 'Solo en el estilo Nocturne';
+
+  @override
+  String get alineacionDeLaLetra => 'Alineación';
+
+  @override
+  String get alinearIzquierda => 'Izquierda';
+
+  @override
+  String get alinearCentro => 'Centrada';
+
+  @override
+  String get sincroniaDeLaLetra => 'Sincronía';
+
+  @override
+  String get ajustesDeLaLetra => 'AJUSTES DE LA LETRA';
+
+  @override
+  String get calculadoEnEstaPc => 'calculado en esta PC';
+
+  @override
+  String vecesEscuchada(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count veces',
+      one: '1 vez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String puestoN(int n) {
+    return 'Puesto $n';
+  }
+
+  @override
+  String get disenoDeLaLetra => 'Diseño';
+
+  @override
+  String get disenoAutomatico => 'Automático';
+
+  @override
+  String get disenoUnaColumna => 'Una columna';
+
+  @override
+  String get disenoDosColumnas => 'Dos columnas';
+
+  @override
+  String get modoDelPanel => 'Vista';
+
+  @override
+  String get panelCompleto => 'Completo';
+
+  @override
+  String get panelSimple => 'Simple';
+
+  @override
+  String get panelEscaparate => 'Escaparate';
+
+  @override
+  String cambiarVistaDeLaLetra(String modo) {
+    return 'Cambiar la vista: $modo';
+  }
+
+  @override
+  String get mostrarMarcaKiji => 'Mostrar marca Kiji';
+
+  @override
+  String get mostrarMarcaKijiDescripcion =>
+      'Un logo chico en una esquina del escaparate';
+
+  @override
+  String get descargasYAlmacenamiento => 'Descargas y almacenamiento';
+
+  @override
+  String get privacidadYDatos => 'Privacidad y datos';
+
+  @override
+  String get seccionAparienciaDescripcion =>
+      'Estilo, tema, colores, letra, idioma y animaciones';
+
+  @override
+  String get seccionReproductorDescripcion =>
+      'Ecualizador, transición, Bluetooth y batería';
+
+  @override
+  String get seccionLetrasDescripcion =>
+      'Tamaño, fuentes y traducción de las letras';
+
+  @override
+  String get seccionDescargasDescripcion =>
+      'Descargas, caché, espacio, datos móviles y audios cortos';
+
+  @override
+  String get seccionPcDescripcion =>
+      'Bandeja, atajos globales y controles de Windows';
+
+  @override
+  String get seccionPrivacidadDescripcion =>
+      'Qué guarda Kiji, historial, copias, registros y cuenta';
+
+  @override
+  String get seccionAcercaDescripcion =>
+      'Versión, novedades, actualizaciones y créditos';
+
+  @override
+  String get seccionDevDescripcion => 'Herramientas de Kiji Dev';
+
+  @override
+  String get disenoDeLaLetraDescripcion =>
+      'Una o dos columnas (automático: dos en la PC y en horizontal)';
+
+  @override
+  String get modoDelPanelDescripcion =>
+      'Completo, Simple o Escaparate (para grabar y compartir)';
+
+  @override
+  String get queHayDeNuevo => 'Qué hay de nuevo';
+
+  @override
+  String get queHayDeNuevoSubtitulo =>
+      'Lo que trae Kiji 0.7, en pocas palabras.';
+
+  @override
+  String get queHayDeNuevoDescripcion =>
+      'Lo nuevo de esta versión, en tarjetas';
+
+  @override
+  String get empezar => 'Empezar';
+
+  @override
+  String get nuevoEstilosTitulo => 'Tres estilos';
+
+  @override
+  String get nuevoEstilosTexto =>
+      'Nocturne, Grafito y Papel: las mismas funciones con otro aspecto. Se cambia en Configuración → Apariencia.';
+
+  @override
+  String get nuevoOndaTitulo => 'La onda en vivo';
+
+  @override
+  String get nuevoOndaTexto =>
+      'Con el alto rendimiento, la onda del reproductor salta con el volumen real de la canción, sin usar el micrófono.';
+
+  @override
+  String get nuevoLetrasTitulo => 'Letras a tu manera';
+
+  @override
+  String get nuevoLetrasTexto =>
+      'Tres vistas (Completo, Simple y Escaparate) y dos columnas en la PC y con el teléfono en horizontal.';
+
+  @override
+  String get nuevoBluetoothTitulo => 'La música sigue con el Bluetooth';
+
+  @override
+  String get nuevoBluetoothTexto =>
+      'Si los auriculares se desconectan un momento, Kiji espera y retoma sola. Nunca suena por el parlante sin que lo pidas.';
+
+  @override
+  String get nuevoAleatorioTitulo => 'Aleatorio de verdad';
+
+  @override
+  String get nuevoAleatorioTexto =>
+      'La cola muestra el orden real en que van a sonar las canciones.';
+
+  @override
+  String get nuevoBuscarPlaylistTitulo => 'Buscar dentro de una playlist';
+
+  @override
+  String get nuevoBuscarPlaylistTexto =>
+      'Cada playlist tiene su buscador, para encontrar una canción sin bajar toda la lista.';
+
+  @override
+  String get nuevoMasEscuchadasTitulo => 'Tus más escuchadas';
+
+  @override
+  String get nuevoMasEscuchadasTexto =>
+      'Un top en Inicio con cuántas veces escuchaste cada una, calculado en tu equipo.';
+
+  @override
+  String get nuevoPcTitulo => 'En la PC';
+
+  @override
+  String get nuevoPcTexto =>
+      'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.';
 }

@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
+import 'dart:ui' show ImageFilter;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,8 @@ import '../lyrics_provider.dart';
 import '../../translation/presentation/translate_sheet.dart';
 import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_menu_sheet.dart';
+import 'lyrics_side_panel.dart';
+import 'lyrics_views.dart';
 import 'lyrics_share.dart';
 import 'lyrics_sources_sheet.dart';
 
@@ -52,10 +56,9 @@ class LyricsScreen extends ConsumerWidget {
       pageBuilder: (_, _, _) => const LyricsScreen(),
       // Sube desde abajo, como si la letra estuviera debajo del reproductor.
       transitionsBuilder: (context, animation, _, child) => SlideTransition(
-        position: Tween(
-          begin: const Offset(0, 1),
-          end: Offset.zero,
-        ).chain(CurveTween(curve: KijiMotion.emphasizedCurve)).animate(animation),
+        position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+            .chain(CurveTween(curve: KijiLook.museum ? KijiMotion.softSpring : KijiMotion.emphasizedCurve))
+            .animate(animation),
         child: child,
       ),
     ),
@@ -69,6 +72,7 @@ class LyricsScreen extends ConsumerWidget {
     }
     final request = _requestFor(ref, track);
     final lyrics = ref.watch(lyricsProvider(request));
+    final panel = ref.watch(settingsProvider.select((s) => s.lyricsPanel));
 
     return AlwaysDark(
       child: Scaffold(
@@ -78,63 +82,124 @@ class LyricsScreen extends ConsumerWidget {
           children: [
             RepaintBoundary(child: LyricsBackdrop(track: track)),
             SafeArea(
-              child: Column(
-                children: [
-                  _Header(track: track, request: request, lyrics: lyrics.valueOrNull),
-                  Expanded(
-                    child: lyrics.when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (error, _) => _Message(
-                        icon: Icons.cloud_off_rounded,
-                        text: error is LyricsUnavailableException
-                            ? tx.noSePudoBuscarLaLetraPorque(error.reason)
-                            : tx.noSePudoBuscarLaLetra,
-                        actionLabel: tx.reintentar,
-                        onAction: () => ref.invalidate(lyricsProvider(request)),
+              // Escaparate: la barra de arriba y los botones se esconden solos.
+              child: ChromeAutoHide(
+                enabled: panel == 'showcase',
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    // Dos columnas (la letra a la izquierda y, a la derecha, la canción, los controles
+                    // y los ajustes): en la PC y con el teléfono en horizontal, o siempre/nunca según
+                    // "Diseño".
+                    final wide = lyricsTwoColumns(
+                      ref.watch(settingsProvider.select((s) => s.lyricsLayout)),
+                      box.biggest,
+                    );
+                    final header = HideWhenIdle(
+                      child: _Header(
+                        track: track,
+                        request: request,
+                        lyrics: lyrics.valueOrNull,
+                        panel: panel,
+                        showTitle: !wide && panel != 'showcase',
                       ),
-                      data: (value) {
-                        if (value.instrumental) {
-                          return _Message(icon: Icons.piano_rounded, text: tx.instrumental);
-                        }
-                        if (value.isEmpty) {
-                          return _Message(
-                            icon: Icons.lyrics_outlined,
-                            text: tx.noEncontramosLaLetraDeEsta,
-                            actionLabel: tx.buscarAMano,
-                            onAction: () => searchLyricsManually(context, ref, request),
-                          );
-                        }
-                        Widget body(List<String?>? translations) => value.isSynced
-                            ? SyncedLyricsView(
-                                lines: value.synced,
-                                track: track,
-                                trackId: request.id,
-                                translations: translations,
-                              )
-                            : PlainLyricsView(text: value.plain!, track: track, translations: translations);
-                        final translating = ref.watch(lyricsTranslationOnProvider);
-                        return Column(
-                          children: [
-                            const _OffsetBar(),
-                            Expanded(
-                              child: translating
-                                  ? TranslatedLyrics(
-                                      // Otro motor (teléfono o IA): se vuelve a traducir.
-                                      key: ValueKey(ref.watch(settingsProvider.select((s) => s.useGemini))),
-                                      trackId: request.id,
-                                      lines: value.isSynced
-                                          ? [for (final l in value.synced) l.text]
-                                          : value.plain!.split('\n'),
-                                      builder: body,
-                                    )
-                                  : body(null),
+                    );
+                    // Una columna, Escaparate: la portada y la línea que suena ocupan la pantalla.
+                    if (!wide && panel == 'showcase') {
+                      return Column(
+                        children: [
+                          header,
+                          Expanded(
+                            child: _ShowcaseWithLine(track: track, lyrics: lyrics.valueOrNull),
+                          ),
+                        ],
+                      );
+                    }
+                    final column = Column(
+                      children: [
+                        header,
+                        Expanded(
+                          child: lyrics.when(
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (error, _) => _Message(
+                              icon: Icons.cloud_off_rounded,
+                              text: error is LyricsUnavailableException
+                                  ? tx.noSePudoBuscarLaLetraPorque(error.reason)
+                                  : tx.noSePudoBuscarLaLetra,
+                              actionLabel: tx.reintentar,
+                              onAction: () => ref.invalidate(lyricsProvider(request)),
                             ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                            data: (value) {
+                              if (value.instrumental) {
+                                return _Message(icon: Icons.piano_rounded, text: tx.instrumental);
+                              }
+                              if (value.isEmpty) {
+                                return _Message(
+                                  icon: Icons.lyrics_outlined,
+                                  text: tx.noEncontramosLaLetraDeEsta,
+                                  actionLabel: tx.buscarAMano,
+                                  onAction: () => searchLyricsManually(context, ref, request),
+                                );
+                              }
+                              Widget body(List<String?>? translations) => value.isSynced
+                                  ? SyncedLyricsView(
+                                      lines: value.synced,
+                                      track: track,
+                                      trackId: request.id,
+                                      translations: translations,
+                                      depth: wide,
+                                    )
+                                  : PlainLyricsView(text: value.plain!, track: track, translations: translations);
+                              final translating = ref.watch(lyricsTranslationOnProvider);
+                              return Column(
+                                children: [
+                                  if (!wide) const _OffsetBar(),
+                                  Expanded(
+                                    child: translating
+                                        ? TranslatedLyrics(
+                                            // Otro motor (teléfono o IA): se vuelve a traducir.
+                                            key: ValueKey(ref.watch(settingsProvider.select((s) => s.useGemini))),
+                                            trackId: request.id,
+                                            lines: value.isSynced
+                                                ? [for (final l in value.synced) l.text]
+                                                : value.plain!.split('\n'),
+                                            builder: body,
+                                          )
+                                        : body(null),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                    if (!wide) {
+                      // Una columna, Simple: el reproductor limpio debajo de la letra.
+                      if (panel != 'simple') return column;
+                      return Column(
+                        children: [
+                          Expanded(child: column),
+                          LyricsSimplePanel(track: track, compact: true),
+                        ],
+                      );
+                    }
+                    final synced = lyrics.valueOrNull?.isSynced ?? false;
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(child: column),
+                        SizedBox(
+                          width: min(440, box.maxWidth * 0.36),
+                          child: switch (panel) {
+                            'simple' => LyricsSimplePanel(track: track),
+                            'showcase' => LyricsShowcase(track: track),
+                            _ => LyricsSidePanel(track: track, synced: synced),
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -142,6 +207,31 @@ class LyricsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Escaparate en una columna: la portada y, debajo, la línea de la letra que suena.
+class _ShowcaseWithLine extends ConsumerWidget {
+  const _ShowcaseWithLine({required this.track, required this.lyrics});
+
+  final Track track;
+  final Lyrics? lyrics;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lines = lyrics?.isSynced ?? false ? lyrics!.synced : const <LyricLine>[];
+    final offset = ref.watch(lyricsOffsetProvider(track.id)).valueOrNull ?? Duration.zero;
+    // Solo cambia cuando cambia la línea (no en cada avance de la posición).
+    final index = ref.watch(playbackProvider.select((p) => currentLineIndex(lines, p.position + offset)));
+    return LyricsShowcase(track: track, line: index >= 0 && index < lines.length ? lines[index].text : null);
+  }
+}
+
+/// ¿La letra va a dos columnas? "Automático": en ventanas anchas (PC) y en horizontal. "Dos
+/// columnas": siempre que entren (al menos 560 de ancho; si no, la letra no se podría leer).
+bool lyricsTwoColumns(String layout, Size size) {
+  if (layout == 'single' || size.width < 560) return false;
+  if (layout == 'double') return true;
+  return size.width >= KijiSizes.desktopBreakpoint || size.width > size.height;
 }
 
 /// La duración real (si ya se sabe) ayuda a las fuentes a elegir la versión
@@ -224,11 +314,23 @@ Future<void> importLrc(BuildContext context, WidgetRef ref, LyricsRequest reques
 }
 
 class _Header extends ConsumerWidget {
-  const _Header({required this.track, required this.request, required this.lyrics});
+  const _Header({
+    required this.track,
+    required this.request,
+    required this.lyrics,
+    required this.panel,
+    this.showTitle = true,
+  });
 
   final Track track;
   final LyricsRequest request;
   final Lyrics? lyrics;
+
+  /// Vista del panel (Completo, Simple o Escaparate): el botón de arriba la cambia.
+  final String panel;
+
+  /// En la PC el título va en el panel de la derecha.
+  final bool showTitle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -244,24 +346,34 @@ class _Header extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TrackTitleText(
-                  track,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: KijiText.title(size: 18, color: Colors.white),
-                ),
-                TrackArtistText(
-                  track,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
+            child: !showTitle
+                ? const SizedBox.shrink()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TrackTitleText(
+                        track,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: KijiText.title(size: 18, color: Colors.white),
+                      ),
+                      TrackArtistText(
+                        track,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
           ),
+          GlassIconButton(
+            foreground: Colors.white,
+            icon: lyricsPanelIcon(panel),
+            tooltip: tx.cambiarVistaDeLaLetra(lyricsPanelLabel(nextLyricsPanel(panel))),
+            onPressed: () =>
+                ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: nextLyricsPanel(panel))),
+          ),
+          const SizedBox(width: 8),
           GlassIconButton(
             foreground: Colors.white,
             icon: Icons.more_horiz_rounded,
@@ -351,6 +463,7 @@ class _OffsetBar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Glass(
         blur: false,
+        onDark: true,
         radius: KijiRadii.tile,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -363,7 +476,8 @@ class _OffsetBar extends ConsumerWidget {
                       ? tx.sinDesfase
                       : '${seconds > 0 ? '+' : ''}${seconds.toStringAsFixed(1).replaceAll('.', kijiLanguage == 'es' ? ',' : '.')} s',
                   textAlign: TextAlign.center,
-                  style: KijiText.mono(size: 13, color: KijiColors.cyan),
+                  // La letra es siempre oscura: con un estilo claro, el acento (tinta) no se vería.
+                  style: KijiText.mono(size: 13, color: KijiColors.palette.isLight ? Colors.white : KijiColors.cyan),
                 ),
               ),
               IconButton(onPressed: () => move(500), icon: const Text('+0,5 s'), tooltip: tx.laLetraVaAntes),
@@ -387,7 +501,14 @@ final lyricsSelectionModeProvider = StateProvider.autoDispose<bool>((ref) => fal
 /// seguir y aparece "Volver a la canción". Mantener presionada una
 /// línea entra en el modo de elegir líneas para compartir.
 class SyncedLyricsView extends ConsumerStatefulWidget {
-  const SyncedLyricsView({super.key, required this.lines, this.track, this.trackId, this.translations});
+  const SyncedLyricsView({
+    super.key,
+    required this.lines,
+    this.track,
+    this.trackId,
+    this.translations,
+    this.depth = false,
+  });
 
   final List<LyricLine> lines;
   final Track? track;
@@ -395,6 +516,10 @@ class SyncedLyricsView extends ConsumerStatefulWidget {
 
   /// Traducción de cada línea (mismo orden), o null.
   final List<String?>? translations;
+
+  /// PC: la línea actual nítida y las demás con un leve desenfoque y más transparentes cuanto más
+  /// lejos están; el desplazamiento es más largo y suave.
+  final bool depth;
 
   @override
   ConsumerState<SyncedLyricsView> createState() => _SyncedLyricsViewState();
@@ -447,7 +572,9 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
           await Scrollable.ensureVisible(
             line,
             alignment: 0.4,
-            duration: reduceMotion ? Duration.zero : KijiMotion.normal,
+            duration: reduceMotion
+                ? Duration.zero
+                : (widget.depth ? const Duration(milliseconds: 700) : KijiMotion.normal),
             curve: Curves.easeOutCubic,
           );
           return;
@@ -493,6 +620,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
     final current = ref.watch(playbackProvider.select((p) => currentLineIndex(widget.lines, p.position + offset)));
     final calm = reduceMotion(context, ref);
     final selecting = ref.watch(lyricsSelectionModeProvider);
+    final centered = ref.watch(settingsProvider.select((s) => s.lyricsAlign)) == 'center';
     _follow(current, calm);
 
     return Stack(
@@ -538,36 +666,43 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                         )
                       : null,
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // La línea activa crece con un fundido.
-                      AnimatedDefaultTextStyle(
-                        duration: calm ? Duration.zero : KijiMotion.normal,
-                        curve: Curves.easeOutCubic,
-                        style: KijiText.title(
-                          size: (isCurrent ? 30 : 24) * scale,
-                          weight: isCurrent ? FontWeight.w800 : FontWeight.w700,
-                          color: Colors.white.withValues(alpha: isCurrent ? 1 : (isPast ? 0.3 : 0.48)),
-                        ).copyWith(height: 1.2),
-                        child: Text(
-                          line.text.isEmpty ? '♪' : line.text,
-                          semanticsLabel: isCurrent ? tx.ahoraLinea(line.text) : line.text,
-                        ),
-                      ),
-                      if (translation != null && translation.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
+                  child: _Depth(
+                    enabled: widget.depth && !selecting,
+                    distance: (index - current).abs(),
+                    calm: calm,
+                    child: Column(
+                      crossAxisAlignment: centered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+                      children: [
+                        // La línea activa crece con un fundido.
+                        AnimatedDefaultTextStyle(
+                          duration: calm ? Duration.zero : KijiMotion.normal,
+                          curve: Curves.easeOutCubic,
+                          style: KijiText.title(
+                            size: (isCurrent ? 30 : 24) * scale,
+                            weight: isCurrent ? FontWeight.w800 : FontWeight.w700,
+                            color: Colors.white.withValues(alpha: isCurrent ? 1 : (isPast ? 0.3 : 0.48)),
+                          ).copyWith(height: 1.2),
                           child: Text(
-                            translation,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: isCurrent ? 0.8 : 0.3),
-                              fontSize: (isCurrent ? 18 : 16) * scale,
-                              fontStyle: FontStyle.italic,
-                            ),
+                            line.text.isEmpty ? '♪' : line.text,
+                            textAlign: centered ? TextAlign.center : TextAlign.start,
+                            semanticsLabel: isCurrent ? tx.ahoraLinea(line.text) : line.text,
                           ),
                         ),
-                    ],
+                        if (translation != null && translation.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              translation,
+                              textAlign: centered ? TextAlign.center : TextAlign.start,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: isCurrent ? 0.8 : 0.3),
+                                fontSize: (isCurrent ? 18 : 16) * scale,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -605,6 +740,37 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
             track: widget.track!,
           ),
       ],
+    );
+  }
+}
+
+/// Profundidad de una línea en la PC: cuanto más lejos de la que suena ([distance] líneas), más
+/// transparente y un poco más desenfocada. La que suena queda nítida. Con "Reducir animaciones",
+/// solo la transparencia (sin desenfoque ni transición).
+class _Depth extends StatelessWidget {
+  const _Depth({required this.enabled, required this.distance, required this.calm, required this.child});
+
+  /// Solo en la PC (en el teléfono la letra queda como estaba).
+  final bool enabled;
+  final int distance;
+  final bool calm;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!enabled) return child;
+    final d = min(distance, 5);
+    final faded = AnimatedOpacity(
+      opacity: max(0.35, 1 - 0.13 * d),
+      duration: calm ? Duration.zero : KijiMotion.emphasized,
+      child: child,
+    );
+    if (calm) return faded;
+    // Siempre el mismo árbol (también con 0): así la línea pasa de borrosa a nítida sin saltos.
+    final sigma = 0.6 * d;
+    return ImageFiltered(
+      imageFilter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+      child: faded,
     );
   }
 }
@@ -694,6 +860,7 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
     final scale = lyricsScaleFor(ref.watch(settingsProvider.select((s) => s.lyricsSize)));
     final lines = widget.text.split('\n');
     final selecting = ref.watch(lyricsSelectionModeProvider);
+    final centered = ref.watch(settingsProvider.select((s) => s.lyricsAlign)) == 'center';
     return Stack(
       children: [
         ListView.builder(
@@ -721,10 +888,11 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
               child: Container(
                 color: selected ? KijiColors.violet.withValues(alpha: 0.18) : null,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: centered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
                   children: [
                     Text(
                       lines[i],
+                      textAlign: centered ? TextAlign.center : TextAlign.start,
                       style: KijiText.title(
                         size: 22 * scale,
                         weight: FontWeight.w600,
@@ -736,6 +904,7 @@ class _PlainLyricsViewState extends ConsumerState<PlainLyricsView> {
                         (widget.translations![i]?.isNotEmpty ?? false))
                       Text(
                         widget.translations![i]!,
+                        textAlign: centered ? TextAlign.center : TextAlign.start,
                         style: TextStyle(color: Colors.white60, fontSize: 16 * scale, fontStyle: FontStyle.italic),
                       ),
                   ],

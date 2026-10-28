@@ -10,6 +10,7 @@ import '../features/system_media/data/cover_art.dart';
 import '../models/track.dart';
 import '../utils/file_exists_cache.dart';
 import '../providers/downloads_provider.dart';
+import '../theme/kiji_tokens.dart';
 import 'kiji_logo.dart';
 import '../features/downloads/presentation/download_status.dart';
 
@@ -36,23 +37,29 @@ class AlbumCover extends StatelessWidget {
     return Container(
       width: size,
       height: size,
+      // Grafito y Papel: color liso, sin degradado ni sombra.
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color,
-            Color.lerp(color, Colors.black, 0.45)!,
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.35),
-            blurRadius: size * 0.16,
-            offset: Offset(0, size * 0.04),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(KijiLook.cover(borderRadius)),
+        color: KijiLook.flat ? Color.lerp(color, Colors.black, 0.25) : null,
+        gradient: KijiLook.flat
+            ? null
+            : LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color,
+                  Color.lerp(color, Colors.black, 0.45)!,
+                ],
+              ),
+        boxShadow: KijiLook.flat
+            ? null
+            : [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.35),
+                  blurRadius: size * 0.16,
+                  offset: Offset(0, size * 0.04),
+                ),
+              ],
       ),
       alignment: Alignment.center,
       child: logo
@@ -115,7 +122,7 @@ class TrackArtwork extends ConsumerWidget {
     // recorte de "cover" sigue nítido). En una lista, cada carátula ocupa mucha menos memoria.
     final pixels = (size * MediaQuery.devicePixelRatioOf(context)).round();
     return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
+      borderRadius: BorderRadius.circular(KijiLook.cover(radius)),
       child: Image(
         image: ResizeImage(image, height: pixels, policy: ResizeImagePolicy.fit),
         width: size,

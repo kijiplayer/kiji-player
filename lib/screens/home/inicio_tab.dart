@@ -17,12 +17,17 @@ import '../../providers/downloads_provider.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
 import '../../utils/clock_format.dart';
+import '../../providers/appearance_provider.dart';
 import '../../theme/kiji_tokens.dart';
+import '../../widgets/nocturne/aurora_background.dart';
+import '../player/player_motion.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/kiji_logo.dart';
 import '../../widgets/nocturne/staggered.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
+
+import 'top_listened.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
@@ -45,16 +50,45 @@ class InicioTab extends ConsumerWidget {
     final playback = ref.watch(playbackProvider.select((s) => (track: s.track, isPlaying: s.isPlaying)));
     final history = ref.watch(listeningHistoryProvider);
     final recent = HistoryLogic.recent(history);
-    final top = HistoryLogic.forYou(history, excludeId: playback.track?.id, limit: 6);
+    final top = HistoryLogic.top(history, excludeId: playback.track?.id, limit: 6);
     final downloaded = [
       for (final d in [
-        ...ref.watch(downloadsProvider).completed.values,
+        ...ref.watch(downloadsProvider.select((d) => d.completed)).values,
       ]..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt)))
         d.toTrack(),
     ].take(15).toList();
     final isNew = history.isEmpty;
 
+    // Arriba, la aurora con los colores de lo que suena (o los de Kiji), más tenue que en el
+    // reproductor y desvanecida hacia abajo.
+    final aurora = Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 380,
+      child: IgnorePointer(
+        child: AuroraBackground(
+          colors: playback.track == null ? [KijiColors.violet, KijiColors.cyan] : auroraColorsFor(playback.track!),
+          moving: playback.isPlaying && !reduceMotion(context, ref),
+          intensity: 0.6,
+          fadeOut: true,
+        ),
+      ),
+    );
+
     // Orden de Inicio: nunca se ve vacío.
+    return Stack(children: [aurora, _feed(context, ref, playback, recent, top, downloaded, isNew)]);
+  }
+
+  Widget _feed(
+    BuildContext context,
+    WidgetRef ref,
+    ({Track? track, bool isPlaying}) playback,
+    List<Track> recent,
+    List<HistoryEntry> top,
+    List<Track> downloaded,
+    bool isNew,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         refreshHomeFeed(ref);
@@ -85,22 +119,7 @@ class InicioTab extends ConsumerWidget {
               const RecommendationSections(),
             TrackShelf(title: tx.escuchadoRecientemente, tracks: recent),
             if (top.isNotEmpty) ...[
-              SectionTitle(tx.tusMasEscuchadas, note: tx.calculadoEnTuTelefono),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 2.6,
-                children: [
-                  for (final (index, track) in top.indexed)
-                    _ForYouTile(
-                      track: track,
-                      onTap: () => ref.read(playbackProvider.notifier).playQueue(top, startIndex: index),
-                    ),
-                ],
-              ),
+              TopListened(entries: top),
               const SizedBox(height: 28),
             ],
             TrackShelf(title: tx.descargadas, note: tx.sinInternet, tracks: downloaded),
@@ -225,42 +244,6 @@ class _ContinueCard extends ConsumerWidget {
   }
 }
 
-class _ForYouTile extends StatelessWidget {
-  const _ForYouTile({required this.track, required this.onTap});
-
-  final Track track;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Glass(
-      radius: KijiRadii.tile,
-      blur: false,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: onTap,
-          child: Row(
-            children: [
-              TrackArtwork(track: track, size: 56, radius: KijiRadii.tile),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TrackTitleText(
-                  track,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _EmptyHome extends StatelessWidget {
   const _EmptyHome({required this.onSearch});
 
@@ -315,8 +298,12 @@ class _PlaylistsRow extends ConsumerWidget {
         SizedBox(
           // Debajo de la portada van dos líneas de texto: se miden con la letra del teléfono
           // (con letra grande no se cortan).
-          height: _cover + 8 + _lineHeight(context, const TextStyle(fontWeight: FontWeight.w600)) +
-              _lineHeight(context, KijiText.mono(size: 11)) + 4,
+          height:
+              _cover +
+              8 +
+              _lineHeight(context, const TextStyle(fontWeight: FontWeight.w600)) +
+              _lineHeight(context, KijiText.mono(size: 11)) +
+              4,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: playlists.length + 1,
@@ -356,10 +343,7 @@ class _PlaylistsRow extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      Text(
-                        tx.nCanciones(playlist.tracks.length),
-                        style: KijiText.mono(size: 11),
-                      ),
+                      Text(tx.nCanciones(playlist.tracks.length), style: KijiText.mono(size: 11)),
                     ],
                   ),
                 ),

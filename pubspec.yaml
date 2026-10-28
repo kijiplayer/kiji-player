@@ -3,7 +3,7 @@ description: "Free, open-source music player for Android and Windows. No ads, no
 publish_to: 'none'
 
 # La escribe tool/version.dart (versión + número de compilación).
-version: 0.6.0+7
+version: 0.7.0+8
 
 environment:
   sdk: ^3.13.0
@@ -11,6 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Registra los canales nativos de Kiji también en el motor del servicio de audio (sin pantalla).
+  kiji_channels:
+    path: packages/kiji_channels
   # Textos de la app en archivos ARB: español base, inglés listo para traducir.
   flutter_localizations:
     sdk: flutter
@@ -26,6 +29,8 @@ dependencies:
   audio_session: ^0.1.21
   audio_service: ^0.18.19
   just_audio_media_kit: ^2.1.0
+  # Ya venía con just_audio_media_kit: se usa directo para analizar el volumen en la PC (onda en vivo).
+  media_kit: ^1.2.6
   media_kit_libs_windows_audio: ^1.0.9
   media_kit_libs_linux: ^1.2.1
 
@@ -50,6 +55,11 @@ dependencies:
   crop_your_image: ^2.0.1
   image: ^4.12.0
 
+  # PC: cerrar la ventana en orden (y, desde la 0.7.0, la bandeja del sistema).
+  window_manager: ^0.5.2
+  tray_manager: ^0.5.3
+  hotkey_manager: ^0.2.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -73,6 +83,8 @@ flutter:
     - assets/translation/
     # Las 5 notas de Kiji (bienvenida); se generan con tool/make_kiji_notes.py.
     - assets/sounds/kiji_notes.wav
+    # Ícono de la bandeja del sistema (PC).
+    - assets/tray/
     # "Novedades de esta versión": las mismas notas de la tienda de apps (una por compilación).
     - fastlane/metadata/android/es-ES/changelogs/
     - fastlane/metadata/android/en-US/changelogs/
@@ -86,6 +98,13 @@ flutter:
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/jetbrains_mono/JetBrainsMono-Variable.ttf
+    # Estilos Grafito y Papel (incluidas en la app, OFL; nunca se descargan).
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter/Inter-Variable.ttf
+    - family: Newsreader
+      fonts:
+        - asset: assets/fonts/newsreader/Newsreader-Variable.ttf
 
 # Ícono de la app, generado desde assets/branding/kiji_logo.svg (ver tool/render_logo.dart).
 flutter_launcher_icons:

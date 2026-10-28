@@ -17,12 +17,17 @@ const _lrc = '''
 ''';
 
 void main() {
+  const nl = '\n';
   testWidgets('La línea que suena se resalta y tocar otra línea va a ese momento', (tester) async {
     final playback = _FakePlayback();
-    await tester.pumpWidget(ProviderScope(
-      overrides: [playbackProvider.overrideWith(() => playback)],
-      child: MaterialApp(home: Scaffold(body: SyncedLyricsView(lines: parseLrc(_lrc)))),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [playbackProvider.overrideWith(() => playback)],
+        child: MaterialApp(
+          home: Scaffold(body: SyncedLyricsView(lines: parseLrc(_lrc))),
+        ),
+      ),
+    );
     await tester.pump();
 
     expect(find.bySemanticsLabel('Ahora: The sun is warm today'), findsOneWidget);
@@ -37,14 +42,57 @@ void main() {
     expect(playback.sought, const Duration(minutes: 1, seconds: 4, milliseconds: 70));
   });
 
+  testWidgets('En la PC la línea que suena queda nítida y las lejanas, más transparentes y borrosas', (tester) async {
+    final playback = _FakePlayback();
+    final lrc = [for (var i = 0; i < 12; i++) '[00:${(i * 2).toString().padLeft(2, '0')}.00] Línea de prueba $i']
+        .join(nl);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [playbackProvider.overrideWith(() => playback)],
+        child: MaterialApp(
+          home: Scaffold(body: SyncedLyricsView(lines: parseLrc(lrc), depth: true)),
+        ),
+      ),
+    );
+    playback.at(const Duration(seconds: 6)); // la línea 3
+    await tester.pump();
+    await tester.pumpAndSettle();
+    double opacityOf(String text) => tester
+        .widget<AnimatedOpacity>(find.ancestor(of: find.text(text), matching: find.byType(AnimatedOpacity)))
+        .opacity;
+    expect(opacityOf('Línea de prueba 3'), 1);
+    expect(opacityOf('Línea de prueba 4'), lessThan(1));
+    expect(opacityOf('Línea de prueba 7'), lessThan(opacityOf('Línea de prueba 4')));
+    final blur = find.ancestor(of: find.text('Línea de prueba 7'), matching: find.byType(ImageFiltered));
+    expect(blur, findsOneWidget, reason: 'las lejanas, con un leve desenfoque');
+  });
+
+  test('Diseño de la letra: dos columnas en la PC y en horizontal, o como se elija', () {
+    const phone = Size(412, 915), landscape = Size(915, 412), pc = Size(1400, 900), tiny = Size(500, 300);
+    expect(lyricsTwoColumns('auto', phone), isFalse);
+    expect(lyricsTwoColumns('auto', landscape), isTrue);
+    expect(lyricsTwoColumns('auto', pc), isTrue);
+    expect(lyricsTwoColumns('single', pc), isFalse);
+    expect(lyricsTwoColumns('double', const Size(700, 900)), isTrue);
+    expect(lyricsTwoColumns('double', phone), isFalse, reason: 'en 412 de ancho la letra no se podría leer');
+    expect(lyricsTwoColumns('auto', tiny), isFalse);
+  });
+
   testWidgets('"Volver a la canción" vuelve a la línea que suena aunque te hayas ido muy lejos', (tester) async {
     final playback = _FakePlayback();
     // 200 líneas inventadas, una cada 2 s; la canción va por la 150.
-    final lrc = [for (var i = 0; i < 200; i++) '[${(i * 2 ~/ 60).toString().padLeft(2, '0')}:${(i * 2 % 60).toString().padLeft(2, '0')}.00] Línea de prueba $i'].join('\n');
-    await tester.pumpWidget(ProviderScope(
-      overrides: [playbackProvider.overrideWith(() => playback)],
-      child: MaterialApp(home: Scaffold(body: SyncedLyricsView(lines: parseLrc(lrc)))),
-    ));
+    final lrc = [
+      for (var i = 0; i < 200; i++)
+        '[${(i * 2 ~/ 60).toString().padLeft(2, '0')}:${(i * 2 % 60).toString().padLeft(2, '0')}.00] Línea de prueba $i',
+    ].join('\n');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [playbackProvider.overrideWith(() => playback)],
+        child: MaterialApp(
+          home: Scaffold(body: SyncedLyricsView(lines: parseLrc(lrc))),
+        ),
+      ),
+    );
     playback.at(const Duration(seconds: 301));
     await tester.pump();
     await tester.pumpAndSettle();
@@ -72,23 +120,23 @@ class _FakePlayback extends PlaybackNotifier {
 
   @override
   PlaybackState build() => const PlaybackState(
-        track: Track(
-          id: 'yt-a',
-          title: 'Around the World',
-          artist: 'Daft Punk',
-          coverColor: Color(0xFF7C5CFF),
-          audioUrl: '',
-          source: TrackSource.youtube,
-        ),
-        isPlaying: true,
-        position: Duration(minutes: 1, seconds: 4, milliseconds: 500),
-        duration: Duration(minutes: 7),
-        shuffleEnabled: false,
-        isInitialized: true,
-        queue: [],
-        currentIndex: 0,
-        repeatMode: PlaybackRepeatMode.off,
-      );
+    track: Track(
+      id: 'yt-a',
+      title: 'Around the World',
+      artist: 'Daft Punk',
+      coverColor: Color(0xFF7C5CFF),
+      audioUrl: '',
+      source: TrackSource.youtube,
+    ),
+    isPlaying: true,
+    position: Duration(minutes: 1, seconds: 4, milliseconds: 500),
+    duration: Duration(minutes: 7),
+    shuffleEnabled: false,
+    isInitialized: true,
+    queue: [],
+    currentIndex: 0,
+    repeatMode: PlaybackRepeatMode.off,
+  );
 
   void at(Duration position) => state = state.copyWith(position: position);
 

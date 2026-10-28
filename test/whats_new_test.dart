@@ -93,4 +93,23 @@ void main() {
       expect(await loadBundledWhatsNew('es', build: 99999), isNull);
     });
   });
+
+  test('orden al abrir: bienvenida y estilos al instalar; estilos y después "Qué hay de nuevo" al actualizar', () {
+    // Instalación nueva: la bienvenida, después los estilos; nunca "Qué hay de nuevo".
+    expect(startupScreens(freshInstall: true, styleChosen: false, lastSeenVersion: null), [
+      StartupScreen.welcome,
+      StartupScreen.style,
+    ]);
+    // Actualización desde una versión sin estilos: primero estilos, después lo nuevo.
+    expect(startupScreens(freshInstall: false, styleChosen: false, lastSeenVersion: '0.6.0-viejo'), [
+      StartupScreen.style,
+      StartupScreen.whatsNew,
+    ]);
+    // Actualización con el estilo ya elegido: solo lo nuevo.
+    expect(startupScreens(freshInstall: false, styleChosen: true, lastSeenVersion: '0.6.0-viejo'), [
+      StartupScreen.whatsNew,
+    ]);
+    // Ya vio esta versión: nada (ni una segunda vez "Qué hay de nuevo").
+    expect(startupScreens(freshInstall: false, styleChosen: true, lastSeenVersion: kijiVersion), isEmpty);
+  });
 }

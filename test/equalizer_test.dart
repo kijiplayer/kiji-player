@@ -28,7 +28,7 @@ class _FakeEngine implements EqualizerEngine {
   Future<void> setGains(List<double> value) async => gains = value;
 }
 
-class _FakeMonitor implements AudioOutputMonitor {
+class _FakeMonitor extends AudioOutputMonitor {
   _FakeMonitor(this.output);
   AudioOutputKind output;
   final controller = StreamController<AudioOutputKind>.broadcast();

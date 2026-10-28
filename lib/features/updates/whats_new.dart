@@ -69,6 +69,24 @@ String _inline(String text) => text
     .replaceAll(RegExp(r'\*\*|__'), '')
     .replaceAll('`', '');
 
+/// Pantallas que aparecen solas al abrir Kiji, en orden.
+enum StartupScreen { welcome, style, whatsNew }
+
+/// Qué se muestra al abrir y en qué orden:
+/// - Instalación nueva: la bienvenida y, si falta, la elección de estilo (nunca "Qué hay de nuevo").
+/// - Después de actualizar: primero la elección de estilo (si nunca se eligió) y después, una sola
+///   vez por versión, "Qué hay de nuevo".
+/// - Si no cambió nada: ninguna.
+List<StartupScreen> startupScreens({
+  required bool freshInstall,
+  required bool styleChosen,
+  required String? lastSeenVersion,
+}) => [
+  if (freshInstall) StartupScreen.welcome,
+  if (!styleChosen) StartupScreen.style,
+  if (shouldShowWhatsNew(lastSeenVersion: lastSeenVersion, freshInstall: freshInstall)) StartupScreen.whatsNew,
+];
+
 /// ¿Se muestran las novedades al abrir? Solo después de actualizar: nunca a quien recién
 /// instala (ve la bienvenida) ni dos veces la misma versión.
 bool shouldShowWhatsNew({required String? lastSeenVersion, required bool freshInstall}) {

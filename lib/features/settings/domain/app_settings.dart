@@ -13,6 +13,9 @@ class AppSettings {
     this.hideShortAudios = false,
     this.pauseOnMute = false,
     this.resumeOnBluetooth = true,
+    this.batteryAsked = false,
+    this.style = 'nocturne',
+    this.styleChosen = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.autoBackup = true,
@@ -36,7 +39,15 @@ class AppSettings {
     this.theme = 'dark',
     this.font = 'kiji',
     this.lyricsSize = 'normal',
+    this.lyricsAlign = 'start',
+    this.lyricsLayout = 'auto',
+    this.lyricsPanel = 'full',
+    this.showcaseMark = false,
     this.lastSeenVersion,
+    this.closeAction = 'ask',
+    this.globalHotkeys = false,
+    this.hotkeys = const {},
+    this.highPerformance = false,
   });
 
   /// Opciones de la transición suave entre canciones (0 = apagada).
@@ -63,8 +74,24 @@ class AppSettings {
   /// Tipografía de los títulos: la de Kiji (Space Grotesk) o la del sistema.
   static const fonts = ['kiji', 'system'];
 
+  /// Estilos de Kiji (ver `KijiStyle`): Nocturne (de fábrica), Grafito y Papel.
+  static const styles = ['nocturne', 'graphite', 'paper'];
+
   /// Tamaño de la letra de las canciones.
   static const lyricsSizes = ['small', 'normal', 'large'];
+
+  /// Alineación de la letra: a la izquierda o centrada.
+  static const lyricsAligns = ['start', 'center'];
+
+  /// Diseño de la letra: automático (dos columnas en la PC y con el teléfono en horizontal), una
+  /// columna o dos columnas.
+  static const lyricsLayouts = ['auto', 'single', 'double'];
+
+  /// Modo del panel de la letra: completo, simple o escaparate (para grabar y compartir).
+  static const lyricsPanels = ['full', 'simple', 'showcase'];
+
+  /// PC: qué hace la ✕ de la ventana. 'ask' pregunta la primera vez.
+  static const closeActions = ['ask', 'tray', 'exit'];
 
   /// Duración mínima para no ser "audio corto" (sonidos de juegos, avisos).
   static const shortAudioMs = 30 * 1000;
@@ -89,6 +116,15 @@ class AppSettings {
   /// Reproductor: si se cortó la música al desconectarse los
   /// auriculares Bluetooth, seguir al reconectarlos (dentro de 10 minutos).
   final bool resumeOnBluetooth;
+
+  /// Android: ya se explicó y pidió una vez quitar la optimización de batería.
+  final bool batteryAsked;
+
+  /// Estilo de Kiji: 'nocturne', 'graphite' o 'paper'.
+  final String style;
+
+  /// Ya se mostró "¿Cómo quieres que se vea Kiji?" (al instalar o, una vez, al actualizar a la 0.7).
+  final bool styleChosen;
 
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
@@ -156,8 +192,32 @@ class AppSettings {
   final String font;
   final String lyricsSize;
 
+  /// Alineación de la letra (`lyricsAligns`).
+  final String lyricsAlign;
+
+  /// Diseño de la letra (`lyricsLayouts`) y modo del panel (`lyricsPanels`).
+  final String lyricsLayout;
+  final String lyricsPanel;
+
+  /// Escaparate: un logo chico de Kiji en una esquina (apagado de fábrica).
+  final bool showcaseMark;
+
   /// Última versión cuyas novedades se mostraron (para "Novedades de esta versión").
   final String? lastSeenVersion;
+
+  /// PC: al cerrar la ventana, 'ask' (preguntar), 'tray' (seguir en la bandeja) o 'exit'.
+  final String closeAction;
+
+  /// PC: atajos de teclado que funcionan aunque Kiji no esté al frente. Apagados de fábrica.
+  final bool globalHotkeys;
+
+  /// PC: atajo de cada acción ('playPause', 'next', 'previous'), como lo guarda hotkey_manager.
+  /// Las acciones que faltan usan el de fábrica.
+  final Map<String, Map<String, dynamic>> hotkeys;
+
+  /// Apariencia: "Modo alto rendimiento" (pantalla a su máxima frecuencia, más partículas,
+  /// desenfoques reales, colores más intensos). Apagado de fábrica: gasta más batería.
+  final bool highPerformance;
 
   AppSettings copyWith({
     bool? rememberQueue,
@@ -166,6 +226,9 @@ class AppSettings {
     bool? hideShortAudios,
     bool? pauseOnMute,
     bool? resumeOnBluetooth,
+    bool? batteryAsked,
+    String? style,
+    bool? styleChosen,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? autoBackup,
@@ -190,7 +253,15 @@ class AppSettings {
     String? theme,
     String? font,
     String? lyricsSize,
+    String? lyricsAlign,
+    String? lyricsLayout,
+    String? lyricsPanel,
+    bool? showcaseMark,
     String? lastSeenVersion,
+    String? closeAction,
+    bool? globalHotkeys,
+    Map<String, Map<String, dynamic>>? hotkeys,
+    bool? highPerformance,
   }) =>
       AppSettings(
         rememberQueue: rememberQueue ?? this.rememberQueue,
@@ -199,6 +270,9 @@ class AppSettings {
         hideShortAudios: hideShortAudios ?? this.hideShortAudios,
         pauseOnMute: pauseOnMute ?? this.pauseOnMute,
         resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
+        batteryAsked: batteryAsked ?? this.batteryAsked,
+        style: style ?? this.style,
+        styleChosen: styleChosen ?? this.styleChosen,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         autoBackup: autoBackup ?? this.autoBackup,
@@ -222,7 +296,15 @@ class AppSettings {
         theme: theme ?? this.theme,
         font: font ?? this.font,
         lyricsSize: lyricsSize ?? this.lyricsSize,
+        lyricsAlign: lyricsAlign ?? this.lyricsAlign,
+        lyricsLayout: lyricsLayout ?? this.lyricsLayout,
+        lyricsPanel: lyricsPanel ?? this.lyricsPanel,
+        showcaseMark: showcaseMark ?? this.showcaseMark,
         lastSeenVersion: lastSeenVersion ?? this.lastSeenVersion,
+        closeAction: closeAction ?? this.closeAction,
+        globalHotkeys: globalHotkeys ?? this.globalHotkeys,
+        hotkeys: hotkeys ?? this.hotkeys,
+        highPerformance: highPerformance ?? this.highPerformance,
       );
 
   Map<String, dynamic> toJson() => {
@@ -233,6 +315,9 @@ class AppSettings {
         'hideShortAudios': hideShortAudios,
         'pauseOnMute': pauseOnMute,
         'resumeOnBluetooth': resumeOnBluetooth,
+        'batteryAsked': batteryAsked,
+        'style': style,
+        'styleChosen': styleChosen,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'autoBackup': autoBackup,
@@ -256,7 +341,15 @@ class AppSettings {
         'theme': theme,
         'font': font,
         'lyricsSize': lyricsSize,
+        'lyricsAlign': lyricsAlign,
+        'lyricsLayout': lyricsLayout,
+        'lyricsPanel': lyricsPanel,
+        'showcaseMark': showcaseMark,
         if (lastSeenVersion != null) 'lastSeenVersion': lastSeenVersion,
+        'closeAction': closeAction,
+        'globalHotkeys': globalHotkeys,
+        'hotkeys': hotkeys,
+        'highPerformance': highPerformance,
       };
 
   /// Valores que falten o tengan otro tipo vuelven al de fábrica (un archivo
@@ -273,6 +366,9 @@ class AppSettings {
       hideShortAudios: read('hideShortAudios', d.hideShortAudios),
       pauseOnMute: read('pauseOnMute', d.pauseOnMute),
       resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),
+      batteryAsked: read('batteryAsked', d.batteryAsked),
+      style: styles.contains(json['style']) ? json['style'] as String : d.style,
+      styleChosen: read('styleChosen', d.styleChosen),
       crossfadeSeconds: crossfadeOptions.contains(crossfade) ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       autoBackup: read('autoBackup', d.autoBackup),
@@ -301,7 +397,19 @@ class AppSettings {
       theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,
+      lyricsAlign: lyricsAligns.contains(json['lyricsAlign']) ? json['lyricsAlign'] as String : d.lyricsAlign,
+      lyricsLayout: lyricsLayouts.contains(json['lyricsLayout']) ? json['lyricsLayout'] as String : d.lyricsLayout,
+      lyricsPanel: lyricsPanels.contains(json['lyricsPanel']) ? json['lyricsPanel'] as String : d.lyricsPanel,
+      showcaseMark: read('showcaseMark', d.showcaseMark),
       lastSeenVersion: json['lastSeenVersion'] is String ? json['lastSeenVersion'] as String : null,
+      closeAction: closeActions.contains(json['closeAction']) ? json['closeAction'] as String : d.closeAction,
+      globalHotkeys: read('globalHotkeys', d.globalHotkeys),
+      hotkeys: {
+        if (json['hotkeys'] is Map)
+          for (final MapEntry(:key, :value) in (json['hotkeys'] as Map).entries)
+            if (key is String && value is Map) key: Map<String, dynamic>.from(value),
+      },
+      highPerformance: read('highPerformance', d.highPerformance),
     );
   }
 

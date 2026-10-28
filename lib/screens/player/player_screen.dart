@@ -22,7 +22,9 @@ import '../../widgets/global_mini_player.dart';
 import '../../widgets/mini_player.dart' show coverHeroTag;
 import 'lyrics_swipe.dart';
 import 'player_motion.dart';
+import 'museum.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
+import '../../widgets/nocturne/micro_motion.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 import '../../features/playlists/presentation/playlist_screens.dart';
@@ -53,7 +55,11 @@ class PlayerScreen extends ConsumerWidget {
         pageBuilder: (context, animation, secondaryAnimation) => const PlayerScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           if (MediaQuery.disableAnimationsOf(context)) return child;
-          final curve = CurvedAnimation(parent: animation, curve: KijiMotion.emphasizedCurve);
+          // Grafito: sube con un resorte casi sin rebote (si rebotara, se vería el borde de abajo).
+          final curve = CurvedAnimation(
+            parent: animation,
+            curve: KijiLook.museum ? KijiMotion.softSpring : KijiMotion.emphasizedCurve,
+          );
           return SlideTransition(
             position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(curve),
             child: child,
@@ -72,9 +78,10 @@ class PlayerScreen extends ConsumerWidget {
       return Scaffold(body: Center(child: Text(tx.eligeUnaCancion)));
     }
     final downloaded =
-        track.youtubeVideoId != null && ref.watch(downloadsProvider).completed.containsKey(track.youtubeVideoId);
+        track.youtubeVideoId != null &&
+        ref.watch(downloadsProvider.select((d) => d.completed.containsKey(track.youtubeVideoId)));
 
-    return Scaffold(
+    final screen = Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -99,11 +106,15 @@ class PlayerScreen extends ConsumerWidget {
                         children: [
                           _TopBar(track: track, downloaded: downloaded),
                           const SizedBox(height: 16),
-                          _Cover(track: track, size: coverSize),
+                          // Capas propias: la sombra grande de la carátula no se vuelve a
+                          // rasterizar con cada avance de la posición.
+                          RepaintBoundary(
+                            child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
+                          ),
                           const SizedBox(height: 24),
                           _TitleRow(track: track, downloaded: downloaded),
                           const SizedBox(height: 20),
-                          const _Progress(),
+                          const RepaintBoundary(child: _Progress()),
                           const SizedBox(height: 12),
                           const PlaybackControlsRow(),
                           const SizedBox(height: 20),
@@ -119,6 +130,15 @@ class PlayerScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+    if (!KijiLook.museum) return screen;
+    // Grafito en la PC: el reflejo del vidrio sigue al mouse.
+    return MouseRegion(
+      onHover: (event) {
+        final size = MediaQuery.sizeOf(context);
+        museumPointer.value = Offset(event.position.dx / size.width * 2 - 1, event.position.dy / size.height * 2 - 1);
+      },
+      child: screen,
     );
   }
 }
@@ -202,27 +222,60 @@ class _TopBar extends StatelessWidget {
 
 /// Carátula de 320 px, radio 28, borde degradado de 1 px y halo de su color.
 class _Cover extends StatelessWidget {
-  const _Cover({required this.track, required this.size});
+  const _Cover({required this.track, required this.size, required this.playing});
 
   final Track track;
   final double size;
+  final bool playing;
 
   @override
   Widget build(BuildContext context) {
-    return CoverMotion(
+    final radius = KijiLook.cover(KijiRadii.cover);
+    final cover = CoverMotion(
       trackId: track.id,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(KijiRadii.cover),
-          boxShadow: [BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4)],
+          borderRadius: BorderRadius.circular(radius),
+          // El halo del color de la carátula es de Nocturne (Grafito y Papel no tienen brillos).
+          boxShadow: KijiLook.nocturne
+              ? [BoxShadow(color: track.coverColor.withValues(alpha: 0.45), blurRadius: 60, spreadRadius: 4)]
+              : null,
         ),
         child: GradientBorder(
-          radius: KijiRadii.cover,
+          radius: radius,
           child: Hero(
             tag: coverHeroTag(track),
-            child: TrackArtwork(track: track, size: size - 2, radius: KijiRadii.cover - 1),
+            // Grafito: la portada vuela del mini-reproductor al reproductor (y vuelve) con un resorte.
+            curve: KijiLook.museum ? KijiMotion.spring : Curves.fastOutSlowIn,
+            child: TrackArtwork(track: track, size: size - 2, radius: radius - 1),
           ),
         ),
+      ),
+    );
+    if (!KijiLook.museum) return cover;
+    // Grafito: detrás, la luz que respira con la música; encima, el brillo de la apertura y el
+    // reflejo que sigue la inclinación (o el mouse). Se inclina (3D) al tocarla o arrastrarla.
+    return CoverTilt(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: MuseumHalo(track: track, size: size),
+          ),
+          cover,
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(radius),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const MuseumSheen(),
+                  MuseumReflection(playing: playing),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -244,13 +297,30 @@ class _TitleRow extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TrackTitleText(track, maxLines: 2, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 26)),
+              // Grafito: entran deslizándose, una línea después de la otra.
+              MuseumLineIn(
+                trackId: track.id,
+                line: 0,
+                child: TrackTitleText(
+                  track,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  // Grafito: grande y fino.
+                  style: KijiLook.museum
+                      ? KijiText.title(size: 34, weight: FontWeight.w300).copyWith(letterSpacing: -0.6, height: 1.08)
+                      : KijiText.title(size: 26),
+                ),
+              ),
               const SizedBox(height: 4),
-              TrackArtistText(
-                track,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: KijiColors.muted, fontSize: 16),
+              MuseumLineIn(
+                trackId: track.id,
+                line: 1,
+                child: TrackArtistText(
+                  track,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: KijiColors.muted, fontSize: 16),
+                ),
               ),
             ],
           ),
@@ -274,10 +344,7 @@ class _TitleRow extends ConsumerWidget {
         IconButton(
           tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
           onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
-          icon: Icon(
-            liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            color: liked ? KijiColors.violet : KijiColors.text,
-          ),
+          icon: LikeHeart(liked: liked),
         ),
       ],
     );
@@ -318,7 +385,9 @@ class PlaybackControlsRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final playback = ref.watch(
-      playbackProvider.select((s) => (repeatMode: s.repeatMode, shuffleEnabled: s.shuffleEnabled, isPlaying: s.isPlaying)),
+      playbackProvider.select(
+        (s) => (repeatMode: s.repeatMode, shuffleEnabled: s.shuffleEnabled, isPlaying: s.isPlaying),
+      ),
     );
     final notifier = ref.read(playbackProvider.notifier);
     final iconSize = compact ? 24.0 : 30.0;
@@ -337,20 +406,29 @@ class PlaybackControlsRow extends ConsumerWidget {
       mainAxisAlignment: compact ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
-        IconButton(
-          tooltip: playback.shuffleEnabled ? tx.aleatorioActivado : tx.aleatorioApagado,
-          onPressed: notifier.toggleShuffle,
-          icon: const Icon(Icons.shuffle_rounded),
-          iconSize: iconSize * 0.85,
-          visualDensity: VisualDensity.compact,
-          color: playback.shuffleEnabled ? KijiColors.cyan : KijiColors.muted,
+        PressScale(
+          child: IconButton(
+            tooltip: playback.shuffleEnabled ? tx.aleatorioActivado : tx.aleatorioApagado,
+            onPressed: notifier.toggleShuffle,
+            icon: PopSwitcher(
+              child: Icon(
+                Icons.shuffle_rounded,
+                key: ValueKey(playback.shuffleEnabled),
+                color: playback.shuffleEnabled ? KijiColors.cyan : KijiColors.muted,
+              ),
+            ),
+            iconSize: iconSize * 0.85,
+            visualDensity: VisualDensity.compact,
+          ),
         ),
-        IconButton(
-          tooltip: tx.anterior,
-          onPressed: notifier.previousTrack,
-          icon: const Icon(Icons.skip_previous_rounded),
-          iconSize: iconSize * 1.2,
-          color: KijiColors.text,
+        PressScale(
+          child: IconButton(
+            tooltip: tx.anterior,
+            onPressed: notifier.previousTrack,
+            icon: const Icon(Icons.skip_previous_rounded),
+            iconSize: iconSize * 1.2,
+            color: KijiColors.text,
+          ),
         ),
         BreathingPlayButton(
           isPlaying: playback.isPlaying,
@@ -358,20 +436,29 @@ class PlaybackControlsRow extends ConsumerWidget {
           reduceMotion: reduceMotion(context, ref),
           size: compact ? 52 : KijiSizes.playButton,
         ),
-        IconButton(
-          tooltip: tx.siguiente,
-          onPressed: notifier.nextTrack,
-          icon: const Icon(Icons.skip_next_rounded),
-          iconSize: iconSize * 1.2,
-          color: KijiColors.text,
+        PressScale(
+          child: IconButton(
+            tooltip: tx.siguiente,
+            onPressed: notifier.nextTrack,
+            icon: const Icon(Icons.skip_next_rounded),
+            iconSize: iconSize * 1.2,
+            color: KijiColors.text,
+          ),
         ),
-        IconButton(
-          tooltip: repeatTooltip,
-          onPressed: notifier.toggleRepeatMode,
-          icon: Icon(repeatIcon),
-          iconSize: iconSize * 0.85,
-          visualDensity: VisualDensity.compact,
-          color: playback.repeatMode == PlaybackRepeatMode.off ? KijiColors.muted : KijiColors.cyan,
+        PressScale(
+          child: IconButton(
+            tooltip: repeatTooltip,
+            onPressed: notifier.toggleRepeatMode,
+            icon: PopSwitcher(
+              child: Icon(
+                repeatIcon,
+                key: ValueKey(playback.repeatMode),
+                color: playback.repeatMode == PlaybackRepeatMode.off ? KijiColors.muted : KijiColors.cyan,
+              ),
+            ),
+            iconSize: iconSize * 0.85,
+            visualDensity: VisualDensity.compact,
+          ),
         ),
       ],
     );

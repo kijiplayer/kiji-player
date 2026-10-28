@@ -90,7 +90,9 @@ class InnerTubeXEngine extends ExtractionEngine {
     try {
       await _channel.invokeMethod<void>('prewarm');
     } on PlatformException catch (error) {
-      debugPrint('=== MOTOR A: no se pudo precalentar: ${error.code} ===');
+      debugPrint('=== MOTOR A: no se pudo precalentar: ${error.message ?? error.code} ===');
+    } on MissingPluginException {
+      debugPrint('=== MOTOR A: sin canal todavía; no se precalienta ===');
     }
   }
 }

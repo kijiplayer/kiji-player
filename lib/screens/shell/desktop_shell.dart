@@ -77,66 +77,68 @@ class _Sidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(shellTabProvider);
+    final playlists = ref.watch(playlistsProvider);
+    // Una sola lista que se desplaza: en ventanas bajas, lo de abajo (Configuración, Salud) ya no
+    // se sale de la ventana. En las altas, SliverFillRemaining lo deja pegado abajo como antes.
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8, bottom: 24),
-            child: GradientText('Kiji', style: KijiText.title(size: 32)), // l10n-ignore
-          ),
-          for (final destination in ShellDestination.all)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: _SidebarItem(
-                destination: destination,
-                selected: destination.tab == current,
-                onTap: () => ref.read(shellTabProvider.notifier).state = destination.tab,
+      child: CustomScrollView(
+        slivers: [
+          SliverList.list(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 24),
+                child: GradientText('Kiji', style: KijiText.title(size: 32)), // l10n-ignore
               ),
-            ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.only(left: 8, bottom: 8),
-            child: Text(tx.tusListas, style: KijiText.mono(size: 11)),
+              for (final destination in ShellDestination.all)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: _SidebarItem(
+                    destination: destination,
+                    selected: destination.tab == current,
+                    onTap: () => ref.read(shellTabProvider.notifier).state = destination.tab,
+                  ),
+                ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                child: Text(tx.tusListas, style: KijiText.mono(size: 11)),
+              ),
+              if (playlists.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(tx.tusPlaylistsVanAAparecerAqui, style: TextStyle(color: KijiColors.muted, fontSize: 13)),
+                ),
+            ],
           ),
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                final playlists = ref.watch(playlistsProvider);
-                if (playlists.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text(
-                      tx.tusPlaylistsVanAAparecerAqui,
-                      style: TextStyle(color: KijiColors.muted, fontSize: 13),
-                    ),
-                  );
-                }
-                return ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    for (final playlist in playlists)
-                      ListTile(
-                        dense: true,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
-                        leading: Icon(Icons.queue_music_rounded, size: 20, color: KijiColors.violet),
-                        title: Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        onTap: () => PlaylistScreen.open(context, playlist.id),
-                      ),
-                  ],
-                );
-              },
+          SliverList.builder(
+            itemCount: playlists.length,
+            itemBuilder: (context, i) => ListTile(
+              dense: true,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
+              leading: Icon(Icons.queue_music_rounded, size: 20, color: KijiColors.violet),
+              title: Text(playlists[i].name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              onTap: () => PlaylistScreen.open(context, playlists[i].id),
             ),
           ),
-          ListTile(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
-            leading: Icon(Icons.settings_outlined, color: KijiColors.muted),
-            title: Text(tx.settingsTitle),
-            onTap: () => SettingsScreen.open(context),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 12),
+                ListTile(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KijiRadii.tile)),
+                  leading: Icon(Icons.settings_outlined, color: KijiColors.muted),
+                  title: Text(tx.settingsTitle),
+                  onTap: () => SettingsScreen.open(context),
+                ),
+                const SizedBox(height: 8),
+                const _HealthBox(),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          const _HealthBox(),
         ],
       ),
     );
@@ -351,7 +353,9 @@ class _PlayerBar extends ConsumerWidget {
                 const PlaybackControlsRow(compact: true),
                 Consumer(
                   builder: (context, ref, waveform) {
-                    final time = ref.watch(playbackProvider.select((s) => (position: s.position, duration: s.duration)));
+                    final time = ref.watch(
+                      playbackProvider.select((s) => (position: s.position, duration: s.duration)),
+                    );
                     return Row(
                       children: [
                         Text(formatDuration(time.position), style: KijiText.mono(size: 11)),

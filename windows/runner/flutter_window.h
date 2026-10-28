@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "media_controls.h"
 #include "win32_window.h"
 
 // Evento con nombre que se activa cuando Kiji dibuja su primer cuadro (lo mira otra instancia
@@ -35,6 +36,9 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+
+  // Controles multimedia de Windows (SMTC).
+  std::unique_ptr<MediaControls> media_controls_;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_

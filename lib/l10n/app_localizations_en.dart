@@ -3986,7 +3986,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipografiaDescripcion =>
-      'Kiji\'s own (Space Grotesk and JetBrains Mono) or the system font';
+      'The style\'s own (Space Grotesk in Nocturne, Inter in Graphite, Newsreader and Inter in Paper) or the system font';
 
   @override
   String get tipografiaKiji => 'Kiji\'s own';
@@ -4004,4 +4004,362 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get seccionPc => 'On the computer';
+
+  @override
+  String get alCerrarLaVentana => 'When closing the window';
+
+  @override
+  String get alCerrarDescripcion =>
+      'Keep playing in the system tray or quit Kiji completely';
+
+  @override
+  String get alCerrarPreguntar => 'Ask';
+
+  @override
+  String get alCerrarBandeja => 'Minimize to tray';
+
+  @override
+  String get alCerrarSalir => 'Quit Kiji';
+
+  @override
+  String get cerrarDialogoTitulo => 'What should ✕ do?';
+
+  @override
+  String get cerrarDialogoTexto =>
+      'Kiji can keep playing in the system tray, next to the clock, or quit completely. You can change this in Settings → On the computer.';
+
+  @override
+  String get bandejaAbrir => 'Open Kiji';
+
+  @override
+  String get bandejaSalir => 'Quit';
+
+  @override
+  String get atajosGlobales => 'Global shortcuts';
+
+  @override
+  String get atajosGlobalesDescripcion =>
+      'Control the music even when Kiji is in the background or in the tray';
+
+  @override
+  String get atajoPlayPausa => 'Play or pause';
+
+  @override
+  String get atajoSiguiente => 'Next song';
+
+  @override
+  String get atajoAnterior => 'Previous song';
+
+  @override
+  String get atajoSinAsignar => 'Not set';
+
+  @override
+  String get atajoGrabar =>
+      'Press the combination, with Ctrl, Alt, Shift or Win';
+
+  @override
+  String get atajoNecesitaModificador =>
+      'It needs Ctrl, Alt, Shift or Win (or an F key)';
+
+  @override
+  String get atajoEnUso => 'That shortcut is already used by another action';
+
+  @override
+  String get atajosDeFabrica => 'Restore defaults';
+
+  @override
+  String get atajosAviso =>
+      'If another program already uses the same combination, it won\'t work in Kiji: pick another one.';
+
+  @override
+  String get controlesDeWindows => 'Windows media controls';
+
+  @override
+  String get controlesDeWindowsDescripcion =>
+      'The song shows up in the volume flyout and the lock screen; media keys always work';
+
+  @override
+  String get teclaEspacio => 'Space';
+
+  @override
+  String get atajoOcupado =>
+      'Another program already uses this shortcut: pick another one';
+
+  @override
+  String get modoAltoRendimiento => 'High performance mode';
+
+  @override
+  String get modoAltoRendimientoDescripcion =>
+      'Animations at the screen\'s highest refresh rate, more particles, real blur and richer colors. Uses more battery.';
+
+  @override
+  String get modoAltoRendimientoGamaBaja =>
+      'This device is low-end: better to keep it off.';
+
+  @override
+  String modoAltoRendimientoPantalla(int hz) {
+    return 'Your screen goes up to $hz Hz.';
+  }
+
+  @override
+  String get modoAltoRendimientoConfirmar => 'Turn it on anyway?';
+
+  @override
+  String get modoAltoRendimientoConfirmarTexto =>
+      'On this device it may run slower and use more battery. You can turn it off anytime.';
+
+  @override
+  String get prenderIgual => 'Turn on anyway';
+
+  @override
+  String get bateriaTitulo => 'Uninterrupted music in the background';
+
+  @override
+  String get bateriaExplicacion =>
+      'With the screen off, Android may hold Kiji back to save battery and the music stops (it happens a lot on Motorola, Xiaomi and Samsung). If you allow it, Android lets Kiji keep playing. You can change it anytime in Settings → Player and audio.';
+
+  @override
+  String get bateriaPermitir => 'Allow';
+
+  @override
+  String get bateriaActiva =>
+      'Done: Android doesn\'t hold Kiji back in the background.';
+
+  @override
+  String get bateriaPendiente =>
+      'Android may hold Kiji back with the screen off. Tap to let it keep playing.';
+
+  @override
+  String get buscarEnLaPlaylist => 'Search this playlist';
+
+  @override
+  String get borrarBusqueda => 'Clear search';
+
+  @override
+  String get estilo => 'Style';
+
+  @override
+  String get estiloDescripcion => 'Same features, a different look';
+
+  @override
+  String get estiloPregunta => 'How do you want Kiji to look?';
+
+  @override
+  String get estiloPreguntaTexto =>
+      'The features are the same; only the look changes. You can change it anytime in Settings → Appearance.';
+
+  @override
+  String get estiloNocturne => 'Nocturne';
+
+  @override
+  String get estiloNocturneFrase =>
+      'Dark, with glass, glow and an aurora in the colors of each song.';
+
+  @override
+  String get estiloGrafito => 'Graphite';
+
+  @override
+  String get estiloGrafitoFrase =>
+      'Museum glass: black and white, greys and transparency.';
+
+  @override
+  String get estiloPapel => 'Paper';
+
+  @override
+  String get estiloPapelFrase => 'Light and calm, like reading a book.';
+
+  @override
+  String continuarConEstilo(String estilo) {
+    return 'Continue with $estilo';
+  }
+
+  @override
+  String get soloEnNocturne => 'Only in the Nocturne style';
+
+  @override
+  String get alineacionDeLaLetra => 'Alignment';
+
+  @override
+  String get alinearIzquierda => 'Left';
+
+  @override
+  String get alinearCentro => 'Centered';
+
+  @override
+  String get sincroniaDeLaLetra => 'Sync';
+
+  @override
+  String get ajustesDeLaLetra => 'LYRICS SETTINGS';
+
+  @override
+  String get calculadoEnEstaPc => 'calculated on this PC';
+
+  @override
+  String vecesEscuchada(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      one: '1 time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String puestoN(int n) {
+    return 'No. $n';
+  }
+
+  @override
+  String get disenoDeLaLetra => 'Layout';
+
+  @override
+  String get disenoAutomatico => 'Automatic';
+
+  @override
+  String get disenoUnaColumna => 'One column';
+
+  @override
+  String get disenoDosColumnas => 'Two columns';
+
+  @override
+  String get modoDelPanel => 'View';
+
+  @override
+  String get panelCompleto => 'Full';
+
+  @override
+  String get panelSimple => 'Simple';
+
+  @override
+  String get panelEscaparate => 'Showcase';
+
+  @override
+  String cambiarVistaDeLaLetra(String modo) {
+    return 'Change the view: $modo';
+  }
+
+  @override
+  String get mostrarMarcaKiji => 'Show Kiji mark';
+
+  @override
+  String get mostrarMarcaKijiDescripcion =>
+      'A small logo in a corner of the showcase';
+
+  @override
+  String get descargasYAlmacenamiento => 'Downloads and storage';
+
+  @override
+  String get privacidadYDatos => 'Privacy and data';
+
+  @override
+  String get seccionAparienciaDescripcion =>
+      'Style, theme, colors, font, language and animations';
+
+  @override
+  String get seccionReproductorDescripcion =>
+      'Equalizer, crossfade, Bluetooth and battery';
+
+  @override
+  String get seccionLetrasDescripcion =>
+      'Size, sources and translation of the lyrics';
+
+  @override
+  String get seccionDescargasDescripcion =>
+      'Downloads, cache, space, mobile data and short audios';
+
+  @override
+  String get seccionPcDescripcion =>
+      'Tray, global shortcuts and Windows controls';
+
+  @override
+  String get seccionPrivacidadDescripcion =>
+      'What Kiji keeps, history, backups, logs and account';
+
+  @override
+  String get seccionAcercaDescripcion =>
+      'Version, what\'s new, updates and credits';
+
+  @override
+  String get seccionDevDescripcion => 'Kiji Dev tools';
+
+  @override
+  String get disenoDeLaLetraDescripcion =>
+      'One or two columns (automatic: two on the computer and in landscape)';
+
+  @override
+  String get modoDelPanelDescripcion =>
+      'Full, Simple or Showcase (to record and share)';
+
+  @override
+  String get queHayDeNuevo => 'What\'s new';
+
+  @override
+  String get queHayDeNuevoSubtitulo => 'What Kiji 0.7 brings, in a few words.';
+
+  @override
+  String get queHayDeNuevoDescripcion =>
+      'What\'s new in this version, in cards';
+
+  @override
+  String get empezar => 'Get started';
+
+  @override
+  String get nuevoEstilosTitulo => 'Three styles';
+
+  @override
+  String get nuevoEstilosTexto =>
+      'Nocturne, Graphite and Paper: the same features with a different look. Change it in Settings → Appearance.';
+
+  @override
+  String get nuevoOndaTitulo => 'The live wave';
+
+  @override
+  String get nuevoOndaTexto =>
+      'With high performance on, the player\'s wave jumps with the song\'s real loudness, without using the microphone.';
+
+  @override
+  String get nuevoLetrasTitulo => 'Lyrics your way';
+
+  @override
+  String get nuevoLetrasTexto =>
+      'Three views (Full, Simple and Showcase) and two columns on the computer and with the phone in landscape.';
+
+  @override
+  String get nuevoBluetoothTitulo => 'Music keeps going with Bluetooth';
+
+  @override
+  String get nuevoBluetoothTexto =>
+      'If your headphones disconnect for a moment, Kiji waits and resumes on its own. It never plays through the speaker unless you ask.';
+
+  @override
+  String get nuevoAleatorioTitulo => 'Real shuffle';
+
+  @override
+  String get nuevoAleatorioTexto =>
+      'The queue shows the actual order the songs will play in.';
+
+  @override
+  String get nuevoBuscarPlaylistTitulo => 'Search inside a playlist';
+
+  @override
+  String get nuevoBuscarPlaylistTexto =>
+      'Every playlist has its own search, to find a song without scrolling the whole list.';
+
+  @override
+  String get nuevoMasEscuchadasTitulo => 'Your most played';
+
+  @override
+  String get nuevoMasEscuchadasTexto =>
+      'A top list on Home with how many times you played each one, worked out on your device.';
+
+  @override
+  String get nuevoPcTitulo => 'On the computer';
+
+  @override
+  String get nuevoPcTexto =>
+      'Kiji can stay in the system tray, has global shortcuts and responds to the media keys.';
 }

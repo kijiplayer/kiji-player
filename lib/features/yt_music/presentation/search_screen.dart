@@ -257,12 +257,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     label: Text(kind.label),
                     selected: _kind == kind,
                     showCheckmark: false,
-                    selectedColor: KijiColors.violet,
-                    labelStyle: TextStyle(
-                      color: _kind == kind ? Colors.white : KijiColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    side: BorderSide(color: KijiColors.glassBorder),
+                    // Colores de lo elegido: los del tema (KijiSelected).
                     shape: const StadiumBorder(),
                     onSelected: (_) {
                       setState(() => _kind = kind);
@@ -309,7 +304,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _buildMyFiles() {
     final query = _controller.text;
     final local = ref.watch(localTracksProvider).value ?? const <Track>[];
-    final downloaded = [for (final d in ref.watch(downloadsProvider).completed.values) d.toTrack()];
+    final downloaded = [for (final d in ref.watch(downloadsProvider.select((d) => d.completed)).values) d.toTrack()];
     final results = filterMyFiles([...downloaded, ...local], query);
 
     if (query.trim().isEmpty) {

@@ -2,6 +2,8 @@
 // Archivos de referencia: app/src/main/kotlin/.../ui/screens/settings/ (secciones) y
 // SearchableSettings.kt (buscador de opciones).
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,7 +16,11 @@ import '../../../utils/clock_format.dart';
 import '../../../widgets/kiji_logo.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../backup/data/backup_notifier.dart';
+import '../../desktop/desktop_hotkeys.dart';
+import '../../desktop/desktop_settings.dart';
+import '../../desktop/desktop_window.dart';
 import '../../dev_tools/dev_build.dart';
+import '../../performance/high_performance_tile.dart';
 import '../../dev_tools/dev_tools_screen.dart';
 import '../../backup/presentation/backup_screen.dart';
 import '../../downloads/data/auto_downloads.dart';
@@ -25,10 +31,11 @@ import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/equalizer_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../lyrics/presentation/lyrics_menu_sheet.dart';
+import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
 import '../../reports/presentation/reports_screen.dart';
 import '../../recommendations/data/search_history.dart';
 import '../../updates/updates_screen.dart';
-import '../../updates/whats_new.dart';
+import '../../updates/whats_new_screen.dart';
 import '../../translation/domain/languages.dart';
 import '../../translation/presentation/lyrics_settings_screens.dart';
 import '../../yt_music/presentation/extractor_health_screen.dart';
@@ -41,36 +48,42 @@ import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
+import '../../playback_extras/data/battery_optimization.dart';
+import '../../style/presentation/style_chooser_screen.dart';
 
-/// Secciones de Configuración, en el orden en que se muestran.
+/// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
+/// descripción corta.
 enum SettingsSection {
-  player(Icons.play_circle_outline_rounded),
-  content(Icons.library_music_outlined),
-  lyrics(Icons.lyrics_outlined),
   appearance(Icons.palette_outlined),
+  player(Icons.play_circle_outline_rounded),
+  lyrics(Icons.lyrics_outlined),
   storage(Icons.sd_storage_outlined),
-  account(Icons.account_circle_outlined),
+  desktop(Icons.desktop_windows_outlined),
   privacy(Icons.shield_outlined),
-  backup(Icons.backup_outlined),
-  updates(Icons.system_update_alt_rounded),
-  reports(Icons.bug_report_outlined),
   about(Icons.info_outline_rounded),
   developer(Icons.developer_mode_rounded);
 
   const SettingsSection(this.icon);
   String get label => switch (this) {
-    SettingsSection.player => tx.reproductorYAudio,
-    SettingsSection.content => tx.contenido,
-    SettingsSection.lyrics => tx.letras2,
     SettingsSection.appearance => tx.apariencia,
-    SettingsSection.storage => tx.almacenamiento,
-    SettingsSection.account => tx.cuenta,
-    SettingsSection.privacy => tx.privacidad,
-    SettingsSection.backup => tx.copiaDeSeguridad,
-    SettingsSection.updates => tx.actualizaciones,
-    SettingsSection.reports => tx.registrosEInformes,
+    SettingsSection.player => tx.reproductorYAudio,
+    SettingsSection.lyrics => tx.letras2,
+    SettingsSection.storage => tx.descargasYAlmacenamiento,
+    SettingsSection.desktop => tx.seccionPc,
+    SettingsSection.privacy => tx.privacidadYDatos,
     SettingsSection.about => tx.acercaDe,
     SettingsSection.developer => tx.kijiDev,
+  };
+
+  String get description => switch (this) {
+    SettingsSection.appearance => tx.seccionAparienciaDescripcion,
+    SettingsSection.player => tx.seccionReproductorDescripcion,
+    SettingsSection.lyrics => tx.seccionLetrasDescripcion,
+    SettingsSection.storage => tx.seccionDescargasDescripcion,
+    SettingsSection.desktop => tx.seccionPcDescripcion,
+    SettingsSection.privacy => tx.seccionPrivacidadDescripcion,
+    SettingsSection.about => tx.seccionAcercaDescripcion,
+    SettingsSection.developer => tx.seccionDevDescripcion,
   };
 
   final IconData icon;
@@ -96,7 +109,10 @@ class SettingOption {
       settingMatches(query, title: title, subtitle: subtitle, section: section.label, keywords: keywords);
 }
 
-/// Pantalla de Configuración con buscador de opciones desde el primer día.
+/// Pantalla de Configuración: el buscador arriba y las secciones en tarjetas. Buscar muestra los
+/// ajustes que coinciden (por nombre, descripción o palabras relacionadas, en los dos idiomas);
+/// tocar uno abre su sección y lo resalta un momento. En la PC (ventana ancha), las secciones a la
+/// izquierda y la elegida a la derecha.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -110,8 +126,10 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _query = TextEditingController();
 
-  /// Título de cada sección, para saltar a ella desde el índice de arriba.
-  final _sectionKeys = {for (final section in SettingsSection.values) section: GlobalKey()};
+  /// Sección abierta en el panel derecho (PC) y el ajuste a resaltar.
+  SettingsSection _selected = SettingsSection.appearance;
+  String? _highlight;
+  int _highlightRun = 0;
 
   @override
   void dispose() {
@@ -119,105 +137,126 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.dispose();
   }
 
+  bool _wide(BuildContext context) => MediaQuery.sizeOf(context).width >= KijiSizes.desktopBreakpoint;
+
+  void _open(BuildContext context, SettingsSection section, {String? highlight}) {
+    if (_wide(context)) {
+      setState(() {
+        _selected = section;
+        _highlight = highlight;
+        _highlightRun++;
+      });
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SettingsSectionScreen(section: section, options: _options, highlight: highlight),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final options = _options();
     final query = _query.text.trim();
-    final visible = query.isEmpty ? options : options.where((o) => o.matches(query)).toList();
+    final results = query.isEmpty ? const <SettingOption>[] : options.where((o) => o.matches(query)).toList();
+    final sections = [
+      for (final section in SettingsSection.values)
+        if (options.any((o) => o.section == section)) section,
+    ];
+    final wide = _wide(context);
+
+    final search = GradientBorder(
+      radius: KijiRadii.pill,
+      fill: KijiColors.surface,
+      child: TextField(
+        controller: _query,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          hintText: tr(context).settingsSearchHint,
+          prefixIcon: Icon(Icons.search_rounded, color: KijiColors.muted),
+          suffixIcon: query.isEmpty
+              ? null
+              : IconButton(
+                  tooltip: tx.borrarLaBusqueda,
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => setState(_query.clear),
+                ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        ),
+      ),
+    );
+
+    final list = ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
+      children: [
+        search,
+        const SizedBox(height: 14),
+        if (query.isEmpty)
+          for (final section in sections)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _SectionCard(
+                section: section,
+                selected: wide && section == _selected,
+                onTap: () => _open(context, section),
+              ),
+            )
+        else if (results.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              tx.noHayNingunaOpcionConEse,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: KijiColors.muted),
+            ),
+          )
+        else
+          Glass(
+            blur: false,
+            radius: KijiRadii.tile,
+            child: Column(
+              children: [
+                for (final option in results)
+                  ListTile(
+                    key: ValueKey('resultado-${option.title}'),
+                    leading: Icon(option.section.icon, color: KijiColors.cyan),
+                    title: Text(option.title),
+                    subtitle: Text(
+                      option.subtitle.isEmpty ? option.section.label : '${option.section.label} · ${option.subtitle}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _open(context, option.section, highlight: option.title),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(tr(context).settingsTitle)),
-      // Columna y no ListView: así todas las secciones existen y el índice puede saltar a
-      // cualquiera (son unas 50 opciones, no hace falta construirlas de a poco).
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            GradientBorder(
-              radius: KijiRadii.pill,
-              fill: KijiColors.surface,
-              child: TextField(
-                controller: _query,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: tr(context).settingsSearchHint,
-                  prefixIcon: Icon(Icons.search_rounded, color: KijiColors.muted),
-                  suffixIcon: query.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: tx.borrarLaBusqueda,
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: () => setState(_query.clear),
-                        ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Índice de secciones (sin búsqueda): un toque lleva a cada una.
-            if (query.isEmpty)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final section in SettingsSection.values)
-                    if (visible.any((o) => o.section == section))
-                      ActionChip(
-                        avatar: Icon(section.icon, size: 16, color: KijiColors.cyan),
-                        label: Text(section.label),
-                        onPressed: () {
-                          final target = _sectionKeys[section]!.currentContext;
-                          if (target != null) {
-                            Scrollable.ensureVisible(
-                              target,
-                              duration: ref.read(settingsProvider).reduceMotion ? Duration.zero : KijiMotion.normal,
-                              curve: Curves.easeOutCubic,
-                            );
-                          }
-                        },
-                      ),
-                ],
-              ),
-            if (visible.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  tx.noHayNingunaOpcionConEse,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: KijiColors.muted),
-                ),
-              ),
-            for (final section in SettingsSection.values)
-              if (visible.any((o) => o.section == section)) ...[
-                Padding(
-                  key: _sectionKeys[section],
-                  padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-                  child: Row(
-                    children: [
-                      Icon(section.icon, size: 18, color: KijiColors.cyan),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(section.label.toUpperCase(), style: KijiText.mono(size: 11))),
-                    ],
-                  ),
-                ),
-                Glass(
-                  blur: false,
-                  radius: KijiRadii.tile,
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: Column(
-                      children: [
-                        for (final option in visible.where((o) => o.section == section)) option.builder(context, ref),
-                      ],
-                    ),
+      body: !wide
+          ? list
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(width: 380, child: list),
+                VerticalDivider(width: 1, color: KijiColors.glassBorder),
+                Expanded(
+                  child: SettingsSectionView(
+                    key: ValueKey('$_selected-$_highlightRun'),
+                    section: _selected,
+                    options: _options,
+                    highlight: _highlight,
+                    showTitle: true,
                   ),
                 ),
               ],
-          ],
-        ),
-      ),
+            ),
     );
   }
 
@@ -323,9 +362,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(resumeOnBluetooth: value)),
         ),
       ),
+      if (BatteryOptimization.applies)
+        SettingOption(
+          section: SettingsSection.player,
+          title: tx.bateriaTitulo,
+          subtitle: tx.bateriaPendiente,
+          keywords: const ['batería', 'battery', 'segundo plano', 'background', 'optimización', 'se corta', 'motorola'], // l10n-ignore
+          builder: (context, ref) => const BatteryOptimizationTile(),
+        ),
+      // En la PC (bandeja, atajos globales, controles de Windows)
+      if (DesktopWindow.isDesktop) ...[
+        SettingOption(
+          section: SettingsSection.desktop,
+          title: tx.alCerrarLaVentana,
+          subtitle: tx.alCerrarDescripcion,
+          keywords: const ['bandeja', 'tray', 'minimizar', 'cerrar', 'fondo', 'background', 'salir', 'quit'],
+          builder: (context, ref) => const CloseActionTile(),
+        ),
+        SettingOption(
+          section: SettingsSection.desktop,
+          title: tx.atajosGlobales,
+          subtitle: tx.atajosGlobalesDescripcion,
+          keywords: const ['teclado', 'keyboard', 'hotkey', 'shortcut', 'atajo', 'tecla', 'global'],
+          builder: (context, ref) => Column(
+            children: [
+              SwitchListTile(
+                secondary: const Icon(Icons.keyboard_rounded),
+                title: Text(tx.atajosGlobales),
+                subtitle: Text(tx.atajosGlobalesDescripcion),
+                value: ref.watch(settingsProvider.select((s) => s.globalHotkeys)),
+                onChanged: (value) =>
+                    ref.read(settingsProvider.notifier).update((s) => s.copyWith(globalHotkeys: value)),
+              ),
+              for (final action in HotkeyAction.values) HotkeyTile(action: action),
+              if (ref.watch(settingsProvider.select((s) => s.hotkeys.isNotEmpty)))
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => ref.read(settingsProvider.notifier).update((s) => s.copyWith(hotkeys: const {})),
+                    child: Text(tx.atajosDeFabrica),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (Platform.isWindows)
+          SettingOption(
+            section: SettingsSection.desktop,
+            title: tx.controlesDeWindows,
+            subtitle: tx.controlesDeWindowsDescripcion,
+            keywords: const ['smtc', 'multimedia', 'media', 'teclas', 'keys', 'bloqueo', 'lock', 'volumen'],
+            builder: (context, ref) => ListTile(
+              leading: const Icon(Icons.music_video_outlined),
+              title: Text(tx.controlesDeWindows),
+              subtitle: Text(tx.controlesDeWindowsDescripcion),
+            ),
+          ),
+      ],
       // Contenido
       SettingOption(
-        section: SettingsSection.content,
+        section: SettingsSection.storage,
         title: tx.ocultarAudiosCortos,
         subtitle: tx.noMostrarEnLaBibliotecaLos,
         keywords: const ['sonidos', 'notificaciones', 'juegos', 'tonos', 'filtrar'],
@@ -350,6 +446,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           options: AppSettings.lyricsSizes,
           label: lyricsSizeLabel,
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsSize: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.lyrics,
+        title: tx.disenoDeLaLetra,
+        subtitle: tx.disenoDeLaLetraDescripcion,
+        keywords: const ['columnas', 'horizontal', 'panel', 'pc'],
+        builder: (context, ref) => choiceTile<String>(
+          context,
+          icon: Icons.vertical_split_outlined,
+          title: tx.disenoDeLaLetra,
+          value: ref.watch(settingsProvider.select((s) => s.lyricsLayout)),
+          options: AppSettings.lyricsLayouts,
+          label: lyricsLayoutLabel,
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsLayout: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.lyrics,
+        title: tx.modoDelPanel,
+        subtitle: tx.modoDelPanelDescripcion,
+        keywords: const ['completo', 'simple', 'escaparate', 'showcase', 'grabar', 'compartir'],
+        builder: (context, ref) => choiceTile<String>(
+          context,
+          icon: Icons.auto_awesome_rounded,
+          title: tx.modoDelPanel,
+          value: ref.watch(settingsProvider.select((s) => s.lyricsPanel)),
+          options: AppSettings.lyricsPanels,
+          label: lyricsPanelLabel,
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.lyrics,
+        title: tx.mostrarMarcaKiji,
+        subtitle: tx.mostrarMarcaKijiDescripcion,
+        keywords: const ['logo', 'escaparate', 'marca'],
+        builder: (context, ref) => SwitchListTile(
+          secondary: const Icon(Icons.branding_watermark_outlined),
+          title: Text(tx.mostrarMarcaKiji),
+          subtitle: Text(tx.mostrarMarcaKijiDescripcion),
+          value: ref.watch(settingsProvider.select((s) => s.showcaseMark)),
+          onChanged: (on) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(showcaseMark: on)),
         ),
       ),
       SettingOption(
@@ -436,22 +575,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.appearance,
+        title: tx.estilo,
+        subtitle: tx.estiloDescripcion,
+        keywords: const ['nocturne', 'grafito', 'graphite', 'papel', 'paper', 'look', 'aspecto', 'diseño'], // l10n-ignore
+        builder: (context, ref) {
+          final style = KijiStyle.parse(ref.watch(settingsProvider.select((s) => s.style)));
+          return ListTile(
+            leading: const Icon(Icons.style_outlined),
+            title: Text(tx.estilo),
+            subtitle: Text(styleName(style)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => StyleChooserScreen.open(context, ref),
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
         title: tx.tema,
         subtitle: tx.temaDescripcion,
         keywords: const ['modo', 'fondo', 'oled', 'negro', 'blanco'],
-        builder: (context, ref) => choiceTile<String>(
-          context,
-          icon: Icons.contrast_rounded,
-          title: tx.tema,
-          value: ref.watch(settingsProvider.select((s) => s.theme)),
-          options: AppSettings.themes,
-          label: (t) => switch (t) {
-            'darker' => tx.temaMasOscuro,
-            'light' => tx.temaClaro,
-            _ => tx.temaOscuro,
-          },
-          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(theme: value)),
-        ),
+        builder: (context, ref) =>
+            _onlyInNocturne(ref, Icons.contrast_rounded, tx.tema) ??
+            choiceTile<String>(
+              context,
+              icon: Icons.contrast_rounded,
+              title: tx.tema,
+              value: ref.watch(settingsProvider.select((s) => s.theme)),
+              options: AppSettings.themes,
+              label: (t) => switch (t) {
+                'darker' => tx.temaMasOscuro,
+                'light' => tx.temaClaro,
+                _ => tx.temaOscuro,
+              },
+              onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(theme: value)),
+            ),
       ),
       SettingOption(
         section: SettingsSection.appearance,
@@ -459,6 +616,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: tx.colorDeAcentoDescripcion,
         keywords: const ['degradado', 'violeta', 'naranja', 'verde', 'azul'],
         builder: (context, ref) {
+          final disabled = _onlyInNocturne(ref, Icons.palette_outlined, tx.colorDeAcento);
+          if (disabled != null) return disabled;
           final accent = ref.watch(settingsProvider.select((s) => s.accent));
           String name(String a) => switch (a) {
             'aurora' => tx.acentoAurora,
@@ -486,13 +645,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [KijiPalette.accents[a]!.$1, KijiPalette.accents[a]!.$2],
-                          ),
-                          border: Border.all(
-                            color: a == accent ? KijiColors.text : Colors.transparent,
-                            width: 2,
-                          ),
+                          gradient: LinearGradient(colors: [KijiPalette.accents[a]!.$1, KijiPalette.accents[a]!.$2]),
+                          border: Border.all(color: a == accent ? KijiColors.text : Colors.transparent, width: 2),
                         ),
                       ),
                     ),
@@ -510,8 +664,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onChanged: (value) => Navigator.pop(dialog, value),
                       child: Column(
                         children: [
-                          for (final a in AppSettings.accents)
-                            RadioListTile<String>(value: a, title: Text(name(a))),
+                          for (final a in AppSettings.accents) RadioListTile<String>(value: a, title: Text(name(a))),
                         ],
                       ),
                     ),
@@ -576,6 +729,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           value: ref.watch(settingsProvider).reduceMotion,
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(reduceMotion: value)),
         ),
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.modoAltoRendimiento,
+        subtitle: tx.modoAltoRendimientoDescripcion,
+        keywords: const [
+          'rendimiento',
+          'performance',
+          'fps',
+          'hz',
+          '120',
+          'fluido',
+          'smooth',
+          'blur',
+          'efectos',
+          'aurora',
+        ],
+        builder: (context, ref) => const HighPerformanceTile(),
       ),
       // Almacenamiento
       SettingOption(
@@ -818,7 +989,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       // Cuenta de Google opcional.
       SettingOption(
-        section: SettingsSection.account,
+        section: SettingsSection.privacy,
         title: tx.cuentaDeGoogleOpcional,
         subtitle: tx.soloParaCancionesQueYoutubeEntrega,
         keywords: ['cuenta', 'google', tx.iniciarSesion2, 'login', 'edad', tx.cerrarSesion],
@@ -835,7 +1006,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       // Registros e informes.
       SettingOption(
-        section: SettingsSection.reports,
+        section: SettingsSection.privacy,
         title: tx.guardarUnRegistroEnEsteDispositivo,
         subtitle: tx.ayudaAEntenderUnaFallaSin,
         keywords: const ['registro', 'log', 'errores', 'fallas', 'informe'],
@@ -847,7 +1018,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
       SettingOption(
-        section: SettingsSection.reports,
+        section: SettingsSection.privacy,
         title: tx.ofrecerUnInformeCuandoAlgoFalla,
         subtitle: tx.kijiPreguntaSiQuieresAvisarAl,
         keywords: const ['error', 'informe', 'github', 'reportar', 'fallas'],
@@ -859,7 +1030,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
       SettingOption(
-        section: SettingsSection.reports,
+        section: SettingsSection.privacy,
         title: tx.verElRegistroYLosInformes,
         subtitle: tx.leerElRegistroDescargarUnInforme,
         keywords: const ['registro', 'log', 'informe', 'txt', 'github', 'issue'],
@@ -888,7 +1059,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       // Actualizaciones
       SettingOption(
-        section: SettingsSection.updates,
+        section: SettingsSection.about,
         title: tx.buscarActualizaciones,
         subtitle: tx.unaVezPorDiaPreguntaA,
         keywords: const ['version', 'nueva', 'github', 'novedades', 'actualizar'],
@@ -900,7 +1071,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
       SettingOption(
-        section: SettingsSection.updates,
+        section: SettingsSection.about,
         title: tx.versionDeKiji,
         subtitle: tx.buscarAhoraYVerLasNovedades,
         keywords: ['version', tx.buscarAhora, 'novedades'],
@@ -908,7 +1079,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       // Copia de seguridad
       SettingOption(
-        section: SettingsSection.backup,
+        section: SettingsSection.privacy,
         title: tx.importarDesdeOtraApp,
         subtitle: tx.echoMetrolistInnertuneOutertuneM3uExport,
         keywords: const ['backup', 'respaldo', 'importar', 'exportar', 'spotify', 'csv', 'm3u', 'metrolist', 'echo'],
@@ -921,7 +1092,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
       SettingOption(
-        section: SettingsSection.backup,
+        section: SettingsSection.privacy,
         title: tx.copiaDeSeguridadDeKiji,
         subtitle: tx.copiaDiariaAutomaticaEnDocumentosKiji,
         keywords: const ['backup', 'respaldo', 'copia', 'restaurar', 'recuperar'],
@@ -957,18 +1128,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.about,
-        title: tx.novedadesDeEstaVersion,
-        subtitle: tx.novedadesDeEstaVersionDescripcion(kijiVersion),
-        keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new'], // l10n-ignore
+        title: tx.queHayDeNuevo,
+        subtitle: tx.queHayDeNuevoDescripcion,
+        keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new', 'nuevo', 'new'], // l10n-ignore
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.auto_awesome_outlined),
-          title: Text(tx.novedadesDeEstaVersion),
-          subtitle: Text(tx.novedadesDeEstaVersionDescripcion(kijiVersion)),
+          title: Text(tx.queHayDeNuevo),
+          subtitle: Text(tx.queHayDeNuevoDescripcion),
           trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () async {
-            final notes = await loadBundledWhatsNew(kijiLanguage);
-            if (context.mounted) await showWhatsNewSheet(context, notes ?? tx.estaVersionNoTraeNovedades);
-          },
+          onTap: () => WhatsNewScreen.open(context),
         ),
       ),
       SettingOption(
@@ -1051,6 +1219,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
+/// Tema y acento solo cambian Nocturne: en Grafito y Papel la opción se ve apagada y dice por qué.
+/// null en Nocturne.
+Widget? _onlyInNocturne(WidgetRef ref, IconData icon, String title) {
+  if (ref.watch(settingsProvider.select((s) => s.style)) == KijiStyle.nocturne.name) return null;
+  return ListTile(enabled: false, leading: Icon(icon), title: Text(title), subtitle: Text(tx.soloEnNocturne));
+}
+
 /// Una opción con varias alternativas (formato de hora, tema, acento…): muestra la elegida y,
 /// al tocarla, una lista para cambiarla.
 Widget choiceTile<T>(
@@ -1085,4 +1260,176 @@ Widget choiceTile<T>(
       if (picked != null && picked != value) onChanged(picked);
     },
   );
+}
+
+/// Tarjeta de una sección: ícono, nombre y descripción corta.
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.section, required this.onTap, this.selected = false});
+
+  final SettingsSection section;
+  final VoidCallback onTap;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Glass(
+      blur: false,
+      radius: KijiRadii.tile,
+      child: ListTile(
+        key: ValueKey('seccion-${section.name}'),
+        selected: selected,
+        selectedTileColor: KijiColors.violet.withValues(alpha: 0.14),
+        selectedColor: KijiColors.text,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        leading: Icon(section.icon, color: KijiColors.cyan),
+        title: Text(section.label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(section.description, style: TextStyle(color: KijiColors.muted)),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+/// Una sección de Configuración en su propia pantalla (teléfono).
+class SettingsSectionScreen extends StatelessWidget {
+  const SettingsSectionScreen({super.key, required this.section, required this.options, this.highlight});
+
+  final SettingsSection section;
+  final List<SettingOption> Function() options;
+  final String? highlight;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(section.label)),
+    body: SettingsSectionView(section: section, options: options, highlight: highlight),
+  );
+}
+
+/// Los ajustes de una sección. Si viene de una búsqueda, va hasta [highlight] y lo resalta un
+/// momento.
+class SettingsSectionView extends ConsumerStatefulWidget {
+  const SettingsSectionView({
+    super.key,
+    required this.section,
+    required this.options,
+    this.highlight,
+    this.showTitle = false,
+  });
+
+  final SettingsSection section;
+  final List<SettingOption> Function() options;
+  final String? highlight;
+
+  /// En la PC, el nombre y la descripción de la sección arriba (en el teléfono van en la barra).
+  final bool showTitle;
+
+  @override
+  ConsumerState<SettingsSectionView> createState() => _SettingsSectionViewState();
+}
+
+class _SettingsSectionViewState extends ConsumerState<SettingsSectionView> {
+  final _target = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.highlight == null) return;
+    // Espera a que la pantalla termine de entrar y lleva el ajuste a la vista.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      final target = _target.currentContext;
+      if (target == null || !target.mounted) return;
+      await Scrollable.ensureVisible(
+        target,
+        alignment: 0.3,
+        duration: KijiEffects.still(target) ? Duration.zero : KijiMotion.emphasized,
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final options = widget.options().where((o) => o.section == widget.section).toList();
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+      children: [
+        if (widget.showTitle) ...[
+          Row(
+            children: [
+              Icon(widget.section.icon, color: KijiColors.cyan),
+              const SizedBox(width: 10),
+              Expanded(child: Text(widget.section.label, style: KijiText.title(size: 22))),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(widget.section.description, style: TextStyle(color: KijiColors.muted)),
+          const SizedBox(height: 14),
+        ],
+        Glass(
+          blur: false,
+          radius: KijiRadii.tile,
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              children: [
+                for (final option in options)
+                  option.title == widget.highlight
+                      ? SettingHighlight(key: _target, child: option.builder(context, ref))
+                      : option.builder(context, ref),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Resalta un ajuste un momento (el que se tocó en la búsqueda): un fondo del acento que se
+/// desvanece. Con "Reducir animaciones", se ve fijo un instante y se va sin fundido.
+class SettingHighlight extends StatefulWidget {
+  const SettingHighlight({super.key, required this.child});
+
+  static const duration = Duration(milliseconds: 2200);
+
+  final Widget child;
+
+  @override
+  State<SettingHighlight> createState() => _SettingHighlightState();
+}
+
+class _SettingHighlightState extends State<SettingHighlight> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: SettingHighlight.duration)..forward();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = KijiEffects.still(context);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, child) {
+        // Fijo los primeros 2/3 y después se desvanece (o se corta, sin animaciones).
+        final t = _c.value;
+        final strength = t < 0.66 ? 1.0 : (still ? 0.0 : 1 - (t - 0.66) / 0.34);
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: KijiColors.violet.withValues(alpha: 0.16 * strength),
+            border: Border(
+              left: BorderSide(color: KijiColors.violet.withValues(alpha: strength), width: 3),
+            ),
+          ),
+          child: child,
+        );
+      },
+      // Material propio: el efecto al tocar y los interruptores se pintan encima del resaltado.
+      child: Material(type: MaterialType.transparency, child: widget.child),
+    );
+  }
 }

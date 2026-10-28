@@ -22,7 +22,7 @@ String normalizeForSearch(String text) {
 /// "descargas" las opciones de "Download" con la app en inglés.
 const settingSynonyms = <List<String>>[
   ['idioma', 'language', 'lengua', 'ingles', 'english', 'espanol', 'spanish'],
-  ['tema', 'theme', 'oscuro', 'dark', 'claro', 'light', 'noche', 'night'],
+  ['tema', 'theme', 'oscuro', 'dark', 'claro', 'light', 'noche', 'night', 'negro', 'black', 'amoled'],
   ['color', 'colour', 'acento', 'accent', 'colores', 'colors'],
   ['tipografia', 'fuente', 'font', 'typeface', 'typography'],
   ['tamano', 'size', 'grande', 'big', 'large', 'pequeno', 'chico', 'small'],
@@ -43,6 +43,8 @@ const settingSynonyms = <List<String>>[
   ['registro', 'registros', 'log', 'logs', 'informe', 'report', 'error', 'bug', 'fallas'],
   ['traduccion', 'traducir', 'translation', 'translate'],
   ['volumen', 'volume', 'silencio', 'mute', 'silenciar'],
+  // "volumen" también lleva a lo que cambia cómo suena (ecualizador, sonido).
+  ['volumen', 'volume', 'sonido', 'sound', 'ecualizador', 'equalizer', 'audio'],
   ['transicion', 'crossfade', 'fundido', 'mezcla', 'fade'],
   ['borrar', 'eliminar', 'delete', 'remove', 'limpiar', 'clear', 'vaciar'],
   ['espacio', 'almacenamiento', 'storage', 'space', 'disco', 'disk', 'cache'],
@@ -51,6 +53,11 @@ const settingSynonyms = <List<String>>[
   ['cola', 'queue'],
   ['reproductor', 'player', 'reproduccion', 'playback', 'audio', 'sonido', 'sound'],
   ['apariencia', 'appearance', 'aspecto', 'look', 'personalizar', 'personalizacion', 'customize'],
+  ['estilo', 'style', 'nocturne', 'grafito', 'graphite', 'papel', 'paper', 'diseno', 'design'],
+  ['rendimiento', 'performance', 'fps', 'hz', 'fluido', 'smooth', 'onda', 'wave'],
+  ['bateria', 'battery', 'energia', 'power', 'ahorro'],
+  ['pc', 'computadora', 'computer', 'windows', 'escritorio', 'desktop', 'bandeja', 'tray', 'atajos', 'shortcuts'],
+  ['columnas', 'columns', 'vista', 'view', 'escaparate', 'showcase', 'simple', 'completo', 'horizontal'],
 ];
 
 /// La palabra buscada y sus sinónimos. Con 3 letras o más también vale el comienzo de una

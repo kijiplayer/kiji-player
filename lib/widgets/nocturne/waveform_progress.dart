@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../features/loudness/domain/loudness.dart';
 import '../../theme/kiji_tokens.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -25,7 +26,8 @@ List<double> waveformBars(String seed, int count) {
 }
 
 /// Barra de progreso como **forma de onda**: barras finas; lo
-/// reproducido en violeta → cian y lo que falta en blanco 16 %. Se toca o se
+/// reproducido en violeta → cian y lo que falta en blanco 16 % (Grafito: blanco y blanco 18 %;
+/// Papel: tinta y #CFCAC0). Se toca o se
 /// arrastra para buscar. Con [marker], una luna sobre la onda marca dónde se
 /// va a pausar (temporizador "momento exacto").
 class WaveformProgress extends StatefulWidget {
@@ -40,6 +42,8 @@ class WaveformProgress extends StatefulWidget {
     this.marker,
     this.alive = false,
     this.animateIn = false,
+    this.loudness,
+    this.position = Duration.zero,
   });
 
   final String seed;
@@ -58,6 +62,13 @@ class WaveformProgress extends StatefulWidget {
   /// Se dibuja de izquierda a derecha al aparecer.
   final bool animateIn;
 
+  /// Volumen real de la canción (modo alto rendimiento): con [alive], las barras cerca de la
+  /// posición saltan con la música. null = el movimiento suave de siempre.
+  final Loudness? loudness;
+
+  /// Posición de la canción (para sincronizar con [loudness]).
+  final Duration position;
+
   @override
   State<WaveformProgress> createState() => _WaveformProgressState();
 }
@@ -71,26 +82,52 @@ class _WaveformProgressState extends State<WaveformProgress> with TickerProvider
   );
   late final AnimationController _live = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
 
+  // En segundo plano (o minimizada en la PC) la onda no se mueve.
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(onStateChange: (_) => _syncLive());
+
+  // La posición llega cada ~200 ms: entre medio se avanza con el reloj, para que se vea fluido.
+  Duration _anchor = Duration.zero;
+  final _sinceAnchor = Stopwatch();
+
+  bool get _shouldMove =>
+      widget.alive &&
+      (WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed) == AppLifecycleState.resumed;
+
+  void _syncLive() {
+    if (_shouldMove && !_live.isAnimating) {
+      _live.repeat();
+    } else if (!_shouldMove && _live.isAnimating) {
+      _live.stop();
+    }
+  }
+
+  void _setAnchor() {
+    _anchor = widget.position;
+    _sinceAnchor
+      ..reset()
+      ..start();
+  }
+
   @override
   void initState() {
     super.initState();
+    _lifecycle;
+    _setAnchor();
     if (widget.animateIn) _reveal.forward();
-    if (widget.alive) _live.repeat();
+    _syncLive();
   }
 
   @override
   void didUpdateWidget(WaveformProgress old) {
     super.didUpdateWidget(old);
     if (old.seed != widget.seed && widget.animateIn) _reveal.forward(from: 0);
-    if (widget.alive && !_live.isAnimating) {
-      _live.repeat();
-    } else if (!widget.alive && _live.isAnimating) {
-      _live.stop();
-    }
+    if (old.position != widget.position) _setAnchor();
+    _syncLive();
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _reveal.dispose();
     _live.dispose();
     super.dispose();
@@ -100,67 +137,72 @@ class _WaveformProgressState extends State<WaveformProgress> with TickerProvider
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final count = max(8, (width / (widget.barWidth + widget.gap)).floor());
-        final bars = waveformBars(widget.seed, count);
-        final progress = (_drag ?? widget.progress).clamp(0.0, 1.0);
+    // Capa propia: la onda se anima sola sin redibujar lo que la rodea.
+    return RepaintBoundary(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final count = max(8, (width / (widget.barWidth + widget.gap)).floor());
+          final bars = waveformBars(widget.seed, count);
+          final progress = (_drag ?? widget.progress).clamp(0.0, 1.0);
 
-        return Semantics(
-          slider: true,
-          label: tx.progresoDeLaCancion,
-          value: '${(progress * 100).round()} %',
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapUp: (details) => widget.onSeek(_fraction(details.localPosition, width)),
-            onHorizontalDragStart: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
-            onHorizontalDragUpdate: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
-            onHorizontalDragEnd: (_) {
-              final value = _drag;
-              setState(() => _drag = null);
-              if (value != null) widget.onSeek(value);
-            },
-            child: SizedBox(
-              height: widget.height,
-              width: width,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: AnimatedBuilder(
-                      animation: Listenable.merge([_reveal, _live]),
-                      builder: (context, _) => CustomPaint(
-                        painter: _WaveformPainter(
-                          bars: bars,
-                          progress: progress,
-                          barWidth: widget.barWidth,
-                          gap: widget.gap,
-                          marker: widget.marker,
-                          reveal: Curves.easeOutCubic.transform(_reveal.value),
-                          phase: widget.alive ? _live.value : null,
+          return Semantics(
+            slider: true,
+            label: tx.progresoDeLaCancion,
+            value: '${(progress * 100).round()} %',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: (details) => widget.onSeek(_fraction(details.localPosition, width)),
+              onHorizontalDragStart: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
+              onHorizontalDragUpdate: (details) => setState(() => _drag = _fraction(details.localPosition, width)),
+              onHorizontalDragEnd: (_) {
+                final value = _drag;
+                setState(() => _drag = null);
+                if (value != null) widget.onSeek(value);
+              },
+              child: SizedBox(
+                height: widget.height,
+                width: width,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge([_reveal, _live]),
+                        builder: (context, _) => CustomPaint(
+                          painter: _WaveformPainter(
+                            bars: bars,
+                            progress: progress,
+                            barWidth: widget.barWidth,
+                            gap: widget.gap,
+                            marker: widget.marker,
+                            reveal: Curves.easeOutCubic.transform(_reveal.value),
+                            phase: _live.isAnimating ? _live.value : null,
+                            loudness: _live.isAnimating ? widget.loudness : null,
+                            time: _anchor + Duration(milliseconds: min(1000, _sinceAnchor.elapsedMilliseconds)),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  if (widget.marker != null)
-                    Positioned(
-                      left: (widget.marker!.clamp(0.0, 1.0) * width) - 9,
-                      top: -16,
-                      child: Icon(
-                        Icons.bedtime_rounded,
-                        key: const Key('waveform-moon'),
-                        size: 18,
-                        color: KijiColors.cyan,
-                        semanticLabel: tx.pausaDelTemporizador,
+                    if (widget.marker != null)
+                      Positioned(
+                        left: (widget.marker!.clamp(0.0, 1.0) * width) - 9,
+                        top: -16,
+                        child: Icon(
+                          Icons.bedtime_rounded,
+                          key: const Key('waveform-moon'),
+                          size: 18,
+                          color: KijiColors.cyan,
+                          semanticLabel: tx.pausaDelTemporizador,
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -174,6 +216,8 @@ class _WaveformPainter extends CustomPainter {
     this.marker,
     this.reveal = 1,
     this.phase,
+    this.loudness,
+    this.time = Duration.zero,
   });
 
   final List<double> bars;
@@ -183,6 +227,13 @@ class _WaveformPainter extends CustomPainter {
 
   /// Fase (0..1) del movimiento suave de las barras, o null si están quietas.
   final double? phase;
+
+  /// Volumen real (solo mientras se mueve) y el momento de la canción que se dibuja.
+  final Loudness? loudness;
+  final Duration time;
+
+  /// El estilo con el que se dibujó (cambia los colores de la onda).
+  final KijiStyle style = KijiLook.style;
   final double? marker;
   final double progress;
   final double barWidth;
@@ -190,19 +241,7 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final played = Paint()..shader = KijiColors.accentGradient.createShader(Offset.zero & size);
-    final rest = Paint()..color = KijiColors.waveRest;
-    final step = size.width / bars.length;
-    final radius = Radius.circular(barWidth / 2);
-
-    final visible = (bars.length * reveal).ceil();
-    for (var i = 0; i < visible; i++) {
-      final wobble = phase == null ? 1.0 : 0.88 + 0.12 * sin(2 * pi * (phase! + i / 14));
-      final h = max(barWidth, bars[i] * wobble * size.height);
-      final x = i * step + (step - barWidth) / 2;
-      final rect = RRect.fromRectAndRadius(Rect.fromLTWH(x, (size.height - h) / 2, barWidth, h), radius);
-      canvas.drawRRect(rect, (i + 0.5) / bars.length <= progress ? played : rest);
-    }
+    _paintBars(canvas, size);
     final mark = marker;
     if (mark != null) {
       // Línea fina debajo de la luna.
@@ -217,12 +256,44 @@ class _WaveformPainter extends CustomPainter {
     }
   }
 
+  void _paintBars(Canvas canvas, Size size) {
+    // En Grafito y Papel el acento es un solo color: la onda queda monocroma (blanco o tinta).
+    final played = Paint()..shader = KijiColors.accentGradient.createShader(Offset.zero & size);
+    final rest = Paint()..color = KijiColors.waveRest;
+    final step = size.width / bars.length;
+    final radius = Radius.circular(barWidth / 2);
+
+    final visible = (bars.length * reveal).ceil();
+    final live = loudness;
+    final playhead = progress * bars.length - 0.5;
+    for (var i = 0; i < visible; i++) {
+      final double height;
+      // Lejos de la posición la barra en vivo es igual a la de siempre: no se calcula.
+      if (live != null && (i - playhead).abs() <= 12) {
+        // Cada barra mira el volumen un poco antes o después (80 ms por barra): la onda fluye.
+        final level = live.at(time + Duration(milliseconds: ((i - playhead) * 80).round()));
+        height = liveBarHeight(base: bars[i], index: i, playhead: playhead, level: level);
+      } else {
+        final wobble = phase == null ? 1.0 : 0.88 + 0.12 * sin(2 * pi * (phase! + i / 14));
+        height = bars[i] * wobble;
+      }
+      final h = max(barWidth, height * size.height);
+      final x = i * step + (step - barWidth) / 2;
+      final rect = RRect.fromRectAndRadius(Rect.fromLTWH(x, (size.height - h) / 2, barWidth, h), radius);
+      canvas.drawRRect(rect, (i + 0.5) / bars.length <= progress ? played : rest);
+    }
+  }
+
   @override
   bool shouldRepaint(_WaveformPainter old) =>
+      // Al cambiar de estilo cambian los colores.
+      old.style != style ||
       old.progress != progress ||
       old.bars != bars ||
       old.barWidth != barWidth ||
       old.marker != marker ||
       old.reveal != reveal ||
-      old.phase != phase;
+      old.phase != phase ||
+      old.loudness != loudness ||
+      old.time != time;
 }

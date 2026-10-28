@@ -5,6 +5,7 @@ import '../models/track.dart';
 import '../providers/playback_provider.dart';
 import '../screens/player/player_screen.dart';
 import '../theme/kiji_tokens.dart';
+import 'nocturne/micro_motion.dart';
 import 'album_cover.dart';
 import 'global_mini_player.dart';
 import 'nocturne/glass.dart';
@@ -30,8 +31,9 @@ class MiniPlayer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playback = ref.watch(playbackProvider);
-    final track = playback.track;
+    // Solo la canción y si suena: la posición cambia varias veces por segundo y la mira solo la
+    // línea de progreso (abajo), así el vidrio con desenfoque no se redibuja entero cada vez.
+    final (track, isPlaying) = ref.watch(playbackProvider.select((p) => (p.track, p.isPlaying)));
     if (track == null) return const SizedBox.shrink();
     BuildContext nav() => useAppNavigator ? (kijiNavigatorKey.currentContext ?? context) : context;
 
@@ -54,6 +56,7 @@ class MiniPlayer extends ConsumerWidget {
                     else
                       Hero(
                         tag: coverHeroTag(track),
+                        curve: KijiLook.museum ? KijiMotion.spring : Curves.fastOutSlowIn,
                         child: TrackArtwork(track: track, size: 44, radius: 12),
                       ),
                     const SizedBox(width: 12),
@@ -89,32 +92,51 @@ class MiniPlayer extends ConsumerWidget {
                       color: KijiColors.text,
                       tooltip: tx.agregarAPlaylist,
                     ),
-                    IconButton(
-                      onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),
-                      icon: Icon(playback.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                      iconSize: 32,
-                      color: KijiColors.text,
-                      tooltip: playback.isPlaying ? tx.pausar : tx.reproducir,
+                    PressScale(
+                      child: IconButton(
+                        onPressed: () => ref.read(playbackProvider.notifier).togglePlayPause(),
+                        icon: PopSwitcher(
+                          child: Icon(
+                            isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                            key: ValueKey(isPlaying),
+                          ),
+                        ),
+                        iconSize: 32,
+                        color: KijiColors.text,
+                        tooltip: isPlaying ? tx.pausar : tx.reproducir,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
             // Línea de progreso degradada de 2 px.
-            SizedBox(
-              height: KijiSizes.progressLine,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: playback.progress.clamp(0.0, 1.0),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(gradient: KijiColors.accentGradient),
-                    child: const SizedBox.expand(),
-                  ),
-                ),
-              ),
-            ),
+            const RepaintBoundary(child: _MiniProgress()),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// La línea de progreso del mini-reproductor: es lo único que cambia con la posición.
+class _MiniProgress extends ConsumerWidget {
+  const _MiniProgress();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // En milésimas: no hace falta redibujar por cambios que no se ven.
+    final progress = ref.watch(playbackProvider.select((p) => (p.progress.clamp(0.0, 1.0) * 1000).round()));
+    return SizedBox(
+      height: KijiSizes.progressLine,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: progress / 1000,
+          child: DecoratedBox(
+            decoration: BoxDecoration(gradient: KijiColors.accentGradient),
+            child: const SizedBox.expand(),
+          ),
         ),
       ),
     );

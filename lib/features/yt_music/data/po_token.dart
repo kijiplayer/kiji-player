@@ -17,6 +17,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import '../../../utils/idle_closer.dart';
+
 /// Genera PO tokens. Interfaz propia: donde no hay WebView,
 /// [isSupported] es false y las formas web quedan sin token.
 abstract class PoTokenProvider {
@@ -24,6 +26,9 @@ abstract class PoTokenProvider {
 
   /// Token ligado a [identifier] (el visitorData), o null si no se pudo.
   Future<String?> tokenFor(String identifier);
+
+  /// Cierra la WebView (al cerrar Kiji, antes de que se apague el motor de Flutter).
+  Future<void> close();
 }
 
 class NoPoTokens implements PoTokenProvider {
@@ -32,6 +37,8 @@ class NoPoTokens implements PoTokenProvider {
   bool get isSupported => false;
   @override
   Future<String?> tokenFor(String identifier) async => null;
+  @override
+  Future<void> close() async {}
 }
 
 /// Desafío de BotGuard tal como lo usa la página.
@@ -136,6 +143,34 @@ class WebViewPoTokens implements PoTokenProvider {
   final Map<String, String> _tokens = {};
   Future<void> _queue = Future.value();
 
+  /// La WebView de BotGuard solo hace falta para generar tokens nuevos: se cierra tras 5 minutos
+  /// sin uso. Los tokens ya generados siguen sirviendo hasta que vencen ([_expires]).
+  static const idleTimeout = Duration(minutes: 5);
+  late final IdleCloser _idle = IdleCloser(idleTimeout, () {
+    _queue = _queue.then((_) => _closeIdle('sin uso hace ${idleTimeout.inMinutes} min'));
+  });
+
+  @override
+  Future<void> close() {
+    _idle.cancel();
+    final done = _queue.then((_) => _closeIdle('Kiji se cierra'));
+    _queue = done;
+    return done;
+  }
+
+  Future<void> _closeIdle(String why) async {
+    final webView = _webView;
+    if (webView == null) return;
+    _webView = null;
+    _starting = null;
+    try {
+      await webView.dispose();
+      debugPrint('=== YTM potoken: WebView cerrada ($why) ===');
+    } catch (error) {
+      debugPrint('=== YTM potoken: al cerrar la WebView: $error ===');
+    }
+  }
+
   @override
   bool get isSupported =>
       !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
@@ -144,6 +179,7 @@ class WebViewPoTokens implements PoTokenProvider {
   Future<String?> tokenFor(String identifier) {
     final result = _queue.then((_) => _tokenFor(identifier));
     _queue = result.then((_) {}, onError: (_) {});
+    result.whenComplete(_idle.touch).ignore();
     return result;
   }
 

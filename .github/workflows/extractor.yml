@@ -73,7 +73,7 @@ jobs:
           if [ "$resultado" = falla ] && [ "$seguidas" -ge "$DIAS_PARA_AVISAR" ]; then avisar=true; else avisar=false; fi
           echo "avisar=$avisar" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: estado-extractor
           path: estado/estado.json

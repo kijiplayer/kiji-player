@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -96,6 +97,51 @@ void main() {
     await tester.tap(find.text('Quitar de la playlist'));
     await tester.pump();
     expect(removedKeys, {'a', 'b'});
+    expect(selection.active, isFalse);
+  });
+
+  testWidgets('PC: Esc quita la selección y Ctrl+A elige todas (no mientras se escribe)', (tester) async {
+    final selection = TrackSelection();
+    final all = {'a': _t('a'), 'b': _t('b'), 'c': _t('c')};
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const TextField(),
+                SelectionBar(selection: selection, all: all),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Sin selección, no hacen nada.
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyA);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    expect(selection.active, isFalse);
+
+    selection.toggle('a', _t('a'));
+    await tester.pump();
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyA);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump();
+    expect(selection.length, 3);
+
+    // Mientras se escribe en un campo, Esc es del campo.
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    expect(selection.length, 3);
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
     expect(selection.active, isFalse);
   });
 }

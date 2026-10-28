@@ -1,6 +1,44 @@
 // l10n-ignore-file: textos técnicos (no se muestran en la interfaz).
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+/// Estilo de Kiji (Configuración → Apariencia): las mismas funciones con otro aspecto.
+/// Nocturne es el de fábrica.
+enum KijiStyle {
+  /// Oscuro, vidrio, aurora y acento en degradado.
+  nocturne,
+
+  /// Minimalista y serio: grises, el acento es el blanco, sin brillos ni degradados.
+  graphite,
+
+  /// Claro y tranquilo, como un libro: papel, tinta y un solo acento.
+  paper;
+
+  static KijiStyle parse(String? name) => values.asNameMap()[name] ?? nocturne;
+}
+
+/// El estilo activo. [KijiApp] lo pone (como la paleta) y redibuja todo al cambiarlo.
+abstract final class KijiLook {
+  static KijiStyle style = KijiStyle.nocturne;
+
+  static bool get nocturne => style == KijiStyle.nocturne;
+
+  /// Sin aurora, brillos ni degradados (Grafito y Papel).
+  static bool get flat => style != KijiStyle.nocturne;
+
+  /// Grafito: "vidrio de museo" (fondo de la portada en blanco y negro, vidrio esmerilado y
+  /// animaciones propias).
+  static bool get museum => style == KijiStyle.graphite;
+
+  /// Esquinas de las portadas: las de cada pantalla en Nocturne; como mucho 6 px en Grafito y 4 en Papel.
+  static double cover(double radius) => switch (style) {
+    KijiStyle.nocturne => radius,
+    KijiStyle.graphite => math.min(radius, 6),
+    KijiStyle.paper => math.min(radius, 4),
+  };
+}
 
 /// Tokens de diseño de **Kiji Nocturne**. Todo color, radio, tamaño y tipografía de la app sale
 /// de aquí, para cambiarlos en un solo lugar.
@@ -21,6 +59,7 @@ class KijiPalette {
     required this.waveRest,
     required this.surface,
     required this.surfaceHigh,
+    this.like,
   });
 
   final Brightness brightness;
@@ -38,16 +77,29 @@ class KijiPalette {
   final Color surface;
   final Color surfaceHigh;
 
+  /// Color del "me gusta" (null = el primer color del acento).
+  final Color? like;
+
   bool get isLight => brightness == Brightness.light;
 
-  List<Object> get _fields => [
-    brightness, background, violet, cyan, onAccent, text, muted, glassFill, glassBorder, waveRest, surface,
+  List<Object?> get _fields => [
+    brightness,
+    background,
+    violet,
+    cyan,
+    onAccent,
+    text,
+    muted,
+    glassFill,
+    glassBorder,
+    waveRest,
+    surface,
     surfaceHigh,
+    like,
   ];
 
   @override
-  bool operator ==(Object other) =>
-      other is KijiPalette && listEquals(_fields, other._fields);
+  bool operator ==(Object other) => other is KijiPalette && listEquals(_fields, other._fields);
 
   @override
   int get hashCode => Object.hashAll(_fields);
@@ -68,6 +120,48 @@ class KijiPalette {
     surfaceHigh: Color(0xFF1A1A28),
   );
 
+  /// Grafito: fondo #0F0F10, superficies #1A1A1D, texto #F2F2F2 y secundario #9A9A9E; vidrio de
+  /// blanco 7 % con borde de blanco 10 %. Sin color de acento: el acento es el blanco.
+  static const graphite = KijiPalette(
+    brightness: Brightness.dark,
+    background: Color(0xFF0F0F10),
+    violet: Color(0xFFF2F2F2),
+    cyan: Color(0xFFF2F2F2),
+    onAccent: Color(0xFF0F0F10),
+    text: Color(0xFFF2F2F2),
+    muted: Color(0xFF9A9A9E),
+    glassFill: Color(0x12FFFFFF), // vidrio esmerilado: blanco 7 %
+    glassBorder: Color(0x1AFFFFFF), // blanco 10 %
+    waveRest: Color(0x2EFFFFFF), // blanco 18 %
+    surface: Color(0xFF1A1A1D),
+    surfaceHigh: Color(0xFF1A1A1D),
+  );
+
+  /// Papel: fondo #F3F1EC, tinta #1B1B1A, secundario #5E5B55 y líneas #D9D5CC. El único color es
+  /// #B4462B, el del "me gusta"; el resto de lo activo va en tinta.
+  static const paper = KijiPalette(
+    brightness: Brightness.light,
+    background: Color(0xFFF3F1EC),
+    violet: Color(0xFF1B1B1A),
+    cyan: Color(0xFF1B1B1A),
+    onAccent: Color(0xFFF3F1EC),
+    text: Color(0xFF1B1B1A),
+    muted: Color(0xFF5E5B55),
+    glassFill: Color(0xFFF9F8F4),
+    glassBorder: Color(0xFFD9D5CC),
+    waveRest: Color(0xFFCFCAC0),
+    surface: Color(0xFFF9F8F4),
+    surfaceHigh: Color(0xFFF9F8F4),
+    like: Color(0xFFB4462B),
+  );
+
+  /// La paleta de [style]: Nocturne con el [theme] y el [accent] elegidos; Grafito y Papel son fijos.
+  static KijiPalette forStyle(KijiStyle style, {String theme = 'dark', String accent = 'nocturne'}) => switch (style) {
+    KijiStyle.graphite => graphite,
+    KijiStyle.paper => paper,
+    KijiStyle.nocturne => resolve(theme: theme, accent: accent),
+  };
+
   /// Acentos (el primer color y el segundo del degradado). En el tema claro el segundo se
   /// oscurece un poco para que se lea sobre blanco.
   static const accents = <String, (Color, Color)>{
@@ -77,6 +171,16 @@ class KijiPalette {
     'mint': (Color(0xFF2EE6A6), Color(0xFF3DB8FF)),
     'ocean': (Color(0xFF3D7BFF), Color(0xFF3DF5FF)),
   };
+
+  /// [color] oscurecido de a poco hasta tener contraste de 4,5:1 con el blanco encima y con el
+  /// fondo claro (#F4F4FA) detrás: luminancia de 0,16 como mucho.
+  static Color _readableUnderWhite(Color color) {
+    var c = color;
+    while (c.computeLuminance() > 0.16) {
+      c = Color.lerp(c, Colors.black, 0.05)!;
+    }
+    return c;
+  }
 
   /// La paleta para el [theme] ('dark', 'darker' o 'light') y el [accent] elegidos.
   static KijiPalette resolve({String theme = 'dark', String accent = 'nocturne'}) {
@@ -100,8 +204,9 @@ class KijiPalette {
       'light' => KijiPalette(
         brightness: Brightness.light,
         background: const Color(0xFFF4F4FA),
-        violet: Color.lerp(first, Colors.black, 0.08)!,
-        cyan: Color.lerp(second, Colors.black, 0.35)!,
+        // Oscurecidos lo justo para que el texto blanco encima (pestaña elegida, play) se lea.
+        violet: _readableUnderWhite(Color.lerp(first, Colors.black, 0.08)!),
+        cyan: _readableUnderWhite(Color.lerp(second, Colors.black, 0.35)!),
         onAccent: Colors.white,
         text: const Color(0xFF14141F),
         muted: const Color(0xFF5C5C78),
@@ -161,17 +266,44 @@ abstract final class KijiColors {
   static Color get surface => palette.surface;
   static Color get surfaceHigh => palette.surfaceHigh;
 
-  static LinearGradient get accentGradient => LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [violet, cyan],
-  );
+  /// El "me gusta".
+  static Color get like => palette.like ?? palette.violet;
 
-  static LinearGradient get accentGradientDiagonal => LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [violet, cyan],
-  );
+  static LinearGradient get accentGradient =>
+      LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [violet, cyan]);
+
+  static LinearGradient get accentGradientDiagonal =>
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [violet, cyan]);
+}
+
+/// Medidas del "vidrio de museo" de Grafito. Son bajas a propósito: el texto secundario tiene que
+/// seguir con contraste de 4,5:1 aunque la portada sea blanca (lo comprueba `test/style_test.dart`).
+abstract final class KijiMuseum {
+  /// Fondo del reproductor: la portada en blanco y negro, oscurecida a este brillo y con esta opacidad.
+  static const backdropBrightness = 0.85;
+  static const backdropOpacity = 0.14;
+
+  /// Grano de película (alto rendimiento): opacidad máxima de los puntos claros y de los oscuros
+  /// (los oscuros no le quitan contraste al texto claro, así que pueden ser más).
+  static const grainOpacity = 0.02;
+  static const grainDarkOpacity = 0.08;
+
+  /// El brillo que recorre el vidrio de la portada al abrir el reproductor (no hay texto encima).
+  static const sheenOpacity = 0.18;
+
+  /// Luz que respira detrás de la portada (alto rendimiento): opacidad máxima del halo blanco, su
+  /// desenfoque y cuánto se corre hacia abajo (lejos del texto chico de arriba de la portada).
+  static const haloOpacity = 0.22;
+  static const haloBlur = 48.0;
+  static const haloShift = 28.0;
+
+  /// Reflejo en el vidrio de la portada (sigue la inclinación del teléfono o el mouse).
+  static const reflectionOpacity = 0.12;
+
+  /// Paneles sobre cualquier contenido (mini-reproductor, barra de navegación, hojas): vidrio
+  /// ahumado que deja ver el 12 % de lo de atrás. Es lo máximo para que el texto gris (#9A9A9E) siga
+  /// en 4,5:1 aunque detrás haya una portada blanca.
+  static const pane = Color(0xE0161617);
 }
 
 abstract final class KijiRadii {
@@ -191,6 +323,20 @@ abstract final class KijiSizes {
   static const progressLine = 2.0;
 }
 
+/// Efectos visuales elegidos en Configuración → Apariencia. KijiApp los pone al abrir y al
+/// cambiarlos (y redibuja todo), igual que la paleta.
+abstract final class KijiEffects {
+  /// "Modo alto rendimiento": animaciones a la frecuencia máxima de la pantalla, más partículas,
+  /// desenfoques reales y colores más intensos. Apagado de fábrica.
+  static bool rich = false;
+
+  /// "Reducir animaciones" de Kiji (el del sistema se mira con MediaQuery en cada widget).
+  static bool calm = false;
+
+  /// true si hay que evitar el movimiento decorativo en [context].
+  static bool still(BuildContext context) => calm || MediaQuery.disableAnimationsOf(context);
+}
+
 abstract final class KijiMotion {
   /// Transiciones de 200-300 ms.
   static const fast = Duration(milliseconds: 200);
@@ -201,7 +347,14 @@ abstract final class KijiMotion {
 
   /// Movimientos con protagonismo (carátula que se expande).
   static const emphasized = Duration(milliseconds: 350);
-  static const emphasizedCurve = Curves.easeInOutCubicEmphasized;
+
+  /// Curva de lo que tiene protagonismo: un resorte en Grafito, la de Material en los demás.
+  static Curve get emphasizedCurve => KijiLook.museum ? spring : Curves.easeInOutCubicEmphasized;
+
+  /// Resorte (Grafito): nada se mueve en línea recta ni con una curva fija; llega con un rebote
+  /// apenas visible. [softSpring] casi no rebota (para lo que entra desde el borde de la pantalla).
+  static const spring = SpringCurve();
+  static const softSpring = SpringCurve(damping: 0.9);
 
   /// Demora entre ítems de una lista que entra escalonada.
   static const stagger = Duration(milliseconds: 40);
@@ -210,7 +363,27 @@ abstract final class KijiMotion {
   static const waveReveal = Duration(milliseconds: 600);
 }
 
-/// Tipografía: Space Grotesk para títulos y JetBrains Mono para tiempos y
+/// Curva que sigue a un resorte real (amortiguado): sale rápido, se pasa un poco de la meta y se
+/// asienta. [damping] 1 = sin rebote. Termina exactamente en 1.
+class SpringCurve extends Curve {
+  const SpringCurve({this.damping = 0.78});
+
+  final double damping;
+
+  @override
+  double transformInternal(double t) {
+    if (t >= 1) return 1;
+    // Frecuencia elegida para que el resorte quede quieto (error < 0,2 %) justo al final.
+    final w = 6.5 / damping;
+    final decay = math.exp(-damping * w * t);
+    if (damping >= 1) return 1 - decay * (1 + w * t);
+    final wd = w * math.sqrt(1 - damping * damping);
+    return 1 - decay * (math.cos(wd * t) + damping * w / wd * math.sin(wd * t));
+  }
+}
+
+/// Tipografía de cada estilo (Nocturne: Space Grotesk y JetBrains Mono; Grafito: Inter; Papel:
+/// Newsreader e Inter). Space Grotesk para títulos y JetBrains Mono para tiempos y
 /// números. Son fuentes variables: el peso se pide con `fontVariations`
 /// (además de `fontWeight`) para que se vea igual en todas las plataformas.
 abstract final class KijiText {
@@ -218,27 +391,41 @@ abstract final class KijiText {
   /// fuente del teléfono o la PC (null = la de siempre del sistema).
   static bool useSystemFont = false;
 
-  static String? get titleFamily => useSystemFont ? null : 'SpaceGrotesk';
-  static String? get monoFamily => useSystemFont ? null : 'JetBrainsMono';
+  static String? get titleFamily => useSystemFont ? null : titleFamilyOf(KijiLook.style);
 
-  static TextStyle title({double size = 20, FontWeight weight = FontWeight.w700, Color? color}) =>
-      TextStyle(
-        fontFamily: titleFamily,
-        fontSize: size,
-        fontWeight: weight,
-        fontVariations: [FontVariation('wght', weight.value.toDouble())],
-        color: color ?? KijiColors.text,
-        height: 1.15,
-      );
+  /// Letra de los títulos de cada estilo (también para las miniaturas de la elección de estilo).
+  static String titleFamilyOf(KijiStyle style) => switch (style) {
+    KijiStyle.nocturne => 'SpaceGrotesk',
+    KijiStyle.graphite => 'Inter',
+    KijiStyle.paper => 'Newsreader',
+  };
 
-  static TextStyle mono({double size = 12, FontWeight weight = FontWeight.w500, Color? color}) =>
-      TextStyle(
-        fontFamily: monoFamily,
-        fontSize: size,
-        fontWeight: weight,
-        fontVariations: [FontVariation('wght', weight.value.toDouble())],
-        color: color ?? KijiColors.muted,
-        letterSpacing: 0.5,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      );
+  /// Letra del cuerpo en Grafito y Papel.
+  static const inter = 'Inter';
+
+  /// Tiempos y números: JetBrains Mono en Nocturne; Inter (con cifras tabulares) en los demás.
+  static String? get monoFamily => useSystemFont ? null : (KijiLook.nocturne ? 'JetBrainsMono' : inter);
+
+  /// El resto del texto: el del sistema en Nocturne; Inter en Grafito y Papel.
+  static String? get bodyFamily => useSystemFont || KijiLook.nocturne ? null : inter;
+
+  static TextStyle title({double size = 20, FontWeight weight = FontWeight.w700, Color? color}) => TextStyle(
+    fontFamily: titleFamily,
+    fontSize: size,
+    fontWeight: weight,
+    fontVariations: [FontVariation('wght', weight.value.toDouble())],
+    color: color ?? KijiColors.text,
+    height: 1.15,
+  );
+
+  static TextStyle mono({double size = 12, FontWeight weight = FontWeight.w500, Color? color}) => TextStyle(
+    fontFamily: monoFamily,
+    fontSize: size,
+    fontWeight: weight,
+    fontVariations: [FontVariation('wght', weight.value.toDouble())],
+    color: color ?? KijiColors.muted,
+    // Papel: etiquetas chicas (en mayúsculas) con más espaciado.
+    letterSpacing: KijiLook.style == KijiStyle.paper ? 1.4 : 0.5,
+    fontFeatures: const [FontFeature.tabularFigures()],
+  );
 }

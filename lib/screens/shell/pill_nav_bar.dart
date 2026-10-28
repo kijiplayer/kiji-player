@@ -63,14 +63,14 @@ class PillNavBar extends ConsumerWidget {
       // la píldora a mitad del cambio (pasaba con textos largos, como en inglés).
       child: AnimatedContainer(
         duration: duration,
-        curve: Curves.easeOutCubic,
+        curve: KijiLook.museum ? KijiMotion.spring : Curves.easeOutCubic,
         height: 48,
         width: widths.fold<double>(0, (a, b) => a + b),
         child: Stack(
           children: [
             AnimatedPositioned(
               duration: duration,
-              curve: Curves.easeOutCubic,
+              curve: KijiLook.museum ? KijiMotion.spring : Curves.easeOutCubic,
               left: left,
               width: widths[index],
               top: 0,
@@ -137,7 +137,7 @@ class _PillItem extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: duration,
-          curve: Curves.easeOutCubic,
+          curve: KijiLook.museum ? KijiMotion.spring : Curves.easeOutCubic,
           width: width,
           height: 48,
           // Mientras cambia el ancho, lo que no entra se recorta (sin error de desborde).

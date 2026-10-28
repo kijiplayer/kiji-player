@@ -26,7 +26,10 @@ class QueueScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playback = ref.watch(playbackProvider);
+    // Sin la posición (cambia varias veces por segundo): la cola no la muestra.
+    final playback = ref.watch(
+      playbackProvider.select((p) => (queue: p.queue, currentIndex: p.currentIndex, isPlaying: p.isPlaying)),
+    );
     final queue = playback.queue;
     final upNext = queue.length - playback.currentIndex - 1;
 
@@ -66,7 +69,10 @@ class QueueList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playback = ref.watch(playbackProvider);
+    // Sin la posición (cambia varias veces por segundo): la cola no la muestra.
+    final playback = ref.watch(
+      playbackProvider.select((p) => (queue: p.queue, currentIndex: p.currentIndex, isPlaying: p.isPlaying)),
+    );
     final queue = playback.queue;
     final notifier = ref.read(playbackProvider.notifier);
     final timer = ref.watch(sleepTimerProvider);

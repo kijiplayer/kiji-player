@@ -9,6 +9,8 @@ import '../../models/track.dart';
 import '../../providers/appearance_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
+import '../../widgets/nocturne/aurora_background.dart';
+import 'museum.dart';
 
 /// Colores ya calculados (por id de canción), para no repetir el trabajo.
 final _coverColors = <String, Color>{};
@@ -24,11 +26,41 @@ Future<Color?> coverAccentFor(Track track, ImageProvider? image) async {
   return _coverColors[track.id] = scheme.primary;
 }
 
+/// Tres colores de la carátula (principal y dos parientes), ya calculados, por id de canción.
+final _coverPalettes = <String, List<Color>>{};
+
+/// Los colores de la aurora para [track]: los de la carátula si ya se calcularon; si no, el color
+/// guardado de la canción mezclado con el acento.
+List<Color> auroraColorsFor(Track track) => _withAccent(
+  _coverPalettes[track.id] ??
+      [
+        track.coverColor,
+        Color.lerp(track.coverColor, KijiColors.violet, 0.5)!,
+        Color.lerp(track.coverColor, KijiColors.cyan, 0.35)!,
+      ],
+);
+
+/// Las carátulas casi sin color (blanco y negro, sepia, crema) darían una aurora gris: se tiñen con
+/// el acento de Kiji, más cuanto menos color tienen (croma: saturación y luminosidad juntas).
+List<Color> _withAccent(List<Color> colors) {
+  final accents = [KijiColors.violet, KijiColors.cyan, KijiColors.violet];
+  return [
+    for (var i = 0; i < colors.length; i++)
+      Color.lerp(colors[i], accents[i % accents.length], _tint(colors[i]))!,
+  ];
+}
+
+double _tint(Color color) {
+  final hsl = HSLColor.fromColor(color);
+  final chroma = (1 - (2 * hsl.lightness - 1).abs()) * hsl.saturation;
+  return ((0.35 - chroma) / 0.35).clamp(0.0, 1.0) * 0.7;
+}
+
 /// Animaciones del reproductor. Todas se apagan con "Reducir
 /// animaciones".
 
-/// Halo del color **real** de la carátula detrás de todo: cambia con una
-/// transición suave al cambiar de canción y late suave mientras suena.
+/// Fondo del reproductor: la aurora con los colores **reales** de la carátula. Cambia con una
+/// transición suave al cambiar de canción y se mueve (muy despacio) mientras suena.
 class PlayerHalo extends ConsumerStatefulWidget {
   const PlayerHalo({super.key, required this.track, required this.playing});
 
@@ -39,75 +71,44 @@ class PlayerHalo extends ConsumerStatefulWidget {
   ConsumerState<PlayerHalo> createState() => _PlayerHaloState();
 }
 
-class _PlayerHaloState extends ConsumerState<PlayerHalo> with SingleTickerProviderStateMixin {
-  late final AnimationController _beat =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
-  late Color _color = _coverColors[widget.track.id] ?? widget.track.coverColor;
+class _PlayerHaloState extends ConsumerState<PlayerHalo> {
   String? _pendingFor;
-
-  @override
-  void dispose() {
-    _beat.dispose();
-    super.dispose();
-  }
 
   void _extract(ImageProvider? image) {
     final id = widget.track.id;
-    final known = _coverColors[id];
-    if (known != null) {
-      _color = known;
-      return;
-    }
-    _color = widget.track.coverColor;
-    if (image == null || _pendingFor == id) return;
+    if (_coverPalettes.containsKey(id) || image == null || _pendingFor == id) return;
     _pendingFor = id;
-    ColorScheme.fromImageProvider(provider: image, brightness: Brightness.dark).then((scheme) {
-      _coverColors[id] = scheme.primary;
-      if (mounted && widget.track.id == id) setState(() => _color = scheme.primary);
-    }, onError: (Object error) {
-      debugPrint('=== REPRODUCTOR: sin color de la carátula ($error) ===');
-    });
+    // "fidelity": los colores quedan fieles a la carátula (no tonos inventados).
+    ColorScheme.fromImageProvider(
+      provider: image,
+      brightness: Brightness.dark,
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+    ).then(
+      (scheme) {
+        _coverColors[id] ??= scheme.primary;
+        _coverPalettes[id] = [scheme.primary, scheme.tertiary, scheme.secondary];
+        if (mounted && widget.track.id == id) setState(() {});
+      },
+      onError: (Object error) {
+        debugPrint('=== REPRODUCTOR: sin color de la carátula ($error) ===');
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final still = reduceMotion(context, ref);
+    // Grafito: la portada en blanco y negro, desenfocada (sin aurora ni colores).
+    if (KijiLook.museum) return MuseumBackdrop(track: widget.track, playing: widget.playing);
     _extract(trackImageProvider(ref, widget.track));
-    if (widget.playing && !still && !_beat.isAnimating) {
-      _beat.repeat(reverse: true);
-    } else if ((!widget.playing || still) && _beat.isAnimating) {
-      _beat.stop();
-    }
-    return TweenAnimationBuilder<Color?>(
-      tween: ColorTween(end: _color),
-      duration: still ? Duration.zero : const Duration(milliseconds: 700),
-      builder: (context, color, _) => AnimatedBuilder(
-        animation: _beat,
-        builder: (context, _) {
-          final t = Curves.easeInOut.transform(_beat.value);
-          final c = color ?? _color;
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0, -0.35),
-                radius: 0.95 + 0.05 * t,
-                colors: [
-                  c.withValues(alpha: 0.42 + 0.08 * t),
-                  c.withValues(alpha: 0.12),
-                  KijiColors.background,
-                ],
-                stops: const [0, 0.45, 1],
-              ),
-            ),
-          );
-        },
-      ),
+    return AuroraBackground(
+      colors: auroraColorsFor(widget.track),
+      moving: widget.playing && !reduceMotion(context, ref),
     );
   }
 }
 
 /// La carátula entra con escala 0,9 → 1 al abrir el reproductor y, al cambiar
-/// de canción, la nueva entra deslizándose.
+/// de canción, la nueva entra deslizándose (Grafito: con un fundido y un leve zoom).
 class CoverMotion extends ConsumerWidget {
   const CoverMotion({super.key, required this.trackId, required this.child});
 
@@ -128,13 +129,20 @@ class CoverMotion extends ConsumerWidget {
         switchOutCurve: Curves.easeIn,
         transitionBuilder: (child, animation) {
           final incoming = child.key == ValueKey(trackId);
+          // Grafito: fundido con un leve zoom (la nueva llega de un poco más cerca).
+          if (KijiLook.museum) {
+            return FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: incoming ? 1.06 : 0.97, end: 1).animate(animation),
+                child: child,
+              ),
+            );
+          }
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
-              position: Tween<Offset>(
-                begin: Offset(incoming ? 0.35 : -0.35, 0),
-                end: Offset.zero,
-              ).animate(animation),
+              position: Tween<Offset>(begin: Offset(incoming ? 0.35 : -0.35, 0), end: Offset.zero).animate(animation),
               child: child,
             ),
           );

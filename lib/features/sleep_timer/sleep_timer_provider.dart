@@ -166,7 +166,7 @@ class SleepTimerNotifier extends Notifier<SleepTimerState?> {
       _ticker = null;
       state = null;
       final wasPlaying = playback.isPlaying;
-      await player.pause();
+      await player.pause(reason: 'temporizador de apagado'); // l10n-ignore
       await player.setFadeFactor(1);
       if (wasPlaying) {
         ref.read(playbackNoticeProvider.notifier).state = PlaybackNotice(tx.temporizadorLaMusicaQuedoEnPausa);

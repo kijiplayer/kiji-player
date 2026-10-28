@@ -6440,7 +6440,7 @@ abstract class AppLocalizations {
   /// No description provided for @tipografiaDescripcion.
   ///
   /// In es, this message translates to:
-  /// **'La de Kiji (Space Grotesk y JetBrains Mono) o la del sistema'**
+  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema'**
   String get tipografiaDescripcion;
 
   /// No description provided for @tipografiaKiji.
@@ -6460,6 +6460,618 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{n, plural, =1{No sonaba nada: empieza a sonar 1 canción} other{No sonaba nada: empiezan a sonar {n} canciones}}'**
   String nEmpiezanASonar(int n);
+
+  /// No description provided for @seccionPc.
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC'**
+  String get seccionPc;
+
+  /// No description provided for @alCerrarLaVentana.
+  ///
+  /// In es, this message translates to:
+  /// **'Al cerrar la ventana'**
+  String get alCerrarLaVentana;
+
+  /// No description provided for @alCerrarDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir sonando en la bandeja del sistema o cerrar Kiji del todo'**
+  String get alCerrarDescripcion;
+
+  /// No description provided for @alCerrarPreguntar.
+  ///
+  /// In es, this message translates to:
+  /// **'Preguntar'**
+  String get alCerrarPreguntar;
+
+  /// No description provided for @alCerrarBandeja.
+  ///
+  /// In es, this message translates to:
+  /// **'Minimizar a la bandeja'**
+  String get alCerrarBandeja;
+
+  /// No description provided for @alCerrarSalir.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir de Kiji'**
+  String get alCerrarSalir;
+
+  /// No description provided for @cerrarDialogoTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Qué hace la ✕?'**
+  String get cerrarDialogoTitulo;
+
+  /// No description provided for @cerrarDialogoTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede seguir sonando en la bandeja del sistema, junto al reloj, o cerrarse del todo. Puedes cambiarlo en Configuración → En la PC.'**
+  String get cerrarDialogoTexto;
+
+  /// No description provided for @bandejaAbrir.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir Kiji'**
+  String get bandejaAbrir;
+
+  /// No description provided for @bandejaSalir.
+  ///
+  /// In es, this message translates to:
+  /// **'Salir'**
+  String get bandejaSalir;
+
+  /// No description provided for @atajosGlobales.
+  ///
+  /// In es, this message translates to:
+  /// **'Atajos globales'**
+  String get atajosGlobales;
+
+  /// No description provided for @atajosGlobalesDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Controlan la música aunque Kiji no esté al frente o esté en la bandeja'**
+  String get atajosGlobalesDescripcion;
+
+  /// No description provided for @atajoPlayPausa.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducir o pausar'**
+  String get atajoPlayPausa;
+
+  /// No description provided for @atajoSiguiente.
+  ///
+  /// In es, this message translates to:
+  /// **'Canción siguiente'**
+  String get atajoSiguiente;
+
+  /// No description provided for @atajoAnterior.
+  ///
+  /// In es, this message translates to:
+  /// **'Canción anterior'**
+  String get atajoAnterior;
+
+  /// No description provided for @atajoSinAsignar.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin asignar'**
+  String get atajoSinAsignar;
+
+  /// No description provided for @atajoGrabar.
+  ///
+  /// In es, this message translates to:
+  /// **'Presiona la combinación, con Ctrl, Alt, Shift o Win'**
+  String get atajoGrabar;
+
+  /// No description provided for @atajoNecesitaModificador.
+  ///
+  /// In es, this message translates to:
+  /// **'Tiene que llevar Ctrl, Alt, Shift o Win (o ser una tecla F)'**
+  String get atajoNecesitaModificador;
+
+  /// No description provided for @atajoEnUso.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese atajo ya lo usa otra acción'**
+  String get atajoEnUso;
+
+  /// No description provided for @atajosDeFabrica.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a los de fábrica'**
+  String get atajosDeFabrica;
+
+  /// No description provided for @atajosAviso.
+  ///
+  /// In es, this message translates to:
+  /// **'Si otro programa ya usa la misma combinación, en Kiji no va a funcionar: elige otra.'**
+  String get atajosAviso;
+
+  /// No description provided for @controlesDeWindows.
+  ///
+  /// In es, this message translates to:
+  /// **'Controles multimedia de Windows'**
+  String get controlesDeWindows;
+
+  /// No description provided for @controlesDeWindowsDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'La canción aparece en el control de volumen y la pantalla de bloqueo; las teclas multimedia funcionan siempre'**
+  String get controlesDeWindowsDescripcion;
+
+  /// No description provided for @teclaEspacio.
+  ///
+  /// In es, this message translates to:
+  /// **'Espacio'**
+  String get teclaEspacio;
+
+  /// No description provided for @atajoOcupado.
+  ///
+  /// In es, this message translates to:
+  /// **'Otro programa ya usa este atajo: elige otro'**
+  String get atajoOcupado;
+
+  /// No description provided for @modoAltoRendimiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo alto rendimiento'**
+  String get modoAltoRendimiento;
+
+  /// No description provided for @modoAltoRendimientoDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Animaciones a la máxima frecuencia de la pantalla, más partículas, desenfoques reales y colores más intensos. Gasta más batería.'**
+  String get modoAltoRendimientoDescripcion;
+
+  /// No description provided for @modoAltoRendimientoGamaBaja.
+  ///
+  /// In es, this message translates to:
+  /// **'Este equipo es de gama baja: te conviene dejarlo apagado.'**
+  String get modoAltoRendimientoGamaBaja;
+
+  /// No description provided for @modoAltoRendimientoPantalla.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu pantalla llega a {hz} Hz.'**
+  String modoAltoRendimientoPantalla(int hz);
+
+  /// No description provided for @modoAltoRendimientoConfirmar.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Prenderlo igual?'**
+  String get modoAltoRendimientoConfirmar;
+
+  /// No description provided for @modoAltoRendimientoConfirmarTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'En este equipo puede ir más lento y gastar más batería. Puedes apagarlo cuando quieras.'**
+  String get modoAltoRendimientoConfirmarTexto;
+
+  /// No description provided for @prenderIgual.
+  ///
+  /// In es, this message translates to:
+  /// **'Prender igual'**
+  String get prenderIgual;
+
+  /// Título del pedido para quitar la optimización de batería de Android.
+  ///
+  /// In es, this message translates to:
+  /// **'Música sin cortes en segundo plano'**
+  String get bateriaTitulo;
+
+  /// No description provided for @bateriaExplicacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Con la pantalla apagada, Android puede frenar a Kiji para ahorrar batería y la música se corta (pasa mucho en Motorola, Xiaomi y Samsung). Si lo permites, Android deja a Kiji seguir sonando. Puedes cambiarlo cuando quieras en Configuración → Reproductor y audio.'**
+  String get bateriaExplicacion;
+
+  /// No description provided for @bateriaPermitir.
+  ///
+  /// In es, this message translates to:
+  /// **'Permitir'**
+  String get bateriaPermitir;
+
+  /// No description provided for @bateriaActiva.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo: Android no frena a Kiji en segundo plano.'**
+  String get bateriaActiva;
+
+  /// No description provided for @bateriaPendiente.
+  ///
+  /// In es, this message translates to:
+  /// **'Android puede frenar a Kiji con la pantalla apagada. Toca para permitir que siga sonando.'**
+  String get bateriaPendiente;
+
+  /// Campo para buscar canciones dentro de una playlist (título, artista o álbum).
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en la playlist'**
+  String get buscarEnLaPlaylist;
+
+  /// No description provided for @borrarBusqueda.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar la búsqueda'**
+  String get borrarBusqueda;
+
+  /// Configuración → Apariencia: Nocturne, Grafito o Papel.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo'**
+  String get estilo;
+
+  /// No description provided for @estiloDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Las mismas funciones con otro aspecto'**
+  String get estiloDescripcion;
+
+  /// Título de la pantalla para elegir el estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cómo quieres que se vea Kiji?'**
+  String get estiloPregunta;
+
+  /// No description provided for @estiloPreguntaTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Las funciones son las mismas; solo cambia el aspecto. Puedes cambiarlo cuando quieras en Configuración → Apariencia.'**
+  String get estiloPreguntaTexto;
+
+  /// No description provided for @estiloNocturne.
+  ///
+  /// In es, this message translates to:
+  /// **'Nocturne'**
+  String get estiloNocturne;
+
+  /// No description provided for @estiloNocturneFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Oscuro, con vidrio, brillos y la aurora del color de cada canción.'**
+  String get estiloNocturneFrase;
+
+  /// No description provided for @estiloGrafito.
+  ///
+  /// In es, this message translates to:
+  /// **'Grafito'**
+  String get estiloGrafito;
+
+  /// No description provided for @estiloGrafitoFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Vidrio de museo: blanco y negro, grises y transparencias.'**
+  String get estiloGrafitoFrase;
+
+  /// No description provided for @estiloPapel.
+  ///
+  /// In es, this message translates to:
+  /// **'Papel'**
+  String get estiloPapel;
+
+  /// No description provided for @estiloPapelFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Claro y tranquilo, como leer un libro.'**
+  String get estiloPapelFrase;
+
+  /// Botón para confirmar el estilo elegido.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con {estilo}'**
+  String continuarConEstilo(String estilo);
+
+  /// El tema y el color de acento solo cambian Nocturne.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo en el estilo Nocturne'**
+  String get soloEnNocturne;
+
+  /// No description provided for @alineacionDeLaLetra.
+  ///
+  /// In es, this message translates to:
+  /// **'Alineación'**
+  String get alineacionDeLaLetra;
+
+  /// No description provided for @alinearIzquierda.
+  ///
+  /// In es, this message translates to:
+  /// **'Izquierda'**
+  String get alinearIzquierda;
+
+  /// No description provided for @alinearCentro.
+  ///
+  /// In es, this message translates to:
+  /// **'Centrada'**
+  String get alinearCentro;
+
+  /// No description provided for @sincroniaDeLaLetra.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronía'**
+  String get sincroniaDeLaLetra;
+
+  /// Letra en la PC: título de los ajustes del panel derecho.
+  ///
+  /// In es, this message translates to:
+  /// **'AJUSTES DE LA LETRA'**
+  String get ajustesDeLaLetra;
+
+  /// No description provided for @calculadoEnEstaPc.
+  ///
+  /// In es, this message translates to:
+  /// **'calculado en esta PC'**
+  String get calculadoEnEstaPc;
+
+  /// Cuántas veces escuchaste una canción (Tus más escuchadas).
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 vez} other{{count} veces}}'**
+  String vecesEscuchada(int count);
+
+  /// Lector de pantalla: el puesto en Tus más escuchadas.
+  ///
+  /// In es, this message translates to:
+  /// **'Puesto {n}'**
+  String puestoN(int n);
+
+  /// No description provided for @disenoDeLaLetra.
+  ///
+  /// In es, this message translates to:
+  /// **'Diseño'**
+  String get disenoDeLaLetra;
+
+  /// No description provided for @disenoAutomatico.
+  ///
+  /// In es, this message translates to:
+  /// **'Automático'**
+  String get disenoAutomatico;
+
+  /// No description provided for @disenoUnaColumna.
+  ///
+  /// In es, this message translates to:
+  /// **'Una columna'**
+  String get disenoUnaColumna;
+
+  /// No description provided for @disenoDosColumnas.
+  ///
+  /// In es, this message translates to:
+  /// **'Dos columnas'**
+  String get disenoDosColumnas;
+
+  /// No description provided for @modoDelPanel.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista'**
+  String get modoDelPanel;
+
+  /// No description provided for @panelCompleto.
+  ///
+  /// In es, this message translates to:
+  /// **'Completo'**
+  String get panelCompleto;
+
+  /// No description provided for @panelSimple.
+  ///
+  /// In es, this message translates to:
+  /// **'Simple'**
+  String get panelSimple;
+
+  /// No description provided for @panelEscaparate.
+  ///
+  /// In es, this message translates to:
+  /// **'Escaparate'**
+  String get panelEscaparate;
+
+  /// Botón de la letra que cambia de vista (Completo, Simple, Escaparate).
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar la vista: {modo}'**
+  String cambiarVistaDeLaLetra(String modo);
+
+  /// No description provided for @mostrarMarcaKiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar marca Kiji'**
+  String get mostrarMarcaKiji;
+
+  /// No description provided for @mostrarMarcaKijiDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Un logo chico en una esquina del escaparate'**
+  String get mostrarMarcaKijiDescripcion;
+
+  /// No description provided for @descargasYAlmacenamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargas y almacenamiento'**
+  String get descargasYAlmacenamiento;
+
+  /// No description provided for @privacidadYDatos.
+  ///
+  /// In es, this message translates to:
+  /// **'Privacidad y datos'**
+  String get privacidadYDatos;
+
+  /// Configuración: descripción corta debajo del nombre de cada sección.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo, tema, colores, letra, idioma y animaciones'**
+  String get seccionAparienciaDescripcion;
+
+  /// No description provided for @seccionReproductorDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador, transición, Bluetooth y batería'**
+  String get seccionReproductorDescripcion;
+
+  /// No description provided for @seccionLetrasDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño, fuentes y traducción de las letras'**
+  String get seccionLetrasDescripcion;
+
+  /// No description provided for @seccionDescargasDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargas, caché, espacio, datos móviles y audios cortos'**
+  String get seccionDescargasDescripcion;
+
+  /// No description provided for @seccionPcDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Bandeja, atajos globales y controles de Windows'**
+  String get seccionPcDescripcion;
+
+  /// No description provided for @seccionPrivacidadDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué guarda Kiji, historial, copias, registros y cuenta'**
+  String get seccionPrivacidadDescripcion;
+
+  /// No description provided for @seccionAcercaDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión, novedades, actualizaciones y créditos'**
+  String get seccionAcercaDescripcion;
+
+  /// No description provided for @seccionDevDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas de Kiji Dev'**
+  String get seccionDevDescripcion;
+
+  /// No description provided for @disenoDeLaLetraDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Una o dos columnas (automático: dos en la PC y en horizontal)'**
+  String get disenoDeLaLetraDescripcion;
+
+  /// No description provided for @modoDelPanelDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Completo, Simple o Escaparate (para grabar y compartir)'**
+  String get modoDelPanelDescripcion;
+
+  /// Pantalla que aparece una vez después de actualizar, con lo nuevo de la versión.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué hay de nuevo'**
+  String get queHayDeNuevo;
+
+  /// No description provided for @queHayDeNuevoSubtitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que trae Kiji 0.7, en pocas palabras.'**
+  String get queHayDeNuevoSubtitulo;
+
+  /// No description provided for @queHayDeNuevoDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo nuevo de esta versión, en tarjetas'**
+  String get queHayDeNuevoDescripcion;
+
+  /// No description provided for @empezar.
+  ///
+  /// In es, this message translates to:
+  /// **'Empezar'**
+  String get empezar;
+
+  /// No description provided for @nuevoEstilosTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres estilos'**
+  String get nuevoEstilosTitulo;
+
+  /// No description provided for @nuevoEstilosTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Nocturne, Grafito y Papel: las mismas funciones con otro aspecto. Se cambia en Configuración → Apariencia.'**
+  String get nuevoEstilosTexto;
+
+  /// No description provided for @nuevoOndaTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'La onda en vivo'**
+  String get nuevoOndaTitulo;
+
+  /// No description provided for @nuevoOndaTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Con el alto rendimiento, la onda del reproductor salta con el volumen real de la canción, sin usar el micrófono.'**
+  String get nuevoOndaTexto;
+
+  /// No description provided for @nuevoLetrasTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Letras a tu manera'**
+  String get nuevoLetrasTitulo;
+
+  /// No description provided for @nuevoLetrasTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Tres vistas (Completo, Simple y Escaparate) y dos columnas en la PC y con el teléfono en horizontal.'**
+  String get nuevoLetrasTexto;
+
+  /// No description provided for @nuevoBluetoothTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'La música sigue con el Bluetooth'**
+  String get nuevoBluetoothTitulo;
+
+  /// No description provided for @nuevoBluetoothTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Si los auriculares se desconectan un momento, Kiji espera y retoma sola. Nunca suena por el parlante sin que lo pidas.'**
+  String get nuevoBluetoothTexto;
+
+  /// No description provided for @nuevoAleatorioTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Aleatorio de verdad'**
+  String get nuevoAleatorioTitulo;
+
+  /// No description provided for @nuevoAleatorioTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'La cola muestra el orden real en que van a sonar las canciones.'**
+  String get nuevoAleatorioTexto;
+
+  /// No description provided for @nuevoBuscarPlaylistTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar dentro de una playlist'**
+  String get nuevoBuscarPlaylistTitulo;
+
+  /// No description provided for @nuevoBuscarPlaylistTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada playlist tiene su buscador, para encontrar una canción sin bajar toda la lista.'**
+  String get nuevoBuscarPlaylistTexto;
+
+  /// No description provided for @nuevoMasEscuchadasTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus más escuchadas'**
+  String get nuevoMasEscuchadasTitulo;
+
+  /// No description provided for @nuevoMasEscuchadasTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Un top en Inicio con cuántas veces escuchaste cada una, calculado en tu equipo.'**
+  String get nuevoMasEscuchadasTexto;
+
+  /// No description provided for @nuevoPcTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC'**
+  String get nuevoPcTitulo;
+
+  /// No description provided for @nuevoPcTexto.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.'**
+  String get nuevoPcTexto;
 }
 
 class _AppLocalizationsDelegate

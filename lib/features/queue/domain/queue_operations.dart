@@ -2,6 +2,8 @@
 // Archivos de referencia: app/src/main/kotlin/.../ui/player/Queue.kt y ui/menu/QueueMenu.kt
 // (reordenar, quitar y "reproducir a continuación").
 
+import 'dart:math';
+
 import '../../../models/track.dart';
 
 /// Una cola y la posición de la canción que suena dentro de ella.
@@ -93,6 +95,32 @@ class QueueSnapshot {
       before ??= i;
     }
     return before;
+  }
+
+  /// Aleatorio: la que suena queda primera y el resto, mezclado. La cola muestra así el orden
+  /// real en que van a sonar.
+  QueueSnapshot shuffled(Random random) {
+    final now = current;
+    if (now == null) return this;
+    final rest = [...tracks]
+      ..removeAt(currentIndex)
+      ..shuffle(random);
+    return QueueSnapshot([now, ...rest], 0);
+  }
+
+  /// Vuelve al orden de [originalIds] (al apagar el aleatorio). Lo que se agregó mientras estaba
+  /// mezclada queda al final, en el orden en que estaba.
+  QueueSnapshot unshuffled(List<String> originalIds) {
+    final remaining = [...tracks];
+    final list = <Track>[];
+    for (final id in originalIds) {
+      final i = remaining.indexWhere((t) => t.id == id);
+      if (i != -1) list.add(remaining.removeAt(i));
+    }
+    list.addAll(remaining);
+    final now = current;
+    final index = list.indexWhere((t) => identical(t, now));
+    return QueueSnapshot(list, index < 0 ? 0 : index);
   }
 
   /// Agrega [track] al final. Si ya estaba, no hace nada.

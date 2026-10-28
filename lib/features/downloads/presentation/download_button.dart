@@ -5,6 +5,7 @@ import '../../../models/track.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/kiji_tokens.dart';
+import '../../../widgets/nocturne/micro_motion.dart';
 import '../../../utils/byte_formatter.dart';
 import 'download_status.dart';
 
@@ -29,14 +30,26 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     final videoId = widget.track.youtubeVideoId;
     if (videoId == null) return const SizedBox.shrink();
 
-    final downloads = ref.watch(downloadsProvider);
-    final active = downloads.active[videoId];
+    // Solo lo de ESTA canción: con varias descargas en curso, los demás botones de la lista no se
+    // redibujan con cada avance.
+    final (done, active) = ref.watch(
+      downloadsProvider.select((d) => (d.completed.containsKey(videoId), d.active[videoId])),
+    );
 
+    // Cada estado (descargar → anillo → listo) entra con un pequeño "pop".
+    return PopSwitcher(child: _state(videoId, done, active));
+  }
+
+  Widget _state(String videoId, bool done, ActiveDownload? active) {
     if (_checking) {
-      return const _Slot(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)));
+      return const _Slot(
+        key: ValueKey('checking'),
+        child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+      );
     }
-    if (downloads.completed.containsKey(videoId)) {
+    if (done) {
       return IconButton(
+        key: const ValueKey('done'),
         icon: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
         tooltip: tx.descargada,
         onPressed: () => confirmDeleteDownload(context, ref, widget.track.title, videoId),
@@ -44,6 +57,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     }
     if (active == null) {
       return IconButton(
+        key: const ValueKey('idle'),
         icon: Icon(Icons.download_rounded, color: AppColors.onSurfaceMuted),
         tooltip: tx.descargar,
         onPressed: _startFlow,
@@ -51,12 +65,14 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
     }
     if (active.status == ActiveDownloadStatus.failed) {
       return IconButton(
+        key: const ValueKey('failed'),
         icon: const Icon(Icons.warning_amber_rounded, color: downloadWarningColor),
         tooltip: tx.noSePudoDescargarVerPor,
         onPressed: () => showDownloadFailureSheet(context, ref, videoId),
       );
     }
     return IconButton(
+      key: const ValueKey('active'),
       tooltip: tx.cancelarDescarga,
       onPressed: () => _confirmCancel(videoId),
       // Anillo con el porcentaje. Tocarlo ofrece cancelar.
@@ -73,7 +89,7 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
               value: active.status == ActiveDownloadStatus.queued ? null : active.progress,
             ),
             if (active.progress != null)
-              Text('${(active.progress! * 100).round()}', style: KijiText.mono(size: 9, color: Colors.white)),
+              Text('${(active.progress! * 100).round()}', style: KijiText.mono(size: 9, color: KijiColors.text)),
           ],
         ),
       ),
@@ -155,7 +171,7 @@ Future<void> confirmDeleteDownload(BuildContext context, WidgetRef ref, String t
 }
 
 class _Slot extends StatelessWidget {
-  const _Slot({required this.child});
+  const _Slot({super.key, required this.child});
 
   final Widget child;
 

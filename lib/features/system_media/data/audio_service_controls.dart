@@ -2,6 +2,8 @@
 // Archivos de referencia: app/src/main/kotlin/.../playback/MusicService.kt y
 // MediaLibrarySessionCallback.kt (sesión multimedia, notificación y botones del sistema).
 
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -28,6 +30,8 @@ class AudioServiceControls implements SystemMediaControls {
         androidNotificationChannelId: 'io.github.kijiplayer.kiji.playback',
         androidNotificationChannelName: tx.reproduccion2,
         androidNotificationChannelDescription: tx.controlesDeLaMusicaQueEsta,
+        // El logo de Kiji en blanco (res/drawable/ic_stat_kiji.xml); el de la app sale como un círculo.
+        androidNotificationIcon: 'drawable/ic_stat_kiji',
         // En pausa, la notificación se puede descartar deslizándola.
         androidStopForegroundOnPause: true,
       ),
@@ -97,34 +101,49 @@ class AudioServiceControls implements SystemMediaControls {
 }
 
 class _KijiAudioHandler extends BaseAudioHandler with SeekHandler {
-  MediaCommands? commands;
+  MediaCommands? _commands;
 
-  Future<void> _run(Future<void> Function()? command, String name) async {
-    if (command == null) {
-      debugPrint('=== CONTROLES: "$name" antes de conectar el reproductor ===');
+  /// Lo que se pidió (p. ej. play en los auriculares) mientras Kiji arrancaba: se hace al conectar.
+  Future<void> Function(MediaCommands)? _pending;
+
+  set commands(MediaCommands value) {
+    _commands = value;
+    final pending = _pending;
+    _pending = null;
+    if (pending != null) {
+      debugPrint('=== CONTROLES: reproductor listo, se hace lo pedido al arrancar ===');
+      unawaited(pending(value));
+    }
+  }
+
+  Future<void> _run(Future<void> Function(MediaCommands) command, String name) async {
+    final commands = _commands;
+    if (commands == null) {
+      debugPrint('=== CONTROLES: "$name" antes de conectar el reproductor; queda para cuando esté listo ===');
+      _pending = command;
       return;
     }
-    await command();
+    await command(commands);
   }
 
   @override
-  Future<void> play() => _run(commands?.play, 'play');
+  Future<void> play() => _run((c) => c.play(), 'play');
 
   @override
-  Future<void> pause() => _run(commands?.pause, 'pause');
+  Future<void> pause() => _run((c) => c.pause(), 'pause');
 
   @override
-  Future<void> skipToNext() => _run(commands?.next, 'siguiente');
+  Future<void> skipToNext() => _run((c) => c.next(), 'siguiente');
 
   @override
-  Future<void> skipToPrevious() => _run(commands?.previous, 'anterior');
+  Future<void> skipToPrevious() => _run((c) => c.previous(), 'anterior');
 
   @override
   Future<void> seek(Duration position) async {
-    final seek = commands?.seek;
+    final seek = _commands?.seek;
     if (seek != null) await seek(position);
   }
 
   @override
-  Future<void> stop() => _run(commands?.stop, 'stop');
+  Future<void> stop() => _run((c) => c.stop(), 'stop');
 }

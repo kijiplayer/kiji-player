@@ -34,6 +34,8 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.json.Json
 
 /**
@@ -132,10 +134,10 @@ class InnerTubeXEngine(context: Context) {
     try {
       extractor.prewarm()
       Log.i(TAG, "InnerTubeX listo en ${SystemClock.elapsedRealtime() - start} ms")
-    } catch (e: CancellationException) {
-      throw e
     } catch (e: Exception) {
-      Log.w(TAG, "No se pudo precalentar InnerTubeX: ${e.message}")
+      // Una cancelación de Kiji se respeta; una de InnerTubeX (p. ej. un tiempo de espera) es una falla más.
+      if (e is CancellationException) currentCoroutineContext().ensureActive()
+      Log.w(TAG, "No se pudo precalentar InnerTubeX: ${e.javaClass.simpleName} ${e.message}")
     }
   }
 

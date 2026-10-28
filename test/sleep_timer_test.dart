@@ -38,7 +38,7 @@ class _FakePlayback extends PlaybackNotifier {
       state = state.copyWith(position: position, currentIndex: index);
 
   @override
-  Future<void> pause() async {
+  Future<void> pause({String reason = '', Duration? keepAliveFor}) async {
     pauses++;
     state = state.copyWith(isPlaying: false);
   }

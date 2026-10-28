@@ -1,10 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
+import 'features/playback_extras/data/battery_optimization.dart';
+import 'features/style/presentation/style_chooser_screen.dart';
+import 'features/desktop/desktop_integration.dart';
+import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
 import 'features/playback_extras/data/playback_automation.dart';
 import 'features/extractor/data/auto_tests.dart';
+import 'features/performance/device_performance.dart';
 import 'features/reports/data/error_reporter.dart';
 import 'l10n/l10n.dart';
 import 'features/reports/data/kiji_logs.dart';
@@ -14,6 +21,7 @@ import 'features/settings/domain/app_settings.dart';
 import 'providers/playback_provider.dart';
 import 'features/updates/update_checker.dart';
 import 'features/updates/whats_new.dart';
+import 'features/updates/whats_new_screen.dart';
 import 'providers/appearance_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
@@ -41,6 +49,24 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // PC: al cerrar la ventana, guardar la cola antes de salir (ver DesktopWindow).
+    DesktopWindow.instance.beforeExit = () => ref.read(playbackProvider.notifier).saveNow();
+    // PC: bandeja del sistema y atajos globales.
+    watchDesktop(ref);
+    // Modo alto rendimiento: la pantalla a su frecuencia más alta (Android).
+    ref.listenManual(
+      settingsProvider.select((s) => s.highPerformance),
+      (before, on) {
+        // Al abrir con el modo apagado no hace falta pedir nada.
+        if (before != null || on) applyHighRefreshRate(on);
+      },
+      fireImmediately: true,
+    );
+    // Android: la primera vez que suena música, explicar por qué conviene quitar la optimización de batería.
+    ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
+      final context = kijiNavigatorKey.currentContext;
+      if (playing && context != null && context.mounted) unawaited(offerBatteryExemptionOnce(context, ref));
+    });
     // Actualizaciones: como mucho una consulta por día, si está prendido.
     Future.microtask(() => ref.read(updateProvider.notifier).checkIfDue());
     // Salud del Extractor: pruebas automáticas con canciones de control.
@@ -83,34 +109,41 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Al abrir: la bienvenida a quien recién instala o, después de actualizar, una sola vez
-  /// "Novedades de esta versión".
+  /// Al abrir, en orden ([startupScreens]): la bienvenida a quien recién instala; la elección de
+  /// estilo si nunca se eligió; y, después de actualizar, una sola vez "Qué hay de nuevo". Cada una
+  /// espera a que se cierre la anterior.
   Future<void> _maybeWelcome() async {
     final fresh = await WelcomeStore().shouldShow();
     final settings = await ref.read(settingsProvider.notifier).loaded;
-    final showNews = shouldShowWhatsNew(lastSeenVersion: settings.lastSeenVersion, freshInstall: fresh);
+    final screens = startupScreens(
+      freshInstall: fresh,
+      styleChosen: settings.styleChosen,
+      lastSeenVersion: settings.lastSeenVersion,
+    );
     Future<void> markSeen() async {
       if (ref.read(settingsProvider).lastSeenVersion == kijiVersion) return;
       await ref.read(settingsProvider.notifier).update((s) => s.copyWith(lastSeenVersion: kijiVersion));
     }
 
-    if (fresh) {
-      // Se anota al cerrar la bienvenida: si Kiji se cierra a mitad, la bienvenida vuelve.
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+    // Instalación nueva: se anota al cerrar la bienvenida (si Kiji se cierra a mitad, vuelve).
+    // Actualización: se anota ya, así "Qué hay de nuevo" no se repite aunque se cierre Kiji.
+    if (!fresh) await markSeen();
+    if (screens.isEmpty) return;
+    debugPrint('=== INICIO: se muestran ${screens.map((s) => s.name).join(' → ')} ===');
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      for (final screen in screens) {
         final context = kijiNavigatorKey.currentContext;
-        if (context != null && context.mounted) await WelcomeScreen.open(context, instant: true);
-        await markSeen();
-      });
-      return;
-    }
-    await markSeen();
-    if (!showNews) return;
-    final notes = await loadBundledWhatsNew(kijiLanguage);
-    if (notes == null) return;
-    debugPrint('=== NOVEDADES: se muestran las de $kijiVersion ===');
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = kijiNavigatorKey.currentContext;
-      if (context != null && context.mounted) showWhatsNewSheet(context, notes);
+        if (context == null || !context.mounted) return;
+        switch (screen) {
+          case StartupScreen.welcome:
+            await WelcomeScreen.open(context, instant: true);
+            await markSeen();
+          case StartupScreen.style:
+            if (!ref.read(settingsProvider).styleChosen) await StyleChooserScreen.open(context, ref);
+          case StartupScreen.whatsNew:
+            await WhatsNewScreen.open(context);
+        }
+      }
     });
   }
 
@@ -141,6 +174,14 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   @override
   void didChangeLocales(List<Locale>? locales) => setState(() {});
 
+  /// Si Kiji arrancó sin pantalla (desde los auriculares), la frecuencia se pide al aparecer la ventana.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && ref.read(settingsProvider).highPerformance) {
+      applyHighRefreshRate(true);
+    }
+  }
+
   /// Idioma de la app (Configuración → Idioma): se aplica sin reiniciar. Los textos salen de
   /// [tx], así que después de cambiarlo se vuelve a dibujar todo.
   Locale _applyLanguage() {
@@ -164,15 +205,27 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   /// Tema, acento y tipografía (Configuración → Apariencia). Los colores salen de una paleta
   /// global ([KijiColors.palette]): al cambiarla se redibuja todo, como con el idioma.
   void _applyAppearance() {
-    final (theme, accent, font) = ref.watch(settingsProvider.select((s) => (s.theme, s.accent, s.font)));
-    final palette = KijiPalette.resolve(theme: theme, accent: accent);
+    final (styleName, theme, accent, font, rich, calm) = ref.watch(
+      settingsProvider.select((s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion)),
+    );
+    final style = KijiStyle.parse(styleName);
+    final palette = KijiPalette.forStyle(style, theme: theme, accent: accent);
     final systemFont = font == 'system';
-    if (palette == KijiColors.palette && systemFont == KijiText.useSystemFont) return;
+    if (style == KijiLook.style &&
+        palette == KijiColors.palette &&
+        systemFont == KijiText.useSystemFont &&
+        rich == KijiEffects.rich &&
+        calm == KijiEffects.calm) {
+      return;
+    }
+    KijiLook.style = style;
     KijiColors.palette = palette;
     KijiText.useSystemFont = systemFont;
+    KijiEffects.rich = rich;
+    KijiEffects.calm = calm;
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
     if (!_appearanceReady) return;
-    debugPrint('=== APARIENCIA: tema $theme, acento $accent, letra $font ===');
+    debugPrint('=== APARIENCIA: estilo ${style.name}, tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
     WidgetsBinding.instance.addPostFrameCallback((_) => _rebuildAll());
   }
 
