@@ -117,6 +117,30 @@ void main() {
       expect(await indexFile.readAsString(), isNot(contains('Canción')));
     });
 
+    test('Al abrir: la canción restaurada se encuentra sin revisar todas las descargas, y la lista se arma una vez', () async {
+      final tracks = [for (var i = 0; i < 90; i++) _entry('v$i')];
+      final indexFile = File(p.join(dir.path, 'downloads', 'index.json'));
+      await indexFile.parent.create(recursive: true);
+      await indexFile.writeAsString('{"version":1,"tracks":[${tracks.map((t) => jsonEncode(t.toJson())).join(',')}]}');
+      for (var i = 0; i < 90; i++) {
+        if (i != 7) await File(p.join(dir.path, 'downloads', 'v$i.m4a')).writeAsString('audio');
+      }
+      final fresh = DownloadsRepository(baseDirectory: () async => dir);
+
+      // La que suena primero, antes de que nadie pida la lista entera.
+      expect((await fresh.fileFor('v42'))?.path, endsWith('v42.m4a'));
+      expect(await fresh.fileFor('v7'), isNull, reason: 'figura en el índice pero el archivo ya no está');
+      expect(await fresh.fileFor('nunca'), isNull);
+
+      // Dos pedidos a la vez (la lista de descargas y la cola): el mismo resultado, una sola vuelta.
+      final (a, b) = await (fresh.all(), fresh.all()).wait;
+      expect(identical(a, b), isTrue);
+      expect(a, hasLength(89));
+      expect(a.containsKey('v7'), isFalse);
+      // Que termine de guardar el índice (se reescribe en segundo plano) antes de borrar la carpeta.
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+
     test('Índice dañado: se borra y arranca vacío', () async {
       final indexFile = File(p.join(dir.path, 'downloads', 'index.json'));
       await indexFile.parent.create(recursive: true);

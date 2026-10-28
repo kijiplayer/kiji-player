@@ -215,8 +215,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     unawaited(PathHealth.instance.load());
     // Paga los costos en frío del motor A (config, solver, BotGuard) fuera del primer play.
     // Sin red (p. ej. el teléfono recién sale del reposo) no se intenta: fallaría y no sirve.
+    // Espera a que la canción restaurada termine de cargar: crea WebViews en el hilo principal y,
+    // si coincide, la canción de la descarga tardaba segundos en estar lista.
     unawaited(
-      Future<void>.delayed(const Duration(seconds: 2), () async {
+      _restored.future.then((_) => Future<void>.delayed(const Duration(milliseconds: 1500))).then((_) async {
         if (await _isOnline()) {
           await _resolver.prewarm();
         } else {
@@ -250,6 +252,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     return PlaybackState.initial();
   }
 
+  /// Se completa cuando la cola guardada ya se restauró (o no había nada): recién entonces arranca
+  /// lo que puede esperar (el precalentamiento del extractor).
+  final _restored = Completer<void>();
+
   Future<void> _restoreAfterFirstFrame() async {
     try {
       await SchedulerBinding.instance.endOfFrame.timeout(const Duration(seconds: 3));
@@ -257,6 +263,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       StartupLog.mark('el primer cuadro tardó; se restaura la cola igual'); // l10n-ignore
     }
     await StartupLog.guard('restaurar la cola', _restoreState, limit: const Duration(seconds: 30)); // l10n-ignore
+    if (!_restored.isCompleted) _restored.complete();
     // Los botones del sistema se conectan con la cola ya restaurada: un play de los auriculares
     // que despertó a Kiji espera hasta acá en vez de perderse.
     _controls.attach(

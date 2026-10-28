@@ -1,3 +1,4 @@
+import 'dart:async';
 // Inspirado en Echo Music (https://github.com/EchoMusicApp/Echo-Music), GPL-3.0.
 // Archivos de referencia: app/src/main/kotlin/.../playback/DownloadUtil.kt (descargas guardadas
 // dentro de la app, separadas de la caché de reproducción, con fecha de descarga).
@@ -12,7 +13,6 @@ import '../../../utils/json_file.dart';
 import '../../yt_music/domain/subtitle_parser.dart';
 import '../domain/download_settings.dart';
 import '../domain/downloaded_track.dart';
-
 
 /// Índice de descargas y preferencias, guardados en
 /// `<appSupportDir>/downloads/`. Todo en almacenamiento privado de la app:
@@ -42,12 +42,43 @@ class DownloadsRepository {
 
   Future<String> pathFor(String fileName) async => p.join((await directory()).path, fileName);
 
+  Future<Map<String, DownloadedTrack>>? _loading;
+  Future<List<DownloadedTrack>>? _reading;
+
   /// Descargas completas, por `videoId`. Las que figuran en el índice pero
-  /// cuyo archivo ya no existe se descartan.
-  Future<Map<String, DownloadedTrack>> all() async {
-    if (_entries != null) return _entries!;
+  /// cuyo archivo ya no existe se descartan. Se calcula una sola vez aunque lo pidan varios a la
+  /// vez (al abrir Kiji lo piden la lista de descargas y la canción restaurada).
+  Future<Map<String, DownloadedTrack>> all() {
+    final known = _entries;
+    if (known != null) return Future.value(known);
+    return _loading ??= _loadAll();
+  }
+
+  Future<Map<String, DownloadedTrack>> _loadAll() async {
+    final tracks = await _indexTracks();
+    // Los archivos se miran todos a la vez (de a uno, con 90 descargas, eran segundos al abrir).
+    final exists = await Future.wait([for (final t in tracks) File(p.join(_dir!.path, t.fileName)).exists()]);
+    _entries = {
+      for (final (i, track) in tracks.indexed)
+        if (exists[i]) track.videoId: track,
+    };
+    // Artistas limpiados al leer el índice: se guarda antes de devolver la lista (como siempre).
+    if (_cleaned) {
+      _cleaned = false;
+      debugPrint('=== DESCARGAS: artistas limpiados en el índice ===');
+      await _saveIndex();
+    }
+    return _entries!;
+  }
+
+  bool _cleaned = false;
+
+  /// Lo que dice el índice, sin mirar los archivos (se lee una sola vez).
+  Future<List<DownloadedTrack>> _indexTracks() => _reading ??= _readIndex();
+
+  Future<List<DownloadedTrack>> _readIndex() async {
     await directory();
-    final entries = <String, DownloadedTrack>{};
+    final tracks = <DownloadedTrack>[];
     var cleaned = false;
     final json = await _index!.read();
     if (json != null) {
@@ -61,25 +92,24 @@ class DownloadsRepository {
             track = track.copyWith(artist: artist);
             cleaned = true;
           }
-          if (await File(await pathFor(track.fileName)).exists()) {
-            entries[track.videoId] = track;
-          }
+          tracks.add(track);
         }
       } catch (error) {
         await _index!.deleteCorrupt(error);
       }
     }
-    _entries = entries;
-    if (cleaned) {
-      debugPrint('=== DESCARGAS: artistas limpiados en el índice ===');
-      await _saveIndex();
-    }
-    return entries;
+    _cleaned = cleaned;
+    return tracks;
   }
 
-  /// Archivo descargado para [videoId], o null si no está descargado.
+  /// Archivo descargado para [videoId], o null si no está descargado. No espera a revisar todas
+  /// las descargas: busca esa en el índice y mira solo su archivo (la canción restaurada al abrir
+  /// Kiji sale primero).
   Future<File?> fileFor(String videoId) async {
-    final track = (await all())[videoId];
+    final known = _entries;
+    final track = known != null
+        ? known[videoId]
+        : (await _indexTracks()).where((t) => t.videoId == videoId).firstOrNull;
     if (track == null) return null;
     final file = File(await pathFor(track.fileName));
     return await file.exists() ? file : null;
