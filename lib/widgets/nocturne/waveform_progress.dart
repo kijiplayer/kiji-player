@@ -26,7 +26,8 @@ List<double> waveformBars(String seed, int count) {
 }
 
 /// Barra de progreso como **forma de onda**: barras finas; lo
-/// reproducido en violeta → cian y lo que falta en blanco 16 %. Se toca o se
+/// reproducido en violeta → cian y lo que falta en blanco 16 % (Grafito: blanco y blanco 18 %;
+/// Papel: tinta y #CFCAC0). Se toca o se
 /// arrastra para buscar. Con [marker], una luna sobre la onda marca dónde se
 /// va a pausar (temporizador "momento exacto").
 class WaveformProgress extends StatefulWidget {
@@ -88,11 +89,9 @@ class _WaveformProgressState extends State<WaveformProgress> with TickerProvider
   Duration _anchor = Duration.zero;
   final _sinceAnchor = Stopwatch();
 
-  // En Grafito y Papel el progreso es una línea: no hay nada que mover en cada cuadro.
   bool get _shouldMove =>
-      KijiLook.nocturne &&
       widget.alive &&
-(WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed) == AppLifecycleState.resumed;
+      (WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed) == AppLifecycleState.resumed;
 
   void _syncLive() {
     if (_shouldMove && !_live.isAnimating) {
@@ -233,7 +232,7 @@ class _WaveformPainter extends CustomPainter {
   final Loudness? loudness;
   final Duration time;
 
-  /// El estilo con el que se dibujó (Nocturne: onda; Grafito y Papel: línea).
+  /// El estilo con el que se dibujó (cambia los colores de la onda).
   final KijiStyle style = KijiLook.style;
   final double? marker;
   final double progress;
@@ -242,11 +241,7 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (KijiLook.flat) {
-      _paintLine(canvas, size);
-    } else {
-      _paintBars(canvas, size);
-    }
+    _paintBars(canvas, size);
     final mark = marker;
     if (mark != null) {
       // Línea fina debajo de la luna.
@@ -261,22 +256,8 @@ class _WaveformPainter extends CustomPainter {
     }
   }
 
-  /// Grafito: línea fina de 2 px. Papel: línea de 1 px con un punto en la posición.
-  void _paintLine(Canvas canvas, Size size) {
-    final paper = KijiLook.style == KijiStyle.paper;
-    final thickness = paper ? 1.0 : KijiSizes.progressLine;
-    final y = size.height / 2;
-    final end = size.width * reveal;
-    final x = size.width * progress.clamp(0.0, 1.0) * reveal;
-    final line = Paint()
-      ..strokeWidth = thickness
-      ..strokeCap = paper ? StrokeCap.butt : StrokeCap.round;
-    canvas.drawLine(Offset(0, y), Offset(end, y), line..color = KijiColors.waveRest);
-    if (x > 0) canvas.drawLine(Offset(0, y), Offset(x, y), line..color = KijiColors.text);
-    if (paper) canvas.drawCircle(Offset(x, y), 4, Paint()..color = KijiColors.text);
-  }
-
   void _paintBars(Canvas canvas, Size size) {
+    // En Grafito y Papel el acento es un solo color: la onda queda monocroma (blanco o tinta).
     final played = Paint()..shader = KijiColors.accentGradient.createShader(Offset.zero & size);
     final rest = Paint()..color = KijiColors.waveRest;
     final step = size.width / bars.length;
@@ -305,7 +286,7 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_WaveformPainter old) =>
-      // Al cambiar de estilo cambia lo que se dibuja (onda o línea).
+      // Al cambiar de estilo cambian los colores.
       old.style != style ||
       old.progress != progress ||
       old.bars != bars ||

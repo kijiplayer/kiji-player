@@ -22,6 +22,7 @@ import '../../widgets/global_mini_player.dart';
 import '../../widgets/mini_player.dart' show coverHeroTag;
 import 'lyrics_swipe.dart';
 import 'player_motion.dart';
+import 'museum.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/micro_motion.dart';
 import '../../widgets/nocturne/glass.dart';
@@ -214,7 +215,7 @@ class _Cover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = KijiLook.cover(KijiRadii.cover);
-    return CoverMotion(
+    final cover = CoverMotion(
       trackId: track.id,
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -231,6 +232,18 @@ class _Cover extends StatelessWidget {
             child: TrackArtwork(track: track, size: size - 2, radius: radius - 1),
           ),
         ),
+      ),
+    );
+    if (!KijiLook.museum) return cover;
+    // Grafito: un brillo recorre el vidrio una vez al abrir, y se inclina (3D) al tocarla o arrastrarla.
+    return CoverTilt(
+      child: Stack(
+        children: [
+          cover,
+          Positioned.fill(
+            child: ClipRRect(borderRadius: BorderRadius.circular(radius), child: const MuseumSheen()),
+          ),
+        ],
       ),
     );
   }
@@ -252,13 +265,27 @@ class _TitleRow extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TrackTitleText(track, maxLines: 2, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 26)),
+              // Grafito: entran deslizándose, una línea después de la otra.
+              MuseumLineIn(
+                trackId: track.id,
+                line: 0,
+                child: TrackTitleText(
+                  track,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: KijiText.title(size: 26),
+                ),
+              ),
               const SizedBox(height: 4),
-              TrackArtistText(
-                track,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: KijiColors.muted, fontSize: 16),
+              MuseumLineIn(
+                trackId: track.id,
+                line: 1,
+                child: TrackArtistText(
+                  track,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: KijiColors.muted, fontSize: 16),
+                ),
               ),
             ],
           ),

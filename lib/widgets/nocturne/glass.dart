@@ -6,7 +6,7 @@ import '../../theme/kiji_tokens.dart';
 import 'micro_motion.dart';
 
 /// Superficie de "vidrio": translúcida, con blur del fondo y un borde
-/// de 1 px que brilla apenas.
+/// de 1 px que brilla apenas (Grafito: vidrio esmerilado; Papel: superficie sólida).
 class Glass extends StatelessWidget {
   const Glass({super.key, required this.child, this.radius = KijiRadii.card, this.padding, this.blur = true});
 
@@ -20,9 +20,12 @@ class Glass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(radius);
+    // Papel: superficie sólida. Grafito: vidrio esmerilado; con desenfoque va sobre cualquier
+    // contenido (mini-reproductor, barra de navegación), así que lleva el ahumado para que se lea.
+    final frosted = blur && KijiLook.style != KijiStyle.paper;
     final body = DecoratedBox(
       decoration: BoxDecoration(
-        color: KijiColors.glassFill,
+        color: frosted && KijiLook.museum ? KijiMuseum.pane : KijiColors.glassFill,
         borderRadius: borderRadius,
         border: Border.all(color: KijiColors.glassBorder),
       ),
@@ -35,8 +38,7 @@ class Glass extends StatelessWidget {
     );
     return ClipRRect(
       borderRadius: borderRadius,
-      // Grafito y Papel: superficie sólida, sin desenfoque.
-      child: blur && KijiLook.nocturne
+      child: frosted
           // Agrupado (rendimiento): todos los vidrios de la pantalla comparten una sola pasada
           // de desenfoque del fondo (BackdropGroup en app.dart).
           ? BackdropFilter.grouped(

@@ -10,6 +10,7 @@ import '../../providers/appearance_provider.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/nocturne/aurora_background.dart';
+import 'museum.dart';
 
 /// Colores ya calculados (por id de canción), para no repetir el trabajo.
 final _coverColors = <String, Color>{};
@@ -96,6 +97,8 @@ class _PlayerHaloState extends ConsumerState<PlayerHalo> {
 
   @override
   Widget build(BuildContext context) {
+    // Grafito: la portada en blanco y negro, desenfocada (sin aurora ni colores).
+    if (KijiLook.museum) return MuseumBackdrop(track: widget.track, playing: widget.playing);
     _extract(trackImageProvider(ref, widget.track));
     return AuroraBackground(
       colors: auroraColorsFor(widget.track),
@@ -105,7 +108,7 @@ class _PlayerHaloState extends ConsumerState<PlayerHalo> {
 }
 
 /// La carátula entra con escala 0,9 → 1 al abrir el reproductor y, al cambiar
-/// de canción, la nueva entra deslizándose.
+/// de canción, la nueva entra deslizándose (Grafito: con un fundido y un leve zoom).
 class CoverMotion extends ConsumerWidget {
   const CoverMotion({super.key, required this.trackId, required this.child});
 
@@ -126,6 +129,16 @@ class CoverMotion extends ConsumerWidget {
         switchOutCurve: Curves.easeIn,
         transitionBuilder: (child, animation) {
           final incoming = child.key == ValueKey(trackId);
+          // Grafito: fundido con un leve zoom (la nueva llega de un poco más cerca).
+          if (KijiLook.museum) {
+            return FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: incoming ? 1.06 : 0.97, end: 1).animate(animation),
+                child: child,
+              ),
+            );
+          }
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(

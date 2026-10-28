@@ -4163,7 +4163,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get estiloGrafitoFrase =>
-      'Minimal and serious: greys, white and nothing to distract you.';
+      'Museum glass: black and white, greys and transparency.';
 
   @override
   String get estiloPapel => 'Paper';

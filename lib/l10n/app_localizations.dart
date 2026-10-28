@@ -6740,7 +6740,7 @@ abstract class AppLocalizations {
   /// No description provided for @estiloGrafitoFrase.
   ///
   /// In es, this message translates to:
-  /// **'Minimalista y serio: grises, blanco y nada que distraiga.'**
+  /// **'Vidrio de museo: blanco y negro, grises y transparencias.'**
   String get estiloGrafitoFrase;
 
   /// No description provided for @estiloPapel.

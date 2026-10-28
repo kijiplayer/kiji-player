@@ -25,8 +25,12 @@ abstract final class KijiLook {
 
   static bool get nocturne => style == KijiStyle.nocturne;
 
-  /// Sin aurora, brillos, degradados ni desenfoques (Grafito y Papel).
+  /// Sin aurora, brillos ni degradados (Grafito y Papel).
   static bool get flat => style != KijiStyle.nocturne;
+
+  /// Grafito: "vidrio de museo" (fondo de la portada en blanco y negro, vidrio esmerilado y
+  /// animaciones propias).
+  static bool get museum => style == KijiStyle.graphite;
 
   /// Esquinas de las portadas: las de cada pantalla en Nocturne; como mucho 6 px en Grafito y 4 en Papel.
   static double cover(double radius) => switch (style) {
@@ -106,8 +110,8 @@ class KijiPalette {
     surfaceHigh: Color(0xFF1A1A28),
   );
 
-  /// Grafito: fondo #0F0F10, superficies #1A1A1D, líneas #2A2A2D, texto #F2F2F2 y secundario #9A9A9E.
-  /// Sin color de acento: el acento es el blanco.
+  /// Grafito: fondo #0F0F10, superficies #1A1A1D, texto #F2F2F2 y secundario #9A9A9E; vidrio de
+  /// blanco 7 % con borde de blanco 10 %. Sin color de acento: el acento es el blanco.
   static const graphite = KijiPalette(
     brightness: Brightness.dark,
     background: Color(0xFF0F0F10),
@@ -116,9 +120,9 @@ class KijiPalette {
     onAccent: Color(0xFF0F0F10),
     text: Color(0xFFF2F2F2),
     muted: Color(0xFF9A9A9E),
-    glassFill: Color(0xFF1A1A1D),
-    glassBorder: Color(0xFF2A2A2D),
-    waveRest: Color(0xFF2A2A2D),
+    glassFill: Color(0x12FFFFFF), // vidrio esmerilado: blanco 7 %
+    glassBorder: Color(0x1AFFFFFF), // blanco 10 %
+    waveRest: Color(0x2EFFFFFF), // blanco 18 %
     surface: Color(0xFF1A1A1D),
     surfaceHigh: Color(0xFF1A1A1D),
   );
@@ -135,7 +139,7 @@ class KijiPalette {
     muted: Color(0xFF5E5B55),
     glassFill: Color(0xFFF9F8F4),
     glassBorder: Color(0xFFD9D5CC),
-    waveRest: Color(0xFFD9D5CC),
+    waveRest: Color(0xFFCFCAC0),
     surface: Color(0xFFF9F8F4),
     surfaceHigh: Color(0xFFF9F8F4),
     like: Color(0xFFB4462B),
@@ -256,6 +260,26 @@ abstract final class KijiColors {
     end: Alignment.bottomRight,
     colors: [violet, cyan],
   );
+}
+
+/// Medidas del "vidrio de museo" de Grafito. Son bajas a propósito: el texto secundario tiene que
+/// seguir con contraste de 4,5:1 aunque la portada sea blanca (lo comprueba `test/style_test.dart`).
+abstract final class KijiMuseum {
+  /// Fondo del reproductor: la portada en blanco y negro, oscurecida a este brillo y con esta opacidad.
+  static const backdropBrightness = 0.85;
+  static const backdropOpacity = 0.14;
+
+  /// Grano de película (alto rendimiento): opacidad máxima de los puntos claros y de los oscuros
+  /// (los oscuros no le quitan contraste al texto claro, así que pueden ser más).
+  static const grainOpacity = 0.02;
+  static const grainDarkOpacity = 0.08;
+
+  /// El brillo que recorre el vidrio de la portada al abrir el reproductor (no hay texto encima).
+  static const sheenOpacity = 0.18;
+
+  /// Paneles sobre cualquier contenido (mini-reproductor, barra de navegación, hojas): el vidrio
+  /// de blanco 7 % sobre un ahumado casi opaco, para que el texto se lea encima de una portada clara.
+  static const pane = Color(0xEE212123);
 }
 
 abstract final class KijiRadii {

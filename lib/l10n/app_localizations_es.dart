@@ -4171,7 +4171,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get estiloGrafitoFrase =>
-      'Minimalista y serio: grises, blanco y nada que distraiga.';
+      'Vidrio de museo: blanco y negro, grises y transparencias.';
 
   @override
   String get estiloPapel => 'Papel';

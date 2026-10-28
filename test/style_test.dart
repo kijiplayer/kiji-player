@@ -35,6 +35,44 @@ void main() {
     }
   });
 
+  test('Grafito: el texto se lee sobre la portada de fondo y sobre el vidrio, aunque la portada sea blanca', () {
+    const p = KijiPalette.graphite;
+    // Pinta [top] encima de [bottom] (los dos pueden ser translúcidos; el resultado es opaco).
+    Color over(Color bottom, Color top) => Color.alphaBlend(top, bottom);
+    Color white(double opacity) => Colors.white.withValues(alpha: opacity);
+
+    // Peor caso del fondo del reproductor: portada blanca (oscurecida) y un punto claro del grano
+    // al máximo. (El brillo de la apertura va solo sobre la portada, que no tiene texto encima.)
+    final cover = white(KijiMuseum.backdropBrightness * KijiMuseum.backdropOpacity);
+    final grain = white(KijiMuseum.grainOpacity);
+    final backdrop = over(over(p.background, cover), grain);
+    final button = over(backdrop, p.glassFill);
+    // Mini-reproductor, barra y hojas: sobre cualquier cosa (también una portada blanca).
+    final pane = over(Colors.white, KijiMuseum.pane);
+    final pairs = {
+      'texto/fondo de portada': (p.text, backdrop),
+      'secundario/fondo de portada': (p.muted, backdrop),
+      'texto/botón de vidrio': (p.text, button),
+      'texto/panel': (p.text, pane),
+      'secundario/panel': (p.muted, pane),
+      'texto/vidrio sobre el fondo': (p.text, over(p.background, p.glassFill)),
+      'secundario/vidrio sobre el fondo': (p.muted, over(p.background, p.glassFill)),
+    };
+    for (final MapEntry(key: name, value: (fg, bg)) in pairs.entries) {
+      expect(contrast(fg, bg), greaterThanOrEqualTo(4.5), reason: name);
+    }
+  });
+
+  test('la onda de Grafito y Papel es monocroma, con los grises pedidos', () {
+    expect(KijiPalette.graphite.violet, const Color(0xFFF2F2F2));
+    expect(KijiPalette.graphite.cyan, const Color(0xFFF2F2F2));
+    expect(KijiPalette.graphite.waveRest, const Color(0x2EFFFFFF), reason: 'blanco 18 %');
+    expect(KijiPalette.paper.violet, const Color(0xFF1B1B1A));
+    expect(KijiPalette.paper.cyan, const Color(0xFF1B1B1A));
+    expect(KijiPalette.paper.waveRest, const Color(0xFFCFCAC0));
+    expect(KijiPalette.graphite.glassBorder, const Color(0x1AFFFFFF), reason: 'blanco 10 %');
+  });
+
   test('Grafito y Papel tienen los colores pedidos', () {
     expect(KijiPalette.graphite.background, const Color(0xFF0F0F10));
     expect(KijiPalette.graphite.violet, KijiPalette.graphite.text, reason: 'el acento es el blanco');
