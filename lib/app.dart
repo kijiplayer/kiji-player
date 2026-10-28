@@ -109,50 +109,41 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Al abrir: la bienvenida a quien recién instala o, después de actualizar, una sola vez
-  /// "Novedades de esta versión".
+  /// Al abrir, en orden ([startupScreens]): la bienvenida a quien recién instala; la elección de
+  /// estilo si nunca se eligió; y, después de actualizar, una sola vez "Qué hay de nuevo". Cada una
+  /// espera a que se cierre la anterior.
   Future<void> _maybeWelcome() async {
     final fresh = await WelcomeStore().shouldShow();
     final settings = await ref.read(settingsProvider.notifier).loaded;
-    final showNews = shouldShowWhatsNew(lastSeenVersion: settings.lastSeenVersion, freshInstall: fresh);
+    final screens = startupScreens(
+      freshInstall: fresh,
+      styleChosen: settings.styleChosen,
+      lastSeenVersion: settings.lastSeenVersion,
+    );
     Future<void> markSeen() async {
       if (ref.read(settingsProvider).lastSeenVersion == kijiVersion) return;
       await ref.read(settingsProvider.notifier).update((s) => s.copyWith(lastSeenVersion: kijiVersion));
     }
 
-    // "¿Cómo quieres que se vea Kiji?": al instalar (después de la bienvenida) y, a quien
-    // actualiza, una sola vez.
-    Future<void> chooseStyleOnce() async {
-      if (ref.read(settingsProvider).styleChosen) return;
-      final context = kijiNavigatorKey.currentContext;
-      if (context != null && context.mounted) await StyleChooserScreen.open(context, ref);
-    }
-
-    if (fresh) {
-      // Se anota al cerrar la bienvenida: si Kiji se cierra a mitad, la bienvenida vuelve.
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+    // Instalación nueva: se anota al cerrar la bienvenida (si Kiji se cierra a mitad, vuelve).
+    // Actualización: se anota ya, así "Qué hay de nuevo" no se repite aunque se cierre Kiji.
+    if (!fresh) await markSeen();
+    if (screens.isEmpty) return;
+    debugPrint('=== INICIO: se muestran ${screens.map((s) => s.name).join(' → ')} ===');
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      for (final screen in screens) {
         final context = kijiNavigatorKey.currentContext;
-        if (context != null && context.mounted) await WelcomeScreen.open(context, instant: true);
-        await markSeen();
-        await chooseStyleOnce();
-      });
-      return;
-    }
-    await markSeen();
-    if (!settings.styleChosen) {
-      final done = Completer<void>();
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await chooseStyleOnce();
-        done.complete();
-      });
-      await done.future;
-    }
-    // Después de los estilos (si hacía falta elegir), "Qué hay de nuevo", una sola vez.
-    if (!showNews) return;
-    debugPrint('=== NOVEDADES: se muestra "Qué hay de nuevo" de $kijiVersion ===');
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = kijiNavigatorKey.currentContext;
-      if (context != null && context.mounted) WhatsNewScreen.open(context);
+        if (context == null || !context.mounted) return;
+        switch (screen) {
+          case StartupScreen.welcome:
+            await WelcomeScreen.open(context, instant: true);
+            await markSeen();
+          case StartupScreen.style:
+            if (!ref.read(settingsProvider).styleChosen) await StyleChooserScreen.open(context, ref);
+          case StartupScreen.whatsNew:
+            await WhatsNewScreen.open(context);
+        }
+      }
     });
   }
 
