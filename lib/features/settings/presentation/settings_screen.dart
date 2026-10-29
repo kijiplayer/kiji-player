@@ -46,6 +46,7 @@ import 'credits_screen.dart';
 import '../../../l10n/l10n.dart';
 import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart';
+import '../../account/domain/yt_session.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
@@ -998,7 +999,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           return ListTile(
             leading: Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded),
             title: Text(session == null ? tx.cuentaDeGoogleOpcional : tx.sesionIniciada2),
-            subtitle: Text(session == null ? tx.soloParaCancionesConCuenta : tx.tocaParaVerOCerrarLa),
+            // YouTube rechazó la sesión guardada: se avisa para volver a conectarla.
+            subtitle: Text(
+              session == null
+                  ? tx.soloParaCancionesConCuenta
+                  : (YtSessionHolder.rejected ? tx.sesionVencidaVuelveAConectar : tx.tocaParaVerOCerrarLa),
+            ),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => AccountScreen.open(context),
           );

@@ -73,8 +73,15 @@ class YtStream {
 /// NewPipe, etc.), no una API oficial ni documentada por Google. Puede
 /// requerir ajustes si YouTube cambia la forma de su respuesta.
 class YtMusicClient {
-  YtMusicClient({JsChallengeSolver? solver, PlayerScriptSource? playerScripts, PoTokenProvider? poTokens})
-    : _solver = solver ?? sharedSolver,
+  YtMusicClient({
+    JsChallengeSolver? solver,
+    PlayerScriptSource? playerScripts,
+    PoTokenProvider? poTokens,
+    @visibleForTesting Dio? playerDio,
+  }) : _playerDio =
+           playerDio ??
+           Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 15))),
+       _solver = solver ?? sharedSolver,
       _poTokens = poTokens ?? sharedPoTokens,
       _playerScripts = playerScripts ?? sharedPlayerScripts,
       _dio = Dio(
@@ -103,9 +110,7 @@ class YtMusicClient {
 
   /// Dio limpio para pedir el audio: sin headers heredados del cliente de
   /// búsqueda (cada "cliente" de YouTube manda los suyos propios).
-  final Dio _playerDio = Dio(
-    BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 15)),
-  );
+  final Dio _playerDio;
 
   final Dio _dio;
 
@@ -539,7 +544,7 @@ class YtMusicClient {
     }
     visitorData ??= await _getVisitorData();
     // Cuenta opcional: solo en las formas que la admiten (la de la web de YouTube Music).
-    final session = client.loginSupported ? YtSessionHolder.current : null;
+    final session = client.loginSupported ? YtSessionHolder.usable : null;
     if (session?.visitorData != null) visitorData = session!.visitorData;
     // Reproductor incrustado: su visitorData y sus encryptedHostFlags salen de la página embed.
     String? hostFlags;
@@ -616,6 +621,13 @@ class YtMusicClient {
         debugPrint('=== YTM stream: visitorData rechazado, pidiendo uno nuevo ===');
         _visitorData = null;
         return tryClient(videoId, client, lowQuality: lowQuality, retried: true);
+      }
+      // 401 con la cuenta opcional: YouTube ya no acepta esa sesión (venció o se cerró en otro
+      // lado). Se deja de mandar y se reintenta enseguida sin ella, como sin cuenta.
+      if (session != null && error is DioException && error.response?.statusCode == 401) {
+        debugPrint('=== YTM stream [${client.label}]: YouTube rechazó la sesión de la cuenta; sigue sin ella ===');
+        YtSessionHolder.rejected = true;
+        return tryClient(videoId, client, lowQuality: lowQuality, retried: retried);
       }
       return StreamAttempt(
         client.label,

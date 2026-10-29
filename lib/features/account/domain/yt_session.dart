@@ -71,4 +71,11 @@ class YtSession {
 abstract final class YtSessionHolder {
   static YtSession? current;
   static bool get signedIn => current != null;
+
+  /// YouTube rechazó la sesión (401: venció o se cerró en otro lado). Hasta volver a conectar la
+  /// cuenta, los pedidos van sin ella (anónimos), como si no hubiera cuenta.
+  static bool rejected = false;
+
+  /// La sesión que se manda en los pedidos: ninguna si YouTube ya la rechazó.
+  static YtSession? get usable => rejected ? null : current;
 }

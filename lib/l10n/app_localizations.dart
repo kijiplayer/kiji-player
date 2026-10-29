@@ -7078,6 +7078,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ahora no se pudo traducir. Vuelve a intentarlo en un momento.'**
   String get traduccionNoDisponibleAhora;
+
+  /// Configuración → Cuenta: YouTube respondió 401 a la sesión guardada.
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube ya no acepta esta sesión. Vuelve a conectar la cuenta.'**
+  String get sesionVencidaVuelveAConectar;
 }
 
 class _AppLocalizationsDelegate

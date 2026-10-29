@@ -67,6 +67,8 @@ class AccountNotifier extends Notifier<YtSession?> {
 
   Future<void> _apply(YtSession? session) async {
     YtSessionHolder.current = session;
+    // Sesión nueva (o sin cuenta): vuelve a valer, aunque YouTube hubiera rechazado la anterior.
+    YtSessionHolder.rejected = false;
     state = session;
     // Motor A (InnerTubeX, Android) usa la misma sesión.
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {

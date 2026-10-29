@@ -4366,4 +4366,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get traduccionNoDisponibleAhora =>
       'Couldn\'t translate right now. Try again in a moment.';
+
+  @override
+  String get sesionVencidaVuelveAConectar =>
+      'YouTube no longer accepts this session. Connect the account again.';
 }
