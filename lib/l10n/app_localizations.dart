@@ -7072,6 +7072,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.'**
   String get nuevoPcTexto;
+
+  /// Traducción de la letra: falló algo que no depende de la persona (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora no se pudo traducir. Vuelve a intentarlo en un momento.'**
+  String get traduccionNoDisponibleAhora;
 }
 
 class _AppLocalizationsDelegate

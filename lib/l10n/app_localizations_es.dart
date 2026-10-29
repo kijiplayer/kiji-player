@@ -4371,4 +4371,8 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get nuevoPcTexto =>
       'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.';
+
+  @override
+  String get traduccionNoDisponibleAhora =>
+      'Ahora no se pudo traducir. Vuelve a intentarlo en un momento.';
 }

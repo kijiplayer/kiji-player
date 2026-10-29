@@ -2598,5 +2598,7 @@
   "nuevoMasEscuchadasTexto": "Un top en Inicio con cuántas veces escuchaste cada una, calculado en tu equipo.",
   "nuevoPcTitulo": "En la PC",
   "nuevoPcTexto": "Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.",
-  "@queHayDeNuevo": {"description": "Pantalla que aparece una vez después de actualizar, con lo nuevo de la versión."}
+  "@queHayDeNuevo": {"description": "Pantalla que aparece una vez después de actualizar, con lo nuevo de la versión."},
+  "traduccionNoDisponibleAhora": "Ahora no se pudo traducir. Vuelve a intentarlo en un momento.",
+  "@traduccionNoDisponibleAhora": {"description": "Traducción de la letra: falló algo que no depende de la persona (sin detalle técnico)."}
 }

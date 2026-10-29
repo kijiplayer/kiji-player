@@ -100,7 +100,9 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
         });
       }
     } catch (error) {
-      if (mounted) setState(() => _message = tx.noSePudoTraducir(error));
+      // El detalle técnico va al registro; a la persona, un mensaje amable.
+      debugPrint('=== TRADUCIR: falló: $error ===');
+      if (mounted) setState(() => _message = tx.traduccionNoDisponibleAhora);
     } finally {
       if (mounted) {
         setState(() {

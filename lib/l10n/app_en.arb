@@ -1178,5 +1178,6 @@
   "nuevoMasEscuchadasTitulo": "Your most played",
   "nuevoMasEscuchadasTexto": "A top list on Home with how many times you played each one, worked out on your device.",
   "nuevoPcTitulo": "On the computer",
-  "nuevoPcTexto": "Kiji can stay in the system tray, has global shortcuts and responds to the media keys."
+  "nuevoPcTexto": "Kiji can stay in the system tray, has global shortcuts and responds to the media keys.",
+  "traduccionNoDisponibleAhora": "Couldn't translate right now. Try again in a moment."
 }

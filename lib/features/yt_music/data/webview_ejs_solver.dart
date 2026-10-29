@@ -261,7 +261,12 @@ class WebViewEjsSolver implements JsChallengeSolver {
       _starting = null;
       await _webView?.dispose();
       _webView = null;
-      if (!completer.isCompleted) completer.completeError(error);
+      // Solo lo esperan los pedidos que llegaron mientras arrancaba: si no hay ninguno, el error
+      // no debe quedar sin dueño (salía como "ERROR NO CAPTURADO").
+      if (!completer.isCompleted) {
+        completer.future.ignore();
+        completer.completeError(error);
+      }
       rethrow;
     }
   }

@@ -4362,4 +4362,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get nuevoPcTexto =>
       'Kiji can stay in the system tray, has global shortcuts and responds to the media keys.';
+
+  @override
+  String get traduccionNoDisponibleAhora =>
+      'Couldn\'t translate right now. Try again in a moment.';
 }
