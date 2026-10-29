@@ -238,6 +238,8 @@ class BergamotEngine {
       // La WebView quedó trabada (pasaba tras horas): se suelta, se renueva el entorno y se
       // reintenta una vez con una nueva.
       debugPrint('=== TRADUCIR: la WebView no respondió en ${answerTimeout.inSeconds} s; se crea otra ===');
+      // Se abandona sin cerrarla: cerrarla podría bloquear el hilo de la ventana.
+      _webView = null;
       await close();
       await WebViewHost.instance.renew('la traducción no respondía');
       return _translateOnce(route, lines).timeout(answerTimeout);

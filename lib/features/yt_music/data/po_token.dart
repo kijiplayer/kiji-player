@@ -212,8 +212,14 @@ class WebViewPoTokens implements PoTokenProvider {
       return _tokens[identifier] = token;
     } catch (error) {
       debugPrint('=== YTM potoken: no se pudo generar: $error ===');
-      await _reset();
-      if (error is TimeoutException) await WebViewHost.instance.renew('el PO token no respondía');
+      if (error is TimeoutException) {
+        // Trabada: se abandona sin cerrarla (cerrarla podría bloquear el hilo de la ventana).
+        _webView = null;
+        await _reset();
+        await WebViewHost.instance.renew('el PO token no respondía');
+      } else {
+        await _reset();
+      }
       return null;
     }
   }

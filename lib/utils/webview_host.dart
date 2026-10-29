@@ -114,12 +114,9 @@ class WebViewHost {
     if (_useEnvironment) generation++;
     renewals++;
     debugPrint('=== WEBVIEW: se renueva el entorno ($why) ===');
-    if (old == null) return;
-    try {
-      await old.dispose();
-    } catch (error) {
-      debugPrint('=== WEBVIEW: al soltar el entorno viejo: $error ===');
-    }
+    // El viejo no se suelta con una llamada al plugin: si su proceso de WebView2 está trabado, esa
+    // llamada bloquea el hilo de la ventana y con él todas las WebView siguientes. Solo se deja de usar.
+    if (old != null) debugPrint('=== WEBVIEW: el entorno viejo se abandona sin tocarlo ===');
   }
 
   /// Crea y arranca una WebView oculta para [who]. [build] la arma con el entorno que le toca
@@ -137,10 +134,14 @@ class WebViewHost {
       } catch (error) {
         lastError = error;
         debugPrint('=== WEBVIEW: $who no se pudo crear (intento $attempt de $attempts): $error ===');
-        try {
-          await _stop(webView);
-        } catch (disposeError) {
-          debugPrint('=== WEBVIEW: al soltar la de $who: $disposeError ===');
+        // Si no respondió a tiempo, puede estar trabada: se abandona sin tocarla (cerrarla podría
+        // bloquear el hilo de la ventana). Si falló enseguida, no quedó nada vivo y se suelta.
+        if (error is! TimeoutException) {
+          try {
+            await _stop(webView);
+          } catch (disposeError) {
+            debugPrint('=== WEBVIEW: al soltar la de $who: $disposeError ===');
+          }
         }
         await renew('no se pudo crear la de $who');
         if (attempt < attempts) await Future<void>.delayed(Duration(milliseconds: 400 * attempt));

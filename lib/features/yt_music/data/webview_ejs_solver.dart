@@ -199,8 +199,12 @@ class WebViewEjsSolver implements JsChallengeSolver {
       debugPrint('=== YTM solver: falló: $error ===');
       _preparedHash = null;
       // Trabada: se suelta para que el próximo pedido cree otra (con el entorno renovado).
+      // Trabada: se abandona sin cerrarla (cerrarla podría bloquear el hilo de la ventana) y el
+      // próximo pedido crea otra, con el entorno renovado.
       if (error is TimeoutException) {
-        await _closeIdle('no respondía');
+        _webView = null;
+        _controller = null;
+        _starting = null;
         await WebViewHost.instance.renew('el solver no respondía');
       }
       return ChallengeAnswers(error: 'El solver falló: ${'$error'.split('\n').first}');
