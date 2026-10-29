@@ -199,10 +199,10 @@ class WebViewPoTokens implements PoTokenProvider {
         _starting = null;
         return null;
       }
-      final result = await controller.callAsyncJavaScript(
-        functionBody: 'return await kijiMint(id);',
-        arguments: {'id': identifier},
-      );
+      // Con tope: si la WebView quedó trabada, no se espera para siempre.
+      final result = await controller
+          .callAsyncJavaScript(functionBody: 'return await kijiMint(id);', arguments: {'id': identifier})
+          .timeout(const Duration(seconds: 20));
       final value = result?.value;
       if (result?.error != null || value is! String) throw StateError('${result?.error ?? value}');
       final token = poTokenToBase64([for (final b in value.split(',')) int.parse(b)]);
@@ -213,6 +213,7 @@ class WebViewPoTokens implements PoTokenProvider {
     } catch (error) {
       debugPrint('=== YTM potoken: no se pudo generar: $error ===');
       await _reset();
+      if (error is TimeoutException) await WebViewHost.instance.renew('el PO token no respondía');
       return null;
     }
   }
@@ -222,7 +223,7 @@ class WebViewPoTokens implements PoTokenProvider {
     _expires = null;
     _starting = null;
     try {
-      await _webView?.dispose();
+      await _webView?.dispose().timeout(const Duration(seconds: 5));
     } catch (error) {
       debugPrint('=== YTM potoken: al cerrar la WebView: $error ===');
     }

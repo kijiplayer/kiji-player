@@ -129,7 +129,7 @@ class WebViewEjsSolver implements JsChallengeSolver {
     _starting = null;
     _preparedHash = null;
     try {
-      await webView.dispose();
+      await webView.dispose().timeout(const Duration(seconds: 5));
       debugPrint('=== YTM solver: WebView cerrada ($why) ===');
     } catch (error) {
       debugPrint('=== YTM solver: al cerrar la WebView: $error ===');
@@ -142,10 +142,10 @@ class WebViewEjsSolver implements JsChallengeSolver {
     String function,
     List<Object?> args,
   ) async {
-    final result = await controller.callAsyncJavaScript(
-      functionBody: 'return await kijiAsk(fn, args);',
-      arguments: {'fn': function, 'args': args},
-    );
+    // Con tope: si la WebView quedó trabada, no se espera para siempre (se suelta y se crea otra).
+    final result = await controller
+        .callAsyncJavaScript(functionBody: 'return await kijiAsk(fn, args);', arguments: {'fn': function, 'args': args})
+        .timeout(const Duration(seconds: 45));
     if (result?.error != null) throw StateError('$function: ${result!.error}');
     final raw = result?.value;
     if (raw is! String) throw StateError('$function: respuesta inesperada ($raw)');
@@ -198,6 +198,11 @@ class WebViewEjsSolver implements JsChallengeSolver {
     } catch (error) {
       debugPrint('=== YTM solver: falló: $error ===');
       _preparedHash = null;
+      // Trabada: se suelta para que el próximo pedido cree otra (con el entorno renovado).
+      if (error is TimeoutException) {
+        await _closeIdle('no respondía');
+        await WebViewHost.instance.renew('el solver no respondía');
+      }
       return ChallengeAnswers(error: 'El solver falló: ${'$error'.split('\n').first}');
     }
   }

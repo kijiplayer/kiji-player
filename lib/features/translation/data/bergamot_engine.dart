@@ -226,9 +226,25 @@ class BergamotEngine {
     return result;
   }
 
+  /// Tope para una traducción: si la WebView no responde (quedó trabada), se descarta.
+  static const answerTimeout = Duration(seconds: 60);
+
   Future<List<String>> _translate(List<LanguagePair> route, List<String> lines) async {
     if (route.isEmpty) return lines;
     _idle.touch();
+    try {
+      return await _translateOnce(route, lines).timeout(answerTimeout);
+    } on TimeoutException {
+      // La WebView quedó trabada (pasaba tras horas): se suelta, se renueva el entorno y se
+      // reintenta una vez con una nueva.
+      debugPrint('=== TRADUCIR: la WebView no respondió en ${answerTimeout.inSeconds} s; se crea otra ===');
+      await close();
+      await WebViewHost.instance.renew('la traducción no respondía');
+      return _translateOnce(route, lines).timeout(answerTimeout);
+    }
+  }
+
+  Future<List<String>> _translateOnce(List<LanguagePair> route, List<String> lines) async {
     final controller = await _ready();
     final payload = [
       for (final pair in route)
@@ -251,11 +267,18 @@ class BergamotEngine {
   }
 
   Future<void> close() async {
-    await _webView?.dispose();
-    await _server?.close();
+    final webView = _webView;
+    final server = _server;
     _webView = null;
     _controller = null;
     _starting = null;
     _server = null;
+    // Con tope: si la WebView quedó trabada, soltarla también podría quedarse esperando.
+    try {
+      await webView?.dispose().timeout(const Duration(seconds: 5));
+    } catch (error) {
+      debugPrint('=== TRADUCIR: al cerrar la WebView: $error ===');
+    }
+    await server?.close();
   }
 }

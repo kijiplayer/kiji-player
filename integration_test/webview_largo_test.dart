@@ -10,7 +10,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:kiji_player/features/translation/data/bergamot_engine.dart';
+import 'package:kiji_player/features/translation/data/bergamot_models.dart';
+import 'package:kiji_player/features/yt_music/data/player_script.dart';
+import 'package:kiji_player/features/yt_music/data/webview_ejs_solver.dart';
+import 'package:kiji_player/features/yt_music/data/yt_clients.dart';
+import 'package:kiji_player/features/yt_music/data/ytm_client.dart';
 import 'package:kiji_player/utils/webview_host.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// Congela o descongela los procesos de WebView2 que usan [folder] (NtSuspendProcess / NtResumeProcess).
@@ -106,5 +114,73 @@ void main() {
     } catch (error) {
       debugPrint('=== PRUEBA: carpeta temporal en uso todavía: $error ===');
     }
+  }, timeout: const Timeout(Duration(minutes: 15)));
+
+  testWidgets('motor real tras "horas": traducción viva, bandeja, proceso trabado; solver, PO token y traducción andan', (
+    tester,
+  ) async {
+    final uncaught = <Object>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = (details) => uncaught.add(details.exception);
+    addTearDown(() => FlutterError.onError = previous);
+    await windowManager.ensureInitialized();
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('motor real'))));
+
+    final base = Directory.systemTemp.createTempSync('kiji_motor_real_');
+    WebViewHost.instance = WebViewHost(baseDirectory: () async => base);
+
+    await tester.runAsync(() async {
+      // Modelos de traducción: una copia de los que ya estén bajados (nada se toca en los datos reales).
+      final realModels = Directory(p.join((await getApplicationSupportDirectory()).path, 'translation'));
+      final models = Directory(p.join(base.path, 'translation'));
+      if (await realModels.exists()) {
+        await for (final entity in realModels.list(recursive: true)) {
+          if (entity is! File) continue;
+          final target = File(p.join(models.path, p.relative(entity.path, from: realModels.path)));
+          await target.parent.create(recursive: true);
+          await entity.copy(target.path);
+        }
+      }
+      const route = [(from: 'en', to: 'es')];
+      final engine = BergamotEngine(BergamotModels(directory: () async => base));
+      final hasModels = (await BergamotModels(directory: () async => base).installedTypes(route.first)).isNotEmpty;
+      debugPrint('=== PRUEBA: modelos en→es copiados: $hasModels ===');
+
+      // 1. Traducción viva (como cuando se lee una letra), y Kiji a la bandeja.
+      if (hasModels) {
+        final first = await engine.translate(route, ['The sun is warm today']);
+        debugPrint('=== PRUEBA: traducción 1: ${first.first} ===');
+        expect(first.first, isNotEmpty);
+      }
+      await windowManager.hide();
+
+      // 2. El proceso de WebView2 de Kiji queda trabado.
+      final frozenFolder = WebViewHost.instance.folder;
+      final frozen = frozenFolder == null ? 0 : await _freeze(frozenFolder, frozen: true);
+      debugPrint('=== PRUEBA: procesos congelados: $frozen ===');
+
+      // 3. Audio por las formas que usan el solver y el PO token (anónimo, sin cuenta).
+      final client = YtMusicClient(
+        solver: WebViewEjsSolver(directory: () async => base),
+        playerScripts: PlayerScriptSource(directory: () async => base),
+      );
+      final forms = {for (final c in ytPlayerClients) c.label: c};
+      for (final label in ['TVHTML5_SIMPLY', 'WEB_REMIX']) {
+        final attempt = await client.tryClient('BSTsnWoslP4', forms[label]!);
+        debugPrint('=== PRUEBA: $label: ${attempt.url != null ? 'audio OK' : attempt.reason} ===');
+        if (label == 'TVHTML5_SIMPLY') expect(attempt.url, isNotNull, reason: 'el solver y el PO token se recuperan');
+      }
+      // 4. La traducción sigue andando aunque su WebView vieja siga trabada (se crea otra).
+      if (hasModels) {
+        final again = await engine.translate(route, ['We walk along the river']);
+        debugPrint('=== PRUEBA: traducción 2: ${again.first} ===');
+        expect(again.first, isNotEmpty);
+      }
+      if (frozen > 0) await _freeze(frozenFolder!, frozen: false);
+      debugPrint('=== PRUEBA: renovaciones del entorno: ${WebViewHost.instance.renewals} ===');
+      await engine.close();
+      await windowManager.show();
+    });
+    expect(uncaught, isEmpty, reason: 'nada de errores sin dueño');
   }, timeout: const Timeout(Duration(minutes: 15)));
 }

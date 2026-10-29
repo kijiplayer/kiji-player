@@ -43,7 +43,7 @@ class WebViewHost {
   static Future<WebViewEnvironment> _defaultEnvironment(String folder) =>
       WebViewEnvironment.create(settings: WebViewEnvironmentSettings(userDataFolder: folder));
 
-  static final instance = WebViewHost();
+  static WebViewHost instance = WebViewHost();
 
   static const attempts = 3;
   static const createTimeout = Duration(seconds: 20);
