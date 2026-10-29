@@ -15,6 +15,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:kiji_player/utils/webview_host.dart';
+import 'package:kiji_player/utils/idle_closer.dart';
 import 'package:path/path.dart' as p;
 
 import 'bergamot_models.dart';
@@ -123,7 +125,9 @@ class _LocalServer {
         response.headers.contentType = ContentType('application', 'javascript', charset: 'utf-8');
         response.write(_glue);
       } else if (path == 'engine.wasm' ||
-          (rest.length == 3 && rest[0] == 'models' && RegExp(r'^[a-zA-Z-]+$').hasMatch(rest[1]) &&
+          (rest.length == 3 &&
+              rest[0] == 'models' &&
+              RegExp(r'^[a-zA-Z-]+$').hasMatch(rest[1]) &&
               RegExp(r'^(model|lex|vocab|srcvocab|trgvocab)\.bin$').hasMatch(rest[2]))) {
         final file = path == 'engine.wasm'
             ? File(p.join(_root.path, 'engine', 'engine.wasm'))
@@ -132,8 +136,7 @@ class _LocalServer {
           response.statusCode = HttpStatus.notFound;
           return;
         }
-        response.headers.contentType =
-            path == 'engine.wasm' ? ContentType('application', 'wasm') : ContentType.binary;
+        response.headers.contentType = path == 'engine.wasm' ? ContentType('application', 'wasm') : ContentType.binary;
         await response.addStream(file.openRead());
       } else {
         response.statusCode = HttpStatus.notFound;
@@ -164,25 +167,56 @@ class BergamotEngine {
 
   bool get isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
 
+  /// La WebView se cierra tras 5 minutos sin traducir (ahorra RAM; en Windows son varios procesos
+  /// de Edge). Los modelos quedan en disco: volver a abrirla tarda poco.
+  static const idleTimeout = Duration(minutes: 5);
+  late final IdleCloser _idle = IdleCloser(idleTimeout, () {
+    _queue = _queue.then((_) => _closeIdle());
+  });
+
+  Future<void> _closeIdle() async {
+    if (_webView == null) return;
+    await close();
+    debugPrint('=== TRADUCIR: WebView cerrada (sin uso hace ${idleTimeout.inMinutes} min) ===');
+  }
+
   Future<InAppWebViewController> _start() async {
     final glue = await rootBundle.loadString('assets/translation/bergamot-translator.js');
     final server = _server = await _LocalServer.start(await models.folder(), glue);
     final loaded = Completer<InAppWebViewController>();
-    final webView = HeadlessInAppWebView(
-      initialUrlRequest: URLRequest(url: WebUri('${server.base}index.html')),
-      initialSettings: InAppWebViewSettings(javaScriptEnabled: true, cacheEnabled: false),
-      onLoadStop: (controller, _) {
-        if (!loaded.isCompleted) loaded.complete(controller);
-      },
-      onConsoleMessage: (_, message) {
-        if (message.messageLevel == ConsoleMessageLevel.ERROR) {
-          debugPrint('=== TRADUCIR: consola: ${message.message} ===');
-        }
-      },
+    final webView = await WebViewHost.instance.run(
+      'traducción',
+      (environment) => HeadlessInAppWebView(
+        webViewEnvironment: environment,
+        initialUrlRequest: URLRequest(url: WebUri('${server.base}index.html')),
+        initialSettings: InAppWebViewSettings(javaScriptEnabled: true, cacheEnabled: false),
+        onLoadStop: (controller, _) {
+          if (!loaded.isCompleted) loaded.complete(controller);
+        },
+        onConsoleMessage: (_, message) {
+          if (message.messageLevel == ConsoleMessageLevel.ERROR) {
+            debugPrint('=== TRADUCIR: consola: ${message.message} ===');
+          }
+        },
+      ),
     );
     _webView = webView;
-    await webView.run();
     return _controller = await loaded.future.timeout(const Duration(seconds: 20));
+  }
+
+  /// La WebView lista o, si no, la arranca. Si arrancar falla, la próxima vez se vuelve a intentar
+  /// (antes quedaba guardado el error y fallaban todas las traducciones hasta reiniciar Kiji).
+  Future<InAppWebViewController> _ready() async {
+    final ready = _controller;
+    if (ready != null) return ready;
+    final starting = _starting ??= _start();
+    try {
+      return await starting;
+    } catch (error) {
+      _starting = null;
+      await close();
+      rethrow;
+    }
   }
 
   /// Traduce [lines] por la ruta [route] (uno o dos pares, pivote por inglés).
@@ -194,7 +228,8 @@ class BergamotEngine {
 
   Future<List<String>> _translate(List<LanguagePair> route, List<String> lines) async {
     if (route.isEmpty) return lines;
-    final controller = _controller ?? await (_starting ??= _start());
+    _idle.touch();
+    final controller = await _ready();
     final payload = [
       for (final pair in route)
         {
