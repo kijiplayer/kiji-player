@@ -92,7 +92,7 @@ void main() {
   test('varios pedidos a la vez después de una falla no dejan errores sin dueño', () async {
     final uncaught = <Object>[];
     final done = Completer<void>();
-    runZonedGuarded(() async {
+    unawaited(runZonedGuarded(() async {
       var tries = 0;
       final host = WebViewHost(
         baseDirectory: () async => dir,
@@ -114,7 +114,7 @@ void main() {
     }, (error, _) {
       uncaught.add(error);
       if (!done.isCompleted) done.complete();
-    });
+    }));
     await done.future;
     expect(uncaught, isEmpty);
   });

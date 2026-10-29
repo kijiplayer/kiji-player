@@ -1,3 +1,4 @@
+// l10n-ignore-file: mensajes del registro y de errores internos (no se muestran en la interfaz).
 import 'dart:async';
 import 'dart:io';
 

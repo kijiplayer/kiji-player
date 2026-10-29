@@ -191,7 +191,10 @@ class WebViewPoTokens implements PoTokenProvider {
     final cached = _tokens[identifier];
     if (cached != null) return cached;
     try {
-      final controller = await (_starting ??= _start()).timeout(const Duration(seconds: 20));
+      // Alcanza para que WebViewHost renueve el entorno y reintente si la WebView no se crea.
+      final controller = await (_starting ??= _start()).timeout(
+        WebViewHost.createTimeout * WebViewHost.attempts + const Duration(seconds: 25),
+      );
       if (controller == null) {
         _starting = null;
         return null;
