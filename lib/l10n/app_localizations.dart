@@ -7084,6 +7084,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'YouTube ya no acepta esta sesión. Vuelve a conectar la cuenta.'**
   String get sesionVencidaVuelveAConectar;
+
+  /// Búsqueda, pestaña Todo: el resultado que mejor coincide.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado principal'**
+  String get resultadoPrincipal;
+
+  /// Búsqueda, pestaña Todo: abre la pestaña de esa sección.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver todo'**
+  String get verTodo;
+
+  /// Tipo de resultado de búsqueda: una playlist de YouTube Music.
+  ///
+  /// In es, this message translates to:
+  /// **'Playlist'**
+  String get playlist;
 }
 
 class _AppLocalizationsDelegate

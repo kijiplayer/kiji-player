@@ -1180,5 +1180,8 @@
   "nuevoPcTitulo": "On the computer",
   "nuevoPcTexto": "Kiji can stay in the system tray, has global shortcuts and responds to the media keys.",
   "traduccionNoDisponibleAhora": "Couldn't translate right now. Try again in a moment.",
-  "sesionVencidaVuelveAConectar": "YouTube no longer accepts this session. Connect the account again."
+  "sesionVencidaVuelveAConectar": "YouTube no longer accepts this session. Connect the account again.",
+  "resultadoPrincipal": "Top result",
+  "verTodo": "See all",
+  "playlist": "Playlist"
 }

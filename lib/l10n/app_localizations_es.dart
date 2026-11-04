@@ -4379,4 +4379,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get sesionVencidaVuelveAConectar =>
       'YouTube ya no acepta esta sesión. Vuelve a conectar la cuenta.';
+
+  @override
+  String get resultadoPrincipal => 'Resultado principal';
+
+  @override
+  String get verTodo => 'Ver todo';
+
+  @override
+  String get playlist => 'Playlist';
 }

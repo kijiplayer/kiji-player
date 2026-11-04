@@ -29,17 +29,63 @@ import 'package:kiji_player/l10n/l10n.dart';
 
 /// Qué se busca.
 enum SearchKind {
+  all,
   songs,
   artists,
   albums,
+  playlists,
   myFiles;
 
   String get label => switch (this) {
+    SearchKind.all => tx.todo,
     SearchKind.songs => tx.canciones,
     SearchKind.artists => tx.artistas,
     SearchKind.albums => tx.albumes,
+    SearchKind.playlists => tx.playlists,
     SearchKind.myFiles => tx.misArchivos,
   };
+}
+
+/// Pestaña Todo: el resultado principal y unos pocos de cada tipo, en este orden.
+class SearchOverview {
+  const SearchOverview({
+    this.top,
+    this.songs = const [],
+    this.artists = const [],
+    this.albums = const [],
+    this.playlists = const [],
+  });
+
+  /// Arma la vista sin repetir el resultado principal en su sección.
+  factory SearchOverview.from({
+    YtTopResult? top,
+    List<YtMusicSearchResult> songs = const [],
+    List<YtCollection> artists = const [],
+    List<YtCollection> albums = const [],
+    List<YtCollection> playlists = const [],
+    int songsShown = 4,
+    int othersShown = 3,
+  }) {
+    final topSong = top?.song?.videoId;
+    final topCollection = top?.collection?.browseId;
+    List<YtCollection> pick(List<YtCollection> list) =>
+        list.where((c) => c.browseId != topCollection).take(othersShown).toList();
+    return SearchOverview(
+      top: top,
+      songs: songs.where((s) => s.videoId != topSong).take(songsShown).toList(),
+      artists: pick(artists),
+      albums: pick(albums),
+      playlists: pick(playlists),
+    );
+  }
+
+  final YtTopResult? top;
+  final List<YtMusicSearchResult> songs;
+  final List<YtCollection> artists;
+  final List<YtCollection> albums;
+  final List<YtCollection> playlists;
+
+  bool get isEmpty => top == null && songs.isEmpty && artists.isEmpty && albums.isEmpty && playlists.isEmpty;
 }
 
 /// Filtra [tracks] por título, artista o álbum (sin distinguir mayúsculas).
@@ -73,7 +119,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   bool _loading = false;
   String? _error;
   String? _resolvingVideoId;
-  SearchKind _kind = SearchKind.songs;
+  SearchKind _kind = SearchKind.all;
+  SearchOverview _overview = const SearchOverview();
 
   @override
   void dispose() {
@@ -95,8 +142,40 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   /// Sube con cada búsqueda nueva: lo que llegue de una búsqueda vieja se descarta.
   int _generation = 0;
 
-  YtCollectionKind get _collectionKind =>
-      _kind == SearchKind.artists ? YtCollectionKind.artist : YtCollectionKind.album;
+  YtCollectionKind get _collectionKind => switch (_kind) {
+    SearchKind.artists => YtCollectionKind.artist,
+    SearchKind.playlists => YtCollectionKind.playlist,
+    _ => YtCollectionKind.album,
+  };
+
+  /// Pestaña Todo: todo a la vez; si una parte falla, se muestra el resto.
+  Future<SearchOverview> _loadOverview(String query) async {
+    var failures = 0;
+    Future<T?> part<T>(String what, Future<T> future) async {
+      try {
+        return await future;
+      } catch (error) {
+        failures++;
+        debugPrint('=== BÚSQUEDA: Todo sin $what: $error ===');
+        return null;
+      }
+    }
+
+    final top = part('resultado principal', _client.searchTop(query)); // l10n-ignore (registro)
+    final songs = part('canciones', _client.searchSongsPage(query)); // l10n-ignore (registro)
+    final artists = part('artistas', _client.searchCollectionsPage(query, YtCollectionKind.artist)); // l10n-ignore (registro)
+    final albums = part('álbumes', _client.searchCollectionsPage(query, YtCollectionKind.album)); // l10n-ignore (registro)
+    final playlists = part('playlists', _client.searchCollectionsPage(query, YtCollectionKind.playlist)); // l10n-ignore (registro)
+    final overview = SearchOverview.from(
+      top: await top,
+      songs: (await songs)?.items ?? const [],
+      artists: (await artists)?.items ?? const [],
+      albums: (await albums)?.items ?? const [],
+      playlists: (await playlists)?.items ?? const [],
+    );
+    if (overview.isEmpty && failures == 5) throw StateError('falló toda la búsqueda');
+    return overview;
+  }
 
   Future<void> _search(String query) async {
     final generation = ++_generation;
@@ -106,6 +185,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       setState(() {
         _results = const [];
         _collections = const [];
+        _overview = const SearchOverview();
         _error = null;
         _loading = false;
       });
@@ -123,7 +203,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       return;
     }
     try {
-      if (_kind == SearchKind.songs) {
+      if (_kind == SearchKind.all) {
+        final overview = await _loadOverview(query);
+        if (!mounted || generation != _generation) return;
+        setState(() {
+          _overview = overview;
+          _loading = false;
+        });
+      } else if (_kind == SearchKind.songs) {
         final page = await _client.searchSongsPage(query);
         if (!mounted || generation != _generation) return;
         setState(() {
@@ -153,7 +240,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   /// Trae la página siguiente de la pestaña actual (al llegar cerca del final).
   Future<void> _loadMore() async {
     final token = _continuation;
-    if (token == null || _loadingMore || _loading || _kind == SearchKind.myFiles) return;
+    if (token == null || _loadingMore || _loading || _kind == SearchKind.myFiles || _kind == SearchKind.all) return;
     final generation = _generation;
     setState(() => _loadingMore = true);
     try {
@@ -311,10 +398,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     showCheckmark: false,
                     // Colores de lo elegido: los del tema (KijiSelected).
                     shape: const StadiumBorder(),
-                    onSelected: (_) {
-                      setState(() => _kind = kind);
-                      _search(_controller.text);
-                    },
+                    onSelected: (_) => _switchTo(kind),
                   ),
                 ),
             ],
@@ -322,9 +406,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
         Expanded(
           child: switch (_kind) {
+            SearchKind.all => _buildOverview(),
             SearchKind.songs => _buildBody(),
             SearchKind.myFiles => _buildMyFiles(),
-            SearchKind.artists || SearchKind.albums => _buildCollections(),
+            SearchKind.artists || SearchKind.albums || SearchKind.playlists => _buildCollections(),
           },
         ),
       ],
@@ -388,6 +473,87 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
+  void _switchTo(SearchKind kind) {
+    setState(() => _kind = kind);
+    _search(_controller.text);
+  }
+
+  /// Una canción de los resultados. Mantener presionado (celular) o clic
+  /// derecho (PC): "Reproducir a continuación" / "Agregar a la cola".
+  Widget _songTile(YtMusicSearchResult result) {
+    final isResolving = _resolvingVideoId == result.videoId;
+    final track = ytTrackFromResult(result, audioUrl: '');
+    return GestureDetector(
+      onSecondaryTap: () => showTrackActions(context, ref, track),
+      child: ListTile(
+        leading: _Thumbnail(url: result.thumbnailUrl),
+        title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+        trailing: isResolving
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+            : DownloadButton(track: track),
+        onTap: isResolving ? null : () => _play(result),
+        onLongPress: () => showTrackActions(context, ref, track),
+      ),
+    );
+  }
+
+  /// Título de una sección de la pestaña Todo, con "Ver todo" si tiene pestaña propia.
+  Widget _sectionHeader(String title, {SearchKind? more}) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 16, 8, 4),
+    child: Row(
+      children: [
+        Expanded(child: Text(title.toUpperCase(), style: KijiText.mono(size: 11))),
+        if (more != null) TextButton(onPressed: () => _switchTo(more), child: Text(tx.verTodo)),
+      ],
+    ),
+  );
+
+  /// Pestaña Todo: primero lo más exacto, después canciones, artistas, álbumes y playlists.
+  Widget _buildOverview() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Text(_error!, style: TextStyle(color: AppColors.onSurfaceMuted)),
+      );
+    }
+    if (_controller.text.trim().isEmpty) return _buildBeforeTyping();
+    final o = _overview;
+    if (o.isEmpty) {
+      return Center(
+        child: Text(tx.sinResultados, style: TextStyle(color: AppColors.onSurfaceMuted)),
+      );
+    }
+    final top = o.top;
+    final children = <Widget>[
+      if (top != null) ...[
+        _sectionHeader(tx.resultadoPrincipal),
+        if (top.song != null) _songTile(top.song!) else CollectionTile(collection: top.collection!),
+      ],
+      if (o.songs.isNotEmpty) ...[
+        _sectionHeader(tx.canciones, more: SearchKind.songs),
+        for (final song in o.songs) _songTile(song),
+      ],
+      for (final (title, kind, list) in [
+        (tx.artistas, SearchKind.artists, o.artists),
+        (tx.albumes, SearchKind.albums, o.albums),
+        (tx.playlists, SearchKind.playlists, o.playlists),
+      ])
+        if (list.isNotEmpty) ...[
+          _sectionHeader(title, more: kind),
+          for (final collection in list) CollectionTile(collection: collection),
+        ],
+    ];
+    return StaggerScope(
+      generation: o,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 180),
+        itemCount: children.length,
+        itemBuilder: (context, index) => StaggeredEntrance(index: index, child: children[index]),
+      ),
+    );
+  }
+
   Widget _buildBody() {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
@@ -414,29 +580,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           separatorBuilder: (_, _) => const SizedBox.shrink(),
           itemBuilder: (context, index) {
             if (index == _results.length) return _moreIndicator;
-            final result = _results[index];
-            final isResolving = _resolvingVideoId == result.videoId;
-
-            final track = ytTrackFromResult(result, audioUrl: '');
-
-            // Mantener presionado (celular) o clic derecho (PC): "Reproducir a
-            // continuación" / "Agregar a la cola".
-            return StaggeredEntrance(
-              index: index,
-              child: GestureDetector(
-                onSecondaryTap: () => showTrackActions(context, ref, track),
-                child: ListTile(
-                  leading: _Thumbnail(url: result.thumbnailUrl),
-                  title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  trailing: isResolving
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : DownloadButton(track: track),
-                  onTap: isResolving ? null : () => _play(result),
-                  onLongPress: () => showTrackActions(context, ref, track),
-                ),
-              ),
-            );
+            return StaggeredEntrance(index: index, child: _songTile(_results[index]));
           },
         ),
       ),

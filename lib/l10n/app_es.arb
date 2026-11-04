@@ -2602,5 +2602,11 @@
   "traduccionNoDisponibleAhora": "Ahora no se pudo traducir. Vuelve a intentarlo en un momento.",
   "@traduccionNoDisponibleAhora": {"description": "Traducción de la letra: falló algo que no depende de la persona (sin detalle técnico)."},
   "sesionVencidaVuelveAConectar": "YouTube ya no acepta esta sesión. Vuelve a conectar la cuenta.",
-  "@sesionVencidaVuelveAConectar": {"description": "Configuración → Cuenta: YouTube respondió 401 a la sesión guardada."}
+  "@sesionVencidaVuelveAConectar": {"description": "Configuración → Cuenta: YouTube respondió 401 a la sesión guardada."},
+  "resultadoPrincipal": "Resultado principal",
+  "@resultadoPrincipal": {"description": "Búsqueda, pestaña Todo: el resultado que mejor coincide."},
+  "verTodo": "Ver todo",
+  "@verTodo": {"description": "Búsqueda, pestaña Todo: abre la pestaña de esa sección."},
+  "playlist": "Playlist",
+  "@playlist": {"description": "Tipo de resultado de búsqueda: una playlist de YouTube Music."}
 }

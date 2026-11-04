@@ -163,8 +163,16 @@ class YtMusicClient {
   /// mismos `params` que manda la web al tocar esos chips).
   static const artistsFilter = 'EgWKAQIgAWoKEAkQChAFEAMQBA=='; // l10n-ignore
   static const albumsFilter = 'EgWKAQIYAWoKEAkQChAFEAMQBA=='; // l10n-ignore
+  static const playlistsFilter = 'EgeKAQQoAEABahAQDhADEAUQCRAEEAoQFRAR'; // l10n-ignore (Listas de la comunidad)
 
-  /// Busca artistas o álbumes (anónimo).
+  /// El resultado que mejor coincide (búsqueda sin filtro); null si YouTube no destaca ninguno.
+  Future<YtTopResult?> searchTop(String query) async {
+    if (query.trim().isEmpty) return null;
+    final data = await _searchRaw(query, null, null);
+    return data == null ? null : parseTopResult(data);
+  }
+
+  /// Busca artistas, álbumes o playlists (anónimo).
   Future<List<YtCollection>> searchCollections(String query, YtCollectionKind kind) async =>
       (await searchCollectionsPage(query, kind)).items;
 
@@ -183,6 +191,7 @@ class YtMusicClient {
   static String _collectionFilter(YtCollectionKind kind) => switch (kind) {
     YtCollectionKind.artist => artistsFilter,
     YtCollectionKind.album => albumsFilter,
+    YtCollectionKind.playlist => playlistsFilter,
   };
 
   /// Pedido a `/search`. La página siguiente va con la marca en la URL
