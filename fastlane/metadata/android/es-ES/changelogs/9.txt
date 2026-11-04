@@ -1,0 +1,3 @@
+• En la PC, las funciones que usan el navegador interno (YouTube y traducción) se recuperan solas si dejan de responder.
+• Sin avisos técnicos: si algo no se puede, Kiji lo dice con amabilidad.
+• Si YouTube rechaza tu sesión, Kiji sigue sin ella y te avisa.

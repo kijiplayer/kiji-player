@@ -1,0 +1,3 @@
+• On PC, the features that use the built-in browser (YouTube and translation) recover on their own if they stop responding.
+• No technical alerts: if something can't be done, Kiji says so kindly.
+• If YouTube rejects your session, Kiji carries on without it and lets you know.
