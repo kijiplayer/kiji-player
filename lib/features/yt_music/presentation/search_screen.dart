@@ -103,14 +103,17 @@ List<Track> filterMyFiles(List<Track> tracks, String query) {
 }
 
 class SearchScreen extends ConsumerStatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, this.client});
+
+  /// Para pruebas; si es null usa uno propio.
+  final YtMusicClient? client;
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
-  final _client = YtMusicClient();
+  late final YtMusicClient _client = widget.client ?? YtMusicClient();
   final _controller = TextEditingController();
   Timer? _debounce;
 
@@ -126,6 +129,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void dispose() {
     _debounce?.cancel();
     _controller.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -218,6 +222,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           _continuation = page.continuation;
           _loading = false;
         });
+        _fillScreen();
       } else {
         final page = await _client.searchCollectionsPage(query, _collectionKind);
         if (!mounted || generation != _generation) return;
@@ -226,6 +231,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           _continuation = page.continuation;
           _loading = false;
         });
+        _fillScreen();
       }
     } catch (error) {
       if (!mounted || generation != _generation) return;
@@ -265,7 +271,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       // Sin aviso: lo ya cargado queda, y al volver a bajar se reintenta.
       debugPrint('=== BÚSQUEDA: no se pudo traer más resultados: $error ===');
     } finally {
-      if (mounted && generation == _generation) setState(() => _loadingMore = false);
+      if (mounted && generation == _generation) {
+        setState(() => _loadingMore = false);
+        _fillScreen();
+      }
     }
   }
 
@@ -277,6 +286,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     },
     child: list,
   );
+
+  /// La lista de resultados que se ve (canciones o colecciones: una a la vez).
+  final _scroll = ScrollController();
+
+  /// Si la página no llena la pantalla (ventana muy alta), no hay nada que bajar: después de
+  /// dibujarla, si queda poco abajo, se pide la siguiente sola.
+  void _fillScreen() => WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!mounted || !_scroll.hasClients || _continuation == null) return;
+    if (_scroll.position.extentAfter < 600) _loadMore();
+  });
 
   /// Al pie de la lista, mientras llega la página siguiente.
   Widget get _moreIndicator => const Padding(
@@ -432,6 +451,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
     return _withMore(
       ListView.builder(
+        controller: _scroll,
         padding: const EdgeInsets.only(bottom: 180),
         itemCount: _collections.length + (_loadingMore ? 1 : 0),
         itemBuilder: (context, index) =>
@@ -575,6 +595,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       generation: _results,
       child: _withMore(
         ListView.separated(
+          controller: _scroll,
           padding: const EdgeInsets.only(bottom: 180),
           itemCount: _results.length + (_loadingMore ? 1 : 0),
           separatorBuilder: (_, _) => const SizedBox.shrink(),
