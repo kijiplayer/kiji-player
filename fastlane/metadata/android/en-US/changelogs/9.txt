@@ -1,3 +1,6 @@
-• On PC, the features that use the built-in browser (YouTube and translation) recover on their own if they stop responding.
+• Search: the closest match first, then songs, artists, albums and playlists; scrolling down keeps loading more.
+• Sharp covers in the player, the notification and the Windows media controls.
+• Credits in the language you choose.
+• On PC, YouTube and translation recover on their own if they stop responding.
 • No technical alerts: if something can't be done, Kiji says so kindly.
 • If YouTube rejects your session, Kiji carries on without it and lets you know.

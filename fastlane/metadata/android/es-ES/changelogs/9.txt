@@ -1,3 +1,6 @@
-• En la PC, las funciones que usan el navegador interno (YouTube y traducción) se recuperan solas si dejan de responder.
+• Búsqueda: primero el resultado más exacto y después canciones, artistas, álbumes y playlists; al bajar, siguen cargando más.
+• Portadas nítidas en el reproductor, la notificación y los controles de Windows.
+• Créditos en el idioma que elijas.
+• En la PC, YouTube y la traducción se recuperan solos si dejan de responder.
 • Sin avisos técnicos: si algo no se puede, Kiji lo dice con amabilidad.
 • Si YouTube rechaza tu sesión, Kiji sigue sin ella y te avisa.
