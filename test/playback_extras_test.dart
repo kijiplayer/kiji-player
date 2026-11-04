@@ -179,7 +179,9 @@ void main() {
     final s = d.copyWith(pauseOnMute: true, resumeOnBluetooth: false, crossfadeSeconds: 5, dataSaver: true);
     final back = AppSettings.fromJson(s.toJson());
     expect([back.pauseOnMute, back.resumeOnBluetooth, back.dataSaver, back.crossfadeSeconds], [true, false, true, 5]);
-    expect(AppSettings.fromJson({'crossfadeSeconds': 7}).crossfadeSeconds, 0);
+    expect(AppSettings.fromJson({'crossfadeSeconds': 7}).crossfadeSeconds, 7, reason: 'cualquier entero de 0 a 12');
+    expect(AppSettings.fromJson({'crossfadeSeconds': 13}).crossfadeSeconds, 0);
+    expect(AppSettings.fromJson({'crossfadeSeconds': -1}).crossfadeSeconds, 0);
   });
 
   group('PlaybackAutomation', () {

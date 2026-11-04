@@ -50,8 +50,10 @@ class AppSettings {
     this.highPerformance = false,
   });
 
-  /// Opciones de la transición suave entre canciones (0 = apagada).
+  /// Opciones rápidas de la transición suave entre canciones (0 = apagada). En Sonido se elige
+  /// cualquier valor entero de 0 a [maxCrossfadeSeconds].
   static const crossfadeOptions = [0, 3, 5, 8, 12];
+  static const maxCrossfadeSeconds = 12;
 
   static const _mb = 1024 * 1024;
   static const defaultCacheLimit = 300 * _mb;
@@ -369,7 +371,7 @@ class AppSettings {
       batteryAsked: read('batteryAsked', d.batteryAsked),
       style: styles.contains(json['style']) ? json['style'] as String : d.style,
       styleChosen: read('styleChosen', d.styleChosen),
-      crossfadeSeconds: crossfadeOptions.contains(crossfade) ? crossfade : d.crossfadeSeconds,
+      crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       autoBackup: read('autoBackup', d.autoBackup),
       backupFolder: json['backupFolder'] is String && (json['backupFolder'] as String).isNotEmpty
