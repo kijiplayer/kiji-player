@@ -47,7 +47,7 @@ class DownloadedTrack {
         sizeBytes: sizeBytes,
       );
 
-  DownloadedTrack copyWith({String? artist}) => DownloadedTrack(
+  DownloadedTrack copyWith({String? artist, String? thumbnailFileName}) => DownloadedTrack(
         videoId: videoId,
         title: title,
         artist: artist ?? this.artist,
@@ -56,7 +56,7 @@ class DownloadedTrack {
         sizeBytes: sizeBytes,
         downloadedAt: downloadedAt,
         album: album,
-        thumbnailFileName: thumbnailFileName,
+        thumbnailFileName: thumbnailFileName ?? this.thumbnailFileName,
         durationMs: durationMs,
       );
 

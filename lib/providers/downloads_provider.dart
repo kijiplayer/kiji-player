@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/downloads/data/cover_upgrade.dart';
 import '../features/downloads/data/download_service.dart';
 import '../features/downloads/data/downloads_repository.dart';
 import '../features/downloads/data/storage_info_impl.dart';
@@ -201,10 +202,34 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
         loaded: true,
         directoryPath: directory.path,
       );
+      // Sin apuro: que primero arranque lo demás (la canción restaurada, el inicio).
+      _coverTimer = Timer(coverUpgradeDelay, () => unawaited(_upgradeCovers()));
+      ref.onDispose(() => _coverTimer?.cancel());
     } catch (error) {
       debugPrint('=== DESCARGAS: no se pudo leer el índice: $error ===');
       state = state.copyWith(loaded: true);
     }
+  }
+
+  /// Cuánto se espera después de abrir Kiji para mejorar las portadas viejas.
+  static Duration coverUpgradeDelay = const Duration(seconds: 45);
+  Timer? _coverTimer;
+
+  /// Portadas chicas de descargas viejas → alta calidad, en segundo plano (ver [CoverUpgrade]).
+  /// Con "solo con WiFi", también espera al WiFi.
+  Future<void> _upgradeCovers() async {
+    if (state.settings.wifiOnly && !await _onWifiOrEthernet()) return;
+    final client = YtMusicClient();
+    await CoverUpgrade(
+      coverUrlFor: (videoId) async => (await client.videoDetails(videoId))?.thumbnailUrl,
+      download: _service.downloadThumbnail,
+      replace: (videoId, fileName) async {
+        final updated = await _repository.replaceThumbnail(videoId, fileName);
+        if (updated != null && state.completed.containsKey(videoId)) {
+          state = state.copyWith(completed: {...state.completed, videoId: updated});
+        }
+      },
+    ).run(state.completed.values.toList());
   }
 
   Future<bool> _onWifiOrEthernet() async {

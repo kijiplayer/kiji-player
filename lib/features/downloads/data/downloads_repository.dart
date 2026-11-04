@@ -120,6 +120,21 @@ class DownloadsRepository {
     await _saveIndex();
   }
 
+  /// Cambia la portada guardada de [videoId] por [fileName] y borra la anterior (el audio queda igual).
+  Future<DownloadedTrack?> replaceThumbnail(String videoId, String fileName) async {
+    final entries = await all();
+    final track = entries[videoId];
+    if (track == null) return null;
+    final old = track.thumbnailFileName;
+    final updated = entries[videoId] = track.copyWith(thumbnailFileName: fileName);
+    await _saveIndex();
+    if (old != null && old != fileName) {
+      final file = File(await pathFor(old));
+      if (await file.exists()) await file.delete();
+    }
+    return updated;
+  }
+
   /// Borra el archivo y su portada. La canción sigue en colas y playlists:
   /// solo vuelve a sonar desde internet.
   Future<void> remove(String videoId) async {
