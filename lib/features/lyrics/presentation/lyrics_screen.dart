@@ -30,6 +30,7 @@ import '../lyrics_provider.dart';
 import '../../translation/presentation/translate_sheet.dart';
 import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_menu_sheet.dart';
+import 'karaoke_line.dart';
 import 'lyrics_side_panel.dart';
 import 'lyrics_views.dart';
 import 'lyrics_share.dart';
@@ -682,11 +683,25 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                             weight: isCurrent ? FontWeight.w800 : FontWeight.w700,
                             color: Colors.white.withValues(alpha: isCurrent ? 1 : (isPast ? 0.3 : 0.48)),
                           ).copyWith(height: 1.2),
-                          child: Text(
-                            line.text.isEmpty ? '♪' : line.text,
-                            textAlign: centered ? TextAlign.center : TextAlign.start,
-                            semanticsLabel: isCurrent ? tx.ahoraLinea(line.text) : line.text,
-                          ),
+                          // La que suena se llena de color a medida que avanza (karaoke).
+                          child: isCurrent && line.text.isNotEmpty
+                              ? Semantics(
+                                  label: tx.ahoraLinea(line.text),
+                                  child: ExcludeSemantics(
+                                    child: KaraokeLine(
+                                      line: line,
+                                      next: index + 1 < widget.lines.length ? widget.lines[index + 1].time : null,
+                                      offset: offset,
+                                      textAlign: centered ? TextAlign.center : TextAlign.start,
+                                      calm: calm,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  line.text.isEmpty ? '♪' : line.text,
+                                  textAlign: centered ? TextAlign.center : TextAlign.start,
+                                  semanticsLabel: line.text,
+                                ),
                         ),
                         if (translation != null && translation.isNotEmpty)
                           Padding(
