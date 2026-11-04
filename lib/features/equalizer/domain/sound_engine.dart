@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:kiji_player/l10n/l10n.dart';
 
 /// Las bandas reales del ecualizador del dispositivo.
@@ -6,6 +8,28 @@ class EqBands {
   final List<double> centers;
   final double minDb;
   final double maxDb;
+}
+
+/// Refuerzo de bajos al máximo, en dB (en la PC; en Android se usa la misma cuenta para el margen).
+const maxBassDb = 10.0;
+
+/// Cuánto pueden subir el ecualizador y los bajos sin bajar el volumen (la música ya trae algo de
+/// margen). Lo que pase de esto se compensa (ver [headroomGain]).
+const safeBoostDb = 3.0;
+
+/// Margen de seguridad: el volumen (de 0 a 1) que evita que la música sature cuando el
+/// ecualizador o el refuerzo de bajos suben mucho. Ni Windows (su libavfilter no trae limitador) ni
+/// el ecualizador de Android cuidan eso. Se baja solo lo que pase de [safeBoostDb] en la banda que
+/// más sube (con los bajos sumados en las graves): el cambio es parejo y casi no se nota.
+double headroomGain({required List<double> centers, required List<double> gains, double bass = 0}) {
+  final bassDb = bass.clamp(0, 1) * maxBassDb;
+  var peak = gains.isEmpty ? bassDb : 0.0;
+  for (var i = 0; i < gains.length && i < centers.length; i++) {
+    final boost = gains[i] + (centers[i] <= 160 ? bassDb : 0);
+    if (boost > peak) peak = boost;
+  }
+  final cut = peak - safeBoostDb;
+  return cut <= 0 ? 1 : math.pow(10, -cut / 20).toDouble();
 }
 
 /// Reverb: pocos modos claros.

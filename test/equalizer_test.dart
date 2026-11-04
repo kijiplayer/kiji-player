@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -167,6 +168,35 @@ void main() {
       // El cable gana sobre el Bluetooth, como en Android.
       expect(outputKindFrom([AudioDeviceType.bluetoothA2dp, AudioDeviceType.wiredHeadset]),
           AudioOutputKind.headphones);
+    });
+  });
+
+  group('margen de seguridad (para que no sature)', () {
+    test('sin subas o con subas chicas no se toca el volumen', () {
+      expect(headroomGain(centers: tenBands, gains: List.filled(10, 0)), 1);
+      expect(headroomGain(centers: tenBands, gains: [3, 2, 0, 0, 0, 0, 0, 0, 0, -6]), 1, reason: 'hasta 3 dB, nada');
+      expect(headroomGain(centers: tenBands, gains: List.filled(10, -5)), 1, reason: 'bajar nunca satura');
+    });
+
+    test('baja lo que pase de 3 dB en la banda que más sube, con los bajos sumados en las graves', () {
+      double db(double gain) => 20 * math.log(gain) / math.ln10;
+      // Preset Bajos (+6 en 31/62 Hz) y refuerzo al máximo (+10): 16 dB arriba → baja 13 dB.
+      final bass = headroomGain(centers: tenBands, gains: const EqProfile(presetId: 'bass').gainsFor(tenBands), bass: 1);
+      expect(db(bass), closeTo(-13, 0.01));
+      // Agudos +9 y bajos al máximo (+10 en las graves): manda la que más sube, 10 dB → baja 7.
+      expect(db(headroomGain(centers: tenBands, gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 9], bass: 1)), closeTo(-7, 0.01));
+      // Sin ecualizador (bandas todavía no leídas), solo los bajos.
+      expect(db(headroomGain(centers: const [], gains: const [], bass: 0.5)), closeTo(-2, 0.01));
+    });
+
+    test('el estado del ecualizador da el margen solo con "Efectos" encendido', () {
+      const bands = EqBands(centers: tenBands, minDb: -12, maxDb: 12);
+      const loud = EqualizerSettings(enabled: true, general: EqProfile(presetId: 'bass'), bass: 1);
+      const on = EqualizerState(settings: loud, bands: bands, capabilities: SoundCapabilities(bass: true));
+      expect(on.headroom, lessThan(0.3));
+      expect(EqualizerState(settings: loud.copyWith(enabled: false), bands: bands).headroom, 1);
+      const noBass = EqualizerState(settings: loud, bands: bands);
+      expect(noBass.headroom, greaterThan(on.headroom), reason: 'sin refuerzo de bajos en el dispositivo, no se cuenta');
     });
   });
 

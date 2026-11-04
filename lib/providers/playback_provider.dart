@@ -220,6 +220,14 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]),
     );
     ref.read(equalizerProvider);
+    // "Sonido": margen de seguridad cuando el ecualizador o los bajos suben mucho (no satura).
+    _headroom = ref.read(equalizerProvider).headroom;
+    ref.listen(equalizerProvider.select((s) => s.headroom), (_, gain) {
+      _headroom = gain;
+      unawaited(_applyVolume());
+      final tail = _tail;
+      if (tail != null && _crossfading) unawaited(tail.setVolume(state.volume * _fade * gain));
+    });
     // "Sonido": velocidad y tono (con "Efectos" apagado, siempre lo normal), en vivo.
     ref.listen(equalizerProvider.select((s) => s.settings.playbackRate), (_, rate) => unawaited(_applyRate(rate)));
     // Android: los bajos y la reverb se enganchan a la sesión de audio del reproductor.
@@ -1177,6 +1185,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// volumen, que baja al final de la canción y sube al empezar la siguiente
   /// (solo si la anterior terminó sola).
   double _transition = 1;
+
+  /// Margen de seguridad de "Sonido" (1 = nada; menos si el ecualizador o los bajos suben mucho).
+  double _headroom = 1;
   bool _fadeInPending = false;
   int _fadeInToken = -1;
 
@@ -1258,7 +1269,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final tail = _tail;
     if (tail == null || _crossfading) return;
     _crossfading = true;
-    final volume = state.volume * _fade;
+    final volume = state.volume * _fade * _headroom;
     try {
       await tail.seek(_audioPlayer.position);
       await tail.setVolume(volume);
@@ -1343,7 +1354,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     unawaited(_applyVolume());
   }
 
-  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition);
+  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition * _headroom);
 
   Future<void> seekToProgress(double progress) async {
     final duration = state.duration;

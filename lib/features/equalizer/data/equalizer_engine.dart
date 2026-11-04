@@ -98,8 +98,6 @@ String? mpvEffects(SoundMix mix, List<double> centers) {
   return filters.isEmpty ? null : filters.join(',');
 }
 
-/// Refuerzo de bajos al máximo, en dB (PC).
-const maxBassDb = 10.0;
 
 /// PC (Windows y Linux): filtros de mpv por el plugin local just_audio_media_kit, en todos los
 /// reproductores (también el de la mezcla). 10 bandas y bajos; sin reverb.

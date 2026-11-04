@@ -33,6 +33,17 @@ class EqualizerState {
 
   EqProfile get activeProfile => settings.profileFor(output);
 
+  /// Volumen de seguridad para lo que suena ahora (1 = sin cambios; ver [headroomGain]).
+  double get headroom {
+    if (!settings.enabled) return 1;
+    final b = bands;
+    return headroomGain(
+      centers: b?.centers ?? const [],
+      gains: b == null ? const [] : activeProfile.gainsFor(b.centers, min: b.minDb, max: b.maxDb),
+      bass: capabilities.bass ? settings.bass : 0,
+    );
+  }
+
   EqualizerState copyWith({
     EqualizerSettings? settings,
     AudioOutputKind? output,
