@@ -88,10 +88,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     setState(() {}); // refresca el mensaje vacío/placeholder al instante
   }
 
+  /// Marca de YouTube Music para la página siguiente (null: no hay más).
+  String? _continuation;
+  bool _loadingMore = false;
+
+  /// Sube con cada búsqueda nueva: lo que llegue de una búsqueda vieja se descarta.
+  int _generation = 0;
+
+  YtCollectionKind get _collectionKind =>
+      _kind == SearchKind.artists ? YtCollectionKind.artist : YtCollectionKind.album;
+
   Future<void> _search(String query) async {
+    final generation = ++_generation;
+    _continuation = null;
+    _loadingMore = false;
     if (query.trim().isEmpty) {
       setState(() {
         _results = const [];
+        _collections = const [];
         _error = null;
         _loading = false;
       });
@@ -108,42 +122,80 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       setState(() => _loading = false);
       return;
     }
-    if (_kind == SearchKind.artists || _kind == SearchKind.albums) {
-      try {
-        final kind = _kind == SearchKind.artists ? YtCollectionKind.artist : YtCollectionKind.album;
-        final collections = await _client.searchCollections(query, kind);
-        if (!mounted) return;
-        setState(() {
-          _collections = collections;
-          _loading = false;
-        });
-      } catch (error) {
-        if (!mounted) return;
-        setState(() {
-          _error = tx.noSePudoBuscarRevisaTu;
-          _loading = false;
-        });
-        debugPrint('=== ERROR AL BUSCAR ${_kind.label.toUpperCase()} "$query": $error ===');
-      }
-      return;
-    }
-
     try {
-      final results = await _client.search(query, songsOnly: true);
-      if (!mounted) return;
-      setState(() {
-        _results = results;
-        _loading = false;
-      });
+      if (_kind == SearchKind.songs) {
+        final page = await _client.searchSongsPage(query);
+        if (!mounted || generation != _generation) return;
+        setState(() {
+          _results = page.items;
+          _continuation = page.continuation;
+          _loading = false;
+        });
+      } else {
+        final page = await _client.searchCollectionsPage(query, _collectionKind);
+        if (!mounted || generation != _generation) return;
+        setState(() {
+          _collections = page.items;
+          _continuation = page.continuation;
+          _loading = false;
+        });
+      }
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       setState(() {
         _error = tx.noSePudoBuscarRevisaTu;
         _loading = false;
       });
-      debugPrint('=== ERROR AL BUSCAR "$query" ===\n$error');
+      debugPrint('=== BÚSQUEDA: error al buscar ${_kind.name} "$query": $error ===');
     }
   }
+
+  /// Trae la página siguiente de la pestaña actual (al llegar cerca del final).
+  Future<void> _loadMore() async {
+    final token = _continuation;
+    if (token == null || _loadingMore || _loading || _kind == SearchKind.myFiles) return;
+    final generation = _generation;
+    setState(() => _loadingMore = true);
+    try {
+      if (_kind == SearchKind.songs) {
+        final page = await _client.searchSongsPage(_controller.text, continuation: token);
+        if (!mounted || generation != _generation) return;
+        final seen = {for (final r in _results) r.videoId};
+        setState(() {
+          _results = [..._results, ...page.items.where((r) => seen.add(r.videoId))];
+          _continuation = page.items.isEmpty ? null : page.continuation;
+        });
+      } else {
+        final page = await _client.searchCollectionsPage(_controller.text, _collectionKind, continuation: token);
+        if (!mounted || generation != _generation) return;
+        final seen = {for (final c in _collections) c.browseId};
+        setState(() {
+          _collections = [..._collections, ...page.items.where((c) => seen.add(c.browseId))];
+          _continuation = page.items.isEmpty ? null : page.continuation;
+        });
+      }
+    } catch (error) {
+      // Sin aviso: lo ya cargado queda, y al volver a bajar se reintenta.
+      debugPrint('=== BÚSQUEDA: no se pudo traer más resultados: $error ===');
+    } finally {
+      if (mounted && generation == _generation) setState(() => _loadingMore = false);
+    }
+  }
+
+  /// Envuelve una lista de resultados: cerca del final pide la página siguiente.
+  Widget _withMore(Widget list) => NotificationListener<ScrollNotification>(
+    onNotification: (notification) {
+      if (notification.metrics.axis == Axis.vertical && notification.metrics.extentAfter < 600) _loadMore();
+      return false;
+    },
+    child: list,
+  );
+
+  /// Al pie de la lista, mientras llega la página siguiente.
+  Widget get _moreIndicator => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 16),
+    child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+  );
 
   /// Guarda la búsqueda en "Recientes" (solo al confirmarla: Enter o tocar
   /// un resultado; no cada letra).
@@ -293,10 +345,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         child: Text(tx.sinResultados, style: TextStyle(color: AppColors.onSurfaceMuted)),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 180),
-      itemCount: _collections.length,
-      itemBuilder: (context, index) => CollectionTile(collection: _collections[index]),
+    return _withMore(
+      ListView.builder(
+        padding: const EdgeInsets.only(bottom: 180),
+        itemCount: _collections.length + (_loadingMore ? 1 : 0),
+        itemBuilder: (context, index) =>
+            index == _collections.length ? _moreIndicator : CollectionTile(collection: _collections[index]),
+      ),
     );
   }
 
@@ -352,35 +407,38 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     // Los resultados entran escalonados; otra búsqueda vuelve a escalonar.
     return StaggerScope(
       generation: _results,
-      child: ListView.separated(
-        padding: const EdgeInsets.only(bottom: 180),
-        itemCount: _results.length,
-        separatorBuilder: (_, _) => const SizedBox.shrink(),
-        itemBuilder: (context, index) {
-          final result = _results[index];
-          final isResolving = _resolvingVideoId == result.videoId;
+      child: _withMore(
+        ListView.separated(
+          padding: const EdgeInsets.only(bottom: 180),
+          itemCount: _results.length + (_loadingMore ? 1 : 0),
+          separatorBuilder: (_, _) => const SizedBox.shrink(),
+          itemBuilder: (context, index) {
+            if (index == _results.length) return _moreIndicator;
+            final result = _results[index];
+            final isResolving = _resolvingVideoId == result.videoId;
 
-          final track = ytTrackFromResult(result, audioUrl: '');
+            final track = ytTrackFromResult(result, audioUrl: '');
 
-          // Mantener presionado (celular) o clic derecho (PC): "Reproducir a
-          // continuación" / "Agregar a la cola".
-          return StaggeredEntrance(
-            index: index,
-            child: GestureDetector(
-              onSecondaryTap: () => showTrackActions(context, ref, track),
-              child: ListTile(
-                leading: _Thumbnail(url: result.thumbnailUrl),
-                title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
-                trailing: isResolving
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : DownloadButton(track: track),
-                onTap: isResolving ? null : () => _play(result),
-                onLongPress: () => showTrackActions(context, ref, track),
+            // Mantener presionado (celular) o clic derecho (PC): "Reproducir a
+            // continuación" / "Agregar a la cola".
+            return StaggeredEntrance(
+              index: index,
+              child: GestureDetector(
+                onSecondaryTap: () => showTrackActions(context, ref, track),
+                child: ListTile(
+                  leading: _Thumbnail(url: result.thumbnailUrl),
+                  title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  trailing: isResolving
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : DownloadButton(track: track),
+                  onTap: isResolving ? null : () => _play(result),
+                  onLongPress: () => showTrackActions(context, ref, track),
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

@@ -23,6 +23,15 @@ import 'package:kiji_player/l10n/l10n.dart';
 
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
 /// a nuestro modelo de dominio [Track].
+/// Una página de resultados de búsqueda y la marca para pedir la siguiente
+/// (null cuando YouTube Music ya no tiene más).
+class YtSearchPage<T> {
+  const YtSearchPage(this.items, this.continuation);
+
+  final List<T> items;
+  final String? continuation;
+}
+
 class YtMusicSearchResult {
   const YtMusicSearchResult({
     required this.videoId,
@@ -132,31 +141,22 @@ class YtMusicClient {
   static const songsFilter = 'EgWKAQIIAWoKEAkQBRAKEAMQBA=='; // l10n-ignore
 
   /// Busca de forma anónima. Con [songsOnly], solo canciones (sin videos).
-  Future<List<YtMusicSearchResult>> search(String query, {bool songsOnly = false}) async {
-    if (query.trim().isEmpty) return const [];
+  Future<List<YtMusicSearchResult>> search(String query, {bool songsOnly = false}) async =>
+      (await searchSongsPage(query, songsOnly: songsOnly)).items;
 
-    debugPrint('=== YTM search: enviando query "$query" ===');
-
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/search',
-      queryParameters: {'key': _apiKey},
-      data: {..._context, 'query': query, if (songsOnly) 'params': songsFilter},
-    );
-
-    debugPrint('=== YTM search: status ${response.statusCode} ===');
-
-    final data = response.data;
-    if (data == null) {
-      debugPrint('=== YTM search: response.data es null ===');
-      return const [];
-    }
-
-    debugPrint('=== YTM search: claves top-level: ${data.keys.toList()} ===');
-
+  /// Una página de canciones. Con [continuation] (la marca de la página
+  /// anterior) trae la siguiente.
+  Future<YtSearchPage<YtMusicSearchResult>> searchSongsPage(
+    String query, {
+    bool songsOnly = true,
+    String? continuation,
+  }) async {
+    if (query.trim().isEmpty && continuation == null) return const YtSearchPage([], null);
+    final data = await _searchRaw(query, songsOnly ? songsFilter : null, continuation);
+    if (data == null) return const YtSearchPage([], null);
     final results = _parseResults(data);
-    debugPrint('=== YTM search: ${results.length} resultados parseados ===');
-
-    return results;
+    debugPrint('=== YTM search: ${results.length} resultados${continuation != null ? ' (página siguiente)' : ''} ===');
+    return YtSearchPage(results, parseSearchContinuation(data));
   }
 
   /// Filtros de la búsqueda de YouTube Music para Artistas y Álbumes (los
@@ -165,15 +165,38 @@ class YtMusicClient {
   static const albumsFilter = 'EgWKAQIYAWoKEAkQChAFEAMQBA=='; // l10n-ignore
 
   /// Busca artistas o álbumes (anónimo).
-  Future<List<YtCollection>> searchCollections(String query, YtCollectionKind kind) async {
-    if (query.trim().isEmpty) return const [];
+  Future<List<YtCollection>> searchCollections(String query, YtCollectionKind kind) async =>
+      (await searchCollectionsPage(query, kind)).items;
+
+  /// Una página de artistas o álbumes; con [continuation], la siguiente.
+  Future<YtSearchPage<YtCollection>> searchCollectionsPage(
+    String query,
+    YtCollectionKind kind, {
+    String? continuation,
+  }) async {
+    if (query.trim().isEmpty && continuation == null) return const YtSearchPage([], null);
+    final data = await _searchRaw(query, _collectionFilter(kind), continuation);
+    if (data == null) return const YtSearchPage([], null);
+    return YtSearchPage(parseCollectionResults(data, kind), parseSearchContinuation(data));
+  }
+
+  static String _collectionFilter(YtCollectionKind kind) => switch (kind) {
+    YtCollectionKind.artist => artistsFilter,
+    YtCollectionKind.album => albumsFilter,
+  };
+
+  /// Pedido a `/search`. La página siguiente va con la marca en la URL
+  /// (`ctoken`/`continuation`, como la web) y sin la consulta.
+  Future<Map<String, dynamic>?> _searchRaw(String query, String? params, String? continuation) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/search',
-      queryParameters: {'key': _apiKey},
-      data: {..._context, 'query': query, 'params': kind == YtCollectionKind.artist ? artistsFilter : albumsFilter},
+      queryParameters: {
+        'key': _apiKey,
+        if (continuation != null) ...{'ctoken': continuation, 'continuation': continuation, 'type': 'next'},
+      },
+      data: continuation != null ? _context : {..._context, 'query': query, 'params': ?params},
     );
-    final data = response.data;
-    return data == null ? const [] : parseCollectionResults(data, kind);
+    return response.data;
   }
 
   Future<Map<String, dynamic>?> _browse(String browseId) async {
@@ -301,6 +324,7 @@ class YtMusicClient {
 
     try {
       walk(data['contents'], null);
+      walk(data['continuationContents'], null);
     } catch (error, stackTrace) {
       debugPrint('=== YTM parse: EXCEPCIÓN: $error ===');
       debugPrint('$stackTrace');

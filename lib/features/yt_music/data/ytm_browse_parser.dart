@@ -192,7 +192,32 @@ List<YtCollection> parseCollectionResults(Map<String, dynamic> json, YtCollectio
   }
 
   walk(json['contents']);
+  walk(json['continuationContents']);
   return results;
+}
+
+/// Marca para pedir la página siguiente de una búsqueda (null si no hay más).
+/// Viene en `nextContinuationData` del estante de resultados, tanto en la
+/// primera página (`contents`) como en las siguientes (`continuationContents`).
+String? parseSearchContinuation(Map<String, dynamic> json) {
+  String? found;
+  void walk(Object? n) {
+    if (found != null) return;
+    if (n is Map) {
+      final token = jsonStringAt(n, const ['nextContinuationData', 'continuation']);
+      if (token != null && token.isNotEmpty) {
+        found = token;
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json['contents']);
+  walk(json['continuationContents']);
+  return found;
 }
 
 /// Página de un artista: nombre, sus canciones más escuchadas y sus álbumes.
