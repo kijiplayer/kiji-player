@@ -1,4 +1,5 @@
-library just_audio_media_kit;
+// Copia de just_audio_media_kit 2.1.0 (Unlicense). Cambio de Kiji: sin nombre de biblioteca (aviso del análisis).
+library;
 
 import 'package:media_kit/media_kit.dart';
 

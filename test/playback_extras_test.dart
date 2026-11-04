@@ -65,6 +65,14 @@ class _FakeOutputs extends AudioOutputMonitor {
 
 Future<void> _settle() => Future<void>.delayed(const Duration(milliseconds: 30));
 
+/// Espera a que se cumpla [done], con un tope de 3 s (con la PC o el CI cargados, 30 ms no alcanzan).
+Future<void> _until(bool Function() done) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 3));
+  while (!done() && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 void main() {
   group('transición suave', () {
     const minute = Duration(minutes: 3);
@@ -207,6 +215,7 @@ void main() {
       ]);
       addTearDown(c.dispose);
       final automation = c.read(automationProvider);
+      await c.read(settingsProvider.notifier).loaded; // los ajustes vienen del disco
       await _settle();
 
       // Apagadas: nadie escucha el volumen (la salida se sigue siempre, para el corte de 15 s).
@@ -214,25 +223,25 @@ void main() {
 
       await c.read(settingsProvider.notifier)
           .update((s) => s.copyWith(pauseOnMute: true, resumeOnBluetooth: true));
-      await _settle();
+      await _until(() => volume.controller.hasListener);
       expect(volume.controller.hasListener, isTrue);
 
       volume.controller.add(0);
-      await _settle();
+      await _until(() => control.calls.isNotEmpty);
       automation.onPlayingChanged(false);
       volume.controller.add(0.4);
-      await _settle();
+      await _until(() => control.calls.length >= 2);
       automation.onPlayingChanged(true);
       expect(control.calls, ['pause', 'play']);
 
       // Se desconecta el Bluetooth mientras suena: pausa (nunca por el parlante), sigue
       // en primer plano y, al volver en menos de 15 s, sigue sola.
       outputs.controller.add(AudioOutputKind.speaker);
-      await _settle();
+      await _until(() => control.calls.length >= 3);
       automation.onPlayingChanged(false);
       expect(control.keptAlive, const Duration(seconds: 15));
       outputs.controller.add(AudioOutputKind.bluetooth);
-      await _settle();
+      await _until(() => control.calls.length >= 4);
       automation.onPlayingChanged(true);
       expect(control.calls, ['pause', 'play', 'pause', 'play']);
 
@@ -241,14 +250,14 @@ void main() {
       automation.onPlayingChanged(false);
       outputs.controller.add(AudioOutputKind.speaker);
       outputs.controller.add(AudioOutputKind.bluetooth);
-      await _settle();
+      await _until(() => control.calls.last == 'play');
       expect(control.calls.last, 'play');
       automation.onPlayingChanged(true);
 
       // Al apagar las opciones deja de escuchar el volumen.
       await c.read(settingsProvider.notifier)
           .update((s) => s.copyWith(pauseOnMute: false, resumeOnBluetooth: false));
-      await _settle();
+      await _until(() => !volume.controller.hasListener);
       expect(volume.controller.hasListener, isFalse);
 
       // Sin "Retomar con el Bluetooth", el corte corto igual sigue solo; el largo no.
@@ -257,7 +266,8 @@ void main() {
       automation.onPlayingChanged(false);
       outputs.controller.add(AudioOutputKind.speaker);
       outputs.controller.add(AudioOutputKind.bluetooth);
-      await _settle();
+      await _until(() => control.calls.length >= 2);
+      await _settle(); // por si llegara una de más
       expect(control.calls, ['pause', 'play'], reason: 'el aviso y el cambio al parlante pausan una sola vez');
       expect(control.reasons.last, contains('Bluetooth'));
       automation.onPlayingChanged(true);

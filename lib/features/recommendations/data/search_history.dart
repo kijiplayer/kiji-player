@@ -36,10 +36,16 @@ class SearchHistoryNotifier extends Notifier<List<String>> {
     try {
       final json = await (await _jsonFile()).read();
       if (json is List) {
-        state = [
+        final saved = [
           for (final q in json)
             if (q is String && q.trim().isNotEmpty) q,
         ];
+        // Lo buscado mientras se leía el archivo queda arriba (leer no pisa lo más nuevo).
+        final current = state;
+        state = [
+          ...current,
+          ...saved.where((q) => !current.any((c) => c.toLowerCase() == q.toLowerCase())),
+        ].take(maxEntries).toList();
       }
     } catch (error) {
       debugPrint('=== BUSQUEDAS: no se pudieron leer: $error ===');
@@ -67,7 +73,34 @@ class SearchHistoryNotifier extends Notifier<List<String>> {
     unawaited(_save());
   }
 
-  Future<void> _save() async => (await _jsonFile()).write(state);
+  Future<void>? _saving;
+  bool _saveAgain = false;
+
+  /// Guarda la lista. Si ya se está guardando (varias búsquedas seguidas), se junta: al terminar
+  /// se guarda una vez más, lo último.
+  Future<void> _save() {
+    final running = _saving;
+    if (running != null) {
+      _saveAgain = true;
+      return running;
+    }
+    return _saving = _saveLoop().whenComplete(() => _saving = null);
+  }
+
+  Future<void> _saveLoop() async {
+    try {
+      do {
+        _saveAgain = false;
+        await (await _jsonFile()).write(state);
+      } while (_saveAgain);
+    } catch (error) {
+      debugPrint('=== BUSQUEDAS: no se pudieron guardar: $error ===');
+    }
+  }
+
+  /// Espera a que lo último quede guardado (para las pruebas).
+  @visibleForTesting
+  Future<void> flush() => _saving ?? Future.value();
 }
 
 final searchHistoryProvider = NotifierProvider<SearchHistoryNotifier, List<String>>(SearchHistoryNotifier.new);

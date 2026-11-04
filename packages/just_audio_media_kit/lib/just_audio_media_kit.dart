@@ -1,9 +1,10 @@
 /// `package:media_kit` bindings for `just_audio` to support Linux and Windows.
 // Copia de just_audio_media_kit 2.1.0 (https://github.com/Pato05/just_audio_media_kit),
 // dominio público (Unlicense, ver LICENSE). Archivo original: lib/just_audio_media_kit.dart.
-// Cambio de Kiji: [JustAudioMediaKit.setAudioEffects] (efectos de sonido en la PC).
+// Cambios de Kiji: [JustAudioMediaKit.setAudioEffects] (efectos de sonido en la PC) y sin nombre de
+// biblioteca (`library;`).
 
-library just_audio_media_kit;
+library;
 
 import 'dart:collection';
 

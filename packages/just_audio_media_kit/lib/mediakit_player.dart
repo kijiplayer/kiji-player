@@ -2,9 +2,10 @@
 // dominio público (Unlicense, ver LICENSE). Archivo original: lib/mediakit_player.dart.
 // Cambios de Kiji (marcados con "Kiji:"): velocidad, tono y efectos de sonido en una sola cadena
 // de filtros de mpv (`af`), para que media_kit no la pise al cambiar el tono, y la lista de
-// reproductores vivos para aplicarles los efectos a todos (también al de la mezcla).
+// reproductores vivos para aplicarles los efectos a todos (también al de la mezcla). Sin nombre de
+// biblioteca (`library;`), que el análisis de Kiji marca como innecesario.
 
-library just_audio_media_kit;
+library;
 
 import 'dart:async';
 
