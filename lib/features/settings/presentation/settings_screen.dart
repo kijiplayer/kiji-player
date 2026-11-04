@@ -28,7 +28,7 @@ import '../../downloads/domain/download_settings.dart';
 import '../../favorites/favorites.dart';
 import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
-import '../../equalizer/presentation/equalizer_screen.dart';
+import '../../equalizer/presentation/sound_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../lyrics/presentation/lyrics_menu_sheet.dart';
 import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
@@ -282,19 +282,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
-        title: tx.ecualizador2,
-        subtitle: tx.presetsBandasAManoYUn,
-        keywords: const ['eq', 'graves', 'agudos', 'bajos', 'sonido', 'auriculares', 'bluetooth'],
+        title: tx.sonido,
+        subtitle: tx.sonidoNota,
+        // l10n-ignore
+        keywords: const ['eq', 'ecualizador', 'equalizer', 'graves', 'agudos', 'bajos', 'bass', 'auriculares', 'bluetooth', 'velocidad', 'speed', 'tono', 'pitch', 'reverb', 'efectos', 'effects', 'preset'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.equalizer_rounded),
-          title: Text(tx.ecualizador2),
+          title: Text(tx.sonido),
           subtitle: Text(
             ref.watch(equalizerProvider.select((e) => e.settings.enabled))
-                ? tx.encendidoPerfil(ref.watch(equalizerProvider.select((e) => e.activeProfile.label)))
-                : tx.apagado,
+                ? tx.efectosEncendidos(ref.watch(equalizerProvider.select((e) => e.activeProfile.label)))
+                : tx.efectosApagados,
           ),
           trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () => EqualizerScreen.open(context),
+          onTap: () => SoundScreen.open(context),
         ),
       ),
       SettingOption(
@@ -309,33 +310,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: Text(tx.transicionSuaveEntreCanciones),
             subtitle: Text(seconds == 0 ? tx.apagada : tx.sElFinalDeUnaCancion(seconds)),
             trailing: Text(seconds == 0 ? tx.no : '$seconds s', style: KijiText.mono(size: 13)),
-            // Toda la fila abre la lista (antes solo respondía el texto chico de la derecha).
-            onTap: () async {
-              final value = await showDialog<int>(
-                context: context,
-                builder: (context) => SimpleDialog(
-                  title: Text(tx.transicionSuave),
-                  children: [
-                    RadioGroup<int>(
-                      groupValue: seconds,
-                      onChanged: (value) => Navigator.pop(context, value),
-                      child: Column(
-                        children: [
-                          for (final option in AppSettings.crossfadeOptions)
-                            RadioListTile<int>(
-                              value: option,
-                              title: Text(option == 0 ? tx.apagada : tx.nSegundos(option)),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              if (value != null) {
-                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(crossfadeSeconds: value));
-              }
-            },
+            // Toda la fila abre Sonido: ahí se elige de 0 a 12 s con un control deslizante.
+            onTap: () => SoundScreen.open(context),
           );
         },
       ),

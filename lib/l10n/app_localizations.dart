@@ -947,71 +947,17 @@ abstract class AppLocalizations {
   /// **'Auriculares con cable'**
   String get auricularesConCable;
 
-  /// No description provided for @plano.
-  ///
-  /// In es, this message translates to:
-  /// **'Plano'**
-  String get plano;
-
-  /// No description provided for @masGraves.
-  ///
-  /// In es, this message translates to:
-  /// **'Más graves'**
-  String get masGraves;
-
-  /// No description provided for @masAgudos.
-  ///
-  /// In es, this message translates to:
-  /// **'Más agudos'**
-  String get masAgudos;
-
-  /// No description provided for @voces.
-  ///
-  /// In es, this message translates to:
-  /// **'Voces'**
-  String get voces;
-
   /// No description provided for @electronica.
   ///
   /// In es, this message translates to:
   /// **'Electrónica'**
   String get electronica;
 
-  /// No description provided for @acustica.
-  ///
-  /// In es, this message translates to:
-  /// **'Acústica'**
-  String get acustica;
-
-  /// No description provided for @clasica.
-  ///
-  /// In es, this message translates to:
-  /// **'Clásica'**
-  String get clasica;
-
-  /// No description provided for @nocheSuave.
-  ///
-  /// In es, this message translates to:
-  /// **'Noche (suave)'**
-  String get nocheSuave;
-
   /// No description provided for @ecualizador2.
   ///
   /// In es, this message translates to:
   /// **'Ecualizador'**
   String get ecualizador2;
-
-  /// No description provided for @enLaPcTodaviaNoHay.
-  ///
-  /// In es, this message translates to:
-  /// **'En la PC todavía no hay ecualizador: por ahora funciona solo en Android. Lo que elijas aquí se guarda igual.'**
-  String get enLaPcTodaviaNoHay;
-
-  /// No description provided for @apagadoElSonidoNoCambia.
-  ///
-  /// In es, this message translates to:
-  /// **'Apagado: el sonido no cambia.'**
-  String get apagadoElSonidoNoCambia;
 
   /// No description provided for @unPerfilPorDispositivo.
   ///
@@ -1042,12 +988,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'BANDAS'**
   String get bandas;
-
-  /// No description provided for @enLaPcNoHayBandas.
-  ///
-  /// In es, this message translates to:
-  /// **'En la PC no hay bandas para ajustar todavía.'**
-  String get enLaPcNoHayBandas;
 
   /// No description provided for @sinAlternativa.
   ///
@@ -2818,12 +2758,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Al abrir Kiji, vuelve a la canción y al segundo donde quedó, en pausa.'**
   String get alAbrirKijiVuelveALa;
-
-  /// No description provided for @presetsBandasAManoYUn.
-  ///
-  /// In es, this message translates to:
-  /// **'Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).'**
-  String get presetsBandasAManoYUn;
 
   /// No description provided for @apagado.
   ///
@@ -5698,12 +5632,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, =1{Se borra 1 canción del dispositivo. No se quita de tu cola: vuelve a sonar desde internet.} other{Se borran {count} canciones del dispositivo. No se quitan de tu cola: vuelven a sonar desde internet.}}'**
   String seBorranNDelDispositivo(num count);
-
-  /// No description provided for @encendidoPerfil.
-  ///
-  /// In es, this message translates to:
-  /// **'Encendido: {profile}'**
-  String encendidoPerfil(Object? profile);
 
   /// No description provided for @cable.
   ///

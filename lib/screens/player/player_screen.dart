@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/equalizer/presentation/sound_screen.dart';
+import '../../features/equalizer/data/equalizer_notifier.dart';
 import '../../features/sleep_timer/presentation/timer_waveform.dart';
 import '../../features/downloads/presentation/download_button.dart';
 import '../../features/favorites/favorites.dart';
@@ -488,6 +490,14 @@ class _BottomActions extends ConsumerWidget {
           label: tx.cola,
           tooltip: tx.cola,
           onPressed: () => QueueScreen.open(context),
+        ),
+        // Sonido en un toque (ecualizador, bajos, velocidad…); activo si hay efectos encendidos.
+        GlassIconButton(
+          icon: Icons.graphic_eq_rounded,
+          label: tx.sonido,
+          tooltip: tx.sonido,
+          active: ref.watch(equalizerProvider.select((e) => e.settings.enabled)),
+          onPressed: () => SoundScreen.open(context),
         ),
         GlassIconButton(
           icon: timer == null ? Icons.bedtime_outlined : Icons.bedtime_rounded,

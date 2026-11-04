@@ -506,38 +506,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get auricularesConCable => 'Auriculares con cable';
 
   @override
-  String get plano => 'Plano';
-
-  @override
-  String get masGraves => 'Más graves';
-
-  @override
-  String get masAgudos => 'Más agudos';
-
-  @override
-  String get voces => 'Voces';
-
-  @override
   String get electronica => 'Electrónica';
 
   @override
-  String get acustica => 'Acústica';
-
-  @override
-  String get clasica => 'Clásica';
-
-  @override
-  String get nocheSuave => 'Noche (suave)';
-
-  @override
   String get ecualizador2 => 'Ecualizador';
-
-  @override
-  String get enLaPcTodaviaNoHay =>
-      'En la PC todavía no hay ecualizador: por ahora funciona solo en Android. Lo que elijas aquí se guarda igual.';
-
-  @override
-  String get apagadoElSonidoNoCambia => 'Apagado: el sonido no cambia.';
 
   @override
   String get unPerfilPorDispositivo => 'Un perfil por dispositivo';
@@ -555,10 +527,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bandas => 'BANDAS';
-
-  @override
-  String get enLaPcNoHayBandas =>
-      'En la PC no hay bandas para ajustar todavía.';
 
   @override
   String get sinAlternativa => 'sin alternativa';
@@ -1616,10 +1584,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get alAbrirKijiVuelveALa =>
       'Al abrir Kiji, vuelve a la canción y al segundo donde quedó, en pausa.';
-
-  @override
-  String get presetsBandasAManoYUn =>
-      'Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).';
 
   @override
   String get apagado => 'Apagado';
@@ -3456,11 +3420,6 @@ class AppLocalizationsEs extends AppLocalizations {
       one: 'Se borra 1 canción del dispositivo. No se quita de tu cola: vuelve a sonar desde internet.',
     );
     return '$_temp0';
-  }
-
-  @override
-  String encendidoPerfil(Object? profile) {
-    return 'Encendido: $profile';
   }
 
   @override

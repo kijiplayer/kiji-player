@@ -24,7 +24,7 @@ import 'package:kiji_player/features/account/presentation/account_screens.dart';
 import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
 import 'package:kiji_player/features/customize/data/track_overrides.dart';
 import 'package:kiji_player/features/downloads/presentation/downloads_screen.dart';
-import 'package:kiji_player/features/equalizer/presentation/equalizer_screen.dart';
+import 'package:kiji_player/features/equalizer/presentation/sound_screen.dart';
 import 'package:kiji_player/features/history/listening_history.dart';
 import 'package:kiji_player/features/import/presentation/import_screen.dart';
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
@@ -428,7 +428,7 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
     await _shot(tester, '$tag-apariencia');
   });
   await _visit(tester, '$tag-descargas', () => DownloadsScreen.open(_ctx));
-  await _visit(tester, '$tag-ecualizador', () => EqualizerScreen.open(_ctx));
+  await _visit(tester, '$tag-sonido', () => SoundScreen.open(_ctx));
   await _visit(tester, '$tag-copias', () => BackupScreen.open(_ctx), scroll: true);
   await _visit(tester, '$tag-importar', () => ImportScreen.open(_ctx));
   await _visit(tester, '$tag-cuenta', () => AccountScreen.open(_ctx));

@@ -358,17 +358,8 @@
   },
   "parlante": "Parlante",
   "auricularesConCable": "Auriculares con cable",
-  "plano": "Plano",
-  "masGraves": "Más graves",
-  "masAgudos": "Más agudos",
-  "voces": "Voces",
   "electronica": "Electrónica",
-  "acustica": "Acústica",
-  "clasica": "Clásica",
-  "nocheSuave": "Noche (suave)",
   "ecualizador2": "Ecualizador",
-  "enLaPcTodaviaNoHay": "En la PC todavía no hay ecualizador: por ahora funciona solo en Android. Lo que elijas aquí se guarda igual.",
-  "apagadoElSonidoNoCambia": "Apagado: el sonido no cambia.",
   "unPerfilPorDispositivo": "Un perfil por dispositivo",
   "elParlanteLosAuricularesConCable": "El parlante, los auriculares con cable y el Bluetooth recuerdan cada uno su perfil y cambia solo al conectarlos. Ahora suena: {p0}.",
   "@elParlanteLosAuricularesConCable": {
@@ -381,7 +372,6 @@
   "perfil": "PERFIL",
   "personalizado": "Personalizado",
   "bandas": "BANDAS",
-  "enLaPcNoHayBandas": "En la PC no hay bandas para ajustar todavía.",
   "sinAlternativa": "sin alternativa",
   "sinConexion": "Sin conexión",
   "ningunaFormaEstaPudiendoBajarCanciones": "Ninguna forma está pudiendo bajar canciones de YouTube ahora. Revisa la Salud del Extractor.",
@@ -1167,7 +1157,6 @@
   "alAbrirKijiVolverALa": "Al abrir Kiji, volver a la canción y al segundo donde quedó (en pausa).",
   "guardarCola": "guardar cola",
   "alAbrirKijiVuelveALa": "Al abrir Kiji, vuelve a la canción y al segundo donde quedó, en pausa.",
-  "presetsBandasAManoYUn": "Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).",
   "apagado": "Apagado",
   "transicionSuaveEntreCanciones": "Transición suave entre canciones",
   "elFinalDeUnaCancionY": "El final de una canción y el principio de la siguiente suenan a la vez.",
@@ -2295,14 +2284,6 @@
     "placeholders": {
       "count": {
         "type": "num"
-      }
-    }
-  },
-  "encendidoPerfil": "Encendido: {profile}",
-  "@encendidoPerfil": {
-    "placeholders": {
-      "profile": {
-        "type": "Object?"
       }
     }
   },

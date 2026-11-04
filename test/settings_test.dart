@@ -249,7 +249,7 @@ void main() {
     expect(find.text('No hay ninguna opción con ese nombre.'), findsOneWidget);
   });
 
-  testWidgets('Configuración: sinónimos ("oscuro" → tema, "volumen" → ecualizador, "dark" en español)', (tester) async {
+  testWidgets('Configuración: sinónimos ("oscuro" → tema, "volumen" → sonido, "dark" en español)', (tester) async {
     await pumpSettings(tester, const Size(400, 1600));
     Future<void> search(String text) async {
       await tester.enterText(find.byType(TextField), text);
@@ -261,7 +261,7 @@ void main() {
     await search('negro');
     expect(find.text('Tema'), findsOneWidget, reason: 'negro es como oscuro y noche');
     await search('volumen');
-    expect(find.text('Ecualizador'), findsOneWidget);
+    expect(find.text('Sonido'), findsOneWidget, reason: 'el ecualizador está en Sonido');
     expect(find.text('Pausar al silenciar'), findsOneWidget);
     await search('dark');
     expect(find.text('Tema'), findsOneWidget, reason: 'en inglés también, con la app en español');

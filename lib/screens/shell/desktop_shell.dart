@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/equalizer/presentation/sound_screen.dart';
+import '../../features/equalizer/data/equalizer_notifier.dart';
 import '../../features/sleep_timer/presentation/timer_waveform.dart';
 import '../../features/lyrics/presentation/lyrics_screen.dart';
 import '../../features/playlists/playlists_provider.dart';
@@ -386,6 +388,12 @@ class _PlayerBar extends ConsumerWidget {
             onPressed: () => LyricsScreen.open(context),
             icon: const Icon(Icons.lyrics_outlined),
             color: KijiColors.muted,
+          ),
+          IconButton(
+            tooltip: tx.sonido,
+            onPressed: () => SoundScreen.open(context),
+            icon: const Icon(Icons.graphic_eq_rounded),
+            color: ref.watch(equalizerProvider.select((e) => e.settings.enabled)) ? KijiColors.cyan : KijiColors.muted,
           ),
           IconButton(
             tooltip: ref.watch(sleepTimerProvider) == null ? tx.temporizador : tx.temporizadorActivo2,
