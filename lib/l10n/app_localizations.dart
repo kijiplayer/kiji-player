@@ -7108,6 +7108,192 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.'**
   String get youtubeNoDisponibleIncrustado;
+
+  /// Preset del ecualizador: sin cambios.
+  ///
+  /// In es, this message translates to:
+  /// **'Normal'**
+  String get eqNormal;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajos'**
+  String get eqBajos;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Voz'**
+  String get eqVoz;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Acústico'**
+  String get eqAcustico;
+
+  /// Preset del ecualizador: suave, para escuchar bajito.
+  ///
+  /// In es, this message translates to:
+  /// **'Noche'**
+  String get eqNoche;
+
+  /// Reverb: sin reverb.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagado'**
+  String get reverbApagado;
+
+  /// Reverb: como en una sala.
+  ///
+  /// In es, this message translates to:
+  /// **'Sala'**
+  String get reverbSala;
+
+  /// Reverb: como en un estadio.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadio'**
+  String get reverbEstadio;
+
+  /// Pantalla Sonido (ecualizador y efectos).
+  ///
+  /// In es, this message translates to:
+  /// **'Sonido'**
+  String get sonido;
+
+  /// Configuración: subtítulo de Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador, bajos, velocidad, tono y mezcla entre canciones.'**
+  String get sonidoNota;
+
+  /// Sonido: el interruptor que enciende o apaga todos los efectos.
+  ///
+  /// In es, this message translates to:
+  /// **'Efectos'**
+  String get efectos;
+
+  /// Sonido: con los efectos apagados.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagados: la música suena tal cual.'**
+  String get efectosApagados;
+
+  /// Sonido: con los efectos encendidos.
+  ///
+  /// In es, this message translates to:
+  /// **'Encendidos: {profile}'**
+  String efectosEncendidos(String profile);
+
+  /// Sonido: título de las bandas.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador · {count} bandas'**
+  String ecualizadorBandas(int count);
+
+  /// Sonido: guarda la curva actual.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar como preset'**
+  String get guardarComoPreset;
+
+  /// Sonido: campo del nombre.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del preset'**
+  String get nombreDelPreset;
+
+  /// Sonido: menú de un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Renombrar'**
+  String get renombrarPreset;
+
+  /// Sonido: confirmación al borrar un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Borrar el preset «{name}»?'**
+  String borrarPresetPregunta(String name);
+
+  /// Sonido: al borrar un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que suena ahora no cambia: queda como Personalizado.'**
+  String get borrarPresetNota;
+
+  /// Sonido: ayuda bajo los presets.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantén presionado (o clic derecho) un preset propio para renombrarlo o borrarlo.'**
+  String get presetsPropiosNota;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Refuerzo de bajos'**
+  String get refuerzoDeBajos;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad'**
+  String get velocidad;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Tono'**
+  String get tono;
+
+  /// Sonido: velocidad 1x y tono 0.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a lo normal'**
+  String get volverALoNormal;
+
+  /// Sonido: velocidad y tono.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantener entre canciones'**
+  String get mantenerEntreCanciones;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagado, la velocidad y el tono vuelven a lo normal con cada canción.'**
+  String get mantenerEntreCancionesNota;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Reverb'**
+  String get reverb;
+
+  /// Sonido: transición suave entre canciones.
+  ///
+  /// In es, this message translates to:
+  /// **'Mezcla entre canciones'**
+  String get mezclaEntreCanciones;
+
+  /// Sonido: tono.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 semitono} other{{count} semitonos}}'**
+  String semitonos(int count);
+
+  /// Sonido (PC).
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC, el ecualizador tiene 10 bandas.'**
+  String get enLaPcLasBandasSon;
+
+  /// Sonido (Android).
+  ///
+  /// In es, this message translates to:
+  /// **'Tu teléfono tiene {count} bandas; los presets se adaptan solos.'**
+  String elTelefonoTieneBandas(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -28,7 +28,10 @@ dependencies:
   just_audio: ^0.10.6
   audio_session: ^0.1.21
   audio_service: ^0.18.19
-  just_audio_media_kit: ^2.1.0
+  # Copia local (Unlicense) con un cambio de Kiji: velocidad, tono y efectos de sonido en la PC
+  # (ver packages/just_audio_media_kit/lib/mediakit_player.dart y CREDITS.md).
+  just_audio_media_kit:
+    path: packages/just_audio_media_kit
   # Ya venía con just_audio_media_kit: se usa directo para analizar el volumen en la PC (onda en vivo).
   media_kit: ^1.2.6
   media_kit_libs_windows_audio: ^1.0.9

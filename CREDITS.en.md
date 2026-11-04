@@ -39,6 +39,7 @@ maintains them.
 | `android/.../extractor/InnerTubeXEngine.kt` | Echo Music 1.4.3 (GPL-3.0) | `utils/InnerTubeXResolver.kt` (engine A: per-song exclusion, warm-up, remote config) |
 | `android/.../extractor/PoTokenWebView.kt`, `PoTokenGenerator.kt`, `JavaScriptUtil.kt`, `PoTokenException.kt`, `assets/po_token.html` | Echo Music 1.4.3, which in turn comes from NewPipe (GPL-3.0) | `utils/potoken/*` (BotGuard PO token in a WebView). Kiji fixed the binding: the URL token is bound to the video |
 | `lib/features/stream_cache/data/chunked_source.dart` | Echo Music (idea, own code) | `playback/ChunkedDataSource.kt` (bounded ranges and renewed URL) |
+| `packages/just_audio_media_kit/` (local copy with changes) | [just_audio_media_kit](https://github.com/Pato05/just_audio_media_kit) 2.1.0 (Pato05, Unlicense) | `lib/mediakit_player.dart`, `lib/just_audio_media_kit.dart` (Kiji adds speed, pitch and sound effects in a single mpv filter chain) |
 
 ## Services Kiji uses (only when the user asks)
 

@@ -39,6 +39,7 @@ personas que los construyen y mantienen.
 | `android/.../extractor/InnerTubeXEngine.kt` | Echo Music 1.4.3 (GPL-3.0) | `utils/InnerTubeXResolver.kt` (motor A: exclusión por canción, precalentamiento, config remota) |
 | `android/.../extractor/PoTokenWebView.kt`, `PoTokenGenerator.kt`, `JavaScriptUtil.kt`, `PoTokenException.kt`, `assets/po_token.html` | Echo Music 1.4.3, que a su vez viene de NewPipe (GPL-3.0) | `utils/potoken/*` (PO token BotGuard en una WebView). Kiji corrigió la vinculación: el token de la URL va ligado al video |
 | `lib/features/stream_cache/data/chunked_source.dart` | Echo Music (idea, código propio) | `playback/ChunkedDataSource.kt` (rangos acotados y URL renovada) |
+| `packages/just_audio_media_kit/` (copia local con cambios) | [just_audio_media_kit](https://github.com/Pato05/just_audio_media_kit) 2.1.0 (Pato05, Unlicense) | `lib/mediakit_player.dart`, `lib/just_audio_media_kit.dart` (Kiji agrega velocidad, tono y efectos de sonido en una sola cadena de filtros de mpv) |
 
 ## Servicios que usa Kiji (solo cuando el usuario lo pide)
 

@@ -4392,4 +4392,117 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get youtubeNoDisponibleIncrustado =>
       'YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.';
+
+  @override
+  String get eqNormal => 'Normal';
+
+  @override
+  String get eqBajos => 'Bajos';
+
+  @override
+  String get eqVoz => 'Voz';
+
+  @override
+  String get eqAcustico => 'Acústico';
+
+  @override
+  String get eqNoche => 'Noche';
+
+  @override
+  String get reverbApagado => 'Apagado';
+
+  @override
+  String get reverbSala => 'Sala';
+
+  @override
+  String get reverbEstadio => 'Estadio';
+
+  @override
+  String get sonido => 'Sonido';
+
+  @override
+  String get sonidoNota =>
+      'Ecualizador, bajos, velocidad, tono y mezcla entre canciones.';
+
+  @override
+  String get efectos => 'Efectos';
+
+  @override
+  String get efectosApagados => 'Apagados: la música suena tal cual.';
+
+  @override
+  String efectosEncendidos(String profile) {
+    return 'Encendidos: $profile';
+  }
+
+  @override
+  String ecualizadorBandas(int count) {
+    return 'Ecualizador · $count bandas';
+  }
+
+  @override
+  String get guardarComoPreset => 'Guardar como preset';
+
+  @override
+  String get nombreDelPreset => 'Nombre del preset';
+
+  @override
+  String get renombrarPreset => 'Renombrar';
+
+  @override
+  String borrarPresetPregunta(String name) {
+    return '¿Borrar el preset «$name»?';
+  }
+
+  @override
+  String get borrarPresetNota =>
+      'Lo que suena ahora no cambia: queda como Personalizado.';
+
+  @override
+  String get presetsPropiosNota =>
+      'Mantén presionado (o clic derecho) un preset propio para renombrarlo o borrarlo.';
+
+  @override
+  String get refuerzoDeBajos => 'Refuerzo de bajos';
+
+  @override
+  String get velocidad => 'Velocidad';
+
+  @override
+  String get tono => 'Tono';
+
+  @override
+  String get volverALoNormal => 'Volver a lo normal';
+
+  @override
+  String get mantenerEntreCanciones => 'Mantener entre canciones';
+
+  @override
+  String get mantenerEntreCancionesNota =>
+      'Apagado, la velocidad y el tono vuelven a lo normal con cada canción.';
+
+  @override
+  String get reverb => 'Reverb';
+
+  @override
+  String get mezclaEntreCanciones => 'Mezcla entre canciones';
+
+  @override
+  String semitonos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count semitonos',
+      one: '1 semitono',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enLaPcLasBandasSon => 'En la PC, el ecualizador tiene 10 bandas.';
+
+  @override
+  String elTelefonoTieneBandas(int count) {
+    return 'Tu teléfono tiene $count bandas; los presets se adaptan solos.';
+  }
 }

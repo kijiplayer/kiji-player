@@ -4383,4 +4383,116 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get youtubeNoDisponibleIncrustado =>
       'YouTube answers «This video is unavailable» to every video with this form, even ordinary ones.';
+
+  @override
+  String get eqNormal => 'Normal';
+
+  @override
+  String get eqBajos => 'Bass';
+
+  @override
+  String get eqVoz => 'Vocal';
+
+  @override
+  String get eqAcustico => 'Acoustic';
+
+  @override
+  String get eqNoche => 'Night';
+
+  @override
+  String get reverbApagado => 'Off';
+
+  @override
+  String get reverbSala => 'Room';
+
+  @override
+  String get reverbEstadio => 'Stadium';
+
+  @override
+  String get sonido => 'Sound';
+
+  @override
+  String get sonidoNota => 'Equalizer, bass, speed, pitch and crossfade.';
+
+  @override
+  String get efectos => 'Effects';
+
+  @override
+  String get efectosApagados => 'Off: music plays as it is.';
+
+  @override
+  String efectosEncendidos(String profile) {
+    return 'On: $profile';
+  }
+
+  @override
+  String ecualizadorBandas(int count) {
+    return 'Equalizer · $count bands';
+  }
+
+  @override
+  String get guardarComoPreset => 'Save as preset';
+
+  @override
+  String get nombreDelPreset => 'Preset name';
+
+  @override
+  String get renombrarPreset => 'Rename';
+
+  @override
+  String borrarPresetPregunta(String name) {
+    return 'Delete the “$name” preset?';
+  }
+
+  @override
+  String get borrarPresetNota =>
+      'What\'s playing now doesn\'t change: it stays as Custom.';
+
+  @override
+  String get presetsPropiosNota =>
+      'Long-press (or right-click) one of your presets to rename or delete it.';
+
+  @override
+  String get refuerzoDeBajos => 'Bass boost';
+
+  @override
+  String get velocidad => 'Speed';
+
+  @override
+  String get tono => 'Pitch';
+
+  @override
+  String get volverALoNormal => 'Back to normal';
+
+  @override
+  String get mantenerEntreCanciones => 'Keep between songs';
+
+  @override
+  String get mantenerEntreCancionesNota =>
+      'When off, speed and pitch go back to normal with every song.';
+
+  @override
+  String get reverb => 'Reverb';
+
+  @override
+  String get mezclaEntreCanciones => 'Crossfade';
+
+  @override
+  String semitonos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count semitones',
+      one: '1 semitone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enLaPcLasBandasSon => 'On PC, the equalizer has 10 bands.';
+
+  @override
+  String elTelefonoTieneBandas(int count) {
+    return 'Your phone has $count bands; presets adapt on their own.';
+  }
 }
