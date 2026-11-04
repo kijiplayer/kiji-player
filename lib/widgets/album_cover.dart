@@ -13,6 +13,7 @@ import '../providers/downloads_provider.dart';
 import '../theme/kiji_tokens.dart';
 import 'kiji_logo.dart';
 import '../features/downloads/presentation/download_status.dart';
+import '../features/downloads/data/download_service.dart';
 
 class AlbumCover extends StatelessWidget {
   const AlbumCover({
@@ -116,11 +117,15 @@ class TrackArtwork extends ConsumerWidget {
       iconSize: size * 0.4,
       logo: true,
     );
-    final image = trackImageProvider(ref, track);
-    if (image == null) return fallback;
+    // Se pide (y se decodifica) al tamaño real en pantalla: en el reproductor, en alta resolución.
+    final pixels = (size * MediaQuery.devicePixelRatioOf(context)).round();
+    final sources = trackImageSources(ref, track, pixels: pixels);
+    if (sources.isEmpty) return fallback;
+    final image = sources.first;
+    // Si la de internet no llega (sin conexión), la guardada en el dispositivo, aunque sea más chica.
+    final offline = sources.length > 1 ? sources[1] : null;
     // Se decodifica al alto en pantalla, no a la resolución de la foto (cuadradas o apaisadas: el
     // recorte de "cover" sigue nítido). En una lista, cada carátula ocupa mucha menos memoria.
-    final pixels = (size * MediaQuery.devicePixelRatioOf(context)).round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(KijiLook.cover(radius)),
       child: Image(
@@ -128,7 +133,15 @@ class TrackArtwork extends ConsumerWidget {
         width: size,
         height: size,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
+        errorBuilder: (_, _, _) => offline == null
+            ? fallback
+            : Image(
+                image: ResizeImage(offline, height: pixels, policy: ResizeImagePolicy.fit),
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => fallback,
+              ),
         frameBuilder: image is NetworkImage ? (context, child, frame, _) => frame == null ? fallback : child : null,
       ),
     );
@@ -140,17 +153,30 @@ class TrackArtwork extends ConsumerWidget {
 /// conexión), la guardada en caché, la de internet y, para YouTube sin miniatura
 /// (descargas, importadas, radio), la del video por su id.
 /// null si no tiene (se usa el degradado de su color). También la usa el
-/// reproductor para sacar el color real del halo.
-ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
+/// reproductor para sacar el color real del halo. [pixels]: el lado en pantalla
+/// (en píxeles reales), para pedir la foto de internet a esa resolución.
+ImageProvider? trackImageProvider(WidgetRef ref, Track track, {int pixels = 544}) =>
+    trackImageSources(ref, track, pixels: pixels).firstOrNull;
+
+/// Como [trackImageProvider], pero con la de respaldo: la primera es la mejor para ese tamaño y
+/// la segunda (si hay) es la guardada en el dispositivo, para cuando la de internet no llega. En
+/// grande, una portada guardada chica (descargas y caché de antes de la 0.8.0) no gana a la de
+/// internet en alta calidad.
+List<ImageProvider> trackImageSources(WidgetRef ref, Track track, {int pixels = 544}) {
   final custom = ref.watch(trackOverridesProvider.select((all) => all[track.id]?.coverFile));
   final covers = ref.watch(coversFolderProvider).valueOrNull;
-  if (custom != null && covers != null) return FileImage(File(p.join(covers.path, custom)));
+  if (custom != null && covers != null) return [FileImage(File(p.join(covers.path, custom)))];
+  final url = track.thumbnailUrl;
+  final network = url != null && url.startsWith('http') ? NetworkImage(thumbnailUrlForPixels(url, pixels)) : null;
+  // Una guardada chica sirve en las listas; en grande, solo si no hay otra mejor.
+  List<ImageProvider> small(File file) =>
+      pixels <= 544 || network == null || fullThumbnailUrl(url!) == url ? [FileImage(file)] : [network, FileImage(file)];
 
   final cache = ref.watch(artworkFolderProvider).valueOrNull;
   // Carátula incluida en el archivo, guardada al importar.
   if (track.source == TrackSource.local && cache != null) {
     final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
-    if (fileExistsCache.exists(embedded.path)) return FileImage(embedded);
+    if (fileExistsCache.exists(embedded.path)) return [FileImage(embedded)];
   }
   final videoId = track.youtubeVideoId;
   if (videoId != null) {
@@ -158,15 +184,19 @@ ImageProvider? trackImageProvider(WidgetRef ref, Track track) {
       final thumb = s.completed[videoId]?.thumbnailFileName;
       return thumb == null || s.directoryPath == null ? null : p.join(s.directoryPath!, thumb);
     }));
-    if (downloaded != null) return FileImage(File(downloaded));
+    if (downloaded != null) {
+      final file = File(downloaded);
+      final hq = downloaded.endsWith(DownloadService.hqThumbnailSuffix) && pixels <= fullCoverPixels;
+      return hq ? [FileImage(file)] : small(file);
+    }
   }
-  final url = track.thumbnailUrl;
-  if (url == null || !url.startsWith('http')) {
-    return videoId == null ? null : NetworkImage(youtubeThumbnailUrl(videoId));
-  }
+  if (network == null) return videoId == null ? const [] : [NetworkImage(youtubeThumbnailUrl(videoId))];
   if (cache != null) {
-    final cached = File(p.join(cache.path, artworkCacheName(url)));
-    if (fileExistsCache.exists(cached.path)) return FileImage(cached);
+    // Guardada en alta calidad (0.8.0 en adelante) o la vieja, chica.
+    final full = File(p.join(cache.path, artworkCacheName(fullThumbnailUrl(url!))));
+    if (fileExistsCache.exists(full.path)) return pixels <= fullCoverPixels ? [FileImage(full)] : [network, FileImage(full)];
+    final legacy = File(p.join(cache.path, artworkCacheName(url)));
+    if (fileExistsCache.exists(legacy.path)) return small(legacy);
   }
-  return NetworkImage(largerThumbnailUrl(url));
+  return [network];
 }

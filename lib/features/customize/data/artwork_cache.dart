@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../system_media/data/cover_art.dart';
+
 /// Nombre de archivo estable para una URL (FNV-1a de 64 bits en hex).
 String artworkCacheName(String url) {
   var hash = 0xcbf29ce484222325;
@@ -45,12 +47,13 @@ class ArtworkCache {
     await temp.rename(target.path);
   }
 
-  /// Baja las que falten, de a [concurrency] a la vez. Devuelve cuántas bajó.
+  /// Baja las que falten, de a [concurrency] a la vez, siempre en alta calidad (las de YouTube
+  /// Music vienen chicas en la URL; se guardan a [fullCoverPixels]). Devuelve cuántas bajó.
   Future<int> download(Iterable<String> urls, {int concurrency = 4}) async {
     final dir = await folder();
     await dir.create(recursive: true);
     final pending = [
-      for (final url in urls.toSet())
+      for (final url in urls.map(fullThumbnailUrl).toSet())
         if (url.startsWith('http') && !File(p.join(dir.path, artworkCacheName(url))).existsSync()) url,
     ];
     var done = 0;

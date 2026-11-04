@@ -12,6 +12,7 @@ import '../../../models/track.dart';
 import '../../../screens/player/player_motion.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/album_cover.dart';
+import '../../system_media/data/cover_art.dart';
 import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/kiji_logo.dart';
 
@@ -104,7 +105,7 @@ class LyricsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accent = knownCoverAccent(track.id) ?? track.coverColor;
-    final image = trackImageProvider(ref, track);
+    final image = trackImageProvider(ref, track, pixels: fullCoverPixels);
     final minimal = format == CardFormat.minimal;
     final landscape = format == CardFormat.landscape;
 

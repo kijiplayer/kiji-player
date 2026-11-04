@@ -16,7 +16,7 @@ import '../../../models/track.dart';
 Future<Uri?> coverArtFor(Track track) async {
   final thumbnail = track.thumbnailUrl;
   if (thumbnail != null && thumbnail.startsWith('http')) {
-    return Uri.parse(largerThumbnailUrl(thumbnail));
+    return Uri.parse(fullThumbnailUrl(thumbnail));
   }
   // Canciones de YouTube sin miniatura guardada (descargas, importadas, radio): la del video.
   final videoId = track.youtubeVideoId;
@@ -29,13 +29,32 @@ Future<Uri?> coverArtFor(Track track) async {
   }
 }
 
-/// Las miniaturas de la búsqueda vienen en 60×60; para la pantalla de
-/// bloqueo pedimos una más grande ("=w60-h60" → "=w544-h544").
 /// Miniatura de un video de YouTube por su id (para canciones sin miniatura guardada).
 String youtubeThumbnailUrl(String videoId) => 'https://i.ytimg.com/vi/$videoId/hqdefault.jpg';
 
-String largerThumbnailUrl(String url) =>
-    url.replaceFirstMapped(RegExp(r'=w\d+-h\d+'), (_) => '=w544-h544');
+/// Las portadas de YouTube Music (lh3/yt3.googleusercontent, ggpht) piden su tamaño en la URL
+/// ("=w120-h120-l90-rj", "=s120"): el servidor entrega la misma foto al lado que se pida, hasta
+/// la original (~3000 px). Las demás URL quedan como están.
+final _sizeInUrl = RegExp(r'=(w\d+-h\d+|s\d+)(?=-|$)');
+final _resizableHost = RegExp(r'^https://[^/]*(googleusercontent\.com|ggpht\.com)/');
+
+/// La misma portada a [pixels] px de lado.
+String sizedThumbnailUrl(String url, int pixels) => _resizableHost.hasMatch(url)
+    ? url.replaceFirstMapped(_sizeInUrl, (_) => '=w$pixels-h$pixels')
+    : url;
+
+/// Para listas y tarjetas (las miniaturas de la búsqueda vienen en 60 o 120 px).
+String largerThumbnailUrl(String url) => sizedThumbnailUrl(url, 544);
+
+/// Alta calidad: notificación, pantalla de bloqueo, controles de Windows y lo que se guarda en
+/// el dispositivo (caché de carátulas y portadas de las descargas).
+const fullCoverPixels = 1200;
+String fullThumbnailUrl(String url) => sizedThumbnailUrl(url, fullCoverPixels);
+
+/// Para mostrar a [pixels] px reales de pantalla: nunca menos de lo que se ve (hasta 2048).
+String thumbnailUrlForPixels(String url, int pixels) => pixels <= 544
+    ? largerThumbnailUrl(url)
+    : sizedThumbnailUrl(url, pixels <= fullCoverPixels ? fullCoverPixels : 2048);
 
 Future<Uri> _colorCover(Color color) async {
   final dir = Directory(p.join((await getTemporaryDirectory()).path, 'covers'));
