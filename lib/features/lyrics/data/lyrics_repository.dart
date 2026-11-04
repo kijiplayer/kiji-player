@@ -86,7 +86,12 @@ class LyricsRepository {
       try {
         final lyrics = Lyrics.fromJson(cached['lyrics'] as Map<String, dynamic>);
         final savedAt = DateTime.fromMillisecondsSinceEpoch(cached['savedAt'] as int);
-        if (!lyrics.isEmpty || _clock().difference(savedAt) < notFoundRetry) return lyrics;
+        final fits = syncMatches(lyrics, Duration(milliseconds: request.durationMs)) || cached['chosen'] == true;
+        if (!fits) {
+          debugPrint('=== LETRAS: la guardada no encaja con la duración de la canción; se busca otra ===');
+        } else if (!lyrics.isEmpty || _clock().difference(savedAt) < notFoundRetry) {
+          return lyrics;
+        }
       } catch (error) {
         await file.deleteCorrupt(error);
       }
@@ -95,7 +100,7 @@ class LyricsRepository {
     // 2) Guardada con la descarga (sin internet).
     try {
       final saved = await offline?.call(request);
-      if (saved != null && !saved.isEmpty) {
+      if (saved != null && !saved.isEmpty && syncMatches(saved, Duration(milliseconds: request.durationMs))) {
         await _save(file, saved);
         return saved;
       }
@@ -144,12 +149,21 @@ class LyricsRepository {
   Future<Lyrics> _fromSources(LyricsRequest request, Set<LyricsSource> disabled, List<LyricsSource> order) async {
     var answered = 0;
     final failures = <String>[];
+    // Una letra sincronizada que no encaja con la canción: se sigue buscando y, si ninguna otra
+    // sirve, se muestra esta sin sincronizar (nunca con un aviso técnico).
+    Lyrics? mismatched;
+    final duration = Duration(milliseconds: request.durationMs);
     for (final fetcher in _ordered(order)) {
       if (disabled.contains(fetcher.source)) continue;
       try {
         final lyrics = await fetcher.fetch(request);
         answered++;
         if (lyrics != null && !lyrics.isEmpty) {
+          if (!syncMatches(lyrics, duration)) {
+            debugPrint('=== LETRAS: la de ${fetcher.source.label} no encaja con la canción; se prueba otra ===');
+            mismatched ??= lyrics.unsynced;
+            continue;
+          }
           debugPrint('=== LETRAS: encontrada en ${fetcher.source.label} ===');
           return lyrics;
         }
@@ -159,6 +173,10 @@ class LyricsRepository {
         debugPrint('=== LETRAS: ${fetcher.source.label} falló: $error ===');
         answered++;
       }
+    }
+    if (mismatched != null) {
+      debugPrint('=== LETRAS: ninguna sincronizada encaja; se muestra sin sincronizar ===');
+      return mismatched;
     }
     // Ninguna respondió: probablemente sin conexión. No se guarda "no hay".
     if (answered == 0 && failures.isNotEmpty) {
@@ -200,14 +218,15 @@ class LyricsRepository {
   /// El usuario eligió [lyrics] para la canción [id] (⋯ → Fuente): se guarda y se usa siempre.
   Future<void> choose(String id, Lyrics lyrics) async {
     debugPrint('=== LETRAS: elegida a mano ${lyrics.source?.label} ===');
-    await _save(await _fileFor(id), lyrics);
+    await _save(await _fileFor(id), lyrics, chosen: true);
   }
 
   /// Importar un `.lrc` (o texto) para la canción [id].
   Future<Lyrics> importText(String id, String text) async {
     final lyrics = lyricsFromText(text, LyricsSource.imported);
     if (lyrics == null) throw FormatException(tx.elArchivoNoTieneUnaLetra);
-    await _save(await _fileFor(id), lyrics);
+    // La importó el usuario: se respeta aunque no encaje con la duración.
+    await _save(await _fileFor(id), lyrics, chosen: true);
     return lyrics;
   }
 
@@ -226,8 +245,12 @@ class LyricsRepository {
   }
 
   /// Al guardar una letra nueva el desfase vuelve a 0.
-  Future<void> _save(JsonFile file, Lyrics lyrics) =>
-      file.write({'savedAt': _clock().millisecondsSinceEpoch, 'lyrics': lyrics.toJson()});
+  /// [chosen]: la eligió el usuario (⋯ → Fuente): se respeta aunque no encaje con la duración.
+  Future<void> _save(JsonFile file, Lyrics lyrics, {bool chosen = false}) => file.write({
+    'savedAt': _clock().millisecondsSinceEpoch,
+    'lyrics': lyrics.toJson(),
+    if (chosen) 'chosen': true,
+  });
 }
 
 /// Letra guardada en las etiquetas del archivo (LRC o texto), o null.

@@ -372,3 +372,35 @@ Lyrics? lyricsFromLrcFile(String text, {LyricsSource fallback = LyricsSource.imp
   final body = text.split('\n').where((l) => !l.trimLeft().startsWith('[kiji-')).join('\n');
   return lyricsFromText(body, source);
 }
+
+/// ¿La letra sincronizada corresponde a esta canción de [duration]? Se descartan las que no
+/// encajan con el audio (otra versión, una en vivo, una corrida):
+/// - la última línea empieza después del final (con un margen de 3 s);
+/// - la primera línea con texto empieza pasada la mitad de la canción;
+/// - las líneas no están en orden, o una palabra cae fuera de la canción.
+/// Sin duración conocida (0) no se puede comprobar: se acepta. Las de texto simple no se miran.
+bool syncMatches(Lyrics lyrics, Duration duration) {
+  if (!lyrics.isSynced || duration <= Duration.zero) return true;
+  final end = duration + const Duration(seconds: 3);
+  final lines = lyrics.synced;
+  final withText = lines.where((l) => l.text.trim().isNotEmpty).toList();
+  if (withText.isEmpty) return false;
+  if (withText.last.time > end) return false;
+  if (withText.first.time > duration * 0.5) return false;
+  for (var i = 1; i < lines.length; i++) {
+    if (lines[i].time < lines[i - 1].time) return false;
+  }
+  for (final line in lines) {
+    for (final word in line.words) {
+      if (word.start > end || (word.end != null && word.end! > end + const Duration(seconds: 2))) return false;
+    }
+  }
+  return true;
+}
+
+extension LyricsUnsynced on Lyrics {
+  /// La misma letra sin tiempos (cuando la sincronización no encaja con la canción).
+  Lyrics get unsynced => isSynced
+      ? Lyrics(plain: [for (final l in synced) l.text].where((t) => t.isNotEmpty).join('\n'), source: source)
+      : this;
+}
