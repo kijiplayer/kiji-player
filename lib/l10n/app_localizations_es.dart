@@ -4470,4 +4470,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get salirDePantallaCompleta => 'Salir de pantalla completa';
+
+  @override
+  String get bajarLaLetraConLasDescargas => 'Bajar la letra con las descargas';
+
+  @override
+  String get bajarLaLetraConLasDescargasNota =>
+      'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas.';
 }

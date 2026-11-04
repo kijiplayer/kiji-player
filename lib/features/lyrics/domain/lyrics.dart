@@ -330,3 +330,45 @@ double sungCharacters(LyricLine line, Duration position, {Duration? next}) {
   if (span <= Duration.zero) return total.toDouble();
   return (total * (position - line.time).inMicroseconds / span.inMicroseconds).clamp(0, total).toDouble();
 }
+
+String _lrcTag(Duration time) {
+  String two(int n) => n.toString().padLeft(2, '0');
+  final ms = time.inMilliseconds;
+  return '${two(ms ~/ 60000)}:${two((ms ~/ 1000) % 60)}.${two((ms % 1000) ~/ 10)}';
+}
+
+/// La letra como archivo `.lrc`, para guardarla junto a una descarga (otros reproductores también
+/// lo leen). Con tiempos por palabra, en formato "enhanced". La fuente va en una etiqueta propia.
+String lyricsToLrc(Lyrics lyrics) {
+  final out = StringBuffer();
+  if (lyrics.source != null) out.writeln('[kiji-source:${lyrics.source!.name}]');
+  if (lyrics.instrumental) {
+    out.writeln('[kiji-instrumental]');
+  } else if (lyrics.isSynced) {
+    for (final line in lyrics.synced) {
+      out.write('[${_lrcTag(line.time)}]');
+      if (line.hasWords) {
+        for (final word in line.words) {
+          out.write('<${_lrcTag(word.start)}>${word.text}');
+        }
+        final end = line.words.last.end;
+        if (end != null) out.write('<${_lrcTag(end)}>');
+      } else {
+        out.write(line.text);
+      }
+      out.writeln();
+    }
+  } else if (lyrics.plain != null) {
+    out.write(lyrics.plain);
+  }
+  return out.toString();
+}
+
+/// Lee un `.lrc` escrito por [lyricsToLrc] (o cualquier `.lrc`): null si no tiene letra.
+Lyrics? lyricsFromLrcFile(String text, {LyricsSource fallback = LyricsSource.imported}) {
+  final sourceName = RegExp(r'^\[kiji-source:([a-zA-Z]+)\]', multiLine: true).firstMatch(text)?.group(1);
+  final source = LyricsSource.values.asNameMap()[sourceName] ?? fallback;
+  if (text.contains('[kiji-instrumental]')) return Lyrics(instrumental: true, source: source);
+  final body = text.split('\n').where((l) => !l.trimLeft().startsWith('[kiji-')).join('\n');
+  return lyricsFromText(body, source);
+}

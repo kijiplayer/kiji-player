@@ -49,6 +49,7 @@ class LyricsRepository {
     List<LyricsFetcher>? fetchers,
     Future<Directory> Function()? baseDirectory,
     DateTime Function()? clock,
+    this.offline,
   }) : _fetchers = fetchers ?? defaultLyricsFetchers(lrclib: client),
        _baseDirectory = baseDirectory ?? getApplicationSupportDirectory,
        _clock = clock ?? DateTime.now;
@@ -58,6 +59,9 @@ class LyricsRepository {
   static const notFoundRetry = Duration(days: 7);
 
   final List<LyricsFetcher> _fetchers;
+
+  /// La letra guardada con la canción descargada (sin internet), si la hay.
+  final Future<Lyrics?> Function(LyricsRequest request)? offline;
   final Future<Directory> Function() _baseDirectory;
   final DateTime Function() _clock;
 
@@ -88,7 +92,18 @@ class LyricsRepository {
       }
     }
 
-    // 2) Incluida en el archivo local (sin internet).
+    // 2) Guardada con la descarga (sin internet).
+    try {
+      final saved = await offline?.call(request);
+      if (saved != null && !saved.isEmpty) {
+        await _save(file, saved);
+        return saved;
+      }
+    } catch (error) {
+      debugPrint('=== LETRAS: no se pudo leer la guardada con la descarga: $error ===');
+    }
+
+    // 3) Incluida en el archivo local (sin internet).
     final path = request.localPath;
     if (path != null && path.isNotEmpty) {
       final embedded = await Isolate.run(() => readEmbeddedLyrics(path));
@@ -98,7 +113,7 @@ class LyricsRepository {
       }
     }
 
-    // 3) Las fuentes, en el orden que eligió el usuario.
+    // 4) Las fuentes, en el orden que eligió el usuario.
     final lyrics = await _fromSources(request, disabled, order);
     await _save(file, lyrics);
     return lyrics;

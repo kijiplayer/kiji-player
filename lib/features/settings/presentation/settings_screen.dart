@@ -740,6 +740,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.storage,
+        title: tx.bajarLaLetraConLasDescargas,
+        subtitle: tx.bajarLaLetraConLasDescargasNota,
+        keywords: const ['letra', 'lyrics', 'sin conexion', 'offline', 'descargas'], // l10n-ignore
+        builder: (context, ref) => SwitchListTile(
+          title: Text(tx.bajarLaLetraConLasDescargas),
+          subtitle: Text(tx.bajarLaLetraConLasDescargasNota),
+          value: ref.watch(settingsProvider.select((s) => s.downloadLyrics)),
+          onChanged: (on) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(downloadLyrics: on)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.storage,
         title: tx.descargarLoQueMeGusta,
         subtitle: tx.descargarLoQueMeGustaDescripcion,
         keywords: const ['me gusta', 'favoritas', 'automatico', 'sin conexion', 'like', 'offline'], // l10n-ignore

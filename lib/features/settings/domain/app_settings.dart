@@ -18,6 +18,7 @@ class AppSettings {
     this.styleChosen = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
+    this.downloadLyrics = true,
     this.autoBackup = true,
     this.backupFolder,
     this.disabledLyricsSources = const {},
@@ -135,6 +136,9 @@ class AppSettings {
   /// baja. Con WiFi, siempre la mejor.
   final bool dataSaver;
 
+  /// Al descargar una canción, bajar también su letra (con las fuentes que estén prendidas).
+  final bool downloadLyrics;
+
   /// Copia de seguridad: una copia por día, automática.
   final bool autoBackup;
 
@@ -233,6 +237,7 @@ class AppSettings {
     bool? styleChosen,
     int? crossfadeSeconds,
     bool? dataSaver,
+    bool? downloadLyrics,
     bool? autoBackup,
     String? backupFolder,
     bool defaultBackupFolder = false,
@@ -277,6 +282,7 @@ class AppSettings {
         styleChosen: styleChosen ?? this.styleChosen,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
+        downloadLyrics: downloadLyrics ?? this.downloadLyrics,
         autoBackup: autoBackup ?? this.autoBackup,
         backupFolder: defaultBackupFolder ? null : (backupFolder ?? this.backupFolder),
         disabledLyricsSources: disabledLyricsSources ?? this.disabledLyricsSources,
@@ -322,6 +328,7 @@ class AppSettings {
         'styleChosen': styleChosen,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
+        'downloadLyrics': downloadLyrics,
         'autoBackup': autoBackup,
         if (backupFolder != null) 'backupFolder': backupFolder,
         'disabledLyricsSources': [for (final s in disabledLyricsSources) s.name],
@@ -373,6 +380,7 @@ class AppSettings {
       styleChosen: read('styleChosen', d.styleChosen),
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
+      downloadLyrics: read('downloadLyrics', d.downloadLyrics),
       autoBackup: read('autoBackup', d.autoBackup),
       backupFolder: json['backupFolder'] is String && (json['backupFolder'] as String).isNotEmpty
           ? json['backupFolder'] as String

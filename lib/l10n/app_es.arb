@@ -2657,5 +2657,9 @@
   "pantallaCompleta": "Pantalla completa",
   "@pantallaCompleta": {"description": "Letra: botón para verla a pantalla completa."},
   "salirDePantallaCompleta": "Salir de pantalla completa",
-  "@salirDePantallaCompleta": {"description": "Letra: botón para volver a la vista normal (también con Esc en la PC)."}
+  "@salirDePantallaCompleta": {"description": "Letra: botón para volver a la vista normal (también con Esc en la PC)."},
+  "bajarLaLetraConLasDescargas": "Bajar la letra con las descargas",
+  "@bajarLaLetraConLasDescargas": {"description": "Configuración → Almacenamiento."},
+  "bajarLaLetraConLasDescargasNota": "Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas.",
+  "@bajarLaLetraConLasDescargasNota": {"description": "Configuración → Almacenamiento: qué hace y a quién se pregunta."}
 }

@@ -7234,6 +7234,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Salir de pantalla completa'**
   String get salirDePantallaCompleta;
+
+  /// Configuración → Almacenamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajar la letra con las descargas'**
+  String get bajarLaLetraConLasDescargas;
+
+  /// Configuración → Almacenamiento: qué hace y a quién se pregunta.
+  ///
+  /// In es, this message translates to:
+  /// **'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas.'**
+  String get bajarLaLetraConLasDescargasNota;
 }
 
 class _AppLocalizationsDelegate

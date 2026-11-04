@@ -135,12 +135,35 @@ class DownloadsRepository {
     return updated;
   }
 
+  /// Guarda [text] como la letra de [videoId] (`<videoId>.lrc`, junto al audio) y lo anota.
+  Future<DownloadedTrack?> saveLyrics(String videoId, String text) async {
+    final entries = await all();
+    final track = entries[videoId];
+    if (track == null) return null;
+    final fileName = '$videoId.lrc';
+    final target = File(await pathFor(fileName));
+    final temp = File('${target.path}.part');
+    await temp.writeAsString(text, flush: true);
+    await temp.rename(target.path);
+    final updated = entries[videoId] = track.copyWith(lyricsFileName: fileName);
+    await _saveIndex();
+    return updated;
+  }
+
+  /// La letra guardada con la descarga de [videoId], o null.
+  Future<String?> lyricsFor(String videoId) async {
+    final name = (await all())[videoId]?.lyricsFileName;
+    if (name == null) return null;
+    final file = File(await pathFor(name));
+    return await file.exists() ? file.readAsString() : null;
+  }
+
   /// Borra el archivo y su portada. La canción sigue en colas y playlists:
   /// solo vuelve a sonar desde internet.
   Future<void> remove(String videoId) async {
     final track = (await all()).remove(videoId);
     if (track == null) return;
-    for (final name in [track.fileName, ?track.thumbnailFileName]) {
+    for (final name in [track.fileName, ?track.thumbnailFileName, ?track.lyricsFileName]) {
       final file = File(await pathFor(name));
       if (await file.exists()) await file.delete();
     }

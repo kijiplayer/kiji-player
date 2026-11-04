@@ -6,6 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/downloads/data/cover_upgrade.dart';
+import '../features/lyrics/domain/lyrics.dart';
+import '../features/lyrics/lyrics_provider.dart';
+import '../features/settings/data/settings_store.dart';
 import '../features/downloads/data/download_service.dart';
 import '../features/downloads/data/downloads_repository.dart';
 import '../features/downloads/data/storage_info_impl.dart';
@@ -215,7 +218,31 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   static Duration coverUpgradeDelay = const Duration(seconds: 45);
   Timer? _coverTimer;
 
+  /// Busca la letra de [entry] (caché, archivo o las fuentes prendidas, con la verificación de
+  /// siempre) y la guarda junto a la canción para verla sin internet. Sin letra o sin internet, no
+  /// guarda nada (se vuelve a probar la próxima vez que se abra Kiji).
+  Future<bool> _saveLyrics(DownloadedTrack entry) async {
+    final settings = ref.read(settingsProvider);
+    if (!settings.downloadLyrics || entry.lyricsFileName != null) return false;
+    try {
+      final lyrics = await ref
+          .read(lyricsRepositoryProvider)
+          .get(lyricsRequestFor(entry.toTrack()), disabled: settings.disabledLyricsSources);
+      if (lyrics.isEmpty) return false;
+      final updated = await _repository.saveLyrics(entry.videoId, lyricsToLrc(lyrics));
+      if (updated != null && state.completed.containsKey(entry.videoId)) {
+        state = state.copyWith(completed: {...state.completed, entry.videoId: updated});
+      }
+      debugPrint('=== DESCARGAS: letra guardada con "${entry.title}" ===');
+      return true;
+    } catch (error) {
+      debugPrint('=== DESCARGAS: sin letra para guardar con "${entry.title}": $error ===');
+      return false;
+    }
+  }
+
   /// Portadas chicas de descargas viejas → alta calidad, en segundo plano (ver [CoverUpgrade]).
+  /// Después, la letra de las que todavía no la tienen.
   /// Con "solo con WiFi", también espera al WiFi.
   Future<void> _upgradeCovers() async {
     if (state.settings.wifiOnly && !await _onWifiOrEthernet()) return;
@@ -230,6 +257,22 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
         }
       },
     ).run(state.completed.values.toList());
+    await _lyricsForOldDownloads();
+  }
+
+  /// Descargas sin letra guardada: se busca de a una, sin apuro. Si fallan 3 seguidas (sin
+  /// internet), sigue la próxima vez.
+  Future<void> _lyricsForOldDownloads() async {
+    if (!ref.read(settingsProvider).downloadLyrics) return;
+    final pending = [for (final d in state.completed.values) if (d.lyricsFileName == null) d];
+    if (pending.isEmpty) return;
+    debugPrint('=== DESCARGAS: ${pending.length} sin letra guardada; se busca en segundo plano ===');
+    var failures = 0;
+    for (final entry in pending) {
+      if (failures >= 3) break;
+      failures = await _saveLyrics(entry) ? 0 : failures + 1;
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
   }
 
   Future<bool> _onWifiOrEthernet() async {
@@ -405,6 +448,8 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       );
       await _repository.add(entry);
       debugPrint('=== DESCARGAS: "${track.title}" lista (${result.$2} bytes) ===');
+      // La letra, en segundo plano: no demora la descarga.
+      unawaited(_saveLyrics(entry));
       state = state.copyWith(
         completed: {...state.completed, videoId: entry},
         active: Map.of(state.active)..remove(videoId),

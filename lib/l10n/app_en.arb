@@ -1205,5 +1205,7 @@
   "enLaPcLasBandasSon": "On PC, the equalizer has 10 bands.",
   "elTelefonoTieneBandas": "Your phone has {count} bands; presets adapt on their own.",
   "pantallaCompleta": "Full screen",
-  "salirDePantallaCompleta": "Exit full screen"
+  "salirDePantallaCompleta": "Exit full screen",
+  "bajarLaLetraConLasDescargas": "Download lyrics with songs",
+  "bajarLaLetraConLasDescargasNota": "Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on."
 }

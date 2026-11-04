@@ -4461,4 +4461,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get salirDePantallaCompleta => 'Exit full screen';
+
+  @override
+  String get bajarLaLetraConLasDescargas => 'Download lyrics with songs';
+
+  @override
+  String get bajarLaLetraConLasDescargasNota =>
+      'Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on.';
 }
