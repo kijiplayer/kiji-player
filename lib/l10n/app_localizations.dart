@@ -7222,6 +7222,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Tu teléfono tiene {count} bandas; los presets se adaptan solos.'**
   String elTelefonoTieneBandas(int count);
+
+  /// Letra: botón para verla a pantalla completa.
+  ///
+  /// In es, this message translates to:
+  /// **'Pantalla completa'**
+  String get pantallaCompleta;
+
+  /// Letra: botón para volver a la vista normal (también con Esc en la PC).
+  ///
+  /// In es, this message translates to:
+  /// **'Salir de pantalla completa'**
+  String get salirDePantallaCompleta;
 }
 
 class _AppLocalizationsDelegate

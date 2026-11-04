@@ -4464,4 +4464,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String elTelefonoTieneBandas(int count) {
     return 'Tu teléfono tiene $count bandas; los presets se adaptan solos.';
   }
+
+  @override
+  String get pantallaCompleta => 'Pantalla completa';
+
+  @override
+  String get salirDePantallaCompleta => 'Salir de pantalla completa';
 }

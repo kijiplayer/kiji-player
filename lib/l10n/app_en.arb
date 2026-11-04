@@ -1203,5 +1203,7 @@
   "mezclaEntreCanciones": "Crossfade",
   "semitonos": "{count, plural, =1{1 semitone} other{{count} semitones}}",
   "enLaPcLasBandasSon": "On PC, the equalizer has 10 bands.",
-  "elTelefonoTieneBandas": "Your phone has {count} bands; presets adapt on their own."
+  "elTelefonoTieneBandas": "Your phone has {count} bands; presets adapt on their own.",
+  "pantallaCompleta": "Full screen",
+  "salirDePantallaCompleta": "Exit full screen"
 }

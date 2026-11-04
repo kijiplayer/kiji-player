@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:kiji_player/features/lyrics/data/screen_mode_impl.dart';
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
+import 'package:kiji_player/features/lyrics/domain/screen_mode.dart';
+import 'package:kiji_player/features/lyrics/presentation/lyrics_fullscreen.dart';
 import 'package:kiji_player/features/lyrics/lyrics_provider.dart';
 import 'package:kiji_player/features/lyrics/presentation/lyrics_screen.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
@@ -42,6 +45,11 @@ class _Playback extends PlaybackNotifier {
   );
 }
 
+class _Mode implements ScreenMode {
+  @override
+  Future<void> setFullScreen(bool on) async {}
+}
+
 Future<Directory> _noDisk() async => throw const FileSystemException('sin disco en el test');
 
 const sizes = <Size>[
@@ -50,7 +58,7 @@ const sizes = <Size>[
 ];
 
 void main() {
-  for (final panel in ['full', 'simple', 'showcase']) {
+  for (final panel in ['full', 'simple', 'showcase', 'fullscreen']) {
     for (final size in sizes) {
       testWidgets('La letra entra sin cortes: vista $panel en ${size.width.toInt()}×${size.height.toInt()}', (tester) async {
         tester.view.physicalSize = size;
@@ -68,9 +76,14 @@ void main() {
           playbackProvider.overrideWith(_Playback.new),
           settingsProvider.overrideWith(() => SettingsNotifier(directory: _noDisk)),
           lyricsProvider.overrideWith((ref, request) async => Lyrics(synced: _lines, source: LyricsSource.lrclib)),
+          screenModeProvider.overrideWithValue(_Mode()),
         ]);
         addTearDown(container.dispose);
-        await container.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: panel));
+        if (panel == 'fullscreen') {
+          container.read(lyricsFullscreenProvider.notifier).state = true;
+        } else {
+          await container.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: panel));
+        }
         await tester.pumpWidget(UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(home: LyricsScreen()),

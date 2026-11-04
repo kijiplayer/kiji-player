@@ -2653,5 +2653,9 @@
   "enLaPcLasBandasSon": "En la PC, el ecualizador tiene 10 bandas.",
   "@enLaPcLasBandasSon": {"description": "Sonido (PC)."},
   "elTelefonoTieneBandas": "Tu teléfono tiene {count} bandas; los presets se adaptan solos.",
-  "@elTelefonoTieneBandas": {"description": "Sonido (Android).", "placeholders": {"count": {"type": "int"}}}
+  "@elTelefonoTieneBandas": {"description": "Sonido (Android).", "placeholders": {"count": {"type": "int"}}},
+  "pantallaCompleta": "Pantalla completa",
+  "@pantallaCompleta": {"description": "Letra: botón para verla a pantalla completa."},
+  "salirDePantallaCompleta": "Salir de pantalla completa",
+  "@salirDePantallaCompleta": {"description": "Letra: botón para volver a la vista normal (también con Esc en la PC)."}
 }

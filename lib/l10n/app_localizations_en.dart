@@ -4455,4 +4455,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String elTelefonoTieneBandas(int count) {
     return 'Your phone has $count bands; presets adapt on their own.';
   }
+
+  @override
+  String get pantallaCompleta => 'Full screen';
+
+  @override
+  String get salirDePantallaCompleta => 'Exit full screen';
 }
