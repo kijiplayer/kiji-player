@@ -51,8 +51,10 @@ void main() {
       expect(syncMatches(_synced(LyricsSource.lrclib), const Duration(seconds: 98)), isTrue);
     });
 
-    test('no encaja: corrida (empieza pasada la mitad) o desordenada', () {
-      expect(syncMatches(_synced(LyricsSource.lrclib, from: 100, lines: 2), const Duration(seconds: 180)), isFalse);
+    test('no encaja: corrida (empieza pasado el 60 %) o desordenada; una intro larga sí encaja', () {
+      expect(syncMatches(_synced(LyricsSource.lrclib, from: 120, lines: 2), const Duration(seconds: 180)), isFalse);
+      expect(syncMatches(_synced(LyricsSource.lrclib, from: 90, lines: 2), const Duration(seconds: 180)), isTrue,
+          reason: 'empieza a la mitad: puede ser una intro larga');
       const messy = Lyrics(synced: [
         LyricLine(Duration(seconds: 20), 'b'),
         LyricLine(Duration(seconds: 10), 'a'),

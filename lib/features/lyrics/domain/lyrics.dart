@@ -376,7 +376,8 @@ Lyrics? lyricsFromLrcFile(String text, {LyricsSource fallback = LyricsSource.imp
 /// ¿La letra sincronizada corresponde a esta canción de [duration]? Se descartan las que no
 /// encajan con el audio (otra versión, una en vivo, una corrida):
 /// - la última línea empieza después del final (con un margen de 3 s);
-/// - la primera línea con texto empieza pasada la mitad de la canción;
+/// - está corrida: la primera línea con texto empieza pasado el 60 % de la canción (y después de
+///   los 30 s: una intro larga es normal);
 /// - las líneas no están en orden, o una palabra cae fuera de la canción.
 /// Sin duración conocida (0) no se puede comprobar: se acepta. Las de texto simple no se miran.
 bool syncMatches(Lyrics lyrics, Duration duration) {
@@ -386,7 +387,7 @@ bool syncMatches(Lyrics lyrics, Duration duration) {
   final withText = lines.where((l) => l.text.trim().isNotEmpty).toList();
   if (withText.isEmpty) return false;
   if (withText.last.time > end) return false;
-  if (withText.first.time > duration * 0.5) return false;
+  if (withText.first.time > duration * 0.6 && withText.first.time > const Duration(seconds: 30)) return false;
   for (var i = 1; i < lines.length; i++) {
     if (lines[i].time < lines[i - 1].time) return false;
   }
