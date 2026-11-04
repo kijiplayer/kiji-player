@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -10,8 +12,23 @@ import 'package:kiji_player/features/settings/domain/app_settings.dart';
 import 'package:kiji_player/features/settings/domain/setting_search.dart';
 import 'package:kiji_player/features/settings/presentation/credits_screen.dart';
 import 'package:kiji_player/features/settings/presentation/settings_screen.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/providers/appearance_provider.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
+
+/// Assets de mentira para la pantalla de créditos.
+class _TextBundle extends CachingAssetBundle {
+  _TextBundle(this.files);
+
+  final Map<String, String> files;
+
+  @override
+  Future<ByteData> load(String key) async {
+    final text = files[key];
+    if (text == null) throw FlutterError('no existe $key');
+    return ByteData.sublistView(Uint8List.fromList(utf8.encode(text)));
+  }
+}
 
 class _EmptyPlayback extends PlaybackNotifier {
   @override
@@ -150,6 +167,32 @@ void main() {
       expect(rows.any((r) => r.cells.first.contains('Echo Music')), isTrue);
       expect(rows.any((r) => r.cells.first.contains('Space Grotesk')), isTrue);
       expect(blocks.any((b) => b.text.contains('](')), isFalse, reason: 'sin enlaces crudos');
+    });
+
+    test('Hay créditos en inglés con las mismas secciones y filas que en español', () {
+      final es = parseCredits(File('CREDITS.md').readAsStringSync());
+      final en = parseCredits(File('CREDITS.en.md').readAsStringSync());
+      expect(en.whereType<CreditsHeading>().first.text, 'Credits');
+      expect(en.whereType<CreditsHeading>().length, es.whereType<CreditsHeading>().length);
+      // Misma primera columna (proyecto, archivo, servicio o componente), fila por fila.
+      String firstCell(CreditsRow r) => r.cells.first;
+      final esRows = es.whereType<CreditsRow>().where((r) => !r.header).map(firstCell).toList();
+      final enRows = en.whereType<CreditsRow>().where((r) => !r.header).map(firstCell).toList();
+      expect(enRows.length, esRows.length, reason: 'al agregar una fila a CREDITS.md, va también en CREDITS.en.md');
+      expect(creditsAssetFor('es'), 'CREDITS.md');
+      expect(creditsAssetFor('en'), 'CREDITS.en.md');
+    });
+
+    testWidgets('La pantalla de créditos sale en el idioma de la app', (tester) async {
+      final bundle = _TextBundle({'CREDITS.md': '# Créditos\n\nHola', 'CREDITS.en.md': '# Credits\n\nHello'});
+      addTearDown(() => setKijiLocale(const Locale('es')));
+      for (final (language, title, body) in [('en', 'Credits', 'Hello'), ('es', 'Créditos', 'Hola')]) {
+        setKijiLocale(Locale(language)); // como al elegirlo en Configuración → Idioma
+        await tester.pumpWidget(MaterialApp(key: ValueKey(language), home: CreditsScreen(bundle: bundle)));
+        await tester.pumpAndSettle();
+        expect(find.text(title), findsWidgets, reason: language); // título de la barra y del texto
+        expect(find.text(body), findsOneWidget, reason: language);
+      }
     });
   });
 

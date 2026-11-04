@@ -65,7 +65,11 @@ List<CreditsBlock> parseCredits(String markdown) {
   return blocks;
 }
 
-/// "Acerca de → Créditos": muestra `CREDITS.md` dentro de la app.
+/// El archivo de créditos para el idioma de la app: `CREDITS.md` en español y `CREDITS.en.md`
+/// (su traducción) en cualquier otro idioma.
+String creditsAssetFor(String language) => language == 'es' ? 'CREDITS.md' : 'CREDITS.en.md';
+
+/// "Acerca de → Créditos": muestra los créditos dentro de la app, en el idioma elegido.
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key, this.bundle});
 
@@ -80,7 +84,7 @@ class CreditsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(tx.creditos)),
       body: FutureBuilder<String>(
-        future: (bundle ?? rootBundle).loadString('CREDITS.md'),
+        future: (bundle ?? rootBundle).loadString(creditsAssetFor(kijiLanguage)),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text(tx.noSePudieronLeerLosCreditos));

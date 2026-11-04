@@ -90,7 +90,8 @@ personas que los construyen y mantienen.
 ## Cómo mantener este archivo
 
 Cada vez que se porte o adapte código de otro proyecto:
-1. Agregá o actualizá la fila correspondiente en este archivo.
+1. Agregá o actualizá la fila correspondiente en este archivo y en su versión en inglés,
+   `CREDITS.en.md` (la que muestra la app en inglés).
 2. Poné un encabezado en el archivo de Kiji que indique el proyecto, la licencia y el archivo original.
 
 ## Aviso
