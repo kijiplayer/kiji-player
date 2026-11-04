@@ -28,6 +28,9 @@ import 'package:kiji_player/features/equalizer/presentation/sound_screen.dart';
 import 'package:kiji_player/features/history/listening_history.dart';
 import 'package:kiji_player/features/import/presentation/import_screen.dart';
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
+import 'package:kiji_player/features/lyrics/data/screen_mode_impl.dart';
+import 'package:kiji_player/features/lyrics/domain/screen_mode.dart';
+import 'package:kiji_player/features/lyrics/presentation/lyrics_fullscreen.dart';
 import 'package:kiji_player/features/lyrics/presentation/lyrics_screen.dart';
 import 'package:kiji_player/features/moments/presentation/moments_screen.dart';
 import 'package:kiji_player/features/playback_memory/domain/playback_snapshot.dart';
@@ -261,6 +264,11 @@ Future<void> _settle(WidgetTester tester, [int frames = 12]) async {
   }
 }
 
+class _NoScreenMode implements ScreenMode {
+  @override
+  Future<void> setFullScreen(bool on) async {}
+}
+
 Future<void> _shot(WidgetTester tester, String name) async {
   final view = tester.binding.renderViews.first;
   final layer = view.debugLayer! as OffsetLayer;
@@ -407,6 +415,9 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
   await tester.runAsync(
     () => container.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: 'full')),
   );
+  // La letra a pantalla completa (solo la letra, con el fondo que sigue la música).
+  container.read(lyricsFullscreenProvider.notifier).state = true;
+  await _visit(tester, '$tag-letra-pantalla-completa', () => LyricsScreen.open(_ctx));
   await _visit(tester, '$tag-momentos', () => MomentsScreen.open(_ctx));
   await _visit(tester, '$tag-temporizador', () => showSleepTimerSheet(_ctx));
   await tester.runAsync(player.nextTrack);
@@ -535,7 +546,8 @@ void main() {
     };
     ErrorReporter.instance.reset();
 
-    final container = ProviderContainer();
+    // La pantalla completa de la letra no cambia la ventana de verdad (no tapa el escritorio).
+    final container = ProviderContainer(overrides: [screenModeProvider.overrideWithValue(_NoScreenMode())]);
     addTearDown(container.dispose);
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const KijiApp()));
     await _settle(tester, 30);
