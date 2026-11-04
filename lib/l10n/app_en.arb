@@ -1183,5 +1183,6 @@
   "sesionVencidaVuelveAConectar": "YouTube no longer accepts this session. Connect the account again.",
   "resultadoPrincipal": "Top result",
   "verTodo": "See all",
-  "playlist": "Playlist"
+  "playlist": "Playlist",
+  "youtubeNoDisponibleIncrustado": "YouTube answers «This video is unavailable» to every video with this form, even ordinary ones."
 }

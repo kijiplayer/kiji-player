@@ -2608,5 +2608,7 @@
   "verTodo": "Ver todo",
   "@verTodo": {"description": "Búsqueda, pestaña Todo: abre la pestaña de esa sección."},
   "playlist": "Playlist",
-  "@playlist": {"description": "Tipo de resultado de búsqueda: una playlist de YouTube Music."}
+  "@playlist": {"description": "Tipo de resultado de búsqueda: una playlist de YouTube Music."},
+  "youtubeNoDisponibleIncrustado": "YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.",
+  "@youtubeNoDisponibleIncrustado": {"description": "Salud del Extractor: por qué se retiró WEB_EMBEDDED_PLAYER."}
 }

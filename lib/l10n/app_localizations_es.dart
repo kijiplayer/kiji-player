@@ -4388,4 +4388,8 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get playlist => 'Playlist';
+
+  @override
+  String get youtubeNoDisponibleIncrustado =>
+      'YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.';
 }

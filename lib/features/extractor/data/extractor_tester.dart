@@ -24,6 +24,13 @@ const controlVideos = <(String id, String name)>[
 const engineAForms = ['VISIONOS_0_1', 'VISIONOS', 'WEB_REMIX', 'WEB_EMBEDDED_PLAYER', 'TVHTML5_SIMPLY'];
 
 /// Resultado de probar un camino con una canción de control.
+/// Las listas HLS solo se reproducen en Android, iOS y macOS (en la PC todavía no).
+bool get hlsPlaysHere => !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
+
+/// Formas del motor B que se prueban y se muestran en este dispositivo: ni las retiradas ni,
+/// en la PC, las HLS (nunca se usan ahí: contarlas como "no funciona" confundía).
+bool formUsableHere(YtPlayerClient c, {bool? hls}) => !c.isRetired && (!c.useHls || (hls ?? hlsPlaysHere));
+
 class PathTestResult {
   const PathTestResult(this.path, {required this.ok, this.reason, this.elapsed = Duration.zero, this.control});
 
@@ -128,9 +135,8 @@ class ExtractorTester {
       }
     }
     // En la PC el reproductor no abre listas HLS: esas formas no aplican (no son una falla).
-    final hlsPlays = !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
     for (final c in ytPlayerClients) {
-      if (c.isRetired || (c.useHls && !hlsPlays)) continue;
+      if (!formUsableHere(c)) continue;
       final (videoId, name) = controlFor(i++);
       final attempt = await client.tryClient(videoId, c);
       // tryClient ya pide el final del archivo (y el último segmento en HLS).

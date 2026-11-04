@@ -7102,6 +7102,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Playlist'**
   String get playlist;
+
+  /// Salud del Extractor: por qué se retiró WEB_EMBEDDED_PLAYER.
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.'**
+  String get youtubeNoDisponibleIncrustado;
 }
 
 class _AppLocalizationsDelegate
