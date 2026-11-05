@@ -288,6 +288,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
+        title: tx.mostrarNombresDeLosBotones,
+        subtitle: tx.mostrarNombresDeLosBotonesNota,
+        keywords: const ['nombres', 'etiquetas', 'labels', 'iconos', 'botones', 'buttons'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('setting-player-button-labels'),
+          title: Text(tx.mostrarNombresDeLosBotones),
+          subtitle: Text(tx.mostrarNombresDeLosBotonesNota),
+          value: ref.watch(settingsProvider.select((s) => s.playerButtonLabels)),
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(playerButtonLabels: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
         title: tx.sonido,
         subtitle: tx.sonidoNota,
         // l10n-ignore

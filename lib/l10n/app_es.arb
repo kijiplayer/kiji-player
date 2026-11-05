@@ -2745,5 +2745,9 @@
   "esoNoEsUnTemaDeKiji": "Ese archivo no es un tema de Kiji.",
   "@esoNoEsUnTemaDeKiji": {"description": "Temas: el archivo no es válido (sin detalle técnico)."},
   "temasNota": "Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.",
-  "@temasNota": {"description": "Temas: qué lleva un .kiji."}
+  "@temasNota": {"description": "Temas: qué lleva un .kiji."},
+  "mostrarNombresDeLosBotones": "Mostrar nombres de los botones",
+  "@mostrarNombresDeLosBotones": {"description": "Configuración → Reproductor: nombres bajo los íconos de la fila de abajo."},
+  "mostrarNombresDeLosBotonesNota": "Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).",
+  "@mostrarNombresDeLosBotonesNota": {"description": "Configuración: explicación de mostrar nombres de los botones."}
 }

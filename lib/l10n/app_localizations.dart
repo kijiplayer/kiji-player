@@ -7492,6 +7492,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.'**
   String get temasNota;
+
+  /// Configuración → Reproductor: nombres bajo los íconos de la fila de abajo.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar nombres de los botones'**
+  String get mostrarNombresDeLosBotones;
+
+  /// Configuración: explicación de mostrar nombres de los botones.
+  ///
+  /// In es, this message translates to:
+  /// **'Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).'**
+  String get mostrarNombresDeLosBotonesNota;
 }
 
 class _AppLocalizationsDelegate

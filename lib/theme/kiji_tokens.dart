@@ -381,6 +381,11 @@ abstract final class KijiSizes {
   /// Ancho desde el que se usa el diseño de PC (barra lateral y paneles).
   static const desktopBreakpoint = 1000.0;
   static const playerCover = 320.0;
+
+  /// Ancho máximo de la columna del reproductor (onda, título y controles) en una ventana ancha,
+  /// y el de la pantalla completa (la portada es más grande).
+  static const playerMaxWidth = 560.0;
+  static const playerFullWidth = 760.0;
   static const playButton = 84.0;
   static const glassBlur = 18.0;
   static const progressLine = 2.0;

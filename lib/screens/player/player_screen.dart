@@ -96,72 +96,85 @@ class PlayerScreen extends ConsumerWidget {
       child: ChromeAutoHide(
         enabled: full,
         child: Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Un fondo propio (el de esta canción o el general) reemplaza al del estilo.
-          if (ref.watch(hasCustomBackgroundProvider))
-            const CustomBackground()
-          else
-            PlayerHalo(track: track, playing: playback.isPlaying),
-          // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
-          // del sistema (salir de Kiji desde abajo no debe abrir la letra).
-          LyricsSwipeDetector(
-            onSwipeUp: () => LyricsScreen.open(context),
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Pantalla completa: la portada grande. Compacto: chica, al lado del título.
-                  final coverSize = full
-                      ? min(640.0, min(constraints.maxWidth - 48, constraints.maxHeight * 0.58))
-                      : compact
-                      ? min(132.0, constraints.maxHeight * 0.24)
-                      : min(KijiSizes.playerCover, min(constraints.maxWidth - 48, constraints.maxHeight * 0.38));
-                  final cover = RepaintBoundary(
-                    child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
-                  );
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          HideWhenIdle(child: _TopBar(track: track, downloaded: downloaded)),
-                          SizedBox(height: compact ? 8 : 16),
-                          // Capas propias: la sombra grande de la carátula no se vuelve a
-                          // rasterizar con cada avance de la posición.
-                          if (compact)
-                            Row(
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Un fondo propio (el de esta canción o el general) reemplaza al del estilo.
+              if (ref.watch(hasCustomBackgroundProvider))
+                const CustomBackground()
+              else
+                PlayerHalo(track: track, playing: playback.isPlaying),
+              // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
+              // del sistema (salir de Kiji desde abajo no debe abrir la letra).
+              LyricsSwipeDetector(
+                onSwipeUp: () => LyricsScreen.open(context),
+                child: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Pantalla completa: la portada grande. Compacto: chica, al lado del título.
+                      // Ventana ancha: todo en una columna centrada (la onda, el título y los controles no
+                      // quedan de punta a punta).
+                      final width = min(
+                        constraints.maxWidth,
+                        full ? KijiSizes.playerFullWidth : KijiSizes.playerMaxWidth,
+                      );
+                      final coverSize = full
+                          ? min(640.0, min(width - 48, constraints.maxHeight * 0.58))
+                          : compact
+                          ? min(132.0, constraints.maxHeight * 0.24)
+                          : min(KijiSizes.playerCover, min(width - 48, constraints.maxHeight * 0.38));
+                      final cover = RepaintBoundary(
+                        child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
+                      );
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Center(
+                          child: ConstrainedBox(
+                            key: const Key('player-column'),
+                            constraints: BoxConstraints(minHeight: constraints.maxHeight, maxWidth: width),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                cover,
-                                const SizedBox(width: 16),
-                                Expanded(child: _TitleRow(track: track, downloaded: downloaded)),
+                                HideWhenIdle(
+                                  child: _TopBar(track: track, downloaded: downloaded),
+                                ),
+                                SizedBox(height: compact ? 8 : 16),
+                                // Capas propias: la sombra grande de la carátula no se vuelve a
+                                // rasterizar con cada avance de la posición.
+                                if (compact)
+                                  Row(
+                                    children: [
+                                      cover,
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _TitleRow(track: track, downloaded: downloaded),
+                                      ),
+                                    ],
+                                  )
+                                else ...[
+                                  cover,
+                                  SizedBox(height: KijiLook.museum ? 36 : 24),
+                                  _TitleRow(track: track, downloaded: downloaded),
+                                ],
+                                SizedBox(height: compact ? 12 : (KijiLook.museum ? 28 : 20)),
+                                const RepaintBoundary(child: _Progress()),
+                                SizedBox(height: compact ? 4 : (KijiLook.museum ? 20 : 12)),
+                                PlaybackControlsRow(playSize: compact ? 60 : KijiSizes.playButton),
+                                SizedBox(height: compact ? 8 : 20),
+                                const HideWhenIdle(child: _BottomActions()),
+                                SizedBox(height: compact ? 8 : 16),
                               ],
-                            )
-                          else ...[
-                            cover,
-                            SizedBox(height: KijiLook.museum ? 36 : 24),
-                            _TitleRow(track: track, downloaded: downloaded),
-                          ],
-                          SizedBox(height: compact ? 12 : (KijiLook.museum ? 28 : 20)),
-                          const RepaintBoundary(child: _Progress()),
-                          SizedBox(height: compact ? 4 : (KijiLook.museum ? 20 : 12)),
-                          PlaybackControlsRow(playSize: compact ? 60 : KijiSizes.playButton),
-                          SizedBox(height: compact ? 8 : 20),
-                          const HideWhenIdle(child: _BottomActions()),
-                          SizedBox(height: compact ? 8 : 16),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    ),
+        ),
       ),
     );
     return screen;
@@ -368,7 +381,12 @@ class _TitleRow extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   // Grafito: el artista como una etiqueta (versalitas espaciadas).
                   style: KijiLook.museum
-                      ? TextStyle(color: KijiColors.muted, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 2.2)
+                      ? TextStyle(
+                          color: KijiColors.muted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 2.2,
+                        )
                       : TextStyle(color: KijiColors.muted, fontSize: 16),
                 ),
               ),
@@ -521,9 +539,11 @@ class PlaybackControlsRow extends ConsumerWidget {
   }
 }
 
-/// Barra de herramientas de abajo: Letra, Cola, Sonido, Temporizador y Momento en una sola fila de
-/// íconos (el nombre, en el tooltip y para los lectores de pantalla). El temporizador activo muestra
-/// cuánto falta. Nocturne: una cápsula de vidrio; Grafito: sin cápsula; Papel: una línea fina.
+/// Barra de herramientas de abajo: Letra, Cola, Sonido, Temporizador y Momento en una sola fila.
+/// De fábrica cada botón lleva su nombre debajo; con "Mostrar nombres de los botones" apagado quedan
+/// solo los íconos (el nombre, en el tooltip, al mantener presionado y para los lectores de pantalla).
+/// El temporizador activo muestra cuánto falta. Nocturne: una cápsula de vidrio; Grafito: sin
+/// cápsula; Papel: una línea fina.
 class _BottomActions extends ConsumerWidget {
   const _BottomActions();
 
@@ -531,34 +551,60 @@ class _BottomActions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timer = ref.watch(sleepTimerProvider);
     final soundOn = ref.watch(equalizerProvider.select((e) => e.settings.enabled));
-    Widget tool(IconData icon, String name, VoidCallback onTap, {bool active = false, String? label}) => Semantics(
-      button: true,
-      label: name,
-      excludeSemantics: true,
-      child: Tooltip(
-        message: name,
-        child: InkResponse(
-          onTap: onTap,
-          radius: 26,
-          child: SizedBox(
-            height: 48,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 22, color: active ? KijiColors.cyan : KijiColors.muted),
-                  if (label != null) ...[
-                    const SizedBox(width: 6),
-                    Text(label, style: KijiText.mono(size: 12, color: KijiColors.cyan)),
-                  ],
-                ],
+    final labels = ref.watch(settingsProvider.select((s) => s.playerButtonLabels));
+    // [short] es el nombre que se ve debajo; [name], el completo (tooltip y lectores de pantalla).
+    Widget tool(IconData icon, String name, VoidCallback onTap, {bool active = false, String? short, String? value}) {
+      final color = active ? KijiColors.cyan : KijiColors.muted;
+      final Widget content;
+      if (labels) {
+        content = SizedBox(
+          width: 68,
+          height: 56,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 22, color: color),
+              const SizedBox(height: 4),
+              Text(
+                value ?? short ?? name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: value != null
+                    ? KijiText.mono(size: 11, color: KijiColors.cyan)
+                    : TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w500),
               ),
+            ],
+          ),
+        );
+      } else {
+        content = SizedBox(
+          height: 48,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 22, color: color),
+                if (value != null) ...[
+                  const SizedBox(width: 6),
+                  Text(value, style: KijiText.mono(size: 12, color: KijiColors.cyan)),
+                ],
+              ],
             ),
           ),
-        ),
-      ),
-    );
+        );
+      }
+      final button = InkResponse(onTap: onTap, radius: labels ? 34 : 26, child: content);
+      return Semantics(
+        button: true,
+        label: name,
+        excludeSemantics: true,
+        // Con los nombres a la vista el tooltip sobra; sin ellos, aparece al pasar el mouse o al
+        // mantener presionado.
+        child: labels ? button : Tooltip(message: name, child: button),
+      );
+    }
+
     final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -570,11 +616,17 @@ class _BottomActions extends ConsumerWidget {
           timer == null ? tx.temporizador : tx.temporizadorActivo(timer.mode.label),
           () => showSleepTimerSheet(context),
           active: timer != null,
-          label: timer == null ? null : sleepTimerButtonLabel(timer),
+          short: tx.temporizador,
+          value: timer == null ? null : sleepTimerButtonLabel(timer),
         ),
         // Momentos: guardar este segundo. La lista se abre desde el aviso ("Ver") o desde
         // Biblioteca → Playlists → Momentos.
-        tool(Icons.bookmark_add_outlined, tx.guardarEsteMomento, () => showNewMomentSheet(context, ref)),
+        tool(
+          Icons.bookmark_add_outlined,
+          tx.guardarEsteMomento,
+          () => showNewMomentSheet(context, ref),
+          short: tx.momento,
+        ),
       ],
     );
     final decoration = switch (KijiLook.style) {
@@ -617,9 +669,11 @@ class ProgressPlayButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(
-      playbackProvider.select((p) => p.duration.inMilliseconds <= 0
-          ? 0.0
-          : (p.position.inMilliseconds / p.duration.inMilliseconds).clamp(0.0, 1.0)),
+      playbackProvider.select(
+        (p) => p.duration.inMilliseconds <= 0
+            ? 0.0
+            : (p.position.inMilliseconds / p.duration.inMilliseconds).clamp(0.0, 1.0),
+      ),
     );
     return SizedBox.square(
       dimension: size * 1.35,
@@ -665,10 +719,16 @@ class _ProgressRingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = (Offset.zero & size).deflate(width / 2);
-    canvas.drawArc(rect, 0, 2 * pi, false, Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = width
-      ..color = rest);
+    canvas.drawArc(
+      rect,
+      0,
+      2 * pi,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width
+        ..color = rest,
+    );
     if (progress <= 0) return;
     canvas.drawArc(
       rect,
@@ -679,11 +739,7 @@ class _ProgressRingPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = width
         ..strokeCap = StrokeCap.round
-        ..shader = SweepGradient(
-          startAngle: -pi / 2,
-          endAngle: 3 * pi / 2,
-          colors: colors,
-        ).createShader(rect),
+        ..shader = SweepGradient(startAngle: -pi / 2, endAngle: 3 * pi / 2, colors: colors).createShader(rect),
     );
   }
 

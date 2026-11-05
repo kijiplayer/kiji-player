@@ -44,7 +44,14 @@ class _Playback extends PlaybackNotifier {
 
 Future<Directory> _noDisk() async => throw const FileSystemException('sin disco en el test');
 
-Future<ProviderContainer> _pump(WidgetTester tester, Size size, {String mode = 'normal', bool full = false, ScreenMode? screen}) async {
+Future<ProviderContainer> _pump(
+  WidgetTester tester,
+  Size size, {
+  String mode = 'normal',
+  bool full = false,
+  bool labels = true,
+  ScreenMode? screen,
+}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -54,7 +61,7 @@ Future<ProviderContainer> _pump(WidgetTester tester, Size size, {String mode = '
     screenModeProvider.overrideWithValue(screen ?? _Mode()),
   ]);
   addTearDown(container.dispose);
-  await container.read(settingsProvider.notifier).update((s) => s.copyWith(playerMode: mode));
+  await container.read(settingsProvider.notifier).update((s) => s.copyWith(playerMode: mode, playerButtonLabels: labels));
   container.read(playerFullscreenProvider.notifier).state = full;
   await tester.pumpWidget(UncontrolledProviderScope(
     container: container,
@@ -122,5 +129,25 @@ void main() {
     final title = tester.getRect(find.text('Un título inventado bastante largo'));
     expect(cover.height, lessThanOrEqualTo(132));
     expect(title.left, greaterThan(cover.right), reason: 'el título, a la derecha de la portada');
+  });
+
+  testWidgets('Botones de abajo: con su nombre de fábrica; apagado, solo íconos con tooltip', (tester) async {
+    await _pump(tester, const Size(420, 860));
+    for (final name in ['Letra', 'Cola', 'Sonido', 'Temporizador', 'Momento']) {
+      expect(find.text(name), findsOneWidget, reason: name);
+    }
+    expect(find.bySemanticsLabel('Guardar este momento'), findsOneWidget, reason: 'el nombre completo, para lectores');
+    await tester.pumpWidget(const SizedBox());
+    await _pump(tester, const Size(420, 860), labels: false);
+    expect(find.text('Temporizador'), findsNothing);
+    expect(find.byTooltip('Cola'), findsOneWidget);
+    expect(find.bySemanticsLabel('Cola'), findsOneWidget);
+  });
+
+  testWidgets('Ventana ancha: el reproductor va en una columna centrada', (tester) async {
+    await _pump(tester, const Size(1920, 1000));
+    final column = tester.getRect(find.byKey(const Key('player-column')));
+    expect(column.width, lessThanOrEqualTo(KijiSizes.playerMaxWidth));
+    expect(column.center.dx, closeTo(960, 1));
   });
 }

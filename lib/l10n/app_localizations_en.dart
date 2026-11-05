@@ -4602,4 +4602,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get temasNota =>
       'A theme keeps the style, color, font, blur, opacity and background image (not videos). It is only data: nothing runs.';
+
+  @override
+  String get mostrarNombresDeLosBotones => 'Show button names';
+
+  @override
+  String get mostrarNombresDeLosBotonesNota =>
+      'Lyrics, Queue, Sound, Timer and Moment, with their name below. Off leaves only the icons (the name shows when you press and hold or hover).';
 }

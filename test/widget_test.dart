@@ -204,7 +204,7 @@ void main() {
     expect(find.byIcon(Icons.skip_previous_rounded), findsOneWidget);
     expect(find.byIcon(Icons.skip_next_rounded), findsOneWidget);
     expect(find.byIcon(Icons.repeat_rounded), findsOneWidget);
-    expect(find.byTooltip('Cola'), findsOneWidget, reason: 'la barra de herramientas, con el nombre en el tooltip');
+    expect(find.text('Cola'), findsOneWidget, reason: 'la barra de herramientas, con el nombre debajo de cada ícono');
 
     await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
     await _settle(tester);

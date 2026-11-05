@@ -20,6 +20,7 @@ class AppSettings {
     this.styleChosen = false,
     this.personalized = false,
     this.playerMode = 'normal',
+    this.playerButtonLabels = true,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -148,6 +149,9 @@ class AppSettings {
   final String playerMode;
   static const playerModes = ['normal', 'compact'];
 
+  /// La fila de abajo del reproductor muestra el nombre de cada botón (si no, solo los íconos).
+  final bool playerButtonLabels;
+
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
 
@@ -273,6 +277,7 @@ class AppSettings {
     bool? styleChosen,
     bool? personalized,
     String? playerMode,
+    bool? playerButtonLabels,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -326,6 +331,7 @@ class AppSettings {
         styleChosen: styleChosen ?? this.styleChosen,
         personalized: personalized ?? this.personalized,
         playerMode: playerMode ?? this.playerMode,
+        playerButtonLabels: playerButtonLabels ?? this.playerButtonLabels,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -379,6 +385,7 @@ class AppSettings {
         'styleChosen': styleChosen,
         'personalized': personalized,
         'playerMode': playerMode,
+        'playerButtonLabels': playerButtonLabels,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -438,6 +445,7 @@ class AppSettings {
       styleChosen: read('styleChosen', d.styleChosen),
       personalized: read('personalized', d.personalized),
       playerMode: playerModes.contains(json['playerMode']) ? json['playerMode'] as String : d.playerMode,
+      playerButtonLabels: read('playerButtonLabels', d.playerButtonLabels),
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

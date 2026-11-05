@@ -4612,4 +4612,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get temasNota =>
       'Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.';
+
+  @override
+  String get mostrarNombresDeLosBotones => 'Mostrar nombres de los botones';
+
+  @override
+  String get mostrarNombresDeLosBotonesNota =>
+      'Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).';
 }
