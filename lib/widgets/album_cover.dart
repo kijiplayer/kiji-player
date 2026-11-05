@@ -173,10 +173,14 @@ List<ImageProvider> trackImageSources(WidgetRef ref, Track track, {int pixels = 
       pixels <= 544 || network == null || fullThumbnailUrl(url!) == url ? [FileImage(file)] : [network, FileImage(file)];
 
   final cache = ref.watch(artworkFolderProvider).valueOrNull;
-  // Carátula incluida en el archivo, guardada al importar.
-  if (track.source == TrackSource.local && cache != null) {
-    final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
-    if (fileExistsCache.exists(embedded.path)) return [FileImage(embedded)];
+  if (track.source == TrackSource.local) {
+    // Carátula incluida en el archivo (guardada al escanear o al importar), en su tamaño original.
+    if (cache != null) {
+      final embedded = File(p.join(cache.path, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))));
+      if (fileExistsCache.exists(embedded.path)) return [FileImage(embedded)];
+    }
+    // Si no trae, la imagen de su carpeta (cover.jpg, folder.jpg…); si no, la generada de Kiji.
+    if (url != null && !url.startsWith('http') && fileExistsCache.exists(url)) return [FileImage(File(url))];
   }
   final videoId = track.youtubeVideoId;
   if (videoId != null) {

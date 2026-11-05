@@ -283,7 +283,7 @@ class _DemoSource implements LocalLibrarySource {
   @override
   Future<void> removeFolder(String folder) async {}
   @override
-  Future<List<Track>> loadTracks() async => tracks;
+  Future<List<Track>> loadTracks({bool force = false}) async => tracks;
 }
 
 class _NoScreenMode implements ScreenMode {

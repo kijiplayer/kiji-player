@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../models/track.dart';
+import '../../customize/data/artwork_cache.dart' show ArtworkCache, artworkCacheName;
 
 /// Imagen para la notificación / pantalla de bloqueo.
 ///
@@ -21,6 +22,18 @@ Future<Uri?> coverArtFor(Track track) async {
   // Canciones de YouTube sin miniatura guardada (descargas, importadas, radio): la del video.
   final videoId = track.youtubeVideoId;
   if (videoId != null) return Uri.parse(youtubeThumbnailUrl(videoId));
+  // Música del equipo: la portada incluida en el archivo (guardada al escanear) o la de su carpeta.
+  if (track.source == TrackSource.local) {
+    try {
+      final embedded = File(
+        p.join((await getApplicationSupportDirectory()).path, 'artwork', artworkCacheName(ArtworkCache.fileKey(track.audioUrl))),
+      );
+      if (await embedded.exists()) return Uri.file(embedded.path);
+      if (thumbnail != null && thumbnail.isNotEmpty && await File(thumbnail).exists()) return Uri.file(thumbnail);
+    } catch (error) {
+      debugPrint('=== CONTROLES: sin la portada del archivo: ${error.runtimeType} ===');
+    }
+  }
   try {
     return await _colorCover(track.coverColor);
   } catch (error) {

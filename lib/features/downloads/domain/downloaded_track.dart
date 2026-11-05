@@ -49,6 +49,7 @@ class DownloadedTrack {
         album: album,
         durationMs: durationMs,
         sizeBytes: sizeBytes,
+        addedAtMs: downloadedAt.millisecondsSinceEpoch,
       );
 
   DownloadedTrack copyWith({String? artist, String? thumbnailFileName, String? lyricsFileName}) => DownloadedTrack(

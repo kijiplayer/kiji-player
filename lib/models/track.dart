@@ -16,6 +16,12 @@ class Track {
     this.album,
     this.durationMs = 0,
     this.sizeBytes,
+    this.albumArtist,
+    this.year,
+    this.trackNumber,
+    this.discNumber,
+    this.genre,
+    this.addedAtMs,
   });
 
   /// Identificador único: `local-<mediaStoreId>` o `yt-<videoId>`.
@@ -36,6 +42,16 @@ class Track {
   /// Tamaño del archivo (locales y descargadas), si se conoce.
   final int? sizeBytes;
 
+  /// Datos de los archivos de música (locales): artista del álbum, año, número de pista y de
+  /// disco, género y cuándo se agregó (ms desde 1970: MediaStore en Android, la fecha del archivo
+  /// en la PC).
+  final String? albumArtist;
+  final int? year;
+  final int? trackNumber;
+  final int? discNumber;
+  final String? genre;
+  final int? addedAtMs;
+
   /// `videoId` de YouTube (sale de `id = 'yt-<videoId>'`), o null si la
   /// pista no es de YouTube.
   String? get youtubeVideoId =>
@@ -53,6 +69,12 @@ class Track {
         if (album != null) 'album': album,
         'durationMs': durationMs,
         if (sizeBytes != null) 'sizeBytes': sizeBytes,
+        if (albumArtist != null) 'albumArtist': albumArtist,
+        if (year != null) 'year': year,
+        if (trackNumber != null) 'trackNumber': trackNumber,
+        if (discNumber != null) 'discNumber': discNumber,
+        if (genre != null) 'genre': genre,
+        if (addedAtMs != null) 'addedAtMs': addedAtMs,
       };
 
   factory Track.fromJson(Map<String, dynamic> json) {
@@ -67,6 +89,12 @@ class Track {
       album: json['album'] as String?,
       durationMs: json['durationMs'] as int? ?? 0,
       sizeBytes: json['sizeBytes'] as int?,
+      albumArtist: json['albumArtist'] as String?,
+      year: json['year'] as int?,
+      trackNumber: json['trackNumber'] as int?,
+      discNumber: json['discNumber'] as int?,
+      genre: json['genre'] as String?,
+      addedAtMs: json['addedAtMs'] as int?,
     );
   }
 
@@ -81,6 +109,12 @@ class Track {
     String? album,
     int? durationMs,
     int? sizeBytes,
+    String? albumArtist,
+    int? year,
+    int? trackNumber,
+    int? discNumber,
+    String? genre,
+    int? addedAtMs,
   }) {
     return Track(
       id: id ?? this.id,
@@ -93,6 +127,12 @@ class Track {
       album: album ?? this.album,
       durationMs: durationMs ?? this.durationMs,
       sizeBytes: sizeBytes ?? this.sizeBytes,
+      albumArtist: albumArtist ?? this.albumArtist,
+      year: year ?? this.year,
+      trackNumber: trackNumber ?? this.trackNumber,
+      discNumber: discNumber ?? this.discNumber,
+      genre: genre ?? this.genre,
+      addedAtMs: addedAtMs ?? this.addedAtMs,
     );
   }
 }

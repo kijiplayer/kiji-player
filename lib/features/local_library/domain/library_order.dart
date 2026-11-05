@@ -1,17 +1,38 @@
 import '../../../models/track.dart';
 
 /// Biblioteca → Canciones: qué se muestra ([filter]: 'all', 'downloaded' o 'local') y en qué
-/// orden ([sort]: 'recent' deja el de siempre —las descargadas más nuevas primero, después las
-/// del equipo—; 'title', 'artist' o 'duration').
+/// orden ([sort]: 'recent' —lo último que se agregó primero: la fecha de la descarga, la de
+/// MediaStore en Android o la del archivo en la PC; sin fecha, al final—, 'title', 'artist' o
+/// 'duration').
 List<Track> arrangeLibrarySongs(List<Track> songs, {String sort = 'recent', String filter = 'all'}) {
   final shown = switch (filter) {
-    'downloaded' => [for (final t in songs) if (t.source == TrackSource.youtube) t],
-    'local' => [for (final t in songs) if (t.source == TrackSource.local) t],
+    'downloaded' => [
+      for (final t in songs)
+        if (t.source == TrackSource.youtube) t,
+    ],
+    'local' => [
+      for (final t in songs)
+        if (t.source == TrackSource.local) t,
+    ],
     _ => [...songs],
   };
   String key(String s) => _fold(s.trim().toLowerCase());
   int byTitle(Track a, Track b) => key(a.title).compareTo(key(b.title));
   switch (sort) {
+    case 'recent':
+      // Estable: entre las que no tienen fecha queda el orden de antes.
+      final indexed = [for (final (i, t) in shown.indexed) (i, t)];
+      indexed.sort((a, b) {
+        final da = a.$2.addedAtMs, db = b.$2.addedAtMs;
+        if (da == null || db == null) {
+          if (da != db) return da == null ? 1 : -1;
+          return a.$1.compareTo(b.$1);
+        }
+        return db != da ? db.compareTo(da) : a.$1.compareTo(b.$1);
+      });
+      shown
+        ..clear()
+        ..addAll([for (final e in indexed) e.$2]);
     case 'title':
       shown.sort(byTitle);
     case 'artist':
