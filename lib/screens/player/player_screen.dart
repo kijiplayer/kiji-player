@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,6 +34,7 @@ import 'museum.dart';
 import '../../widgets/nocturne/breathing_play_button.dart';
 import '../../widgets/nocturne/micro_motion.dart';
 import '../../widgets/nocturne/glass.dart';
+import '../../widgets/nocturne/waveform_progress.dart' show waveformBars;
 import '../../features/customize/presentation/track_text.dart';
 import '../../features/playlists/presentation/playlist_screens.dart';
 import '../../features/moments/presentation/moment_marks.dart';
@@ -304,15 +306,18 @@ class _TopBar extends StatelessWidget {
 }
 
 /// Carátula de 320 px, radio 28, borde degradado de 1 px y halo de su color.
-class _Cover extends StatelessWidget {
+class _Cover extends ConsumerWidget {
   const _Cover({required this.track, required this.size, required this.playing});
 
   final Track track;
   final double size;
   final bool playing;
 
+  /// En pausa la portada se aleja apenas (y vuelve al sonar): responde a la música sin moverse sola.
+  static const pausedScale = 0.95;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final radius = KijiLook.cover(KijiRadii.cover);
     final cover = CoverMotion(
       trackId: track.id,
@@ -337,7 +342,15 @@ class _Cover extends StatelessWidget {
     );
     // Grafito 0.8: la portada sola, con su borde de vidrio. Sin la luz que respira, el brillo, el
     // reflejo ni la inclinación de la 0.7: menos efectos a la vez.
-    return cover;
+    // Con "reducir animaciones", la portada queda quieta del tamaño de siempre.
+    if (reduceMotion(context, ref)) return cover;
+    return AnimatedScale(
+      key: const Key('player-cover-scale'),
+      scale: playing ? 1 : pausedScale,
+      duration: KijiMotion.normal,
+      curve: KijiLook.museum ? KijiMotion.softSpring : Curves.easeOutCubic,
+      child: cover,
+    );
   }
 }
 
@@ -652,8 +665,10 @@ class _BottomActions extends ConsumerWidget {
 }
 
 /// El play del reproductor, dentro de un anillo que se llena con la canción: el sello de Kiji en los
-/// tres estilos (Nocturne: degradado del acento; Grafito: blanco fino; Papel: su rojo). Es la acción
-/// principal y, de paso, dice cuánto falta.
+/// tres estilos. El anillo es **la misma onda de la barra de progreso, en círculo** (las mismas
+/// barras de la canción, como marcas radiales): lo que ya sonó se pinta con el acento (Nocturne: su
+/// degradado; Grafito: blanco; Papel: su rojo) y lo que falta, apagado. Es la acción principal y, de
+/// paso, dice cuánto falta.
 class ProgressPlayButton extends ConsumerWidget {
   const ProgressPlayButton({
     super.key,
@@ -666,15 +681,17 @@ class ProgressPlayButton extends ConsumerWidget {
   final VoidCallback onPressed;
   final double size;
 
+  /// Marcas del anillo.
+  static const ticks = 60;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(
-      playbackProvider.select(
-        (p) => p.duration.inMilliseconds <= 0
-            ? 0.0
-            : (p.position.inMilliseconds / p.duration.inMilliseconds).clamp(0.0, 1.0),
-      ),
+      playbackProvider.select((p) => p.duration.inMilliseconds <= 0
+          ? 0.0
+          : (p.position.inMilliseconds / p.duration.inMilliseconds).clamp(0.0, 1.0)),
     );
+    final seed = ref.watch(playbackProvider.select((p) => p.track?.id ?? ''));
     return SizedBox.square(
       dimension: size * 1.35,
       child: Stack(
@@ -682,8 +699,10 @@ class ProgressPlayButton extends ConsumerWidget {
         children: [
           RepaintBoundary(
             child: CustomPaint(
-              size: Size.square(size * 1.3),
-              painter: _ProgressRingPainter(
+              key: const Key('player-wave-ring'),
+              size: Size.square(size * 1.35),
+              painter: WaveRingPainter(
+                bars: waveformBars(seed, ticks),
                 progress: progress,
                 rest: KijiColors.waveRest,
                 colors: switch (KijiLook.style) {
@@ -691,7 +710,14 @@ class ProgressPlayButton extends ConsumerWidget {
                   KijiStyle.graphite => [KijiColors.text, KijiColors.text],
                   KijiStyle.paper => [KijiColors.like, KijiColors.like],
                 },
-                width: KijiLook.nocturne ? 3.5 : 2.5,
+                // Grafito: marcas más finas y cortas (más serio); Nocturne: las más marcadas.
+                width: switch (KijiLook.style) {
+                  KijiStyle.nocturne => 2.6,
+                  KijiStyle.graphite => 1.6,
+                  KijiStyle.paper => 2.0,
+                },
+                depth: KijiLook.museum ? 0.7 : 1,
+                playSize: size,
               ),
             ),
           ),
@@ -708,42 +734,69 @@ class ProgressPlayButton extends ConsumerWidget {
   }
 }
 
-class _ProgressRingPainter extends CustomPainter {
-  _ProgressRingPainter({required this.progress, required this.rest, required this.colors, required this.width});
+/// El anillo de onda alrededor del play: [bars] (0..1, las de la onda de la canción) como marcas
+/// radiales que empiezan arriba y van en el sentido del reloj.
+class WaveRingPainter extends CustomPainter {
+  WaveRingPainter({
+    required this.bars,
+    required this.progress,
+    required this.rest,
+    required this.colors,
+    required this.width,
+    required this.playSize,
+    this.depth = 1,
+  });
 
+  final List<double> bars;
   final double progress;
   final Color rest;
   final List<Color> colors;
   final double width;
 
+  /// Diámetro del play (las marcas empiezan un poco por fuera).
+  final double playSize;
+
+  /// Cuánto se alargan las marcas altas (1 = lo de siempre).
+  final double depth;
+
+  /// Marcas que ya sonaron (las de antes de [progress]).
+  static int playedCount(int total, double progress) => (total * progress.clamp(0.0, 1.0)).floor();
+
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = (Offset.zero & size).deflate(width / 2);
-    canvas.drawArc(
-      rect,
-      0,
-      2 * pi,
-      false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = width
-        ..color = rest,
-    );
-    if (progress <= 0) return;
-    canvas.drawArc(
-      rect,
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = width
-        ..strokeCap = StrokeCap.round
-        ..shader = SweepGradient(startAngle: -pi / 2, endAngle: 3 * pi / 2, colors: colors).createShader(rect),
-    );
+    final center = size.center(Offset.zero);
+    final inner = playSize * 0.58;
+    final room = size.width / 2 - inner - width / 2;
+    final played = playedCount(bars.length, progress);
+    final shader = SweepGradient(
+      endAngle: 2 * pi,
+      colors: colors,
+      // Empieza arriba, como las marcas.
+      transform: const GradientRotation(-pi / 2),
+    ).createShader(Offset.zero & size);
+    final on = Paint()
+      ..shader = shader
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+    final off = Paint()
+      ..color = rest
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < bars.length; i++) {
+      final angle = -pi / 2 + 2 * pi * i / bars.length;
+      final length = room * (0.3 + 0.7 * bars[i] * depth).clamp(0.2, 1.0);
+      final dir = Offset(cos(angle), sin(angle));
+      canvas.drawLine(center + dir * inner, center + dir * (inner + length), i < played ? on : off);
+    }
   }
 
   @override
-  bool shouldRepaint(_ProgressRingPainter old) =>
-      old.progress != progress || old.rest != rest || old.width != width || old.colors != colors;
+  bool shouldRepaint(WaveRingPainter old) =>
+      playedCount(old.bars.length, old.progress) != playedCount(bars.length, progress) ||
+      old.bars != bars ||
+      old.rest != rest ||
+      old.width != width ||
+      old.depth != depth ||
+      old.playSize != playSize ||
+      !listEquals(old.colors, colors);
 }

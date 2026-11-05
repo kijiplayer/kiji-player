@@ -150,4 +150,12 @@ void main() {
     expect(column.width, lessThanOrEqualTo(KijiSizes.playerMaxWidth));
     expect(column.center.dx, closeTo(960, 1));
   });
+
+  testWidgets('La portada se aleja apenas en pausa; con "reducir animaciones", quieta', (tester) async {
+    final container = await _pump(tester, const Size(420, 860));
+    expect(tester.widget<AnimatedScale>(find.byKey(const Key('player-cover-scale'))).scale, 0.95);
+    await container.read(settingsProvider.notifier).update((s) => s.copyWith(reduceMotion: true));
+    await tester.pump();
+    expect(find.byKey(const Key('player-cover-scale')), findsNothing);
+  });
 }
