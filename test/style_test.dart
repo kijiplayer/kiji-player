@@ -42,11 +42,9 @@ void main() {
     Color over(Color bottom, Color top) => Color.alphaBlend(top, bottom);
     Color white(double opacity) => Colors.white.withValues(alpha: opacity);
 
-    // Peor caso del fondo del reproductor: portada blanca (oscurecida) y un punto claro del grano
-    // al máximo. (El brillo de la apertura va solo sobre la portada, que no tiene texto encima.)
+    // Peor caso del fondo del reproductor: la portada blanca (oscurecida).
     final cover = white(KijiMuseum.backdropBrightness * KijiMuseum.backdropOpacity);
-    final grain = white(KijiMuseum.grainOpacity);
-    final backdrop = over(over(p.background, cover), grain);
+    final backdrop = over(p.background, cover);
     final button = over(backdrop, p.glassFill);
     // Mini-reproductor, barra y hojas: sobre cualquier cosa (también una portada blanca).
     final pane = over(Colors.white, KijiMuseum.pane);
@@ -62,32 +60,6 @@ void main() {
     for (final MapEntry(key: name, value: (fg, bg)) in pairs.entries) {
       expect(contrast(fg, bg), greaterThanOrEqualTo(4.5), reason: name);
     }
-  });
-
-  test('Grafito: la luz que respira no le quita contraste al texto de arriba de la portada', () {
-    const p = KijiPalette.graphite;
-    // Desenfoque gaussiano del halo: cuánta luz llega a [d] px por fuera del borde (borde recto).
-    double erfc(double x) {
-      final t = 1 / (1 + 0.3275911 * x);
-      final y = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
-      return y * exp(-x * x);
-    }
-
-    const sigma = KijiMuseum.haloBlur * 0.57735 + 0.5;
-    // "REPRODUCIENDO DESDE" queda ~25 px arriba de la portada (de 320 px); el halo late hasta un 5 %
-    // más grande (8 px por lado) y está corrido hacia abajo.
-    const gap = 25.0, grow = 8.0;
-    const d = gap + KijiMuseum.haloShift - grow;
-    final light = KijiMuseum.haloOpacity * 0.5 * erfc(d / (sigma * sqrt2));
-    Color white(double o) => Colors.white.withValues(alpha: o);
-    final backdrop = Color.alphaBlend(
-      white(light),
-      Color.alphaBlend(
-        white(KijiMuseum.grainOpacity),
-        Color.alphaBlend(white(KijiMuseum.backdropBrightness * KijiMuseum.backdropOpacity), p.background),
-      ),
-    );
-    expect(contrast(p.muted, backdrop), greaterThanOrEqualTo(4.5));
   });
 
   test('la onda de Grafito y Papel es monocroma, con los grises pedidos', () {

@@ -360,25 +360,8 @@ double backgroundScrim(KijiPalette palette, double opacity) {
 /// seguir con contraste de 4,5:1 aunque la portada sea blanca (lo comprueba `test/style_test.dart`).
 abstract final class KijiMuseum {
   /// Fondo del reproductor: la portada en blanco y negro, oscurecida a este brillo y con esta opacidad.
-  static const backdropBrightness = 0.85;
-  static const backdropOpacity = 0.14;
-
-  /// Grano de película (alto rendimiento): opacidad máxima de los puntos claros y de los oscuros
-  /// (los oscuros no le quitan contraste al texto claro, así que pueden ser más).
-  static const grainOpacity = 0.02;
-  static const grainDarkOpacity = 0.08;
-
-  /// El brillo que recorre el vidrio de la portada al abrir el reproductor (no hay texto encima).
-  static const sheenOpacity = 0.18;
-
-  /// Luz que respira detrás de la portada (alto rendimiento): opacidad máxima del halo blanco, su
-  /// desenfoque y cuánto se corre hacia abajo (lejos del texto chico de arriba de la portada).
-  static const haloOpacity = 0.22;
-  static const haloBlur = 48.0;
-  static const haloShift = 28.0;
-
-  /// Reflejo en el vidrio de la portada (sigue la inclinación del teléfono o el mouse).
-  static const reflectionOpacity = 0.12;
+  static const backdropBrightness = 0.72;
+  static const backdropOpacity = 0.12;
 
   /// Paneles sobre cualquier contenido (mini-reproductor, barra de navegación, hojas): vidrio
   /// ahumado que deja ver el 12 % de lo de atrás. Es lo máximo para que el texto gris (#9A9A9E) siga
@@ -511,6 +494,27 @@ abstract final class KijiText {
     color: color ?? KijiColors.text,
     height: 1.15,
   );
+
+  /// Título de una sección (Inicio, listas). Grafito: una etiqueta chica, espaciada y en gris (el
+  /// contenido es el protagonista); los demás, un título. Con [sectionText] para el texto.
+  static TextStyle section({double size = 18}) => KijiLook.museum
+      ? TextStyle(
+          fontFamily: bodyFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 2,
+          color: KijiColors.muted,
+          height: 1.4,
+        )
+      : title(size: size);
+
+  /// El texto de un título de sección (en Grafito, en mayúsculas).
+  static String sectionText(String text) => KijiLook.museum ? text.toUpperCase() : text;
+
+  /// Título grande y protagonista (saludo, canción que suena). Grafito: grande y fino.
+  static TextStyle display({double size = 30}) => KijiLook.museum
+      ? title(size: size + 6, weight: FontWeight.w300).copyWith(letterSpacing: -0.8, height: 1.08)
+      : title(size: size);
 
   static TextStyle mono({double size = 12, FontWeight weight = FontWeight.w500, Color? color}) => TextStyle(
     fontFamily: monoFamily,

@@ -113,11 +113,11 @@ class PlayerScreen extends ConsumerWidget {
                           RepaintBoundary(
                             child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: KijiLook.museum ? 36 : 24),
                           _TitleRow(track: track, downloaded: downloaded),
-                          const SizedBox(height: 20),
+                          SizedBox(height: KijiLook.museum ? 28 : 20),
                           const RepaintBoundary(child: _Progress()),
-                          const SizedBox(height: 12),
+                          SizedBox(height: KijiLook.museum ? 20 : 12),
                           const PlaybackControlsRow(),
                           const SizedBox(height: 20),
                           const _BottomActions(),
@@ -133,15 +133,7 @@ class PlayerScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (!KijiLook.museum) return screen;
-    // Grafito en la PC: el reflejo del vidrio sigue al mouse.
-    return MouseRegion(
-      onHover: (event) {
-        final size = MediaQuery.sizeOf(context);
-        museumPointer.value = Offset(event.position.dx / size.width * 2 - 1, event.position.dy / size.height * 2 - 1);
-      },
-      child: screen,
-    );
+    return screen;
   }
 }
 
@@ -254,32 +246,9 @@ class _Cover extends StatelessWidget {
         ),
       ),
     );
-    if (!KijiLook.museum) return cover;
-    // Grafito: detrás, la luz que respira con la música; encima, el brillo de la apertura y el
-    // reflejo que sigue la inclinación (o el mouse). Se inclina (3D) al tocarla o arrastrarla.
-    return CoverTilt(
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: MuseumHalo(track: track, size: size),
-          ),
-          cover,
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  const MuseumSheen(),
-                  MuseumReflection(playing: playing),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    // Grafito 0.8: la portada sola, con su borde de vidrio. Sin la luz que respira, el brillo, el
+    // reflejo ni la inclinación de la 0.7: menos efectos a la vez.
+    return cover;
   }
 }
 
@@ -309,7 +278,7 @@ class _TitleRow extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   // Grafito: grande y fino.
                   style: KijiLook.museum
-                      ? KijiText.title(size: 34, weight: FontWeight.w300).copyWith(letterSpacing: -0.6, height: 1.08)
+                      ? KijiText.title(size: 38, weight: FontWeight.w300).copyWith(letterSpacing: -1, height: 1.05)
                       : KijiText.title(size: 26),
                 ),
               ),
@@ -321,7 +290,10 @@ class _TitleRow extends ConsumerWidget {
                   track,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: KijiColors.muted, fontSize: 16),
+                  // Grafito: el artista como una etiqueta (versalitas espaciadas).
+                  style: KijiLook.museum
+                      ? TextStyle(color: KijiColors.muted, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 2.2)
+                      : TextStyle(color: KijiColors.muted, fontSize: 16),
                 ),
               ),
             ],
@@ -341,7 +313,7 @@ class _TitleRow extends ConsumerWidget {
         IconButton(
           tooltip: tx.agregarAPlaylist,
           onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
-          icon: Icon(Icons.playlist_add_rounded, color: KijiColors.text),
+          icon: Icon(Icons.playlist_add_rounded, color: KijiLook.museum ? KijiColors.muted : KijiColors.text),
         ),
         IconButton(
           tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
@@ -361,8 +333,8 @@ class _Progress extends ConsumerWidget {
     final playback = ref.watch(playbackProvider.select((s) => (position: s.position, duration: s.duration)));
     return Column(
       children: [
-        // Con la luna del temporizador y "Marcar en la onda".
-        const TimerWaveform(),
+        // Con la luna del temporizador y "Marcar en la onda". Grafito: más baja y fina.
+        KijiLook.museum ? const TimerWaveform(height: 26, barWidth: 2) : const TimerWaveform(),
         const SizedBox(height: 6),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

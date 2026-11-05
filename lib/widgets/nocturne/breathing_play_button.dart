@@ -137,7 +137,13 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
                 child: Ink(
                   width: size,
                   height: size,
-                  decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
+                  // Grafito: un aro fino, sin relleno (el control no le gana al título).
+                  decoration: KijiLook.museum
+                      ? BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: KijiColors.text.withValues(alpha: 0.85), width: 1.2),
+                        )
+                      : BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
                   child: InkWell(
                     onTap: _tap,
                     child: ScaleTransition(
@@ -155,8 +161,8 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
                         child: AnimatedIcon(
                           icon: AnimatedIcons.play_pause,
                           progress: _morph,
-                          color: KijiColors.onAccent,
-                          size: size * 0.48,
+                          color: KijiLook.museum ? KijiColors.text : KijiColors.onAccent,
+                          size: size * (KijiLook.museum ? 0.38 : 0.48),
                         ),
                       ),
                     ),

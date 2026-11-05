@@ -44,18 +44,26 @@ class SectionTitle extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: KijiText.title(size: 18), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(KijiText.sectionText(title), style: KijiText.section(size: 18), maxLines: 1, overflow: TextOverflow.ellipsis),
                 if (note != null) Text(note!, style: KijiText.mono(size: 11), overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
           if (onPlayAll != null) ...[
             const SizedBox(width: 8),
-            IconButton.filledTonal(
-              tooltip: tx.reproducirTodo,
-              onPressed: onPlayAll,
-              icon: const Icon(Icons.play_arrow_rounded),
-            ),
+            // Grafito: un ícono discreto, sin el círculo relleno.
+            KijiLook.museum
+                ? IconButton(
+                    tooltip: tx.reproducirTodo,
+                    onPressed: onPlayAll,
+                    color: KijiColors.muted,
+                    icon: const Icon(Icons.play_arrow_rounded),
+                  )
+                : IconButton.filledTonal(
+                    tooltip: tx.reproducirTodo,
+                    onPressed: onPlayAll,
+                    icon: const Icon(Icons.play_arrow_rounded),
+                  ),
           ],
         ],
       ),

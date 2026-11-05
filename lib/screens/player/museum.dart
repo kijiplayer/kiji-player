@@ -2,19 +2,12 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/loudness/data/loudness_analyzer.dart';
-import '../../features/loudness/domain/loudness.dart';
-import '../../features/settings/data/settings_store.dart';
 import '../../models/track.dart';
-import '../../providers/playback_provider.dart';
 import '../../providers/appearance_provider.dart';
 import '../../theme/kiji_tokens.dart';
-import '../../utils/shared_events.dart';
 import '../../widgets/album_cover.dart';
 
 /// "Vidrio de museo" de Grafito: el fondo del reproductor, el grano, el brillo al abrir, la
@@ -118,8 +111,8 @@ class MuseumBackdrop extends ConsumerStatefulWidget {
 }
 
 class _MuseumBackdropState extends ConsumerState<MuseumBackdrop> with SingleTickerProviderStateMixin {
-  /// Un recorrido completo de la deriva: casi un minuto (se nota que se mueve, no cómo).
-  late final AnimationController _drift = AnimationController(vsync: this, duration: const Duration(seconds: 56));
+  /// Un recorrido completo de la deriva: un minuto y medio, apenas (Grafito 0.8: casi quieto).
+  late final AnimationController _drift = AnimationController(vsync: this, duration: const Duration(seconds: 90));
   late final AppLifecycleListener _lifecycle = AppLifecycleListener(
     onStateChange: (_) => mounted ? setState(() {}) : null,
   );
@@ -195,15 +188,14 @@ class _MuseumBackdropState extends ConsumerState<MuseumBackdrop> with SingleTick
                     return Transform(
                       alignment: Alignment.center,
                       transform: Matrix4.identity()
-                        ..scaleByDouble(1.3 + 0.05 * sin(t), 1.3 + 0.05 * sin(t), 1, 1)
-                        ..translateByDouble(18 * cos(t), 26 * sin(2 * t), 0, 1),
+                        ..scaleByDouble(1.3 + 0.015 * sin(t), 1.3 + 0.015 * sin(t), 1, 1)
+                        ..translateByDouble(6 * cos(t), 8 * sin(2 * t), 0, 1),
                       child: child,
                     );
                   },
                   child: RepaintBoundary(child: CustomPaint(painter: _CoverPainter(image))),
                 ),
         ),
-        if (KijiEffects.rich && _moving) const IgnorePointer(child: FilmGrain()),
       ],
     );
   }
@@ -232,236 +224,8 @@ class _CoverPainter extends CustomPainter {
   bool shouldRepaint(_CoverPainter old) => old.image != image;
 }
 
-/// Grano de película: una textura de ruido fija que salta de lugar 24 veces por segundo (como el
-/// cine), no en cada cuadro.
-class FilmGrain extends StatefulWidget {
-  const FilmGrain({super.key});
-
-  @override
-  State<FilmGrain> createState() => _FilmGrainState();
-}
-
-class _FilmGrainState extends State<FilmGrain> with SingleTickerProviderStateMixin {
-  static ui.Image? _noise;
-  static Future<ui.Image>? _making;
-  final _frame = ValueNotifier<int>(0);
-  late final _ticker = createTicker((elapsed) {
-    final frame = elapsed.inMilliseconds ~/ 42;
-    if (frame != _frame.value) _frame.value = frame;
-  });
-
-  static Future<ui.Image> _makeNoise() {
-    const side = 96;
-    final random = Random(7);
-    final pixels = Uint8List(side * side * 4);
-    final light = (255 * KijiMuseum.grainOpacity).round();
-    final dark = (255 * KijiMuseum.grainDarkOpacity).round();
-    // Mitad puntos claros y mitad oscuros. Los píxeles van con el alfa premultiplicado (si no, el
-    // ruido se ve opaco): un punto claro es blanco con su alfa; uno oscuro, negro.
-    for (var i = 0; i < pixels.length; i += 4) {
-      final bright = random.nextBool();
-      final a = random.nextInt((bright ? light : dark) + 1);
-      final v = bright ? a : 0;
-      pixels
-        ..[i] = v
-        ..[i + 1] = v
-        ..[i + 2] = v
-        ..[i + 3] = a;
-    }
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(pixels, side, side, ui.PixelFormat.rgba8888, completer.complete);
-    return completer.future;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker.start();
-    if (_noise == null) {
-      (_making ??= _makeNoise()).then((image) {
-        _noise = image;
-        if (mounted) setState(() {});
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _ticker.dispose();
-    _frame.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final noise = _noise;
-    if (noise == null) return const SizedBox.expand();
-    return RepaintBoundary(
-      child: CustomPaint(painter: _GrainPainter(noise, _frame), size: Size.infinite),
-    );
-  }
-}
-
-class _GrainPainter extends CustomPainter {
-  _GrainPainter(this.noise, this.frame) : super(repaint: frame);
-
-  final ui.Image noise;
-  final ValueNotifier<int> frame;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final random = Random(frame.value);
-    final shift = Matrix4.translationValues(random.nextDouble() * 96, random.nextDouble() * 96, 0);
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..shader = ImageShader(noise, TileMode.repeated, TileMode.repeated, shift.storage),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_GrainPainter old) => old.noise != noise;
-}
-
-/// Un brillo de luz que recorre el vidrio de la portada una sola vez, al abrir el reproductor.
-class MuseumSheen extends ConsumerStatefulWidget {
-  const MuseumSheen({super.key});
-
-  @override
-  ConsumerState<MuseumSheen> createState() => _MuseumSheenState();
-}
-
-class _MuseumSheenState extends ConsumerState<MuseumSheen> with SingleTickerProviderStateMixin {
-  // Empieza cuando el reproductor terminó de subir.
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-  bool _started = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_started) return;
-    _started = true;
-    if (!reduceMotion(context, ref)) _c.forward().whenComplete(() => mounted ? setState(() {}) : null);
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_c.isAnimating) return const SizedBox.shrink();
-    return IgnorePointer(
-      child: RepaintBoundary(
-        child: AnimatedBuilder(
-          animation: _c,
-          builder: (context, _) {
-            final t = const Interval(0.25, 1, curve: Curves.easeInOutCubic).transform(_c.value);
-            return CustomPaint(painter: _SheenPainter(t), size: Size.infinite);
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _SheenPainter extends CustomPainter {
-  _SheenPainter(this.t);
-
-  /// 0 = el brillo todavía no entró (arriba a la izquierda); 1 = ya salió (abajo a la derecha).
-  final double t;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (t <= 0 || t >= 1) return;
-    final center = -0.25 + 1.5 * t;
-    const light = Color.fromRGBO(255, 255, 255, KijiMuseum.sheenOpacity);
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [light.withValues(alpha: 0), light, light.withValues(alpha: 0)],
-          stops: [(center - 0.12).clamp(0.0, 1.0), center.clamp(0.0, 1.0), (center + 0.12).clamp(0.0, 1.0)],
-        ).createShader(Offset.zero & size),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_SheenPainter old) => old.t != t;
-}
-
-/// La portada se inclina un poco (efecto 3D) hacia donde se la toca o arrastra, y vuelve sola al
-/// soltarla. Solo escucha el dedo: no le quita el gesto a nadie (deslizar para la letra, etc.).
-class CoverTilt extends ConsumerStatefulWidget {
-  const CoverTilt({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  ConsumerState<CoverTilt> createState() => _CoverTiltState();
-}
-
-class _CoverTiltState extends ConsumerState<CoverTilt> with SingleTickerProviderStateMixin {
-  /// Inclinación máxima: unos 7°.
-  static const _maxAngle = 0.12;
-
-  late final AnimationController _back = AnimationController(vsync: this, duration: const Duration(milliseconds: 520))
-    ..addListener(() => setState(() => _tilt = _released * (1 - KijiMotion.spring.transform(_back.value))));
-  Offset _tilt = Offset.zero;
-  Offset _released = Offset.zero;
-  bool _pressed = false;
-
-  void _follow(PointerEvent e) {
-    final size = context.size;
-    if (size == null || size.isEmpty) return;
-    _back.stop();
-    setState(() {
-      _pressed = true;
-      _tilt = Offset(
-        ((e.localPosition.dx / size.width) * 2 - 1).clamp(-1.0, 1.0),
-        ((e.localPosition.dy / size.height) * 2 - 1).clamp(-1.0, 1.0),
-      );
-    });
-  }
-
-  void _release(PointerEvent _) {
-    if (!_pressed) return;
-    _pressed = false;
-    _released = _tilt;
-    _back.forward(from: 0);
-  }
-
-  @override
-  void dispose() {
-    _back.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (reduceMotion(context, ref)) return widget.child;
-    return Listener(
-      onPointerDown: _follow,
-      onPointerMove: _follow,
-      onPointerUp: _release,
-      onPointerCancel: _release,
-      child: Transform(
-        alignment: Alignment.center,
-        transform: Matrix4.identity()
-          ..setEntry(3, 2, 0.0012)
-          ..rotateX(-_tilt.dy * _maxAngle)
-          ..rotateY(_tilt.dx * _maxAngle),
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-/// El título y el artista entran deslizándose, una línea después de la otra, al cambiar de canción
-/// (y al abrir el reproductor). Fuera de Grafito o con "Reducir animaciones", quedan quietos.
+/// Una línea de texto que entra deslizándose (la usa el Escaparate de la letra con [always]; en
+/// Grafito 0.8 el reproductor ya no la anima).
 class MuseumLineIn extends ConsumerStatefulWidget {
   const MuseumLineIn({super.key, required this.trackId, required this.line, required this.child, this.always = false});
 
@@ -483,7 +247,8 @@ class _MuseumLineInState extends ConsumerState<MuseumLineIn> with SingleTickerPr
   bool _started = false;
   bool _reduce = false;
 
-  bool get _active => (widget.always || KijiLook.museum) && !_reduce;
+  // Grafito 0.8: el título ya no entra deslizándose (menos movimiento a la vez); queda para quien lo pida.
+  bool get _active => widget.always && !_reduce;
 
   @override
   void didChangeDependencies() {
@@ -532,216 +297,4 @@ class _MuseumLineInState extends ConsumerState<MuseumLineIn> with SingleTickerPr
       child: widget.child,
     );
   }
-}
-
-/// Luz que respira (Grafito, alto rendimiento): un halo blanco suave detrás de la portada que late
-/// con el volumen real de la canción (los mismos datos que la onda en vivo; nunca el micrófono).
-/// Sin datos de volumen, en pausa, en segundo plano o con "Reducir animaciones", no se muestra.
-class MuseumHalo extends ConsumerStatefulWidget {
-  const MuseumHalo({super.key, required this.track, required this.size});
-
-  final Track track;
-
-  /// Lado de la portada.
-  final double size;
-
-  @override
-  ConsumerState<MuseumHalo> createState() => _MuseumHaloState();
-}
-
-class _MuseumHaloState extends ConsumerState<MuseumHalo> with SingleTickerProviderStateMixin {
-  final _level = ValueNotifier<double>(0);
-  late final _ticker = createTicker(_tick);
-  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
-    onStateChange: (_) => mounted ? setState(() {}) : null,
-  );
-  Loudness? _loudness;
-  Duration _anchor = Duration.zero;
-  final _sinceAnchor = Stopwatch();
-
-  void _tick(Duration _) {
-    final loudness = _loudness;
-    if (loudness == null) return;
-    final now = _anchor + Duration(milliseconds: min(1000, _sinceAnchor.elapsedMilliseconds));
-    final target = loudness.at(now);
-    // Sube rápido con cada golpe y baja despacio, como una respiración.
-    final current = _level.value;
-    _level.value = target > current ? current + (target - current) * 0.5 : current + (target - current) * 0.08;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _lifecycle;
-  }
-
-  @override
-  void dispose() {
-    _lifecycle.dispose();
-    _ticker.dispose();
-    _level.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final rich = ref.watch(settingsProvider.select((s) => s.highPerformance));
-    final playing = ref.watch(playbackProvider.select((p) => p.isPlaying));
-    _loudness = rich ? ref.watch(loudnessProvider(widget.track.id)).value : null;
-    ref.listen(playbackProvider.select((p) => p.position), (_, position) {
-      _anchor = position;
-      _sinceAnchor
-        ..reset()
-        ..start();
-    });
-    final on = _loudness != null && playing && !reduceMotion(context, ref) && _appVisible();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (on && !_ticker.isActive) {
-        _ticker.start();
-      } else if (!on && _ticker.isActive) {
-        _ticker.stop();
-        _level.value = 0;
-      }
-    });
-    if (!on) return const SizedBox.shrink();
-    return IgnorePointer(
-      child: RepaintBoundary(
-        child: CustomPaint(
-          painter: _HaloPainter(_level, radius: KijiLook.cover(KijiRadii.cover)),
-          size: Size.infinite,
-        ),
-      ),
-    );
-  }
-}
-
-/// El halo: la sombra desenfocada de un rectángulo redondeado (Impeller la dibuja sin desenfocar
-/// píxeles, con una fórmula), con el brillo y el tamaño según [level].
-class _HaloPainter extends CustomPainter {
-  _HaloPainter(this.level, {required this.radius}) : super(repaint: level);
-
-  final ValueNotifier<double> level;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final l = level.value.clamp(0.0, 1.0);
-    // Corrido hacia abajo: así la luz no le quita contraste a "REPRODUCIENDO DESDE", arriba.
-    final rect = (const Offset(0, KijiMuseum.haloShift) & size).inflate(size.width * 0.025 * l);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, Radius.circular(radius)),
-      Paint()
-        ..color = Colors.white.withValues(alpha: KijiMuseum.haloOpacity * (0.25 + 0.75 * l))
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, KijiMuseum.haloBlur * 0.57735 + 0.5),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_HaloPainter old) => old.radius != radius;
-}
-
-/// Dónde está el mouse sobre el reproductor (PC), de -1 a 1 en cada eje. Lo escribe el
-/// reproductor y lo lee el reflejo del vidrio.
-final museumPointer = ValueNotifier<Offset>(Offset.zero);
-
-/// Reflejo en el vidrio de la portada (Grafito): una franja de luz que se corre con la inclinación
-/// del teléfono (sensor de gravedad, sin permisos) o con el mouse en la PC. Solo se mueve mientras
-/// suena, en primer plano y sin "Reducir animaciones"; si no, queda quieta.
-class MuseumReflection extends ConsumerStatefulWidget {
-  const MuseumReflection({super.key, required this.playing});
-
-  final bool playing;
-
-  @override
-  ConsumerState<MuseumReflection> createState() => _MuseumReflectionState();
-}
-
-class _MuseumReflectionState extends ConsumerState<MuseumReflection> with SingleTickerProviderStateMixin {
-  final _light = ValueNotifier<Offset>(Offset.zero);
-  Offset _target = Offset.zero;
-  StreamSubscription<dynamic>? _sensor;
-  late final _ticker = createTicker((_) {
-    // Se acerca suave a donde apunta la luz (el sensor llega ~30 veces por segundo).
-    final next = Offset.lerp(_light.value, _target, 0.12)!;
-    if ((next - _light.value).distance > 0.0005) _light.value = next;
-  });
-  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
-    onStateChange: (_) => mounted ? setState(() {}) : null,
-  );
-
-  void _onPointer() => _target = museumPointer.value;
-
-  void _sync(bool on) {
-    final android = defaultTargetPlatform == TargetPlatform.android;
-    if (on && !_ticker.isActive) {
-      _ticker.start();
-      if (android) {
-        _sensor = SharedEvents.tilt.stream.listen((value) {
-          final v = (value as List).cast<double>();
-          // Inclinar a la derecha corre la luz a la derecha; hacia uno, hacia abajo.
-          _target = Offset(-v[0], v[1] - 0.6).scale(1.2, 1.2);
-        }, onError: (Object error) => debugPrint('=== GRAFITO: sin sensor de inclinación ($error) ==='));
-      } else {
-        museumPointer.addListener(_onPointer);
-      }
-    } else if (!on && _ticker.isActive) {
-      _ticker.stop();
-      _sensor?.cancel();
-      _sensor = null;
-      museumPointer.removeListener(_onPointer);
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _lifecycle;
-  }
-
-  @override
-  void dispose() {
-    _lifecycle.dispose();
-    _sync(false);
-    _ticker.dispose();
-    _light.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final on = widget.playing && !reduceMotion(context, ref) && _appVisible();
-    WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _sync(on) : null);
-    return IgnorePointer(
-      child: RepaintBoundary(
-        child: CustomPaint(painter: _ReflectionPainter(_light), size: Size.infinite),
-      ),
-    );
-  }
-}
-
-class _ReflectionPainter extends CustomPainter {
-  _ReflectionPainter(this.light) : super(repaint: light);
-
-  final ValueNotifier<Offset> light;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final o = Offset(light.value.dx.clamp(-1.0, 1.0), light.value.dy.clamp(-1.0, 1.0));
-    final center = 0.35 + 0.3 * o.dx;
-    const glow = Color.fromRGBO(255, 255, 255, KijiMuseum.reflectionOpacity);
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment(-1, -1 + o.dy * 0.6),
-          end: Alignment(1, 1 + o.dy * 0.6),
-          colors: [glow.withValues(alpha: 0), glow, glow.withValues(alpha: 0)],
-          stops: [(center - 0.18).clamp(0.0, 1.0), center.clamp(0.0, 1.0), (center + 0.18).clamp(0.0, 1.0)],
-        ).createShader(Offset.zero & size),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_ReflectionPainter old) => false;
 }
