@@ -2771,5 +2771,11 @@
   "conElAhorroDeDatosEsperanAlWifi": "Con el ahorro de datos, esperan al WiFi.",
   "@conElAhorroDeDatosEsperanAlWifi": {"description": "Descarga de varias: frenadas por el ahorro de datos con datos móviles."},
   "nNoSePudieron": "{count, plural, =1{1 no se pudo bajar} other{{count} no se pudieron bajar}}",
-  "@nNoSePudieron": {"description": "Descarga de varias: cuántas fallaron (se ven en Descargadas).", "placeholders": {"count": {"type": "int"}}}
+  "@nNoSePudieron": {"description": "Descarga de varias: cuántas fallaron (se ven en Descargadas).", "placeholders": {"count": {"type": "int"}}},
+  "volverAEscanear": "Volver a escanear",
+  "@volverAEscanear": {"description": "Biblioteca: vuelve a leer todos los archivos de música del equipo."},
+  "nAlbumes": "{count, plural, =1{1 álbum} other{{count} álbumes}}",
+  "@nAlbumes": {"description": "Biblioteca: cuántos álbumes tiene un artista.", "placeholders": {"count": {"type": "int"}}},
+  "bibliotecaEscaneada": "{count, plural, =0{No se encontró música} =1{Listo: 1 canción} other{Listo: {count} canciones}}",
+  "@bibliotecaEscaneada": {"description": "Biblioteca: terminó de volver a escanear.", "placeholders": {"count": {"type": "int"}}}
 }

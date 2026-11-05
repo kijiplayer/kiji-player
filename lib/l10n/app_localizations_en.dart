@@ -4655,4 +4655,30 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get volverAEscanear => 'Scan again';
+
+  @override
+  String nAlbumes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count albums',
+      one: '1 album',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String bibliotecaEscaneada(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Done: $count songs',
+      one: 'Done: 1 song',
+      zero: 'No music found',
+    );
+    return '$_temp0';
+  }
 }

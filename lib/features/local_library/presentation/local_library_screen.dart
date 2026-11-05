@@ -24,6 +24,9 @@ import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
 import '../../stream_cache/data/stream_cache.dart';
 import '../domain/library_order.dart';
+import '../domain/local_groups.dart';
+import '../../yt_music/domain/subtitle_parser.dart' show unknownArtist;
+import 'local_group_screen.dart';
 import '../domain/local_library_source.dart';
 import '../../playlists/playlists_provider.dart';
 import '../../customize/presentation/track_text.dart';
@@ -34,16 +37,23 @@ enum _LibraryStatus { loading, denied, empty, ready, error }
 
 enum LibraryTab {
   songs,
+  artists,
+  albums,
   downloads,
   playlists,
   folders;
 
   String get label => switch (this) {
     LibraryTab.songs => tx.canciones,
+    LibraryTab.artists => tx.artistas,
+    LibraryTab.albums => tx.albumes,
     LibraryTab.downloads => tx.descargadas,
     LibraryTab.playlists => tx.playlists,
     LibraryTab.folders => tx.carpetas,
   };
+
+  /// Las pestañas que muestran la música del equipo (y donde sirve "Volver a escanear").
+  bool get local => this == songs || this == artists || this == albums || this == folders;
 }
 
 /// Biblioteca: pestañas con su cantidad, la tarjeta de espacio (con su barra) y "Todo"; en
@@ -61,8 +71,12 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   LocalLibrarySource get _source => ref.read(localLibrarySourceProvider);
   _LibraryStatus _status = _LibraryStatus.loading;
   List<Track> _local = const [];
-  // Abre en Playlists.
-  LibraryTab _tab = LibraryTab.playlists;
+
+  /// Abre en la última pestaña que se usó (de fábrica, Playlists).
+  late LibraryTab _tab = LibraryTab.values.asNameMap()[ref.read(settingsProvider).libraryTab] ?? LibraryTab.playlists;
+
+  /// "Volver a escanear" en curso.
+  bool _rescanning = false;
 
   /// Selección múltiple (mantener presionada una canción).
   final _selection = TrackSelection();
@@ -84,8 +98,10 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _status = _LibraryStatus.loading);
+  /// Lee la música del equipo. Lo ya leído sale de la caché (solo se leen los archivos nuevos o
+  /// cambiados: así Kiji nota lo nuevo cada vez que se abre); [force] vuelve a leer todo.
+  Future<void> _load({bool force = false}) async {
+    setState(() => _status = _local.isEmpty ? _LibraryStatus.loading : _status);
 
     // En PC no se abre el selector de carpetas solo: se espera a que el
     // usuario toque "Elegir carpeta" (Cero Sorpresas).
@@ -98,7 +114,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     }
 
     try {
-      final tracks = await _source.loadTracks();
+      final tracks = await _source.loadTracks(force: force);
       if (!mounted) return;
       setState(() {
         _local = tracks;
@@ -109,6 +125,26 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
       debugPrint('=== BIBLIOTECA: no se pudo leer la música local: $error ===');
       if (mounted) setState(() => _status = _LibraryStatus.error);
     }
+  }
+
+  /// "Volver a escanear": vuelve a leer todos los archivos (por si se cambiaron etiquetas o
+  /// portadas sin cambiar la fecha).
+  Future<void> _rescan() async {
+    if (_rescanning) return;
+    setState(() => _rescanning = true);
+    final messenger = ScaffoldMessenger.of(context);
+    await _load(force: true);
+    if (!mounted) return;
+    setState(() => _rescanning = false);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(tx.bibliotecaEscaneada(_local.length))));
+  }
+
+  void _setTab(LibraryTab tab) {
+    _selection.clear();
+    setState(() => _tab = tab);
+    ref.read(settingsProvider.notifier).update((s) => s.copyWith(libraryTab: tab.name));
   }
 
   Future<void> _chooseFolder() async {
@@ -134,8 +170,16 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     final settings = ref.watch(settingsProvider);
     final songs = arrangeLibrarySongs(all, sort: settings.librarySort, filter: settings.libraryFilter);
     final grid = settings.libraryView == 'grid';
+    final visibleLocal = [
+      for (final t in _local)
+        if (!settings.hides(t.durationMs)) t,
+    ];
+    final artists = groupByArtist(visibleLocal, unknown: unknownArtist);
+    final albums = groupByAlbum(visibleLocal);
     final counts = {
       LibraryTab.songs: all.length,
+      LibraryTab.artists: artists.length,
+      LibraryTab.albums: albums.length,
       LibraryTab.downloads: ref.watch(downloadsProvider.select((d) => d.completed.length)),
       LibraryTab.playlists: ref.watch(playlistsProvider.select((p) => p.length)),
     };
@@ -155,8 +199,18 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                   Row(
                     children: [
                       Expanded(child: Text(tx.navLibrary, style: KijiText.title(size: 28))),
+                      // Volver a leer todos los archivos de música del equipo.
+                      if (_tab.local && _status != _LibraryStatus.denied)
+                        IconButton(
+                          key: const Key('library-rescan'),
+                          tooltip: tx.volverAEscanear,
+                          onPressed: _rescanning ? null : _rescan,
+                          icon: _rescanning
+                              ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                              : const Icon(Icons.refresh_rounded),
+                        ),
                       // Lista o cuadrícula (canciones y playlists).
-                      if (_tab == LibraryTab.songs || _tab == LibraryTab.playlists)
+                      if (_tab == LibraryTab.songs || _tab == LibraryTab.playlists || _tab == LibraryTab.albums)
                         IconButton(
                           key: const Key('library-view-toggle'),
                           tooltip: grid ? tx.verEnLista : tx.verEnCuadricula,
@@ -175,14 +229,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                   // Varias bajando a la vez: el avance de todas juntas (en Descargadas ya va arriba).
                   if (_tab != LibraryTab.downloads) const BatchDownloadProgress(padding: EdgeInsets.only(top: 10)),
                   const SizedBox(height: 14),
-                  LibraryTabs(
-                    selected: _tab,
-                    counts: counts,
-                    onChanged: (tab) {
-                      _selection.clear();
-                      setState(() => _tab = tab);
-                    },
-                  ),
+                  LibraryTabs(selected: _tab, counts: counts, onChanged: _setTab),
                   if (_tab == LibraryTab.songs) ...[
                     const SizedBox(height: 10),
                     _SongsToolbar(sort: settings.librarySort, filter: settings.libraryFilter),
@@ -194,6 +241,8 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
               LibraryTab.songs => _songsSlivers(songs, grid: grid, filtered: songs.length != all.length),
               LibraryTab.downloads => [const SliverFillRemaining(child: DownloadsView(bottomPadding: 180))],
               LibraryTab.playlists => [SliverToBoxAdapter(child: PlaylistsView(grid: grid))],
+              LibraryTab.artists => _groupSlivers(artists, LocalGroupKind.artist, grid: false),
+              LibraryTab.albums => _groupSlivers(albums, LocalGroupKind.album, grid: grid),
               LibraryTab.folders => _foldersSlivers(),
             },
             const SliverToBoxAdapter(child: SizedBox(height: 180)),
@@ -241,35 +290,124 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     }
   }
 
-  List<Widget> _songsSlivers(List<Track> songs, {required bool grid, required bool filtered}) {
-    final localMessage = switch (_status) {
-      _LibraryStatus.loading => const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      _LibraryStatus.denied =>
-        _source.usesFolders
-            ? _InfoCard(
-                icon: Icons.folder_open_rounded,
-                message: tx.eligeLaCarpetaDondeGuardasTu,
-                actionLabel: tx.elegirCarpeta,
-                onAction: _chooseFolder,
-              )
-            : _InfoCard(
-                icon: Icons.lock_outline_rounded,
-                message: tx.kijiNecesitaPermisoParaLeerTu,
-                actionLabel: tx.concederPermiso,
-                onAction: _load,
-              ),
-      _LibraryStatus.error => _InfoCard(
-        icon: Icons.error_outline_rounded,
-        message: tx.noSePudoLeerLaBiblioteca,
-        actionLabel: tx.reintentar,
-        onAction: _load,
-      ),
-      _LibraryStatus.empty => _InfoCard(icon: Icons.music_off_rounded, message: tx.noSeEncontroMusicaEnEste),
-      _LibraryStatus.ready => null,
+  /// Artistas o álbumes (o carpetas): cada uno abre su pantalla con sus canciones.
+  List<Widget> _groupSlivers(List<LocalGroup> groups, LocalGroupKind kind, {required bool grid}) {
+    final message = _localMessage();
+    if (groups.isEmpty) return [if (message != null) SliverToBoxAdapter(child: message)];
+    String details(LocalGroup g) => switch (kind) {
+      LocalGroupKind.artist => [
+        tx.nCanciones(g.tracks.length),
+        if (g.tracks.map((t) => t.album).whereType<String>().toSet().length case final n when n > 0) tx.nAlbumes(n),
+      ].join(' · '),
+      LocalGroupKind.album => [?g.subtitle, if (g.year case final y?) '$y'].join(' · '),
+      LocalGroupKind.folder => tx.nCanciones(g.tracks.length),
     };
+    if (grid) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverGrid.builder(
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 180,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.74,
+            ),
+            itemCount: groups.length,
+            itemBuilder: (context, i) => InkWell(
+              key: Key('local-group-${groups[i].key}'),
+              borderRadius: BorderRadius.circular(KijiLook.cover(12) + 4),
+              onTap: () => LocalGroupScreen.open(context, groups[i], kind),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, c) => TrackArtwork(
+                          track: groups[i].cover,
+                          size: c.biggest.shortestSide,
+                          radius: KijiLook.cover(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(groups[i].name, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 14)),
+                    Text(
+                      details(groups[i]),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: KijiColors.muted, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverList.builder(
+        itemCount: groups.length,
+        itemBuilder: (context, i) {
+          final g = groups[i];
+          final art = TrackArtwork(track: g.cover, size: 48, radius: kind == LocalGroupKind.artist ? 24 : 8);
+          return ListTile(
+            key: Key('local-group-${g.key}'),
+            leading: kind == LocalGroupKind.folder ? Icon(Icons.folder_outlined, color: KijiColors.violet) : art,
+            title: Text(g.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Text(
+              details(g),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: KijiColors.muted),
+            ),
+            trailing: IconButton(
+              tooltip: tx.reproducir,
+              icon: const Icon(Icons.play_arrow_rounded),
+              onPressed: () => ref.read(playbackProvider.notifier).playQueue(g.tracks),
+            ),
+            onTap: () => LocalGroupScreen.open(context, g, kind),
+          );
+        },
+      ),
+    ];
+  }
+
+  /// Por qué no se ve la música del equipo (sin permiso, sin carpeta, vacía, error), o null.
+  Widget? _localMessage() => switch (_status) {
+    _LibraryStatus.loading => const Padding(
+      padding: EdgeInsets.all(24),
+      child: Center(child: CircularProgressIndicator()),
+    ),
+    _LibraryStatus.denied =>
+      _source.usesFolders
+          ? _InfoCard(
+              icon: Icons.folder_open_rounded,
+              message: tx.eligeLaCarpetaDondeGuardasTu,
+              actionLabel: tx.elegirCarpeta,
+              onAction: _chooseFolder,
+            )
+          : _InfoCard(
+              icon: Icons.lock_outline_rounded,
+              message: tx.kijiNecesitaPermisoParaLeerTu,
+              actionLabel: tx.concederPermiso,
+              onAction: _load,
+            ),
+    _LibraryStatus.error => _InfoCard(
+      icon: Icons.error_outline_rounded,
+      message: tx.noSePudoLeerLaBiblioteca,
+      actionLabel: tx.reintentar,
+      onAction: _load,
+    ),
+    _LibraryStatus.empty => _InfoCard(icon: Icons.music_off_rounded, message: tx.noSeEncontroMusicaEnEste),
+    _LibraryStatus.ready => null,
+  };
+
+  List<Widget> _songsSlivers(List<Track> songs, {required bool grid, required bool filtered}) {
+    final localMessage = _localMessage();
 
     return [
       if (songs.isEmpty && filtered)
@@ -319,8 +457,14 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   }
 
   List<Widget> _foldersSlivers() {
-    if (_source.usesFolders) {
-      return [
+    final settings = ref.watch(settingsProvider);
+    final groups = groupByFolderPath([
+      for (final track in _local)
+        if (!settings.hides(track.durationMs)) track,
+    ]);
+    return [
+      // PC: las carpetas que lee Kiji (varias), para agregar o quitar.
+      if (_source.usesFolders)
         SliverToBoxAdapter(
           child: FutureBuilder<List<String>>(
             future: _source.folders(),
@@ -331,7 +475,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                   ListTile(title: Text(tx.carpetasQueLeeKiji), subtitle: Text(tx.quitarUnaCarpetaNoBorraNingun)),
                   for (final folder in folders)
                     ListTile(
-                      leading: Icon(Icons.folder_outlined, color: KijiColors.violet),
+                      leading: Icon(Icons.folder_special_outlined, color: KijiColors.violet),
                       title: Text(folder, maxLines: 2, overflow: TextOverflow.ellipsis),
                       trailing: IconButton(
                         icon: const Icon(Icons.close_rounded),
@@ -343,38 +487,18 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                       ),
                     ),
                   ListTile(
+                    key: const Key('library-add-folder'),
                     leading: Icon(Icons.create_new_folder_outlined, color: KijiColors.cyan),
                     title: Text(tx.agregarCarpeta),
                     onTap: _chooseFolder,
                   ),
+                  if (groups.isNotEmpty) const Divider(height: 24),
                 ],
               );
             },
           ),
         ),
-      ];
-    }
-
-    // Android: la música agrupada por la carpeta donde está.
-    final settings = ref.watch(settingsProvider);
-    final byFolder = groupByFolder([
-      for (final track in _local)
-        if (!settings.hides(track.durationMs)) track,
-    ]);
-    return [
-      SliverList.builder(
-        itemCount: byFolder.length,
-        itemBuilder: (context, index) {
-          final entry = byFolder.entries.elementAt(index);
-          return ListTile(
-            leading: Icon(Icons.folder_outlined, color: KijiColors.violet),
-            title: Text(p.basename(entry.key), maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(tx.nCanciones(entry.value.length), style: TextStyle(color: KijiColors.muted)),
-            trailing: const Icon(Icons.play_arrow_rounded),
-            onTap: () => ref.read(playbackProvider.notifier).playQueue(entry.value),
-          );
-        },
-      ),
+      ..._groupSlivers(groups, LocalGroupKind.folder, grid: false),
     ];
   }
 }

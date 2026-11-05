@@ -24,6 +24,7 @@ class AppSettings {
     this.librarySort = 'recent',
     this.libraryFilter = 'all',
     this.libraryView = 'list',
+    this.libraryTab = 'playlists', // l10n-ignore
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -164,6 +165,10 @@ class AppSettings {
   static const libraryFilters = ['all', 'downloaded', 'local'];
   static const libraryViews = ['list', 'grid'];
 
+  /// La última pestaña de la Biblioteca (se abre ahí).
+  final String libraryTab;
+  static const libraryTabs = ['songs', 'artists', 'albums', 'downloads', 'playlists', 'folders']; // l10n-ignore
+
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
 
@@ -293,6 +298,7 @@ class AppSettings {
     String? librarySort,
     String? libraryFilter,
     String? libraryView,
+    String? libraryTab,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -350,6 +356,7 @@ class AppSettings {
         librarySort: librarySort ?? this.librarySort,
         libraryFilter: libraryFilter ?? this.libraryFilter,
         libraryView: libraryView ?? this.libraryView,
+        libraryTab: libraryTab ?? this.libraryTab,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -407,6 +414,7 @@ class AppSettings {
         'librarySort': librarySort,
         'libraryFilter': libraryFilter,
         'libraryView': libraryView,
+        'libraryTab': libraryTab,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -470,6 +478,7 @@ class AppSettings {
       librarySort: librarySorts.contains(json['librarySort']) ? json['librarySort'] as String : d.librarySort,
       libraryFilter: libraryFilters.contains(json['libraryFilter']) ? json['libraryFilter'] as String : d.libraryFilter,
       libraryView: libraryViews.contains(json['libraryView']) ? json['libraryView'] as String : d.libraryView,
+      libraryTab: libraryTabs.contains(json['libraryTab']) ? json['libraryTab'] as String : d.libraryTab,
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

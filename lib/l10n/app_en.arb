@@ -1262,5 +1262,8 @@
   "descargasYCache": "DOWNLOADS {downloads} · CACHE {cache}",
   "bajandoNDeM": "Downloading: {done} of {total}",
   "conElAhorroDeDatosEsperanAlWifi": "With data saver on, they wait for WiFi.",
-  "nNoSePudieron": "{count, plural, =1{1 couldn't be downloaded} other{{count} couldn't be downloaded}}"
+  "nNoSePudieron": "{count, plural, =1{1 couldn't be downloaded} other{{count} couldn't be downloaded}}",
+  "volverAEscanear": "Scan again",
+  "nAlbumes": "{count, plural, =1{1 album} other{{count} albums}}",
+  "bibliotecaEscaneada": "{count, plural, =0{No music found} =1{Done: 1 song} other{Done: {count} songs}}"
 }

@@ -7570,6 +7570,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, =1{1 no se pudo bajar} other{{count} no se pudieron bajar}}'**
   String nNoSePudieron(int count);
+
+  /// Biblioteca: vuelve a leer todos los archivos de música del equipo.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a escanear'**
+  String get volverAEscanear;
+
+  /// Biblioteca: cuántos álbumes tiene un artista.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 álbum} other{{count} álbumes}}'**
+  String nAlbumes(int count);
+
+  /// Biblioteca: terminó de volver a escanear.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{No se encontró música} =1{Listo: 1 canción} other{Listo: {count} canciones}}'**
+  String bibliotecaEscaneada(int count);
 }
 
 class _AppLocalizationsDelegate
