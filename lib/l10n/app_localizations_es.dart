@@ -4586,4 +4586,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get vistaDeLaLetra => 'Vista de la letra';
+
+  @override
+  String get temas => 'Temas';
+
+  @override
+  String get temasDescripcion =>
+      'Comparte tu estilo como archivo .kiji o usa uno';
+
+  @override
+  String get exportarTema => 'Exportar mi estilo';
+
+  @override
+  String get importarTema => 'Importar un tema';
+
+  @override
+  String get temaGuardado => 'Tema guardado';
+
+  @override
+  String get temaAplicado => 'Tema aplicado';
+
+  @override
+  String get esoNoEsUnTemaDeKiji => 'Ese archivo no es un tema de Kiji.';
+
+  @override
+  String get temasNota =>
+      'Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.';
 }

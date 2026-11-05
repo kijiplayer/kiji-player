@@ -55,6 +55,7 @@ import '../../style/data/background_store.dart';
 import '../../style/presentation/accent_picker.dart';
 import '../../style/presentation/custom_background.dart';
 import '../../style/presentation/personalize_screen.dart';
+import '../../style/presentation/theme_files.dart';
 import '../../style/presentation/style_parts.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
@@ -662,6 +663,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           );
         },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.temas,
+        subtitle: tx.temasDescripcion,
+        keywords: const ['tema', 'kiji', 'compartir', 'exportar', 'importar', 'theme', 'share'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.style_outlined),
+          title: Text(tx.temas),
+          subtitle: Text(tx.temasDescripcion),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => showKijiSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            builder: (_) => Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tx.temas, style: KijiText.title(size: 20)),
+                  const SizedBox(height: 14),
+                  const ThemeFileOptions(),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       SettingOption(
         section: SettingsSection.appearance,

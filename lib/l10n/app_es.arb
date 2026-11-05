@@ -2729,5 +2729,21 @@
   "elGeneral": "El general",
   "@elGeneral": {"description": "Estilo de esta canción: usar el del estilo general."},
   "vistaDeLaLetra": "Vista de la letra",
-  "@vistaDeLaLetra": {"description": "Estilo de esta canción: Completo, Simple o Escaparate."}
+  "@vistaDeLaLetra": {"description": "Estilo de esta canción: Completo, Simple o Escaparate."},
+  "temas": "Temas",
+  "@temas": {"description": "Apariencia: exportar e importar temas .kiji."},
+  "temasDescripcion": "Comparte tu estilo como archivo .kiji o usa uno",
+  "@temasDescripcion": {"description": "Apariencia."},
+  "exportarTema": "Exportar mi estilo",
+  "@exportarTema": {"description": "Temas: guardar el estilo actual como .kiji."},
+  "importarTema": "Importar un tema",
+  "@importarTema": {"description": "Temas: abrir un archivo .kiji."},
+  "temaGuardado": "Tema guardado",
+  "@temaGuardado": {"description": "Temas: se exportó."},
+  "temaAplicado": "Tema aplicado",
+  "@temaAplicado": {"description": "Temas: se importó y se aplicó."},
+  "esoNoEsUnTemaDeKiji": "Ese archivo no es un tema de Kiji.",
+  "@esoNoEsUnTemaDeKiji": {"description": "Temas: el archivo no es válido (sin detalle técnico)."},
+  "temasNota": "Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.",
+  "@temasNota": {"description": "Temas: qué lleva un .kiji."}
 }

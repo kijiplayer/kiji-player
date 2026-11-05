@@ -1241,5 +1241,13 @@
   "estiloDeEstaCancionNota": "Background, color and lyrics view just for this song",
   "volverAlEstiloGeneral": "Back to the general style",
   "elGeneral": "The general one",
-  "vistaDeLaLetra": "Lyrics view"
+  "vistaDeLaLetra": "Lyrics view",
+  "temas": "Themes",
+  "temasDescripcion": "Share your style as a .kiji file or use one",
+  "exportarTema": "Export my style",
+  "importarTema": "Import a theme",
+  "temaGuardado": "Theme saved",
+  "temaAplicado": "Theme applied",
+  "esoNoEsUnTemaDeKiji": "That file isn't a Kiji theme.",
+  "temasNota": "A theme keeps the style, color, font, blur, opacity and background image (not videos). It is only data: nothing runs."
 }

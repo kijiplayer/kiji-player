@@ -7444,6 +7444,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Vista de la letra'**
   String get vistaDeLaLetra;
+
+  /// Apariencia: exportar e importar temas .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Temas'**
+  String get temas;
+
+  /// Apariencia.
+  ///
+  /// In es, this message translates to:
+  /// **'Comparte tu estilo como archivo .kiji o usa uno'**
+  String get temasDescripcion;
+
+  /// Temas: guardar el estilo actual como .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar mi estilo'**
+  String get exportarTema;
+
+  /// Temas: abrir un archivo .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar un tema'**
+  String get importarTema;
+
+  /// Temas: se exportó.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema guardado'**
+  String get temaGuardado;
+
+  /// Temas: se importó y se aplicó.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema aplicado'**
+  String get temaAplicado;
+
+  /// Temas: el archivo no es válido (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'Ese archivo no es un tema de Kiji.'**
+  String get esoNoEsUnTemaDeKiji;
+
+  /// Temas: qué lleva un .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.'**
+  String get temasNota;
 }
 
 class _AppLocalizationsDelegate
