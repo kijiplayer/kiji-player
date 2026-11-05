@@ -250,7 +250,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   /// Después, la letra de las que todavía no la tienen.
   /// Con "solo con WiFi", también espera al WiFi.
   Future<void> _upgradeCovers() async {
-    if (state.settings.wifiOnly && !await _onWifiOrEthernet()) return;
+    if (state.settings.wifiOnly && !await onWifiOrEthernet()) return;
     final client = YtMusicClient();
     await CoverUpgrade(
       coverUrlFor: (videoId) async => (await client.videoDetails(videoId))?.thumbnailUrl,
@@ -269,7 +269,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   /// datos, únicamente con WiFi (o cable).
   Future<bool> _lyricsNetworkOk() async {
     final careful = state.settings.wifiOnly || ref.read(settingsProvider).dataSaver;
-    return !careful || await _onWifiOrEthernet();
+    return !careful || await onWifiOrEthernet();
   }
 
   StreamSubscription<List<ConnectivityResult>>? _wifiForLyrics;
@@ -307,7 +307,8 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     }
   }
 
-  Future<bool> _onWifiOrEthernet() async {
+  /// ¿Hay WiFi o cable? (sin datos para decidir, sí: no se bloquea).
+  Future<bool> onWifiOrEthernet() async {
     try {
       final result = await Connectivity().checkConnectivity();
       return result.contains(ConnectivityResult.wifi) || result.contains(ConnectivityResult.ethernet);
@@ -325,7 +326,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     if (videoId == null) {
       return DownloadCheck(blockedReason: tx.soloSePuedenDescargarCancionesDe);
     }
-    if (state.settings.wifiOnly && !await _onWifiOrEthernet()) {
+    if (state.settings.wifiOnly && !await onWifiOrEthernet()) {
       return DownloadCheck(blockedReason: tx.estasSinWifiYElegisteDescargar, waitingForWifi: true);
     }
 

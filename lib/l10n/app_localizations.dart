@@ -7552,6 +7552,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'DESCARGAS {downloads} · CACHÉ {cache}'**
   String descargasYCache(String downloads, String cache);
+
+  /// Descarga de varias: cuántas van de la tanda.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajando: {done} de {total}'**
+  String bajandoNDeM(int done, int total);
+
+  /// Descarga de varias: frenadas por el ahorro de datos con datos móviles.
+  ///
+  /// In es, this message translates to:
+  /// **'Con el ahorro de datos, esperan al WiFi.'**
+  String get conElAhorroDeDatosEsperanAlWifi;
+
+  /// Descarga de varias: cuántas fallaron (se ven en Descargadas).
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 no se pudo bajar} other{{count} no se pudieron bajar}}'**
+  String nNoSePudieron(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -4645,4 +4645,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String descargasYCache(String downloads, String cache) {
     return 'DESCARGAS $downloads · CACHÉ $cache';
   }
+
+  @override
+  String bajandoNDeM(int done, int total) {
+    return 'Bajando: $done de $total';
+  }
+
+  @override
+  String get conElAhorroDeDatosEsperanAlWifi =>
+      'Con el ahorro de datos, esperan al WiFi.';
+
+  @override
+  String nNoSePudieron(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count no se pudieron bajar',
+      one: '1 no se pudo bajar',
+    );
+    return '$_temp0';
+  }
 }

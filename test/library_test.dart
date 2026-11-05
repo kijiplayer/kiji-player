@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:kiji_player/features/downloads/data/auto_downloads.dart';
+import 'package:kiji_player/features/downloads/presentation/batch_download_progress.dart';
 
 import 'package:kiji_player/features/local_library/domain/library_order.dart';
 import 'package:kiji_player/features/local_library/presentation/local_library_screen.dart';
@@ -92,6 +96,34 @@ void main() {
         find.ancestor(of: find.byKey(const Key('library-tab-songs')), matching: find.byType(Semantics)).first,
       );
       expect(selected.properties.selected, isTrue);
+    });
+  }
+
+  for (final style in KijiStyle.values) {
+    testWidgets('Descarga de varias en ${style.name}: cuántas van, el avance y por qué esperan', (tester) async {
+      KijiLook.style = style;
+      KijiColors.palette = KijiPalette.forStyle(style);
+      addTearDown(() {
+        KijiLook.style = KijiStyle.nocturne;
+        KijiColors.palette = KijiPalette.nocturne;
+      });
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            batchProgressProvider.overrideWithValue(
+              const BatchProgress(done: 1, failed: 1, total: 4, fraction: 0.6, waitingReason: 'Con el ahorro de datos, esperan al WiFi.'),
+            ),
+          ],
+          child: const MaterialApp(home: Scaffold(body: BatchDownloadProgress())),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('Bajando: 2 de 4'), findsOneWidget);
+      expect(find.text('60 %'), findsOneWidget);
+      expect(find.textContaining('1 no se pudo bajar'), findsOneWidget);
     });
   }
 }

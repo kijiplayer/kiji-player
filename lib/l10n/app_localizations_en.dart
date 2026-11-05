@@ -4635,4 +4635,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String descargasYCache(String downloads, String cache) {
     return 'DOWNLOADS $downloads · CACHE $cache';
   }
+
+  @override
+  String bajandoNDeM(int done, int total) {
+    return 'Downloading: $done of $total';
+  }
+
+  @override
+  String get conElAhorroDeDatosEsperanAlWifi =>
+      'With data saver on, they wait for WiFi.';
+
+  @override
+  String nNoSePudieron(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count couldn\'t be downloaded',
+      one: '1 couldn\'t be downloaded',
+    );
+    return '$_temp0';
+  }
 }

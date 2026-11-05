@@ -15,6 +15,7 @@ import '../../../utils/duration_formatter.dart';
 import '../../../widgets/nocturne/staggered.dart';
 import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/glass.dart';
+import '../../downloads/presentation/batch_download_progress.dart';
 import '../../downloads/presentation/downloads_screen.dart';
 import '../../playlists/presentation/playlist_screens.dart';
 import '../../queue/presentation/track_actions.dart';
@@ -171,6 +172,8 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                     songCount: all.length,
                     onPlayAll: songs.isEmpty ? null : () => ref.read(playbackProvider.notifier).playQueue(songs),
                   ),
+                  // Varias bajando a la vez: el avance de todas juntas (en Descargadas ya va arriba).
+                  if (_tab != LibraryTab.downloads) const BatchDownloadProgress(padding: EdgeInsets.only(top: 10)),
                   const SizedBox(height: 14),
                   LibraryTabs(
                     selected: _tab,

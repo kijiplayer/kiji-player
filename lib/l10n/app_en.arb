@@ -1259,5 +1259,8 @@
   "ordenRecientes": "Recent",
   "enEsteEquipo": "On this device",
   "ordenar": "Sort",
-  "descargasYCache": "DOWNLOADS {downloads} · CACHE {cache}"
+  "descargasYCache": "DOWNLOADS {downloads} · CACHE {cache}",
+  "bajandoNDeM": "Downloading: {done} of {total}",
+  "conElAhorroDeDatosEsperanAlWifi": "With data saver on, they wait for WiFi.",
+  "nNoSePudieron": "{count, plural, =1{1 couldn't be downloaded} other{{count} couldn't be downloaded}}"
 }

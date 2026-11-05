@@ -2765,5 +2765,11 @@
   "ordenar": "Ordenar",
   "@ordenar": {"description": "Biblioteca: botón del orden."},
   "descargasYCache": "DESCARGAS {downloads} · CACHÉ {cache}",
-  "@descargasYCache": {"description": "Biblioteca: lo que ocupa cada parte, bajo la barra de espacio.", "placeholders": {"downloads": {"type": "String"}, "cache": {"type": "String"}}}
+  "@descargasYCache": {"description": "Biblioteca: lo que ocupa cada parte, bajo la barra de espacio.", "placeholders": {"downloads": {"type": "String"}, "cache": {"type": "String"}}},
+  "bajandoNDeM": "Bajando: {done} de {total}",
+  "@bajandoNDeM": {"description": "Descarga de varias: cuántas van de la tanda.", "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "conElAhorroDeDatosEsperanAlWifi": "Con el ahorro de datos, esperan al WiFi.",
+  "@conElAhorroDeDatosEsperanAlWifi": {"description": "Descarga de varias: frenadas por el ahorro de datos con datos móviles."},
+  "nNoSePudieron": "{count, plural, =1{1 no se pudo bajar} other{{count} no se pudieron bajar}}",
+  "@nNoSePudieron": {"description": "Descarga de varias: cuántas fallaron (se ven en Descargadas).", "placeholders": {"count": {"type": "int"}}}
 }
