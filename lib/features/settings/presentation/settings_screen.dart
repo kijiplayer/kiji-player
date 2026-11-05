@@ -50,6 +50,7 @@ import '../../account/domain/yt_session.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
+import '../../style/presentation/accent_picker.dart';
 import '../../style/presentation/style_chooser_screen.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
@@ -593,65 +594,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: tx.colorDeAcentoDescripcion,
         keywords: const ['degradado', 'violeta', 'naranja', 'verde', 'azul'],
         builder: (context, ref) {
-          final disabled = _onlyInNocturne(ref, Icons.palette_outlined, tx.colorDeAcento);
-          if (disabled != null) return disabled;
+          // En los tres estilos: los de Kiji (Nocturne), el del estilo o un color propio.
           final accent = ref.watch(settingsProvider.select((s) => s.accent));
-          String name(String a) => switch (a) {
-            'aurora' => tx.acentoAurora,
-            'ember' => tx.acentoEmber,
-            'mint' => tx.acentoMint,
-            'ocean' => tx.acentoOcean,
-            _ => tx.acentoNocturne,
-          };
+          final custom = ref.watch(settingsProvider.select((s) => s.customAccentColor));
           return ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: Text(tx.colorDeAcento),
-            subtitle: Text(name(accent)),
-            // Una muestra de cada acento: un toque y se aplica.
-            trailing: Wrap(
-              spacing: 6,
-              children: [
-                for (final a in AppSettings.accents)
-                  Tooltip(
-                    message: name(a),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () => ref.read(settingsProvider.notifier).update((s) => s.copyWith(accent: a)),
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(colors: [KijiPalette.accents[a]!.$1, KijiPalette.accents[a]!.$2]),
-                          border: Border.all(color: a == accent ? KijiColors.text : Colors.transparent, width: 2),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            subtitle: Text(
+              custom != null
+                  ? '${tx.acentoPropio} · ${colorHex(custom)}'
+                  : (KijiLook.nocturne ? accentName(accent) : tx.acentoDelEstilo),
             ),
-            onTap: () async {
-              final picked = await showDialog<String>(
-                context: context,
-                builder: (dialog) => SimpleDialog(
-                  title: Text(tx.colorDeAcento),
-                  children: [
-                    RadioGroup<String>(
-                      groupValue: accent,
-                      onChanged: (value) => Navigator.pop(dialog, value),
-                      child: Column(
-                        children: [
-                          for (final a in AppSettings.accents) RadioListTile<String>(value: a, title: Text(name(a))),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              if (picked != null) {
-                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(accent: picked));
-              }
-            },
+            trailing: Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradient),
+            ),
+            onTap: () => showAccentPicker(context, ref),
           );
         },
       ),

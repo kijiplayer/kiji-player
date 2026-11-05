@@ -155,12 +155,77 @@ class KijiPalette {
     like: Color(0xFFB4462B),
   );
 
-  /// La paleta de [style]: Nocturne con el [theme] y el [accent] elegidos; Grafito y Papel son fijos.
-  static KijiPalette forStyle(KijiStyle style, {String theme = 'dark', String accent = 'nocturne'}) => switch (style) {
-    KijiStyle.graphite => graphite,
-    KijiStyle.paper => paper,
-    KijiStyle.nocturne => resolve(theme: theme, accent: accent),
-  };
+  /// La paleta de [style]: Nocturne con el [theme] y el [accent] elegidos; Grafito y Papel con sus
+  /// colores. Con un acento propio ([custom], en los tres estilos), ese color ajustado para que se lea.
+  static KijiPalette forStyle(
+    KijiStyle style, {
+    String theme = 'dark',
+    String accent = 'nocturne',
+    Color? custom,
+  }) {
+    final base = switch (style) {
+      KijiStyle.graphite => graphite,
+      KijiStyle.paper => paper,
+      KijiStyle.nocturne => resolve(theme: theme, accent: custom == null ? accent : 'nocturne'),
+    };
+    if (custom == null) return base;
+    // Nocturne: un degradado del color elegido a uno vecino (el tono girado). Grafito y Papel: un
+    // solo color, como su acento de siempre.
+    final second = style == KijiStyle.nocturne ? _neighbor(custom) : custom;
+    return base.withAccent(custom, second);
+  }
+
+  /// El tono de [color] girado 40° (el segundo color del degradado de Nocturne).
+  static Color _neighbor(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl.withHue((hsl.hue + 40) % 360).toColor();
+  }
+
+  /// Contraste WCAG entre dos colores opacos (1 a 21).
+  static double contrastOf(Color a, Color b) {
+    final la = a.computeLuminance(), lb = b.computeLuminance();
+    return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+  }
+
+  /// [color] aclarado (fondo oscuro) u oscurecido (fondo claro) de a poco hasta tener contraste de
+  /// 4,5:1 con todos los [behind]. Es lo que hace Kiji con un acento propio: lo muestra así, sin avisos.
+  static Color readableOn(Color color, List<Color> behind, {bool light = false}) {
+    var c = color.withValues(alpha: 1);
+    for (var i = 0; i < 60 && behind.any((b) => contrastOf(c, b) < 4.5); i++) {
+      c = Color.lerp(c, light ? Colors.black : Colors.white, 0.06)!;
+    }
+    return c;
+  }
+
+  /// Esta paleta con el acento [first]→[second] (ajustados para que se lean sobre el fondo y las
+  /// superficies) y el texto de encima que mejor se lee (claro u oscuro, también a 4,5:1).
+  KijiPalette withAccent(Color first, Color second) {
+    final behind = [background, surface, surfaceHigh];
+    final a = readableOn(first, behind, light: isLight);
+    final b = readableOn(second, behind, light: isLight);
+    // Encima del acento: el fondo (oscuro en los estilos oscuros, claro en Papel) si se lee; si no,
+    // el otro extremo.
+    final options = [background, if (isLight) Colors.white else Colors.black, text];
+    Color on = options.first;
+    for (final o in options) {
+      if (math.min(contrastOf(o, a), contrastOf(o, b)) > math.min(contrastOf(on, a), contrastOf(on, b))) on = o;
+    }
+    return KijiPalette(
+      brightness: brightness,
+      background: background,
+      violet: a,
+      cyan: b,
+      onAccent: on,
+      text: text,
+      muted: muted,
+      glassFill: glassFill,
+      glassBorder: glassBorder,
+      waveRest: waveRest,
+      surface: surface,
+      surfaceHigh: surfaceHigh,
+      like: like,
+    );
+  }
 
   /// Acentos (el primer color y el segundo del degradado). En el tema claro el segundo se
   /// oscurece un poco para que se lea sobre blanco.

@@ -2661,5 +2661,19 @@
   "bajarLaLetraConLasDescargas": "Bajar la letra con las descargas",
   "@bajarLaLetraConLasDescargas": {"description": "Configuración → Almacenamiento."},
   "bajarLaLetraConLasDescargasNota": "Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.",
-  "@bajarLaLetraConLasDescargasNota": {"description": "Configuración → Almacenamiento: qué hace y a quién se pregunta."}
+  "@bajarLaLetraConLasDescargasNota": {"description": "Configuración → Almacenamiento: qué hace y a quién se pregunta."},
+  "acentoPropio": "Tu color",
+  "@acentoPropio": {"description": "Color de acento elegido por el usuario."},
+  "acentoDelEstilo": "El del estilo",
+  "@acentoDelEstilo": {"description": "Color de acento: el propio de Grafito o Papel."},
+  "colorMatiz": "Tono",
+  "@colorMatiz": {"description": "Selector de color: el tono (la rueda de colores)."},
+  "colorLuz": "Luz",
+  "@colorLuz": {"description": "Selector de color: más claro o más oscuro."},
+  "colorHex": "Código (hex)",
+  "@colorHex": {"description": "Selector de color: el color en código, como #7C5CFF."},
+  "asiSeVera": "Así se verá",
+  "@asiSeVera": {"description": "Selector de color: muestra del color ya ajustado."},
+  "acentoAjustadoNota": "Kiji lo aclara u oscurece lo justo para que siempre se lea.",
+  "@acentoAjustadoNota": {"description": "Selector de color: por qué el color puede verse un poco distinto."}
 }

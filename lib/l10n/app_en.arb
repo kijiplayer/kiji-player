@@ -1207,5 +1207,12 @@
   "pantallaCompleta": "Full screen",
   "salirDePantallaCompleta": "Exit full screen",
   "bajarLaLetraConLasDescargas": "Download lyrics with songs",
-  "bajarLaLetraConLasDescargasNota": "Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on; with “Download on Wi-Fi only” or data saver, it waits for Wi-Fi."
+  "bajarLaLetraConLasDescargasNota": "Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on; with “Download on Wi-Fi only” or data saver, it waits for Wi-Fi.",
+  "acentoPropio": "Your color",
+  "acentoDelEstilo": "The style's own",
+  "colorMatiz": "Hue",
+  "colorLuz": "Lightness",
+  "colorHex": "Code (hex)",
+  "asiSeVera": "How it will look",
+  "acentoAjustadoNota": "Kiji lightens or darkens it just enough so it's always readable."
 }

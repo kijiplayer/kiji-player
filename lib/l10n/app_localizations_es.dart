@@ -4477,4 +4477,26 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get bajarLaLetraConLasDescargasNota =>
       'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.';
+
+  @override
+  String get acentoPropio => 'Tu color';
+
+  @override
+  String get acentoDelEstilo => 'El del estilo';
+
+  @override
+  String get colorMatiz => 'Tono';
+
+  @override
+  String get colorLuz => 'Luz';
+
+  @override
+  String get colorHex => 'Código (hex)';
+
+  @override
+  String get asiSeVera => 'Así se verá';
+
+  @override
+  String get acentoAjustadoNota =>
+      'Kiji lo aclara u oscurece lo justo para que siempre se lea.';
 }

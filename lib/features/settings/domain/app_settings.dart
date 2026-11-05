@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import '../../lyrics/domain/lyrics.dart';
 
 /// Preferencias de Kiji. Se guardan solo en el teléfono.
@@ -37,6 +39,7 @@ class AppSettings {
     this.timeFormat = 'system',
     this.downloadLiked = false,
     this.accent = 'nocturne',
+    this.customAccent,
     this.theme = 'dark',
     this.font = 'kiji',
     this.lyricsSize = 'normal',
@@ -70,6 +73,9 @@ class AppSettings {
 
   /// Colores de acento (Configuración → Apariencia). El primero es el de siempre.
   static const accents = ['nocturne', 'aurora', 'ember', 'mint', 'ocean'];
+
+  /// Acento propio (un color elegido por el usuario, en los tres estilos): va en [customAccent].
+  static const customAccentName = 'custom';
 
   /// Temas: oscuro (el de siempre), más oscuro (negro puro, ahorra batería en OLED) y claro.
   static const themes = ['dark', 'darker', 'light'];
@@ -194,6 +200,12 @@ class AppSettings {
 
   /// Personalización: color de acento, tema, tipografía y tamaño de la letra de las canciones.
   final String accent;
+
+  /// Con `accent == 'custom'`: el color elegido (ARGB). Kiji lo ajusta para que se lea.
+  final int? customAccent;
+
+  /// El color propio, si se eligió uno.
+  Color? get customAccentColor => accent == customAccentName && customAccent != null ? Color(customAccent!) : null;
   final String theme;
   final String font;
   final String lyricsSize;
@@ -257,6 +269,7 @@ class AppSettings {
     String? timeFormat,
     bool? downloadLiked,
     String? accent,
+    int? customAccent,
     String? theme,
     String? font,
     String? lyricsSize,
@@ -301,6 +314,7 @@ class AppSettings {
         timeFormat: timeFormat ?? this.timeFormat,
         downloadLiked: downloadLiked ?? this.downloadLiked,
         accent: accent ?? this.accent,
+        customAccent: customAccent ?? this.customAccent,
         theme: theme ?? this.theme,
         font: font ?? this.font,
         lyricsSize: lyricsSize ?? this.lyricsSize,
@@ -347,6 +361,7 @@ class AppSettings {
         'timeFormat': timeFormat,
         'downloadLiked': downloadLiked,
         'accent': accent,
+        'customAccent': ?customAccent,
         'theme': theme,
         'font': font,
         'lyricsSize': lyricsSize,
@@ -403,7 +418,10 @@ class AppSettings {
       language: languages.contains(json['language']) ? json['language'] as String : d.language,
       timeFormat: timeFormats.contains(json['timeFormat']) ? json['timeFormat'] as String : d.timeFormat,
       downloadLiked: read('downloadLiked', d.downloadLiked),
-      accent: accents.contains(json['accent']) ? json['accent'] as String : d.accent,
+      accent: accents.contains(json['accent']) || (json['accent'] == customAccentName && json['customAccent'] is int)
+          ? json['accent'] as String
+          : d.accent,
+      customAccent: json['customAccent'] is int ? json['customAccent'] as int : null,
       theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,

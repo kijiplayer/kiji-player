@@ -7246,6 +7246,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.'**
   String get bajarLaLetraConLasDescargasNota;
+
+  /// Color de acento elegido por el usuario.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu color'**
+  String get acentoPropio;
+
+  /// Color de acento: el propio de Grafito o Papel.
+  ///
+  /// In es, this message translates to:
+  /// **'El del estilo'**
+  String get acentoDelEstilo;
+
+  /// Selector de color: el tono (la rueda de colores).
+  ///
+  /// In es, this message translates to:
+  /// **'Tono'**
+  String get colorMatiz;
+
+  /// Selector de color: más claro o más oscuro.
+  ///
+  /// In es, this message translates to:
+  /// **'Luz'**
+  String get colorLuz;
+
+  /// Selector de color: el color en código, como #7C5CFF.
+  ///
+  /// In es, this message translates to:
+  /// **'Código (hex)'**
+  String get colorHex;
+
+  /// Selector de color: muestra del color ya ajustado.
+  ///
+  /// In es, this message translates to:
+  /// **'Así se verá'**
+  String get asiSeVera;
+
+  /// Selector de color: por qué el color puede verse un poco distinto.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji lo aclara u oscurece lo justo para que siempre se lea.'**
+  String get acentoAjustadoNota;
 }
 
 class _AppLocalizationsDelegate

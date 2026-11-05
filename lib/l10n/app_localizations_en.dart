@@ -4468,4 +4468,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get bajarLaLetraConLasDescargasNota =>
       'Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on; with “Download on Wi-Fi only” or data saver, it waits for Wi-Fi.';
+
+  @override
+  String get acentoPropio => 'Your color';
+
+  @override
+  String get acentoDelEstilo => 'The style\'s own';
+
+  @override
+  String get colorMatiz => 'Hue';
+
+  @override
+  String get colorLuz => 'Lightness';
+
+  @override
+  String get colorHex => 'Code (hex)';
+
+  @override
+  String get asiSeVera => 'How it will look';
+
+  @override
+  String get acentoAjustadoNota =>
+      'Kiji lightens or darkens it just enough so it\'s always readable.';
 }

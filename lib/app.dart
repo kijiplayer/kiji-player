@@ -205,11 +205,13 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   /// Tema, acento y tipografía (Configuración → Apariencia). Los colores salen de una paleta
   /// global ([KijiColors.palette]): al cambiarla se redibuja todo, como con el idioma.
   void _applyAppearance() {
-    final (styleName, theme, accent, font, rich, calm) = ref.watch(
-      settingsProvider.select((s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion)),
+    final (styleName, theme, accent, font, rich, calm, custom) = ref.watch(
+      settingsProvider.select(
+        (s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion, s.customAccentColor),
+      ),
     );
     final style = KijiStyle.parse(styleName);
-    final palette = KijiPalette.forStyle(style, theme: theme, accent: accent);
+    final palette = KijiPalette.forStyle(style, theme: theme, accent: accent, custom: custom);
     final systemFont = font == 'system';
     if (style == KijiLook.style &&
         palette == KijiColors.palette &&
