@@ -4476,5 +4476,5 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bajarLaLetraConLasDescargasNota =>
-      'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas.';
+      'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.';
 }

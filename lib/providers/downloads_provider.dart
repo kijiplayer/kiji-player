@@ -224,6 +224,11 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   Future<bool> _saveLyrics(DownloadedTrack entry) async {
     final settings = ref.read(settingsProvider);
     if (!settings.downloadLyrics || entry.lyricsFileName != null) return false;
+    // Con "solo con WiFi" o el ahorro de datos, sin WiFi se espera: se retoma al volver el WiFi.
+    if (!await _lyricsNetworkOk()) {
+      _waitForWifiForLyrics();
+      return false;
+    }
     try {
       final lyrics = await ref
           .read(lyricsRepositoryProvider)
@@ -260,10 +265,37 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     await _lyricsForOldDownloads();
   }
 
+  /// La letra se baja solo si no hay que cuidar los datos: con "solo con WiFi" o el ahorro de
+  /// datos, únicamente con WiFi (o cable).
+  Future<bool> _lyricsNetworkOk() async {
+    final careful = state.settings.wifiOnly || ref.read(settingsProvider).dataSaver;
+    return !careful || await _onWifiOrEthernet();
+  }
+
+  StreamSubscription<List<ConnectivityResult>>? _wifiForLyrics;
+
+  /// Espera al WiFi para bajar las letras que quedaron pendientes (una sola espera a la vez).
+  void _waitForWifiForLyrics() {
+    if (_wifiForLyrics != null) return;
+    debugPrint('=== DESCARGAS: letras pendientes hasta que haya WiFi ===');
+    try {
+      _wifiForLyrics = Connectivity().onConnectivityChanged.listen((result) {
+        if (!result.contains(ConnectivityResult.wifi) && !result.contains(ConnectivityResult.ethernet)) return;
+        unawaited(_wifiForLyrics?.cancel());
+        _wifiForLyrics = null;
+        unawaited(_lyricsForOldDownloads());
+      });
+      ref.onDispose(() => _wifiForLyrics?.cancel());
+    } catch (error) {
+      debugPrint('=== DESCARGAS: no se puede seguir la conexión: $error ===');
+    }
+  }
+
   /// Descargas sin letra guardada: se busca de a una, sin apuro. Si fallan 3 seguidas (sin
   /// internet), sigue la próxima vez.
   Future<void> _lyricsForOldDownloads() async {
     if (!ref.read(settingsProvider).downloadLyrics) return;
+    if (!await _lyricsNetworkOk()) return _waitForWifiForLyrics();
     final pending = [for (final d in state.completed.values) if (d.lyricsFileName == null) d];
     if (pending.isEmpty) return;
     debugPrint('=== DESCARGAS: ${pending.length} sin letra guardada; se busca en segundo plano ===');

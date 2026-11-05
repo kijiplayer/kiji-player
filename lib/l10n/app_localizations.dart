@@ -7244,7 +7244,7 @@ abstract class AppLocalizations {
   /// Configuración → Almacenamiento: qué hace y a quién se pregunta.
   ///
   /// In es, this message translates to:
-  /// **'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas.'**
+  /// **'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.'**
   String get bajarLaLetraConLasDescargasNota;
 }
 

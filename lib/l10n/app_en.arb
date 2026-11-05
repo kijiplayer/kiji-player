@@ -1207,5 +1207,5 @@
   "pantallaCompleta": "Full screen",
   "salirDePantallaCompleta": "Exit full screen",
   "bajarLaLetraConLasDescargas": "Download lyrics with songs",
-  "bajarLaLetraConLasDescargasNota": "Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on."
+  "bajarLaLetraConLasDescargasNota": "Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on; with “Download on Wi-Fi only” or data saver, it waits for Wi-Fi."
 }
