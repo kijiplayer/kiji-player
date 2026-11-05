@@ -7504,6 +7504,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).'**
   String get mostrarNombresDeLosBotonesNota;
+
+  /// Biblioteca: pasar a la vista de lista.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver en lista'**
+  String get verEnLista;
+
+  /// Biblioteca: pasar a la vista de cuadrícula.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver en cuadrícula'**
+  String get verEnCuadricula;
+
+  /// Biblioteca: el filtro elegido no deja ninguna.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay canciones con este filtro.'**
+  String get noHayCancionesConEsteFiltro;
+
+  /// Biblioteca: ordenar por duración.
+  ///
+  /// In es, this message translates to:
+  /// **'Duración'**
+  String get duracion;
+
+  /// Biblioteca: el orden de siempre (lo más nuevo primero).
+  ///
+  /// In es, this message translates to:
+  /// **'Recientes'**
+  String get ordenRecientes;
+
+  /// Biblioteca: filtro de la música local (del teléfono o la PC).
+  ///
+  /// In es, this message translates to:
+  /// **'En el equipo'**
+  String get enEsteEquipo;
+
+  /// Biblioteca: botón del orden.
+  ///
+  /// In es, this message translates to:
+  /// **'Ordenar'**
+  String get ordenar;
+
+  /// Biblioteca: lo que ocupa cada parte, bajo la barra de espacio.
+  ///
+  /// In es, this message translates to:
+  /// **'DESCARGAS {downloads} · CACHÉ {cache}'**
+  String descargasYCache(String downloads, String cache);
 }
 
 class _AppLocalizationsDelegate

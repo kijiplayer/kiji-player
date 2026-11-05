@@ -21,6 +21,9 @@ class AppSettings {
     this.personalized = false,
     this.playerMode = 'normal',
     this.playerButtonLabels = true,
+    this.librarySort = 'recent',
+    this.libraryFilter = 'all',
+    this.libraryView = 'list',
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -152,6 +155,15 @@ class AppSettings {
   /// La fila de abajo del reproductor muestra el nombre de cada botón (si no, solo los íconos).
   final bool playerButtonLabels;
 
+  /// Biblioteca → Canciones: el orden ('recent', 'title', 'artist', 'duration'), qué se muestra
+  /// ('all', 'downloaded', 'local') y la vista de canciones y playlists ('list' o 'grid').
+  final String librarySort;
+  final String libraryFilter;
+  final String libraryView;
+  static const librarySorts = ['recent', 'title', 'artist', 'duration'];
+  static const libraryFilters = ['all', 'downloaded', 'local'];
+  static const libraryViews = ['list', 'grid'];
+
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
 
@@ -278,6 +290,9 @@ class AppSettings {
     bool? personalized,
     String? playerMode,
     bool? playerButtonLabels,
+    String? librarySort,
+    String? libraryFilter,
+    String? libraryView,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -332,6 +347,9 @@ class AppSettings {
         personalized: personalized ?? this.personalized,
         playerMode: playerMode ?? this.playerMode,
         playerButtonLabels: playerButtonLabels ?? this.playerButtonLabels,
+        librarySort: librarySort ?? this.librarySort,
+        libraryFilter: libraryFilter ?? this.libraryFilter,
+        libraryView: libraryView ?? this.libraryView,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -386,6 +404,9 @@ class AppSettings {
         'personalized': personalized,
         'playerMode': playerMode,
         'playerButtonLabels': playerButtonLabels,
+        'librarySort': librarySort,
+        'libraryFilter': libraryFilter,
+        'libraryView': libraryView,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -446,6 +467,9 @@ class AppSettings {
       personalized: read('personalized', d.personalized),
       playerMode: playerModes.contains(json['playerMode']) ? json['playerMode'] as String : d.playerMode,
       playerButtonLabels: read('playerButtonLabels', d.playerButtonLabels),
+      librarySort: librarySorts.contains(json['librarySort']) ? json['librarySort'] as String : d.librarySort,
+      libraryFilter: libraryFilters.contains(json['libraryFilter']) ? json['libraryFilter'] as String : d.libraryFilter,
+      libraryView: libraryViews.contains(json['libraryView']) ? json['libraryView'] as String : d.libraryView,
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

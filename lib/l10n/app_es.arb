@@ -2749,5 +2749,21 @@
   "mostrarNombresDeLosBotones": "Mostrar nombres de los botones",
   "@mostrarNombresDeLosBotones": {"description": "Configuración → Reproductor: nombres bajo los íconos de la fila de abajo."},
   "mostrarNombresDeLosBotonesNota": "Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).",
-  "@mostrarNombresDeLosBotonesNota": {"description": "Configuración: explicación de mostrar nombres de los botones."}
+  "@mostrarNombresDeLosBotonesNota": {"description": "Configuración: explicación de mostrar nombres de los botones."},
+  "verEnLista": "Ver en lista",
+  "@verEnLista": {"description": "Biblioteca: pasar a la vista de lista."},
+  "verEnCuadricula": "Ver en cuadrícula",
+  "@verEnCuadricula": {"description": "Biblioteca: pasar a la vista de cuadrícula."},
+  "noHayCancionesConEsteFiltro": "No hay canciones con este filtro.",
+  "@noHayCancionesConEsteFiltro": {"description": "Biblioteca: el filtro elegido no deja ninguna."},
+  "duracion": "Duración",
+  "@duracion": {"description": "Biblioteca: ordenar por duración."},
+  "ordenRecientes": "Recientes",
+  "@ordenRecientes": {"description": "Biblioteca: el orden de siempre (lo más nuevo primero)."},
+  "enEsteEquipo": "En el equipo",
+  "@enEsteEquipo": {"description": "Biblioteca: filtro de la música local (del teléfono o la PC)."},
+  "ordenar": "Ordenar",
+  "@ordenar": {"description": "Biblioteca: botón del orden."},
+  "descargasYCache": "DESCARGAS {downloads} · CACHÉ {cache}",
+  "@descargasYCache": {"description": "Biblioteca: lo que ocupa cada parte, bajo la barra de espacio.", "placeholders": {"downloads": {"type": "String"}, "cache": {"type": "String"}}}
 }

@@ -24,6 +24,7 @@ import 'package:kiji_player/features/account/presentation/account_screens.dart';
 import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
 import 'package:kiji_player/features/customize/data/track_overrides.dart';
 import 'package:kiji_player/features/downloads/presentation/downloads_screen.dart';
+import 'package:kiji_player/features/downloads/presentation/download_button.dart';
 import 'package:kiji_player/features/equalizer/presentation/sound_screen.dart';
 import 'package:kiji_player/features/history/listening_history.dart';
 import 'package:kiji_player/features/import/presentation/import_screen.dart';
@@ -335,8 +336,8 @@ Future<void> _step(WidgetTester tester, String name, Future<void> Function() bod
 }
 
 /// Selección múltiple: mantener presionada la primera fila, captura, "todas", captura y cerrar.
-Future<void> _selection(WidgetTester tester, String name) async {
-  final rows = find.byType(ListTile);
+Future<void> _selection(WidgetTester tester, String name, {Finder? only}) async {
+  final rows = only ?? find.byType(ListTile);
   if (rows.evaluate().isEmpty) throw StateError('no hay filas para elegir');
   // En una ventana baja (teléfono girado) la primera fila queda debajo del mini-reproductor: se sube
   // la lista primero, como haría una persona.
@@ -380,9 +381,37 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
       await tester.pump(const Duration(milliseconds: 250));
     }
     await _shot(tester, '$tag-buscar-resultados');
+    // Selección múltiple en los resultados (solo en las canciones: las que tienen el botón de bajar).
+    if (online) {
+      await _step(
+        tester,
+        '$tag-buscar-seleccion',
+        () => _selection(
+          tester,
+          '$tag-buscar-seleccion',
+          only: find.ancestor(of: find.byType(DownloadButton), matching: find.byType(ListTile)),
+        ),
+        pops: 0,
+      );
+    }
   }
 
   await _tab(tester, Icons.library_music_rounded, '$tag-biblioteca');
+  // Biblioteca → Canciones, en lista y en cuadrícula (y de vuelta a la lista, la de fábrica).
+  await _step(tester, '$tag-biblioteca-canciones', () async {
+    final songsTab = find.byKey(const Key('library-tab-songs'));
+    if (songsTab.evaluate().isEmpty) return;
+    await tester.tap(songsTab.first, warnIfMissed: false);
+    await _settle(tester);
+    await _shot(tester, '$tag-biblioteca-canciones');
+    final toggle = find.byKey(const Key('library-view-toggle'));
+    if (toggle.evaluate().isEmpty) return;
+    await tester.tap(toggle.first, warnIfMissed: false);
+    await _settle(tester);
+    await _shot(tester, '$tag-biblioteca-cuadricula');
+    await tester.tap(find.byKey(const Key('library-view-toggle')).first, warnIfMissed: false);
+    await _settle(tester);
+  }, pops: 0);
 
   // Reproducir dos canciones inventadas (locales) y pasar por el reproductor.
   final player = container.read(playbackProvider.notifier);

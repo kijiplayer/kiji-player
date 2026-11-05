@@ -4619,4 +4619,30 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get mostrarNombresDeLosBotonesNota =>
       'Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).';
+
+  @override
+  String get verEnLista => 'Ver en lista';
+
+  @override
+  String get verEnCuadricula => 'Ver en cuadrícula';
+
+  @override
+  String get noHayCancionesConEsteFiltro => 'No hay canciones con este filtro.';
+
+  @override
+  String get duracion => 'Duración';
+
+  @override
+  String get ordenRecientes => 'Recientes';
+
+  @override
+  String get enEsteEquipo => 'En el equipo';
+
+  @override
+  String get ordenar => 'Ordenar';
+
+  @override
+  String descargasYCache(String downloads, String cache) {
+    return 'DESCARGAS $downloads · CACHÉ $cache';
+  }
 }

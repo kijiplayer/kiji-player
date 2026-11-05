@@ -4609,4 +4609,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mostrarNombresDeLosBotonesNota =>
       'Lyrics, Queue, Sound, Timer and Moment, with their name below. Off leaves only the icons (the name shows when you press and hold or hover).';
+
+  @override
+  String get verEnLista => 'List view';
+
+  @override
+  String get verEnCuadricula => 'Grid view';
+
+  @override
+  String get noHayCancionesConEsteFiltro => 'No songs match this filter.';
+
+  @override
+  String get duracion => 'Length';
+
+  @override
+  String get ordenRecientes => 'Recent';
+
+  @override
+  String get enEsteEquipo => 'On this device';
+
+  @override
+  String get ordenar => 'Sort';
+
+  @override
+  String descargasYCache(String downloads, String cache) {
+    return 'DOWNLOADS $downloads · CACHE $cache';
+  }
 }
