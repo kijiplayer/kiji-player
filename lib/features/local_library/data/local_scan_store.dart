@@ -45,6 +45,25 @@ class LocalScanStore {
   /// hace menos de 10 s se devuelve lo mismo (la Biblioteca y la búsqueda lo piden casi a la vez);
   /// [force] ("Volver a escanear") vuelve a leer todos los archivos.
   Future<List<Track>> scan({List<String>? roots, List<ScanEntry>? entries, bool force = false}) async {
+    // Uno a la vez: si ya hay un escaneo en curso, se espera ese (dos a la vez se pisan al
+    // guardar las portadas). "Volver a escanear" espera y después lee todo.
+    final running = _running;
+    if (running != null) {
+      final result = await running;
+      if (!force) return result;
+    }
+    final future = _scan(roots: roots, entries: entries, force: force);
+    _running = future;
+    try {
+      return await future;
+    } finally {
+      if (identical(_running, future)) _running = null;
+    }
+  }
+
+  Future<List<Track>>? _running;
+
+  Future<List<Track>> _scan({List<String>? roots, List<ScanEntry>? entries, required bool force}) async {
     final last = _last, lastAt = _lastAt;
     if (!force && last != null && lastAt != null && DateTime.now().difference(lastAt) < const Duration(seconds: 10)) {
       return last;

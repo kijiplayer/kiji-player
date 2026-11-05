@@ -95,11 +95,11 @@ List<ScanEntry> listAudioFiles(List<String> roots) {
             ),
           );
         } catch (error) {
-          debugPrint('=== BIBLIOTECA: no se pudo leer ${entity.path}: $error ===');
+          debugPrint('=== BIBLIOTECA: no se pudo leer un archivo (${p.extension(entity.path)}): ${error.runtimeType} ===');
         }
       }
     } catch (error) {
-      debugPrint('=== BIBLIOTECA: no se pudo recorrer $root: $error ===');
+      debugPrint('=== BIBLIOTECA: no se pudo recorrer una carpeta: ${error.runtimeType} ===');
     }
   }
   return entries;
@@ -158,7 +158,7 @@ String? findFolderCover(String dir) {
     }
   } catch (error) {
     // En Android, sin permiso de imágenes no se ve la carpeta: queda la portada generada.
-    debugPrint('=== BIBLIOTECA: sin imagen de carpeta en $dir: ${error.runtimeType} ===');
+    debugPrint('=== BIBLIOTECA: sin imagen de carpeta: ${error.runtimeType} ===');
   }
   return null;
 }
@@ -183,7 +183,7 @@ Map<String, dynamic> readSong(ScanEntry entry, {String? artworkDir, String? fold
       }
     }
   } catch (error) {
-    debugPrint('=== BIBLIOTECA: sin etiquetas en ${entry.path}: ${error.runtimeType} ===');
+    debugPrint('=== BIBLIOTECA: sin etiquetas (${p.extension(entry.path)}): ${error.runtimeType} ===');
   }
   String? clean(String? s) {
     final v = s?.trim();
@@ -232,7 +232,7 @@ bool _saveArtwork(AudioMetadata? tags, String artworkDir, String path) {
     temp.renameSync(target.path);
     return true;
   } catch (error) {
-    debugPrint('=== BIBLIOTECA: no se pudo guardar la portada de $path: ${error.runtimeType} ===');
+    debugPrint('=== BIBLIOTECA: no se pudo guardar una portada: ${error.runtimeType} ===');
     return false;
   }
 }

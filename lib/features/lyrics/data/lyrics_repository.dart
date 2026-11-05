@@ -291,7 +291,7 @@ Lyrics? readEmbeddedLyrics(String path) {
         ? Lyrics(synced: synced, source: LyricsSource.embedded)
         : Lyrics(plain: text, source: LyricsSource.embedded);
   } catch (error) {
-    debugPrint('=== LETRAS: sin letra incluida en $path: $error ===');
+    debugPrint('=== LETRAS: sin letra incluida en el archivo: ${error.runtimeType} ===');
     return null;
   }
 }
