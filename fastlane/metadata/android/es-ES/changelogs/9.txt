@@ -1,6 +1,5 @@
-• Reproductor nuevo: el play dentro de un anillo de progreso, modo compacto y pantalla completa.
-• Personaliza Kiji: estilo, color libre, fuente y fondo propio (también video en la PC), estilo por canción y temas .kiji para compartir.
-• Grafito, más simple y serio.
-• Sonido: ecualizador también en la PC, presets propios, bajos, velocidad, tono y mezcla de 0 a 12 s.
-• Letras: karaoke palabra por palabra y letra guardada con las descargas.
-• Búsqueda mejor ordenada y con más resultados.
+• Reproductor nuevo: el play en un anillo con la onda de la canción, modo compacto y pantalla completa.
+• Personaliza Kiji: estilo, color, fuente y fondo propio (video también en la PC), estilo por canción y temas .kiji.
+• Biblioteca nueva: orden, filtros, cuadrícula y selección múltiple (también en la búsqueda) con descarga de varias.
+• Sonido: ecualizador en la PC, presets, bajos, velocidad, tono y mezcla.
+• Letras: karaoke palabra por palabra y guardadas con las descargas.

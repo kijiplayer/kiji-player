@@ -1,6 +1,5 @@
-• New player: play inside a progress ring, compact mode and full screen.
-• Personalize Kiji: style, any color, font and your own background (video on PC too), per-song style and shareable .kiji themes.
-• Graphite, simpler and more serious.
-• Sound: equalizer on PC too, your own presets, bass, speed, pitch and 0–12 s crossfade.
-• Lyrics: word-by-word karaoke and lyrics saved with downloads.
-• Better-ordered search with more results.
+• New player: play inside a ring with the song's wave, compact and full screen modes.
+• Personalize Kiji: style, color, font and your own background (video on PC too), per-song style and .kiji themes.
+• New Library: sorting, filters, grid and multi-select (in search too) with batch downloads.
+• Sound: equalizer on PC, presets, bass, speed, pitch and crossfade.
+• Lyrics: word-by-word karaoke, saved with downloads.
