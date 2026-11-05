@@ -50,7 +50,10 @@ import '../../account/domain/yt_session.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
+import '../../../widgets/nocturne/kiji_sheet.dart';
+import '../../style/data/background_store.dart';
 import '../../style/presentation/accent_picker.dart';
+import '../../style/presentation/custom_background.dart';
 import '../../style/presentation/style_chooser_screen.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
@@ -611,6 +614,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradient),
             ),
             onTap: () => showAccentPicker(context, ref),
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.fondo,
+        subtitle: BackgroundStore.videoSupported ? tx.fondoDescripcion : tx.fondoDescripcionPc,
+        keywords: const ['fondo', 'imagen', 'foto', 'gif', 'video', 'wallpaper', 'background', 'desenfoque'], // l10n-ignore
+        builder: (context, ref) {
+          final s = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
+          return ListTile(
+            leading: const Icon(Icons.wallpaper_rounded),
+            title: Text(tx.fondo),
+            subtitle: Text(s.file == null ? tx.fondoNinguno : (s.kind == 'video' ? tx.fondoVideo : tx.fondoImagen)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => showKijiSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              showDragHandle: true,
+              builder: (_) => Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tx.fondo, style: KijiText.title(size: 20)),
+                    const SizedBox(height: 14),
+                    const BackgroundOptions(),
+                  ],
+                ),
+              ),
+            ),
           );
         },
       ),

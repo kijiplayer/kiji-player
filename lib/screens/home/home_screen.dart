@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/style/presentation/custom_background.dart';
 import '../../features/downloads/presentation/downloads_screen.dart';
 import '../../features/local_library/presentation/local_library_screen.dart';
 import '../../features/updates/update_checker.dart';
@@ -66,9 +67,16 @@ class HomeScreen extends ConsumerWidget {
         const SingleActivator(LogicalKeyboardKey.keyK, control: true): () => _focusSearch(ref),
         const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () => _focusSearch(ref),
       },
-      child: LayoutBuilder(
-        builder: (context, constraints) =>
-            constraints.maxWidth >= KijiSizes.desktopBreakpoint ? const DesktopShell() : const _MobileShell(),
+      // El fondo propio (si se eligió) queda detrás de las pantallas principales.
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const CustomBackground(),
+          LayoutBuilder(
+            builder: (context, constraints) =>
+                constraints.maxWidth >= KijiSizes.desktopBreakpoint ? const DesktopShell() : const _MobileShell(),
+          ),
+        ],
       ),
     );
   }
@@ -105,6 +113,7 @@ class _MobileShell extends ConsumerWidget {
     final short = MediaQuery.sizeOf(context).height < shortHeight;
     return Scaffold(
       extendBody: true,
+      backgroundColor: ref.watch(hasCustomBackgroundProvider) ? Colors.transparent : null,
       body: const SafeArea(bottom: false, child: ShellTabContent()),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.only(bottom: 12),

@@ -1214,5 +1214,19 @@
   "colorLuz": "Lightness",
   "colorHex": "Code (hex)",
   "asiSeVera": "How it will look",
-  "acentoAjustadoNota": "Kiji lightens or darkens it just enough so it's always readable."
+  "acentoAjustadoNota": "Kiji lightens or darkens it just enough so it's always readable.",
+  "fondo": "Background",
+  "fondoDescripcion": "An image, GIF or video of your own behind Kiji",
+  "fondoDescripcionPc": "An image or GIF of your own behind Kiji",
+  "fondoNinguno": "The style's own",
+  "fondoImagen": "Image",
+  "fondoVideo": "Video",
+  "elegirImagen": "Choose an image or GIF",
+  "elegirVideo": "Choose a video",
+  "quitarFondo": "Remove background",
+  "desenfoque": "Blur",
+  "opacidad": "Opacity",
+  "fondoPrivadoNota": "It's copied inside Kiji and never leaves this device. Videos play muted and on a loop, and stay still when Kiji isn't visible or with battery saver on.",
+  "fondoPrivadoNotaPc": "It's copied inside Kiji and never leaves this device.",
+  "fondoNoSePudo": "That file couldn't be used. Try another one."
 }

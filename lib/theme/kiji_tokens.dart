@@ -341,6 +341,21 @@ abstract final class KijiColors {
       LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [violet, cyan]);
 }
 
+/// Fondo propio (Apariencia → Fondo): la capa del color del estilo que va encima de la foto o el
+/// video para que el texto se lea siempre (4,5:1 el texto y el gris secundario), aunque la foto sea
+/// blanca (estilos oscuros) o negra (Papel). Se usa la menor que alcance.
+double backgroundScrim(KijiPalette palette, double opacity) {
+  final worst = palette.isLight ? Colors.black : Colors.white;
+  final behind = Color.lerp(palette.background, worst, opacity.clamp(0, 1))!;
+  for (var s = 0.0; s <= 1.0; s += 0.02) {
+    final result = Color.lerp(behind, palette.background, s)!;
+    if (KijiPalette.contrastOf(palette.muted, result) >= 4.5 && KijiPalette.contrastOf(palette.text, result) >= 4.5) {
+      return s;
+    }
+  }
+  return 1;
+}
+
 /// Medidas del "vidrio de museo" de Grafito. Son bajas a propósito: el texto secundario tiene que
 /// seguir con contraste de 4,5:1 aunque la portada sea blanca (lo comprueba `test/style_test.dart`).
 abstract final class KijiMuseum {

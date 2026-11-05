@@ -4490,4 +4490,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get acentoAjustadoNota =>
       'Kiji lightens or darkens it just enough so it\'s always readable.';
+
+  @override
+  String get fondoDescripcion =>
+      'An image, GIF or video of your own behind Kiji';
+
+  @override
+  String get fondoDescripcionPc => 'An image or GIF of your own behind Kiji';
+
+  @override
+  String get fondoNinguno => 'The style\'s own';
+
+  @override
+  String get fondoImagen => 'Image';
+
+  @override
+  String get fondoVideo => 'Video';
+
+  @override
+  String get elegirImagen => 'Choose an image or GIF';
+
+  @override
+  String get elegirVideo => 'Choose a video';
+
+  @override
+  String get quitarFondo => 'Remove background';
+
+  @override
+  String get desenfoque => 'Blur';
+
+  @override
+  String get opacidad => 'Opacity';
+
+  @override
+  String get fondoPrivadoNota =>
+      'It\'s copied inside Kiji and never leaves this device. Videos play muted and on a loop, and stay still when Kiji isn\'t visible or with battery saver on.';
+
+  @override
+  String get fondoPrivadoNotaPc =>
+      'It\'s copied inside Kiji and never leaves this device.';
+
+  @override
+  String get fondoNoSePudo => 'That file couldn\'t be used. Try another one.';
 }

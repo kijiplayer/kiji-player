@@ -40,6 +40,10 @@ class AppSettings {
     this.downloadLiked = false,
     this.accent = 'nocturne',
     this.customAccent,
+    this.backgroundFile,
+    this.backgroundKind = 'image',
+    this.backgroundBlur = 12,
+    this.backgroundOpacity = 0.6,
     this.theme = 'dark',
     this.font = 'kiji',
     this.lyricsSize = 'normal',
@@ -204,6 +208,17 @@ class AppSettings {
   /// Con `accent == 'custom'`: el color elegido (ARGB). Kiji lo ajusta para que se lea.
   final int? customAccent;
 
+  /// Fondo propio: el archivo copiado en `<datos de Kiji>/backgrounds/` (null = sin fondo propio).
+  final String? backgroundFile;
+
+  /// 'image' (también GIF) o 'video'.
+  final String backgroundKind;
+
+  /// Desenfoque del fondo (0 a [maxBackgroundBlur]) y cuánto se ve (0,1 a 1).
+  final double backgroundBlur;
+  final double backgroundOpacity;
+  static const maxBackgroundBlur = 30.0;
+
   /// El color propio, si se eligió uno.
   Color? get customAccentColor => accent == customAccentName && customAccent != null ? Color(customAccent!) : null;
   final String theme;
@@ -270,6 +285,11 @@ class AppSettings {
     bool? downloadLiked,
     String? accent,
     int? customAccent,
+    String? backgroundFile,
+    bool clearBackground = false,
+    String? backgroundKind,
+    double? backgroundBlur,
+    double? backgroundOpacity,
     String? theme,
     String? font,
     String? lyricsSize,
@@ -315,6 +335,10 @@ class AppSettings {
         downloadLiked: downloadLiked ?? this.downloadLiked,
         accent: accent ?? this.accent,
         customAccent: customAccent ?? this.customAccent,
+        backgroundFile: clearBackground ? null : backgroundFile ?? this.backgroundFile,
+        backgroundKind: backgroundKind ?? this.backgroundKind,
+        backgroundBlur: backgroundBlur ?? this.backgroundBlur,
+        backgroundOpacity: backgroundOpacity ?? this.backgroundOpacity,
         theme: theme ?? this.theme,
         font: font ?? this.font,
         lyricsSize: lyricsSize ?? this.lyricsSize,
@@ -362,6 +386,10 @@ class AppSettings {
         'downloadLiked': downloadLiked,
         'accent': accent,
         'customAccent': ?customAccent,
+        'backgroundFile': ?backgroundFile,
+        'backgroundKind': backgroundKind,
+        'backgroundBlur': backgroundBlur,
+        'backgroundOpacity': backgroundOpacity,
         'theme': theme,
         'font': font,
         'lyricsSize': lyricsSize,
@@ -422,6 +450,13 @@ class AppSettings {
           ? json['accent'] as String
           : d.accent,
       customAccent: json['customAccent'] is int ? json['customAccent'] as int : null,
+      // Solo un nombre de archivo (nunca una ruta: siempre dentro de la carpeta de Kiji).
+      backgroundFile: json['backgroundFile'] is String && !(json['backgroundFile'] as String).contains(RegExp(r'[\\/]'))
+          ? json['backgroundFile'] as String
+          : null,
+      backgroundKind: json['backgroundKind'] == 'video' ? 'video' : 'image',
+      backgroundBlur: (json['backgroundBlur'] as num?)?.toDouble().clamp(0, maxBackgroundBlur) ?? d.backgroundBlur,
+      backgroundOpacity: (json['backgroundOpacity'] as num?)?.toDouble().clamp(0.1, 1) ?? d.backgroundOpacity,
       theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,

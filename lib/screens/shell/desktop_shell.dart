@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/style/presentation/custom_background.dart';
 import '../../features/equalizer/presentation/sound_screen.dart';
 import '../../features/equalizer/data/equalizer_notifier.dart';
 import '../../features/sleep_timer/presentation/timer_waveform.dart';
@@ -41,6 +42,7 @@ class DesktopShell extends ConsumerWidget {
     final hasTrack = ref.watch(playbackProvider.select((p) => p.track != null));
 
     return Scaffold(
+      backgroundColor: ref.watch(hasCustomBackgroundProvider) ? Colors.transparent : null,
       body: SafeArea(
         child: Column(
           children: [

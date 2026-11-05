@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/style/presentation/custom_background.dart';
 import '../../features/customize/presentation/customize_sheets.dart';
 import '../../features/recommendations/data/home_feed_provider.dart';
 import '../../features/recommendations/domain/home_feed.dart';
@@ -76,8 +77,13 @@ class InicioTab extends ConsumerWidget {
       ),
     );
 
-    // Orden de Inicio: nunca se ve vacío.
-    return Stack(children: [aurora, _feed(context, ref, playback, recent, top, downloaded, isNew)]);
+    // Orden de Inicio: nunca se ve vacío. Con un fondo propio, sin la aurora encima.
+    return Stack(
+      children: [
+        if (!ref.watch(hasCustomBackgroundProvider)) aurora,
+        _feed(context, ref, playback, recent, top, downloaded, isNew),
+      ],
+    );
   }
 
   Widget _feed(

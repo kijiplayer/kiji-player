@@ -83,6 +83,8 @@ object KijiChannels {
             val power = app.getSystemService(Context.POWER_SERVICE) as PowerManager
             when (call.method) {
                 "isIgnoring" -> result.success(power.isIgnoringBatteryOptimizations(app.packageName))
+                // Ahorro de batería del sistema: el video del fondo propio se queda quieto.
+                "powerSave" -> result.success(power.isPowerSaveMode)
                 "request" -> try {
                     val ask = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${app.packageName}"))
                     try {

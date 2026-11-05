@@ -1799,7 +1799,7 @@ abstract class AppLocalizations {
   /// **'Formato'**
   String get formato;
 
-  /// No description provided for @fondo.
+  /// Apariencia: fondo propio de la app.
   ///
   /// In es, this message translates to:
   /// **'Fondo'**
@@ -7288,6 +7288,84 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Kiji lo aclara u oscurece lo justo para que siempre se lea.'**
   String get acentoAjustadoNota;
+
+  /// Apariencia: qué es el fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen, un GIF o un video tuyo detrás de Kiji'**
+  String get fondoDescripcion;
+
+  /// Apariencia (PC, sin video): qué es el fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen o un GIF tuyo detrás de Kiji'**
+  String get fondoDescripcionPc;
+
+  /// Apariencia: sin fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'El del estilo'**
+  String get fondoNinguno;
+
+  /// Fondo propio: es una imagen o un GIF.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen'**
+  String get fondoImagen;
+
+  /// Fondo propio: es un video.
+  ///
+  /// In es, this message translates to:
+  /// **'Video'**
+  String get fondoVideo;
+
+  /// Fondo propio: botón.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir una imagen o un GIF'**
+  String get elegirImagen;
+
+  /// Fondo propio: botón.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir un video'**
+  String get elegirVideo;
+
+  /// Fondo propio: botón para volver al del estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar fondo'**
+  String get quitarFondo;
+
+  /// Fondo propio: deslizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Desenfoque'**
+  String get desenfoque;
+
+  /// Fondo propio: deslizador (cuánto se ve).
+  ///
+  /// In es, this message translates to:
+  /// **'Opacidad'**
+  String get opacidad;
+
+  /// Fondo propio: privacidad y comportamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Se copia dentro de Kiji y nunca sale de este dispositivo. El video va sin sonido y en bucle, y se queda quieto cuando Kiji no está a la vista o con el ahorro de batería.'**
+  String get fondoPrivadoNota;
+
+  /// Fondo propio (PC): privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Se copia dentro de Kiji y nunca sale de este dispositivo.'**
+  String get fondoPrivadoNotaPc;
+
+  /// Fondo propio: el archivo no se pudo copiar o leer (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo usar ese archivo. Prueba con otro.'**
+  String get fondoNoSePudo;
 }
 
 class _AppLocalizationsDelegate
