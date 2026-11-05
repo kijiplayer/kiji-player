@@ -1236,5 +1236,10 @@
   "personalizaKijiDescripcion": "Style, color, font and background, with a live preview",
   "modoCompacto": "Compact mode",
   "modoCompactoNota": "Everything in less space (great for a small window)",
-  "pantallaCompletaNota": "Big cover, and the bars hide on their own"
+  "pantallaCompletaNota": "Big cover, and the bars hide on their own",
+  "estiloDeEstaCancion": "This song's style",
+  "estiloDeEstaCancionNota": "Background, color and lyrics view just for this song",
+  "volverAlEstiloGeneral": "Back to the general style",
+  "elGeneral": "The general one",
+  "vistaDeLaLetra": "Lyrics view"
 }

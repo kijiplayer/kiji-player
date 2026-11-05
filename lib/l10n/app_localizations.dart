@@ -7414,6 +7414,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Portada grande y las barras se esconden solas'**
   String get pantallaCompletaNota;
+
+  /// ⋯ del reproductor: fondo, color y vista de la letra solo para esta canción.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo de esta canción'**
+  String get estiloDeEstaCancion;
+
+  /// ⋯ del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Fondo, color y vista de la letra solo para esta canción'**
+  String get estiloDeEstaCancionNota;
+
+  /// Estilo de esta canción: quita lo propio de la canción.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver al estilo general'**
+  String get volverAlEstiloGeneral;
+
+  /// Estilo de esta canción: usar el del estilo general.
+  ///
+  /// In es, this message translates to:
+  /// **'El general'**
+  String get elGeneral;
+
+  /// Estilo de esta canción: Completo, Simple o Escaparate.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista de la letra'**
+  String get vistaDeLaLetra;
 }
 
 class _AppLocalizationsDelegate

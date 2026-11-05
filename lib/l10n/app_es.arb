@@ -2719,5 +2719,15 @@
   "modoCompactoNota": "Todo en menos espacio (ideal para una ventana chica)",
   "@modoCompactoNota": {"description": "Reproductor: qué hace el modo compacto."},
   "pantallaCompletaNota": "Portada grande y las barras se esconden solas",
-  "@pantallaCompletaNota": {"description": "Reproductor: qué hace la pantalla completa."}
+  "@pantallaCompletaNota": {"description": "Reproductor: qué hace la pantalla completa."},
+  "estiloDeEstaCancion": "Estilo de esta canción",
+  "@estiloDeEstaCancion": {"description": "⋯ del reproductor: fondo, color y vista de la letra solo para esta canción."},
+  "estiloDeEstaCancionNota": "Fondo, color y vista de la letra solo para esta canción",
+  "@estiloDeEstaCancionNota": {"description": "⋯ del reproductor."},
+  "volverAlEstiloGeneral": "Volver al estilo general",
+  "@volverAlEstiloGeneral": {"description": "Estilo de esta canción: quita lo propio de la canción."},
+  "elGeneral": "El general",
+  "@elGeneral": {"description": "Estilo de esta canción: usar el del estilo general."},
+  "vistaDeLaLetra": "Vista de la letra",
+  "@vistaDeLaLetra": {"description": "Estilo de esta canción: Completo, Simple o Escaparate."}
 }

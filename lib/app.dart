@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/battery_optimization.dart';
+import 'features/customize/data/track_overrides.dart';
 import 'features/style/presentation/personalize_screen.dart';
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
@@ -211,7 +212,14 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       ),
     );
     final style = KijiStyle.parse(styleName);
-    final palette = KijiPalette.forStyle(style, theme: theme, accent: accent, custom: custom);
+    // Estilo por canción: mientras suena, su color de acento manda sobre el general.
+    final songAccent = ref.watch(currentTrackStyleProvider.select((s) => s?.accent));
+    final palette = KijiPalette.forStyle(
+      style,
+      theme: theme,
+      accent: accent,
+      custom: songAccent != null ? Color(songAccent) : custom,
+    );
     final systemFont = font == 'system';
     final family = KijiText.familyFor(font);
     if (style == KijiLook.style &&

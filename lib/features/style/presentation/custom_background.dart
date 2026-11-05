@@ -12,14 +12,22 @@ import 'package:video_player/video_player.dart';
 import '../../../l10n/l10n.dart';
 import '../../../providers/appearance_provider.dart';
 import '../../../theme/kiji_tokens.dart';
+import '../../customize/data/track_overrides.dart';
 import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
 import '../data/background_store.dart';
 
-/// Hay un fondo propio elegido (las pantallas principales dejan ver lo de atrás).
-final hasCustomBackgroundProvider = Provider<bool>(
-  (ref) => ref.watch(settingsProvider.select((s) => s.backgroundFile != null)),
-);
+/// El fondo que se ve: el de la canción que suena (si tiene uno propio) o el general. La ruta es
+/// relativa a la carpeta de fondos.
+final effectiveBackgroundProvider = Provider<({String path, String kind})?>((ref) {
+  final song = ref.watch(currentTrackStyleProvider);
+  if (song?.backgroundFile != null) return (path: 'canciones/${song!.backgroundFile}', kind: song.backgroundKind ?? 'image');
+  final s = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
+  return s.file == null ? null : (path: s.file!, kind: s.kind);
+});
+
+/// Hay un fondo propio a la vista (las pantallas principales dejan ver lo de atrás).
+final hasCustomBackgroundProvider = Provider<bool>((ref) => ref.watch(effectiveBackgroundProvider) != null);
 
 /// El fondo propio, detrás de las pantallas principales: la foto, el GIF o el video, con el
 /// desenfoque y la opacidad elegidos, y encima una capa del color del estilo que deja el texto
@@ -29,15 +37,12 @@ class CustomBackground extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(
-      settingsProvider.select(
-        (s) => (file: s.backgroundFile, kind: s.backgroundKind, blur: s.backgroundBlur, opacity: s.backgroundOpacity),
-      ),
-    );
+    final bg = ref.watch(effectiveBackgroundProvider);
+    final s = ref.watch(settingsProvider.select((s) => (blur: s.backgroundBlur, opacity: s.backgroundOpacity)));
     final folder = ref.watch(backgroundFolderProvider).valueOrNull;
-    if (s.file == null || folder == null) return const SizedBox.shrink();
-    final file = File(p.join(folder.path, s.file!));
-    final media = s.kind == 'video' && BackgroundStore.videoSupported
+    if (bg == null || folder == null) return const SizedBox.shrink();
+    final file = File(p.join(folder.path, bg.path));
+    final media = bg.kind == 'video' && BackgroundStore.videoSupported
         ? (BackgroundStore.videoWithMediaKit ? _PcVideoBackground(file: file) : _VideoBackground(file: file))
         : Image.file(
             file,

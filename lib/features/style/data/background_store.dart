@@ -42,12 +42,41 @@ class BackgroundStore {
     return name;
   }
 
+  /// Fondos de cada canción ("Estilo de esta canción"), aparte del general.
+  Future<Directory> trackFolder() async => Directory(p.join((await folder()).path, 'canciones'));
+
+  /// Copia [source] como fondo de la canción [trackId] (borra el anterior de esa canción).
+  Future<String> keepForTrack(String trackId, String source, {String? previous}) async {
+    final ext = p.extension(source).toLowerCase();
+    final dir = await trackFolder();
+    await dir.create(recursive: true);
+    final safe = trackId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+    final name = 'cancion-$safe-${DateTime.now().millisecondsSinceEpoch}$ext';
+    final target = File(p.join(dir.path, name));
+    final temp = File('${target.path}.part');
+    await File(source).copy(temp.path);
+    await temp.rename(target.path);
+    await removeTrack(previous);
+    return name;
+  }
+
+  Future<void> removeTrack(String? name) async {
+    if (name == null) return;
+    final file = File(p.join((await trackFolder()).path, name));
+    try {
+      if (await file.exists()) await file.delete();
+    } catch (error) {
+      debugPrint('=== FONDO: no se pudo borrar el fondo de una canción: $error ===');
+    }
+  }
+
   /// Borra los fondos copiados ("Quitar fondo").
   Future<void> removeAll() => _removeAllBut(null);
 
   Future<void> _removeAllBut(String? keep) async {
     final dir = await folder();
     if (!await dir.exists()) return;
+    // Solo los generales (los de cada canción están en su carpeta, que no se toca aquí).
     await for (final entity in dir.list()) {
       if (entity is File && p.basename(entity.path) != keep) {
         try {

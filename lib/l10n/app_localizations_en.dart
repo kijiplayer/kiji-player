@@ -4561,4 +4561,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pantallaCompletaNota =>
       'Big cover, and the bars hide on their own';
+
+  @override
+  String get estiloDeEstaCancion => 'This song\'s style';
+
+  @override
+  String get estiloDeEstaCancionNota =>
+      'Background, color and lyrics view just for this song';
+
+  @override
+  String get volverAlEstiloGeneral => 'Back to the general style';
+
+  @override
+  String get elGeneral => 'The general one';
+
+  @override
+  String get vistaDeLaLetra => 'Lyrics view';
 }

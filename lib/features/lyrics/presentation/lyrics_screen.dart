@@ -31,6 +31,7 @@ import '../../translation/presentation/translate_sheet.dart';
 import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_menu_sheet.dart';
 import '../../../screens/player/player_screen.dart' show PlaybackControlsRow;
+import '../../customize/data/track_overrides.dart';
 import 'karaoke_line.dart';
 import 'lyrics_fullscreen.dart';
 import 'lyrics_side_panel.dart';
@@ -75,7 +76,9 @@ class LyricsScreen extends ConsumerWidget {
     }
     final request = _requestFor(ref, track);
     final lyrics = ref.watch(lyricsProvider(request));
-    final panel = ref.watch(settingsProvider.select((s) => s.lyricsPanel));
+    // Estilo por canción: su vista de la letra manda sobre la general.
+    final songPanel = ref.watch(currentTrackStyleProvider.select((s) => s?.lyricsPanel));
+    final String panel = songPanel ?? ref.watch(settingsProvider.select((s) => s.lyricsPanel));
     // Pantalla completa: solo la letra, con un fondo que sigue la música y las barras que se
     // esconden solas.
     final full = ref.watch(lyricsFullscreenProvider);
@@ -405,7 +408,12 @@ class _Header extends ConsumerWidget {
               icon: lyricsPanelIcon(panel),
               tooltip: tx.cambiarVistaDeLaLetra(lyricsPanelLabel(nextLyricsPanel(panel))),
               onPressed: () =>
-                  ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: nextLyricsPanel(panel))),
+                  // Si esta canción tiene su vista, se cambia la suya; si no, la general.
+                  ref.read(currentTrackStyleProvider)?.lyricsPanel != null
+                  ? ref
+                        .read(trackOverridesProvider.notifier)
+                        .setStyle(track.id, (s) => s.copyWith(lyricsPanel: nextLyricsPanel(panel)))
+                  : ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: nextLyricsPanel(panel))),
             ),
             const SizedBox(width: 8),
           ],

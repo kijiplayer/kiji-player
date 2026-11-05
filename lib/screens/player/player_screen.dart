@@ -8,7 +8,9 @@ import '../../features/equalizer/data/equalizer_notifier.dart';
 import '../../features/sleep_timer/presentation/timer_waveform.dart';
 import '../../features/downloads/presentation/download_button.dart';
 import '../../features/favorites/favorites.dart';
+import '../../features/customize/presentation/track_style_sheet.dart';
 import '../../features/lyrics/presentation/lyrics_fullscreen.dart';
+import '../../features/style/presentation/custom_background.dart';
 import '../../features/lyrics/presentation/lyrics_screen.dart';
 import '../../features/lyrics/presentation/lyrics_views.dart' show ChromeAutoHide, HideWhenIdle;
 import '../../features/settings/data/settings_store.dart';
@@ -97,7 +99,11 @@ class PlayerScreen extends ConsumerWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          PlayerHalo(track: track, playing: playback.isPlaying),
+          // Un fondo propio (el de esta canción o el general) reemplaza al del estilo.
+          if (ref.watch(hasCustomBackgroundProvider))
+            const CustomBackground()
+          else
+            PlayerHalo(track: track, playing: playback.isPlaying),
           // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
           // del sistema (salir de Kiji desde abajo no debe abrir la letra).
           LyricsSwipeDetector(
@@ -233,6 +239,17 @@ class _TopBar extends StatelessWidget {
                 title: Text(tx.cancionGuardadaEnElDispositivo),
                 subtitle: Text(tx.yaSuenaSinConexion),
               ),
+            Consumer(
+              builder: (context, ref, _) => ListTile(
+                leading: const Icon(Icons.palette_outlined),
+                title: Text(tx.estiloDeEstaCancion),
+                subtitle: Text(tx.estiloDeEstaCancionNota),
+                onTap: () {
+                  Navigator.pop(context);
+                  showTrackStyleSheet(navigator.context, ref, track);
+                },
+              ),
+            ),
             Consumer(
               builder: (context, ref, _) => SwitchListTile(
                 secondary: const Icon(Icons.view_compact_alt_outlined),

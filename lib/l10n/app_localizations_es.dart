@@ -4570,4 +4570,20 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get pantallaCompletaNota =>
       'Portada grande y las barras se esconden solas';
+
+  @override
+  String get estiloDeEstaCancion => 'Estilo de esta canción';
+
+  @override
+  String get estiloDeEstaCancionNota =>
+      'Fondo, color y vista de la letra solo para esta canción';
+
+  @override
+  String get volverAlEstiloGeneral => 'Volver al estilo general';
+
+  @override
+  String get elGeneral => 'El general';
+
+  @override
+  String get vistaDeLaLetra => 'Vista de la letra';
 }
