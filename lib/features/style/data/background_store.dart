@@ -17,8 +17,12 @@ class BackgroundStore {
   static const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
   static const videoExtensions = ['mp4', 'webm', 'mov', 'm4v'];
 
-  /// El video de fondo solo donde hay reproductor de video (Android, iOS, macOS).
-  static bool get videoSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
+  /// El video de fondo: con video_player (Android, iOS, macOS) o con media_kit, que en la PC trae
+  /// la librería completa de mpv (Windows y Linux).
+  static bool get videoSupported => !kIsWeb;
+
+  /// En la PC el video va con media_kit (video_player no anda en Windows ni Linux).
+  static bool get videoWithMediaKit => !kIsWeb && (Platform.isWindows || Platform.isLinux);
 
   Future<Directory> folder() async => Directory(p.join((await _directory()).path, 'backgrounds'));
 

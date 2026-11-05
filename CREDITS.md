@@ -87,6 +87,10 @@ personas que los construyen y mantienen.
 | [window_manager](https://pub.dev/packages/window_manager) (LeanFlutter) | MIT | PC: cerrar la ventana en orden, tamaño mínimo y ocultarla en la bandeja. |
 | [tray_manager](https://pub.dev/packages/tray_manager) (LeanFlutter) | MIT | PC: ícono y menú de Kiji en la bandeja del sistema. |
 | [hotkey_manager](https://pub.dev/packages/hotkey_manager) (LeanFlutter) | MIT | PC: atajos de teclado globales (play/pausa, siguiente, anterior). |
+| [media_kit](https://github.com/media-kit/media-kit) y media_kit_video (Hitesh Kumar Saini) | MIT | PC: reproducción con mpv y el video del fondo propio. |
+| [libmpv](https://mpv.io) (compilación de [media-kit/libmpv-win32-video-build](https://github.com/media-kit/libmpv-win32-video-build)) | GPL-2.0 o posterior / LGPL | PC: el motor de audio y video (incluye FFmpeg). |
+| [ANGLE](https://chromium.googlesource.com/angle/angle) (`libGLESv2.dll`, `libEGL.dll`) | BSD-3-Clause | PC: dibuja el video del fondo (lo trae media_kit). |
+| [video_player](https://pub.dev/packages/video_player) (Flutter) | BSD-3-Clause | Teléfono: el video del fondo propio. |
 
 ## Cómo mantener este archivo
 

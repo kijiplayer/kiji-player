@@ -5,6 +5,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
+import 'package:media_kit/media_kit.dart' as mk;
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../l10n/l10n.dart';
@@ -36,7 +38,7 @@ class CustomBackground extends ConsumerWidget {
     if (s.file == null || folder == null) return const SizedBox.shrink();
     final file = File(p.join(folder.path, s.file!));
     final media = s.kind == 'video' && BackgroundStore.videoSupported
-        ? _VideoBackground(file: file)
+        ? (BackgroundStore.videoWithMediaKit ? _PcVideoBackground(file: file) : _VideoBackground(file: file))
         : Image.file(
             file,
             fit: BoxFit.cover,
@@ -150,6 +152,70 @@ class _VideoBackgroundState extends ConsumerState<_VideoBackground> with Widgets
         child: VideoPlayer(controller),
       ),
     );
+  }
+}
+
+/// Video de fondo en la PC, con media_kit (la librería completa de mpv): sin sonido, en bucle, y
+/// quieto cuando Kiji no está a la vista o con "Reducir animaciones".
+class _PcVideoBackground extends ConsumerStatefulWidget {
+  const _PcVideoBackground({required this.file});
+
+  final File file;
+
+  @override
+  ConsumerState<_PcVideoBackground> createState() => _PcVideoBackgroundState();
+}
+
+class _PcVideoBackgroundState extends ConsumerState<_PcVideoBackground> with WidgetsBindingObserver {
+  final _player = mk.Player();
+  late final _controller = VideoController(_player);
+  bool _visible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_open());
+  }
+
+  Future<void> _open() async {
+    try {
+      await _player.setVolume(0);
+      await _player.setPlaylistMode(mk.PlaylistMode.single);
+      await _player.open(mk.Media(widget.file.path), play: false);
+      _sync();
+    } catch (error) {
+      debugPrint('=== FONDO: no se pudo abrir el video en la PC: $error ===');
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _visible = state == AppLifecycleState.resumed;
+    _sync();
+  }
+
+  void _sync() {
+    if (!mounted) return;
+    final still = !_visible || reduceMotion(context, ref);
+    if (still && _player.state.playing) {
+      unawaited(_player.pause());
+    } else if (!still && !_player.state.playing) {
+      unawaited(_player.play());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_player.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+    return Video(controller: _controller, fit: BoxFit.cover, controls: NoVideoControls, fill: Colors.transparent);
   }
 }
 

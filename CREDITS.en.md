@@ -87,6 +87,10 @@ maintains them.
 | [window_manager](https://pub.dev/packages/window_manager) (LeanFlutter) | MIT | PC: closing the window in order, minimum size and hiding it in the tray. |
 | [tray_manager](https://pub.dev/packages/tray_manager) (LeanFlutter) | MIT | PC: Kiji's icon and menu in the system tray. |
 | [hotkey_manager](https://pub.dev/packages/hotkey_manager) (LeanFlutter) | MIT | PC: global keyboard shortcuts (play/pause, next, previous). |
+| [media_kit](https://github.com/media-kit/media-kit) and media_kit_video (Hitesh Kumar Saini) | MIT | PC: playback with mpv and the video of your own background. |
+| [libmpv](https://mpv.io) (build from [media-kit/libmpv-win32-video-build](https://github.com/media-kit/libmpv-win32-video-build)) | GPL-2.0 or later / LGPL | PC: the audio and video engine (includes FFmpeg). |
+| [ANGLE](https://chromium.googlesource.com/angle/angle) (`libGLESv2.dll`, `libEGL.dll`) | BSD-3-Clause | PC: draws the background video (comes with media_kit). |
+| [video_player](https://pub.dev/packages/video_player) (Flutter) | BSD-3-Clause | Phone: the video of your own background. |
 
 ## How to maintain this file
 
