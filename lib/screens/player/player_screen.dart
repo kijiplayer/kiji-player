@@ -570,10 +570,14 @@ class _BottomActions extends ConsumerWidget {
       final color = active ? KijiColors.cyan : KijiColors.muted;
       final Widget content;
       if (labels) {
-        content = SizedBox(
-          width: 68,
+        // Cada botón, del ancho de su nombre (como mínimo 60 px); si la fila no entra, se achica
+        // entera (FittedBox de abajo), nunca se corta un nombre.
+        content = Container(
+          constraints: const BoxConstraints(minWidth: 60),
           height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, size: 22, color: color),
@@ -581,7 +585,7 @@ class _BottomActions extends ConsumerWidget {
               Text(
                 value ?? short ?? name,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                softWrap: false,
                 style: value != null
                     ? KijiText.mono(size: 11, color: KijiColors.cyan)
                     : TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w500),
