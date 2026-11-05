@@ -149,7 +149,7 @@ class PlayerScreen extends ConsumerWidget {
                                       cover,
                                       const SizedBox(width: 16),
                                       Expanded(
-                                        child: _TitleRow(track: track, downloaded: downloaded),
+                                        child: _TitleRow(track: track, downloaded: downloaded, compact: true),
                                       ),
                                     ],
                                   )
@@ -355,10 +355,13 @@ class _Cover extends ConsumerWidget {
 }
 
 class _TitleRow extends ConsumerWidget {
-  const _TitleRow({required this.track, required this.downloaded});
+  const _TitleRow({required this.track, required this.downloaded, this.compact = false});
 
   final Track track;
   final bool downloaded;
+
+  /// Al lado de la portada chica (modo compacto): el título más chico, para que entre.
+  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -380,8 +383,9 @@ class _TitleRow extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   // Grafito: grande y fino.
                   style: KijiLook.museum
-                      ? KijiText.title(size: 38, weight: FontWeight.w300).copyWith(letterSpacing: -1, height: 1.05)
-                      : KijiText.title(size: 26),
+                      ? KijiText.title(size: compact ? 24 : 38, weight: FontWeight.w300)
+                            .copyWith(letterSpacing: compact ? -0.5 : -1, height: 1.05)
+                      : KijiText.title(size: compact ? 20 : 26),
                 ),
               ),
               const SizedBox(height: 4),
