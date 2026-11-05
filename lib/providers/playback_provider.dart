@@ -497,6 +497,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('$stackTrace');
       state = state.copyWith(isInitialized: false);
       await _pausePlayer('error al cargar la canción'); // l10n-ignore
+      // Un archivo del equipo que no se puede reproducir (formato raro, dañado): se salta a la
+      // siguiente con un aviso simple; no es culpa de internet ni de YouTube.
+      if (track.source == TrackSource.local) {
+        _lastContentProblem = null;
+        return LoadResult.contentBlocked;
+      }
       return await _isOnline() ? LoadResult.unplayable : LoadResult.offline;
     }
   }

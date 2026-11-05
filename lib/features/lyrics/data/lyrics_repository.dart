@@ -80,6 +80,13 @@ class LyricsRepository {
     List<LyricsSource> order = LyricsSource.online,
   }) async {
     final file = await _fileFor(request.id);
+    // 0) Canción del equipo con su .lrc al lado (mismo nombre): manda siempre, aunque haya otra
+    // guardada (se puede agregar o cambiar después).
+    final local = request.localPath;
+    if (local != null && local.isNotEmpty) {
+      final sidecar = await readSidecarLrc(local);
+      if (sidecar != null) return sidecar;
+    }
     // 1) Caché.
     final cached = await file.read();
     if (cached is Map<String, dynamic>) {
@@ -251,6 +258,27 @@ class LyricsRepository {
     'lyrics': lyrics.toJson(),
     if (chosen) 'chosen': true,
   });
+}
+
+/// El .lrc junto al archivo de música ("Canción.mp3" → "Canción.lrc", también ".LRC"), o null.
+Future<Lyrics?> readSidecarLrc(String audioPath) async {
+  try {
+    final base = p.withoutExtension(audioPath);
+    for (final ext in const ['.lrc', '.LRC', '.Lrc']) {
+      final file = File('$base$ext');
+      if (!await file.exists()) continue;
+      final text = (await file.readAsString()).trim();
+      if (text.isEmpty) return null;
+      final synced = parseLrc(text);
+      debugPrint('=== LETRAS: .lrc junto al archivo (${synced.isNotEmpty ? 'sincronizada' : 'texto'}) ===');
+      return synced.isNotEmpty
+          ? Lyrics(synced: synced, source: LyricsSource.embedded)
+          : Lyrics(plain: text, source: LyricsSource.embedded);
+    }
+  } catch (error) {
+    debugPrint('=== LETRAS: no se pudo leer el .lrc junto al archivo: ${error.runtimeType} ===');
+  }
+  return null;
 }
 
 /// Letra guardada en las etiquetas del archivo (LRC o texto), o null.
