@@ -4541,4 +4541,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get fondoNoSePudo => 'No se pudo usar ese archivo. Prueba con otro.';
+
+  @override
+  String get saltar => 'Saltar';
+
+  @override
+  String get atras => 'Atrás';
+
+  @override
+  String pasoDe(int n, int total) {
+    return 'Paso $n de $total';
+  }
+
+  @override
+  String get personalizaKiji => 'Personaliza Kiji';
+
+  @override
+  String get personalizaKijiDescripcion =>
+      'Estilo, color, fuente y fondo, con la vista previa en vivo';
 }

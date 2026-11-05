@@ -47,7 +47,7 @@ import 'package:kiji_player/features/sleep_timer/presentation/sleep_timer_sheet.
 import 'package:kiji_player/features/translation/presentation/lyrics_settings_screens.dart';
 import 'package:kiji_player/features/updates/whats_new_screen.dart';
 import 'package:kiji_player/l10n/l10n.dart';
-import 'package:kiji_player/features/style/presentation/style_chooser_screen.dart';
+import 'package:kiji_player/features/style/presentation/personalize_screen.dart';
 import 'package:kiji_player/features/welcome/presentation/welcome_screen.dart';
 import 'package:kiji_player/features/yt_music/presentation/extractor_health_screen.dart';
 import 'package:kiji_player/models/track.dart';
@@ -242,6 +242,7 @@ Future<List<Track>> _seed(
           accent: accent,
           style: style,
           styleChosen: true,
+          personalized: true,
           lastSeenVersion: kijiVersion,
         )
         .toJson(),
@@ -505,7 +506,7 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
     tester,
     '$tag-estilo',
     () => Navigator.of(_ctx).push(MaterialPageRoute<void>(
-        settings: const RouteSettings(name: KijiRoutes.style), builder: (_) => const StyleChooserScreen())),
+        settings: const RouteSettings(name: KijiRoutes.style), builder: (_) => const PersonalizeScreen())),
     scroll: true,
   );
 }
@@ -570,13 +571,15 @@ void main() {
         await tester.tap(start.last);
         await _settle(tester);
       }
-      // Después de la bienvenida, una sola vez: "¿Cómo quieres que se vea Kiji?".
-      await _shot(tester, '$tag-estilo');
-      final keep = find.textContaining(RegExp(r'^(Continuar con|Continue with) '));
-      if (keep.evaluate().isEmpty) {
-        _problems.add('$tag: no apareció la elección de estilo después de la bienvenida');
-      } else {
-        await tester.tap(keep.last);
+      // Después de la bienvenida, una sola vez: "Personaliza Kiji" (4 pasos).
+      for (var step = 1; step <= 4; step++) {
+        await _shot(tester, '$tag-personaliza-$step');
+        final next = find.byKey(const Key('personalize-next'));
+        if (next.evaluate().isEmpty) {
+          _problems.add('$tag: no apareció "Personaliza Kiji" después de la bienvenida (paso $step)');
+          break;
+        }
+        await tester.tap(next);
         await _settle(tester);
       }
       // Usuario nuevo sin nada: Inicio, Buscar y Biblioteca vacíos.

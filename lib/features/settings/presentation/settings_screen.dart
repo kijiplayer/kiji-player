@@ -54,7 +54,8 @@ import '../../../widgets/nocturne/kiji_sheet.dart';
 import '../../style/data/background_store.dart';
 import '../../style/presentation/accent_picker.dart';
 import '../../style/presentation/custom_background.dart';
-import '../../style/presentation/style_chooser_screen.dart';
+import '../../style/presentation/personalize_screen.dart';
+import '../../style/presentation/style_parts.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
 /// descripción corta.
@@ -556,6 +557,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.appearance,
+        title: tx.personalizaKiji,
+        subtitle: tx.personalizaKijiDescripcion,
+        keywords: const ['asistente', 'personalizar', 'desde cero', 'wizard', 'customize'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.auto_fix_high_rounded),
+          title: Text(tx.personalizaKiji),
+          subtitle: Text(tx.personalizaKijiDescripcion),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => PersonalizeScreen.open(context, ref),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
         title: tx.estilo,
         subtitle: tx.estiloDescripcion,
         keywords: const ['nocturne', 'grafito', 'graphite', 'papel', 'paper', 'look', 'aspecto', 'diseño'], // l10n-ignore
@@ -566,7 +580,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: Text(tx.estilo),
             subtitle: Text(styleName(style)),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => StyleChooserScreen.open(context, ref),
+            onTap: () => PersonalizeScreen.open(context, ref),
           );
         },
       ),

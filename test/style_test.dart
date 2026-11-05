@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
-import 'package:kiji_player/features/style/presentation/style_chooser_screen.dart';
+import 'package:kiji_player/features/style/presentation/personalize_screen.dart';
+import 'package:kiji_player/features/style/presentation/style_parts.dart';
 import 'package:kiji_player/theme/kiji_tokens.dart';
 
 /// Contraste de WCAG 2 entre dos colores opacos.
@@ -118,7 +119,7 @@ void main() {
     expect(KijiStyle.parse(null), KijiStyle.nocturne);
   });
 
-  testWidgets('elegir un estilo lo guarda y deja anotado que ya se eligió', (tester) async {
+  testWidgets('Personaliza Kiji: 4 pasos con vista previa en vivo, "Saltar" y queda anotado', (tester) async {
     final dir = Directory.systemTemp.createTempSync('kiji_style_');
     addTearDown(() {
       try {
@@ -138,22 +139,45 @@ void main() {
 
     await tester.pumpWidget(UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: StyleChooserScreen()),
+      child: MaterialApp(
+        home: Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () => PersonalizeScreen.open(context, ref),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
     ));
-    await tester.pump();
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    expect(find.text('Paso 1 de 4'), findsOneWidget);
     expect(find.text('¿Cómo quieres que se vea Kiji?'), findsOneWidget);
-    expect(find.byType(StylePreview), findsNWidgets(3));
-    expect(find.text('Continuar con Nocturne'), findsOneWidget);
+    // La vista previa en vivo y una miniatura por estilo.
+    expect(find.byType(StylePreview), findsNWidgets(4));
 
     await tester.ensureVisible(find.text('Papel'));
-    await tester.pump();
     await tester.tap(find.text('Papel'));
-    await tester.pump();
-    await tester.tap(find.text('Continuar con Papel'));
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
     await tester.pump();
-    expect(container.read(settingsProvider).style, 'paper');
-    expect(container.read(settingsProvider).styleChosen, isTrue);
+    expect(container.read(settingsProvider).style, 'paper', reason: 'se aplica en el momento');
+
+    await tester.tap(find.byKey(const Key('personalize-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('Paso 2 de 4'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('personalize-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('Paso 3 de 4'), findsOneWidget);
+    await tester.tap(find.text('Newsreader'));
+    await tester.pump();
+    expect(container.read(settingsProvider).font, 'newsreader');
     expect(tester.takeException(), isNull, reason: 'sin desbordes a 360×560');
+
+    // "Saltar" cierra en cualquier paso y deja anotado que ya se vio.
+    await tester.tap(find.byKey(const Key('personalize-skip')));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pumpAndSettle();
+    expect(find.text('abrir'), findsOneWidget);
+    expect(container.read(settingsProvider).personalized, isTrue);
+    expect(container.read(settingsProvider).styleChosen, isTrue);
   });
 }

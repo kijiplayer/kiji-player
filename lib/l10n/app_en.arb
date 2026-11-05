@@ -1228,5 +1228,10 @@
   "opacidad": "Opacity",
   "fondoPrivadoNota": "It's copied inside Kiji and never leaves this device. Videos play muted and on a loop, and stay still when Kiji isn't visible or with battery saver on.",
   "fondoPrivadoNotaPc": "It's copied inside Kiji and never leaves this device.",
-  "fondoNoSePudo": "That file couldn't be used. Try another one."
+  "fondoNoSePudo": "That file couldn't be used. Try another one.",
+  "saltar": "Skip",
+  "atras": "Back",
+  "pasoDe": "Step {n} of {total}",
+  "personalizaKiji": "Personalize Kiji",
+  "personalizaKijiDescripcion": "Style, color, font and background, with a live preview"
 }

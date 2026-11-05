@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/battery_optimization.dart';
-import 'features/style/presentation/style_chooser_screen.dart';
+import 'features/style/presentation/personalize_screen.dart';
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
@@ -117,7 +117,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     final settings = await ref.read(settingsProvider.notifier).loaded;
     final screens = startupScreens(
       freshInstall: fresh,
-      styleChosen: settings.styleChosen,
+      personalized: settings.personalized,
       lastSeenVersion: settings.lastSeenVersion,
     );
     Future<void> markSeen() async {
@@ -139,7 +139,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
             await WelcomeScreen.open(context, instant: true);
             await markSeen();
           case StartupScreen.style:
-            if (!ref.read(settingsProvider).styleChosen) await StyleChooserScreen.open(context, ref);
+            if (!ref.read(settingsProvider).personalized) await PersonalizeScreen.open(context, ref);
           case StartupScreen.whatsNew:
             await WhatsNewScreen.open(context);
         }

@@ -7366,6 +7366,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo usar ese archivo. Prueba con otro.'**
   String get fondoNoSePudo;
+
+  /// Personaliza Kiji: cerrar el asistente.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar'**
+  String get saltar;
+
+  /// Personaliza Kiji: volver al paso anterior.
+  ///
+  /// In es, this message translates to:
+  /// **'Atrás'**
+  String get atras;
+
+  /// Personaliza Kiji: en qué paso va.
+  ///
+  /// In es, this message translates to:
+  /// **'Paso {n} de {total}'**
+  String pasoDe(int n, int total);
+
+  /// Configuración → Apariencia: abre el asistente.
+  ///
+  /// In es, this message translates to:
+  /// **'Personaliza Kiji'**
+  String get personalizaKiji;
+
+  /// Configuración → Apariencia.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo, color, fuente y fondo, con la vista previa en vivo'**
+  String get personalizaKijiDescripcion;
 }
 
 class _AppLocalizationsDelegate

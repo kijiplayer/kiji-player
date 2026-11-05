@@ -18,6 +18,7 @@ class AppSettings {
     this.batteryAsked = false,
     this.style = 'nocturne',
     this.styleChosen = false,
+    this.personalized = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -138,6 +139,9 @@ class AppSettings {
 
   /// Ya se mostró "¿Cómo quieres que se vea Kiji?" (al instalar o, una vez, al actualizar a la 0.7).
   final bool styleChosen;
+
+  /// Ya se vio "Personaliza Kiji" (al instalar, o una vez al actualizar a la 0.8.0).
+  final bool personalized;
 
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
@@ -262,6 +266,7 @@ class AppSettings {
     bool? batteryAsked,
     String? style,
     bool? styleChosen,
+    bool? personalized,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -313,6 +318,7 @@ class AppSettings {
         batteryAsked: batteryAsked ?? this.batteryAsked,
         style: style ?? this.style,
         styleChosen: styleChosen ?? this.styleChosen,
+        personalized: personalized ?? this.personalized,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -364,6 +370,7 @@ class AppSettings {
         'batteryAsked': batteryAsked,
         'style': style,
         'styleChosen': styleChosen,
+        'personalized': personalized,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -421,6 +428,7 @@ class AppSettings {
       batteryAsked: read('batteryAsked', d.batteryAsked),
       style: styles.contains(json['style']) ? json['style'] as String : d.style,
       styleChosen: read('styleChosen', d.styleChosen),
+      personalized: read('personalized', d.personalized),
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

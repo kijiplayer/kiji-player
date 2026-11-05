@@ -47,9 +47,12 @@ Future<void> showAccentPicker(BuildContext context, WidgetRef ref) => showKijiSh
 );
 
 class AccentPicker extends ConsumerStatefulWidget {
-  const AccentPicker({super.key, this.padding = const EdgeInsets.fromLTRB(20, 0, 20, 24)});
+  const AccentPicker({super.key, this.padding = const EdgeInsets.fromLTRB(20, 0, 20, 24), this.showTitle = true});
 
   final EdgeInsets padding;
+
+  /// En el asistente el título ya está arriba.
+  final bool showTitle;
 
   @override
   ConsumerState<AccentPicker> createState() => _AccentPickerState();
@@ -107,8 +110,10 @@ class _AccentPickerState extends ConsumerState<AccentPicker> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(tx.colorDeAcento, style: KijiText.title(size: 20)),
-          const SizedBox(height: 14),
+          if (widget.showTitle) ...[
+            Text(tx.colorDeAcento, style: KijiText.title(size: 20)),
+            const SizedBox(height: 14),
+          ],
           Wrap(
             spacing: 6,
             runSpacing: 6,

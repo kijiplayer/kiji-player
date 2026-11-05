@@ -2703,5 +2703,15 @@
   "fondoPrivadoNotaPc": "Se copia dentro de Kiji y nunca sale de este dispositivo.",
   "@fondoPrivadoNotaPc": {"description": "Fondo propio (PC): privacidad."},
   "fondoNoSePudo": "No se pudo usar ese archivo. Prueba con otro.",
-  "@fondoNoSePudo": {"description": "Fondo propio: el archivo no se pudo copiar o leer (sin detalle técnico)."}
+  "@fondoNoSePudo": {"description": "Fondo propio: el archivo no se pudo copiar o leer (sin detalle técnico)."},
+  "saltar": "Saltar",
+  "@saltar": {"description": "Personaliza Kiji: cerrar el asistente."},
+  "atras": "Atrás",
+  "@atras": {"description": "Personaliza Kiji: volver al paso anterior."},
+  "pasoDe": "Paso {n} de {total}",
+  "@pasoDe": {"description": "Personaliza Kiji: en qué paso va.", "placeholders": {"n": {"type": "int"}, "total": {"type": "int"}}},
+  "personalizaKiji": "Personaliza Kiji",
+  "@personalizaKiji": {"description": "Configuración → Apariencia: abre el asistente."},
+  "personalizaKijiDescripcion": "Estilo, color, fuente y fondo, con la vista previa en vivo",
+  "@personalizaKijiDescripcion": {"description": "Configuración → Apariencia."}
 }
