@@ -1,6 +1,6 @@
+• Personalize Kiji: style, any color, font and a background of your own (image, GIF or video), with a preview.
+• Graphite, simpler and more serious.
 • Sound: equalizer on PC too, your own presets, bass, speed, pitch, reverb and 0–12 s crossfade.
-• Lyrics: word-by-word karaoke, full screen that follows the music, and lyrics saved with downloads.
+• Lyrics: word-by-word karaoke, full screen and lyrics saved with downloads.
 • Search: closest match first; scrolling down keeps loading more.
-• Sharp covers in the player, the notification and Windows.
-• Credits in your language.
-• On PC, YouTube and translation recover on their own if they stop responding.
+• Sharp covers and credits in your language.

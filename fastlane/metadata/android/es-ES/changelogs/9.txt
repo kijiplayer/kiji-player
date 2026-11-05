@@ -1,6 +1,6 @@
+• Personaliza Kiji: estilo, color libre, fuente y un fondo propio (imagen, GIF o video), con vista previa.
+• Grafito, más simple y serio.
 • Sonido: ecualizador también en la PC, presets propios, bajos, velocidad, tono, reverb y mezcla de 0 a 12 s.
-• Letras: karaoke palabra por palabra, pantalla completa que sigue la música y letra guardada con las descargas.
+• Letras: karaoke palabra por palabra, pantalla completa y letra guardada con las descargas.
 • Búsqueda: primero lo más exacto; al bajar, siguen cargando más.
-• Portadas nítidas en el reproductor, la notificación y Windows.
-• Créditos en tu idioma.
-• En la PC, YouTube y la traducción se recuperan solos si dejan de responder.
+• Portadas nítidas y créditos en tu idioma.

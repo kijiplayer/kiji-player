@@ -6,6 +6,7 @@ import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/global_mini_player.dart';
 import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
+import '../data/background_store.dart';
 import 'accent_picker.dart';
 import 'custom_background.dart';
 import 'style_parts.dart';
@@ -54,9 +55,10 @@ class _PersonalizeScreenState extends ConsumerState<PersonalizeScreen> {
     PersonalizeStep.style => (tx.estiloPregunta, tx.estiloPreguntaTexto),
     PersonalizeStep.color => (tx.colorDeAcento, tx.colorDeAcentoDescripcion),
     PersonalizeStep.font => (tx.tipografia, tx.tipografiaDescripcion),
+    // Como el botón: "video" solo donde se puede (no depende del ancho de la ventana).
     PersonalizeStep.background => (
       tx.fondo,
-      MediaQuery.sizeOf(context).width >= KijiSizes.desktopBreakpoint ? tx.fondoDescripcionPc : tx.fondoDescripcion,
+      BackgroundStore.videoSupported ? tx.fondoDescripcion : tx.fondoDescripcionPc,
     ),
   };
 
