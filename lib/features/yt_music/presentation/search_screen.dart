@@ -201,18 +201,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     final top = part('resultado principal', _client.searchTop(query)); // l10n-ignore (registro)
     final songs = part('canciones', _client.searchSongsPage(query)); // l10n-ignore (registro)
-    final artists = part(
-      'artistas',
-      _client.searchCollectionsPage(query, YtCollectionKind.artist),
-    ); // l10n-ignore (registro)
-    final albums = part(
-      'álbumes',
-      _client.searchCollectionsPage(query, YtCollectionKind.album),
-    ); // l10n-ignore (registro)
-    final playlists = part(
-      'playlists',
-      _client.searchCollectionsPage(query, YtCollectionKind.playlist),
-    ); // l10n-ignore (registro)
+    final artists = part('artistas', _client.searchCollectionsPage(query, YtCollectionKind.artist)); // l10n-ignore (registro)
+    final albums = part('álbumes', _client.searchCollectionsPage(query, YtCollectionKind.album)); // l10n-ignore (registro)
+    final playlists = part('playlists', _client.searchCollectionsPage(query, YtCollectionKind.playlist)); // l10n-ignore (registro)
     final overview = SearchOverview.from(
       top: await top,
       songs: (await songs)?.items ?? const [],
