@@ -25,6 +25,8 @@ import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
 import 'package:kiji_player/features/customize/data/track_overrides.dart';
 import 'package:kiji_player/features/downloads/presentation/downloads_screen.dart';
 import 'package:kiji_player/features/downloads/presentation/download_button.dart';
+import 'package:kiji_player/features/local_library/domain/local_library_source.dart';
+import 'package:kiji_player/providers/local_library_provider.dart';
 import 'package:kiji_player/features/equalizer/presentation/sound_screen.dart';
 import 'package:kiji_player/features/history/listening_history.dart';
 import 'package:kiji_player/features/import/presentation/import_screen.dart';
@@ -264,6 +266,24 @@ Future<void> _settle(WidgetTester tester, [int frames = 12]) async {
   for (var i = 0; i < frames; i++) {
     await tester.pump(const Duration(milliseconds: 100));
   }
+}
+
+/// Música del equipo inventada (las canciones sembradas).
+class _DemoSource implements LocalLibrarySource {
+  _DemoSource(this.tracks);
+  final List<Track> tracks;
+  @override
+  bool get usesFolders => true;
+  @override
+  Future<List<String>> folders() async => [_root.path];
+  @override
+  Future<bool> hasAccess() async => true;
+  @override
+  Future<bool> requestAccess() async => true;
+  @override
+  Future<void> removeFolder(String folder) async {}
+  @override
+  Future<List<Track>> loadTracks() async => tracks;
 }
 
 class _NoScreenMode implements ScreenMode {
@@ -577,7 +597,14 @@ void main() {
     ErrorReporter.instance.reset();
 
     // La pantalla completa de la letra no cambia la ventana de verdad (no tapa el escritorio).
-    final container = ProviderContainer(overrides: [screenModeProvider.overrideWithValue(_NoScreenMode())]);
+    // Con datos, la "música del equipo" son las canciones inventadas (la PC de prueba no tiene una
+    // carpeta elegida).
+    final container = ProviderContainer(
+      overrides: [
+        screenModeProvider.overrideWithValue(_NoScreenMode()),
+        if (tracks.isNotEmpty) localLibrarySourceProvider.overrideWithValue(_DemoSource(tracks)),
+      ],
+    );
     addTearDown(container.dispose);
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const KijiApp()));
     await _settle(tester, 30);
