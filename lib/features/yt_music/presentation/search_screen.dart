@@ -15,6 +15,8 @@ import '../../../widgets/nocturne/glass.dart';
 import '../../../widgets/nocturne/staggered.dart';
 import '../../downloads/presentation/download_button.dart';
 import '../../queue/presentation/track_actions.dart';
+import '../../selection/track_selection.dart';
+import '../../../theme/app_theme.dart' show KijiSelected;
 import '../data/ytm_browse_parser.dart';
 import '../data/ytm_client.dart';
 import 'collection_screens.dart';
@@ -125,8 +127,40 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   SearchKind _kind = SearchKind.all;
   SearchOverview _overview = const SearchOverview();
 
+  /// Selección múltiple de canciones (mantener presionada una, o Ctrl/Shift + clic en la PC).
+  final _selection = TrackSelection();
+
+  @override
+  void initState() {
+    super.initState();
+    _selection.addListener(_onSelection);
+  }
+
+  void _onSelection() => setState(() {});
+
+  /// Las canciones que se ven ahora, en orden (para Shift + clic y "Seleccionar todas").
+  List<MapEntry<String, Track>> _visibleSongs({bool listen = true}) {
+    final songs = switch (_kind) {
+      SearchKind.songs => [for (final r in _results) ytTrackFromResult(r, audioUrl: '')],
+      SearchKind.all => [
+        if (_overview.top?.song case final top?) ytTrackFromResult(top, audioUrl: ''),
+        for (final r in _overview.songs) ytTrackFromResult(r, audioUrl: ''),
+      ],
+      SearchKind.myFiles => _myFiles(listen: listen),
+      _ => const <Track>[],
+    };
+    final seen = <String>{};
+    return [
+      for (final t in songs)
+        if (seen.add(t.id)) MapEntry(t.id, t),
+    ];
+  }
+
   @override
   void dispose() {
+    _selection
+      ..removeListener(_onSelection)
+      ..dispose();
     _debounce?.cancel();
     _controller.dispose();
     _scroll.dispose();
@@ -167,9 +201,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     final top = part('resultado principal', _client.searchTop(query)); // l10n-ignore (registro)
     final songs = part('canciones', _client.searchSongsPage(query)); // l10n-ignore (registro)
-    final artists = part('artistas', _client.searchCollectionsPage(query, YtCollectionKind.artist)); // l10n-ignore (registro)
-    final albums = part('álbumes', _client.searchCollectionsPage(query, YtCollectionKind.album)); // l10n-ignore (registro)
-    final playlists = part('playlists', _client.searchCollectionsPage(query, YtCollectionKind.playlist)); // l10n-ignore (registro)
+    final artists = part(
+      'artistas',
+      _client.searchCollectionsPage(query, YtCollectionKind.artist),
+    ); // l10n-ignore (registro)
+    final albums = part(
+      'álbumes',
+      _client.searchCollectionsPage(query, YtCollectionKind.album),
+    ); // l10n-ignore (registro)
+    final playlists = part(
+      'playlists',
+      _client.searchCollectionsPage(query, YtCollectionKind.playlist),
+    ); // l10n-ignore (registro)
     final overview = SearchOverview.from(
       top: await top,
       songs: (await songs)?.items ?? const [],
@@ -183,6 +226,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Future<void> _search(String query) async {
     final generation = ++_generation;
+    // Otra búsqueda, otros resultados: lo elegido se suelta.
+    _selection.clear();
     _continuation = null;
     _loadingMore = false;
     if (query.trim().isEmpty) {
@@ -424,12 +469,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ),
         Expanded(
-          child: switch (_kind) {
-            SearchKind.all => _buildOverview(),
-            SearchKind.songs => _buildBody(),
-            SearchKind.myFiles => _buildMyFiles(),
-            SearchKind.artists || SearchKind.albums || SearchKind.playlists => _buildCollections(),
-          },
+          // La barra de la selección queda encima de los resultados mientras se elige.
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: switch (_kind) {
+                  SearchKind.all => _buildOverview(),
+                  SearchKind.songs => _buildBody(),
+                  SearchKind.myFiles => _buildMyFiles(),
+                  SearchKind.artists || SearchKind.albums || SearchKind.playlists => _buildCollections(),
+                },
+              ),
+              if (_selection.active)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SelectionBar(selection: _selection, all: Map.fromEntries(_visibleSongs())),
+                ),
+            ],
+          ),
         ),
       ],
     );
@@ -463,9 +522,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   /// Canciones locales y descargadas que coinciden, sin internet.
   Widget _buildMyFiles() {
     final query = _controller.text;
-    final local = ref.watch(localTracksProvider).value ?? const <Track>[];
-    final downloaded = [for (final d in ref.watch(downloadsProvider.select((d) => d.completed)).values) d.toTrack()];
-    final results = filterMyFiles([...downloaded, ...local], query);
+    final results = _myFiles();
 
     if (query.trim().isEmpty) {
       return Center(
@@ -482,18 +539,52 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       itemCount: results.length,
       itemBuilder: (context, index) {
         final track = results[index];
-        return ListTile(
-          leading: TrackArtwork(track: track, size: 44, radius: 8),
-          title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-          onTap: () => ref.read(playbackProvider.notifier).playQueue(results, startIndex: index),
-          onLongPress: () => showTrackActions(context, ref, track),
+        return GestureDetector(
+          onSecondaryTap: () => showTrackActions(context, ref, track),
+          child: ListTile(
+            selected: _selection.contains(track.id),
+            selectedTileColor: KijiSelected.tile,
+            leading: _leading(track, TrackArtwork(track: track, size: 44, radius: 8)),
+            title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+            onTap: () =>
+                _tapSong(track, () => ref.read(playbackProvider.notifier).playQueue(results, startIndex: index)),
+            // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
+            onLongPress: () => _selection.toggle(track.id, track),
+          ),
         );
       },
     );
   }
 
+  /// Canciones locales y descargadas que coinciden con lo escrito.
+  /// [listen]: false fuera de `build` (en un toque).
+  List<Track> _myFiles({bool listen = true}) {
+    final local = (listen ? ref.watch(localTracksProvider) : ref.read(localTracksProvider)).value ?? const <Track>[];
+    final completed = listen
+        ? ref.watch(downloadsProvider.select((d) => d.completed))
+        : ref.read(downloadsProvider).completed;
+    final downloaded = [for (final d in completed.values) d.toTrack()];
+    return filterMyFiles([...downloaded, ...local], _controller.text);
+  }
+
+  /// Toque en una canción: con Ctrl/Shift (PC) o mientras se elige, marca; si no, [play].
+  void _tapSong(Track track, VoidCallback play) {
+    if (_selection.tapWithKeys(track.id, track, _visibleSongs(listen: false))) return;
+    _selection.active ? _selection.toggle(track.id, track) : play();
+  }
+
+  /// La casilla y la carátula de una fila (la casilla, solo mientras se elige).
+  Widget _leading(Track track, Widget artwork) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (_selection.active) ...[SelectionCheck(selected: _selection.contains(track.id)), const SizedBox(width: 10)],
+      artwork,
+    ],
+  );
+
   void _switchTo(SearchKind kind) {
+    _selection.clear();
     setState(() => _kind = kind);
     _search(_controller.text);
   }
@@ -506,14 +597,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return GestureDetector(
       onSecondaryTap: () => showTrackActions(context, ref, track),
       child: ListTile(
-        leading: _Thumbnail(url: result.thumbnailUrl),
+        selected: _selection.contains(track.id),
+        selectedTileColor: KijiSelected.tile,
+        leading: _leading(track, _Thumbnail(url: result.thumbnailUrl)),
         title: Text(result.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Text(result.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: isResolving
             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
             : DownloadButton(track: track),
-        onTap: isResolving ? null : () => _play(result),
-        onLongPress: () => showTrackActions(context, ref, track),
+        onTap: isResolving ? null : () => _tapSong(track, () => _play(result)),
+        // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
+        onLongPress: () => _selection.toggle(track.id, track),
       ),
     );
   }
