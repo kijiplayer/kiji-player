@@ -3946,10 +3946,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipografiaDescripcion =>
-      'The style\'s own (Space Grotesk in Nocturne, Inter in Graphite, Newsreader and Inter in Paper) or the system font';
+      'The style\'s own (Space Grotesk in Nocturne, Inter in Graphite, Newsreader and Inter in Paper), one of the fonts included in Kiji, or the system font';
 
   @override
-  String get tipografiaKiji => 'Kiji\'s own';
+  String get tipografiaKiji => 'The style\'s own';
 
   @override
   String get tipografiaSistema => 'System font';

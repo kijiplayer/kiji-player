@@ -80,8 +80,8 @@ class AppSettings {
   /// Temas: oscuro (el de siempre), más oscuro (negro puro, ahorra batería en OLED) y claro.
   static const themes = ['dark', 'darker', 'light'];
 
-  /// Tipografía de los títulos: la de Kiji (Space Grotesk) o la del sistema.
-  static const fonts = ['kiji', 'system'];
+  /// Tipografía: la del estilo, una de las incluidas en la app (OFL, `assets/fonts`) o la del sistema.
+  static const fonts = ['kiji', 'spacegrotesk', 'inter', 'newsreader', 'jetbrainsmono', 'system'];
 
   /// Estilos de Kiji (ver `KijiStyle`): Nocturne (de fábrica), Grafito y Papel.
   static const styles = ['nocturne', 'graphite', 'paper'];

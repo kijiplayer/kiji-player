@@ -3954,10 +3954,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tipografiaDescripcion =>
-      'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema';
+      'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel), una de las incluidas en Kiji o la del sistema';
 
   @override
-  String get tipografiaKiji => 'La de Kiji';
+  String get tipografiaKiji => 'La del estilo';
 
   @override
   String get tipografiaSistema => 'La del sistema';

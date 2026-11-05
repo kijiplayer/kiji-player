@@ -456,7 +456,20 @@ abstract final class KijiText {
   /// fuente del teléfono o la PC (null = la de siempre del sistema).
   static bool useSystemFont = false;
 
-  static String? get titleFamily => useSystemFont ? null : titleFamilyOf(KijiLook.style);
+  /// Una de las fuentes incluidas, elegida en Apariencia → Tipografía (null = la del estilo). Va en
+  /// los títulos y el texto; los tiempos y números siguen con la del estilo.
+  static String? chosenFamily;
+
+  /// La familia de cada opción de "Tipografía" (null = la del estilo o la del sistema).
+  static String? familyFor(String font) => switch (font) {
+    'spacegrotesk' => 'SpaceGrotesk',
+    'inter' => inter,
+    'newsreader' => 'Newsreader',
+    'jetbrainsmono' => 'JetBrainsMono',
+    _ => null,
+  };
+
+  static String? get titleFamily => useSystemFont ? null : (chosenFamily ?? titleFamilyOf(KijiLook.style));
 
   /// Letra de los títulos de cada estilo (también para las miniaturas de la elección de estilo).
   static String titleFamilyOf(KijiStyle style) => switch (style) {
@@ -472,7 +485,8 @@ abstract final class KijiText {
   static String? get monoFamily => useSystemFont ? null : (KijiLook.nocturne ? 'JetBrainsMono' : inter);
 
   /// El resto del texto: el del sistema en Nocturne; Inter en Grafito y Papel.
-  static String? get bodyFamily => useSystemFont || KijiLook.nocturne ? null : inter;
+  static String? get bodyFamily =>
+      useSystemFont ? null : (chosenFamily ?? (KijiLook.nocturne ? null : inter));
 
   static TextStyle title({double size = 20, FontWeight weight = FontWeight.w700, Color? color}) => TextStyle(
     fontFamily: titleFamily,

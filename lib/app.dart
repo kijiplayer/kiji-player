@@ -213,9 +213,11 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     final style = KijiStyle.parse(styleName);
     final palette = KijiPalette.forStyle(style, theme: theme, accent: accent, custom: custom);
     final systemFont = font == 'system';
+    final family = KijiText.familyFor(font);
     if (style == KijiLook.style &&
         palette == KijiColors.palette &&
         systemFont == KijiText.useSystemFont &&
+        family == KijiText.chosenFamily &&
         rich == KijiEffects.rich &&
         calm == KijiEffects.calm) {
       return;
@@ -223,6 +225,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     KijiLook.style = style;
     KijiColors.palette = palette;
     KijiText.useSystemFont = systemFont;
+    KijiText.chosenFamily = family;
     KijiEffects.rich = rich;
     KijiEffects.calm = calm;
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.

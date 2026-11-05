@@ -13,6 +13,16 @@ String styleName(KijiStyle style) => switch (style) {
   KijiStyle.paper => tx.estiloPapel,
 };
 
+/// Nombre de cada opción de "Tipografía" (las fuentes van con su nombre propio).
+String fontLabel(String font) => switch (font) {
+  'system' => tx.tipografiaSistema,
+  'spacegrotesk' => 'Space Grotesk', // l10n-ignore
+  'inter' => 'Inter', // l10n-ignore
+  'newsreader' => 'Newsreader', // l10n-ignore
+  'jetbrainsmono' => 'JetBrains Mono', // l10n-ignore
+  _ => tx.tipografiaKiji,
+};
+
 String _phrase(KijiStyle style) => switch (style) {
   KijiStyle.nocturne => tx.estiloNocturneFrase,
   KijiStyle.graphite => tx.estiloGrafitoFrase,

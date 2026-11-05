@@ -618,14 +618,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         section: SettingsSection.appearance,
         title: tx.tipografia,
         subtitle: tx.tipografiaDescripcion,
-        keywords: const ['letra', 'fuente', 'space grotesk', 'jetbrains'], // l10n-ignore
+        keywords: const ['letra', 'fuente', 'space grotesk', 'jetbrains', 'inter', 'newsreader', 'font'], // l10n-ignore
         builder: (context, ref) => choiceTile<String>(
           context,
           icon: Icons.font_download_outlined,
           title: tx.tipografia,
           value: ref.watch(settingsProvider.select((s) => s.font)),
           options: AppSettings.fonts,
-          label: (f) => f == 'system' ? tx.tipografiaSistema : tx.tipografiaKiji,
+          label: fontLabel,
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(font: value)),
         ),
       ),

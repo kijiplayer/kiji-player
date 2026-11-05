@@ -6368,13 +6368,13 @@ abstract class AppLocalizations {
   /// No description provided for @tipografiaDescripcion.
   ///
   /// In es, this message translates to:
-  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema'**
+  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel), una de las incluidas en Kiji o la del sistema'**
   String get tipografiaDescripcion;
 
   /// No description provided for @tipografiaKiji.
   ///
   /// In es, this message translates to:
-  /// **'La de Kiji'**
+  /// **'La del estilo'**
   String get tipografiaKiji;
 
   /// No description provided for @tipografiaSistema.
