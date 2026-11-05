@@ -4550,4 +4550,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get personalizaKijiDescripcion =>
       'Style, color, font and background, with a live preview';
+
+  @override
+  String get modoCompacto => 'Compact mode';
+
+  @override
+  String get modoCompactoNota =>
+      'Everything in less space (great for a small window)';
+
+  @override
+  String get pantallaCompletaNota =>
+      'Big cover, and the bars hide on their own';
 }

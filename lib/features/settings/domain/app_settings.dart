@@ -19,6 +19,7 @@ class AppSettings {
     this.style = 'nocturne',
     this.styleChosen = false,
     this.personalized = false,
+    this.playerMode = 'normal',
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -142,6 +143,10 @@ class AppSettings {
 
   /// Ya se vio "Personaliza Kiji" (al instalar, o una vez al actualizar a la 0.8.0).
   final bool personalized;
+
+  /// Modo del reproductor: 'normal' o 'compact' (todo en menos espacio, para una ventana chica).
+  final String playerMode;
+  static const playerModes = ['normal', 'compact'];
 
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
@@ -267,6 +272,7 @@ class AppSettings {
     String? style,
     bool? styleChosen,
     bool? personalized,
+    String? playerMode,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -319,6 +325,7 @@ class AppSettings {
         style: style ?? this.style,
         styleChosen: styleChosen ?? this.styleChosen,
         personalized: personalized ?? this.personalized,
+        playerMode: playerMode ?? this.playerMode,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -371,6 +378,7 @@ class AppSettings {
         'style': style,
         'styleChosen': styleChosen,
         'personalized': personalized,
+        'playerMode': playerMode,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -429,6 +437,7 @@ class AppSettings {
       style: styles.contains(json['style']) ? json['style'] as String : d.style,
       styleChosen: read('styleChosen', d.styleChosen),
       personalized: read('personalized', d.personalized),
+      playerMode: playerModes.contains(json['playerMode']) ? json['playerMode'] as String : d.playerMode,
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

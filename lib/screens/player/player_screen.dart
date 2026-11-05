@@ -8,7 +8,10 @@ import '../../features/equalizer/data/equalizer_notifier.dart';
 import '../../features/sleep_timer/presentation/timer_waveform.dart';
 import '../../features/downloads/presentation/download_button.dart';
 import '../../features/favorites/favorites.dart';
+import '../../features/lyrics/presentation/lyrics_fullscreen.dart';
 import '../../features/lyrics/presentation/lyrics_screen.dart';
+import '../../features/lyrics/presentation/lyrics_views.dart' show ChromeAutoHide, HideWhenIdle;
+import '../../features/settings/data/settings_store.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import '../../features/sleep_timer/sleep_timer_provider.dart';
 import '../../features/queue/presentation/queue_screen.dart';
@@ -76,6 +79,9 @@ class PlayerScreen extends ConsumerWidget {
     // Solo canción y play/pausa: la posición la dibuja _Progress por su cuenta.
     final playback = ref.watch(playbackProvider.select((s) => (track: s.track, isPlaying: s.isPlaying)));
     final track = playback.track;
+    // Modos: pantalla completa (mientras está abierto) o compacto (se recuerda).
+    final full = ref.watch(playerFullscreenProvider);
+    final compact = !full && ref.watch(settingsProvider.select((s) => s.playerMode)) == 'compact';
     if (track == null) {
       return Scaffold(body: Center(child: Text(tx.eligeUnaCancion)));
     }
@@ -83,7 +89,11 @@ class PlayerScreen extends ConsumerWidget {
         track.youtubeVideoId != null &&
         ref.watch(downloadsProvider.select((d) => d.completed.containsKey(track.youtubeVideoId)));
 
-    final screen = Scaffold(
+    final screen = FullscreenGuard(
+      provider: playerFullscreenProvider,
+      child: ChromeAutoHide(
+        enabled: full,
+        child: Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -95,9 +105,14 @@ class PlayerScreen extends ConsumerWidget {
             child: SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final coverSize = min(
-                    KijiSizes.playerCover,
-                    min(constraints.maxWidth - 48, constraints.maxHeight * 0.38),
+                  // Pantalla completa: la portada grande. Compacto: chica, al lado del título.
+                  final coverSize = full
+                      ? min(640.0, min(constraints.maxWidth - 48, constraints.maxHeight * 0.58))
+                      : compact
+                      ? min(132.0, constraints.maxHeight * 0.24)
+                      : min(KijiSizes.playerCover, min(constraints.maxWidth - 48, constraints.maxHeight * 0.38));
+                  final cover = RepaintBoundary(
+                    child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
                   );
                   return SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -106,22 +121,30 @@ class PlayerScreen extends ConsumerWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _TopBar(track: track, downloaded: downloaded),
-                          const SizedBox(height: 16),
+                          HideWhenIdle(child: _TopBar(track: track, downloaded: downloaded)),
+                          SizedBox(height: compact ? 8 : 16),
                           // Capas propias: la sombra grande de la carátula no se vuelve a
                           // rasterizar con cada avance de la posición.
-                          RepaintBoundary(
-                            child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
-                          ),
-                          SizedBox(height: KijiLook.museum ? 36 : 24),
-                          _TitleRow(track: track, downloaded: downloaded),
-                          SizedBox(height: KijiLook.museum ? 28 : 20),
+                          if (compact)
+                            Row(
+                              children: [
+                                cover,
+                                const SizedBox(width: 16),
+                                Expanded(child: _TitleRow(track: track, downloaded: downloaded)),
+                              ],
+                            )
+                          else ...[
+                            cover,
+                            SizedBox(height: KijiLook.museum ? 36 : 24),
+                            _TitleRow(track: track, downloaded: downloaded),
+                          ],
+                          SizedBox(height: compact ? 12 : (KijiLook.museum ? 28 : 20)),
                           const RepaintBoundary(child: _Progress()),
-                          SizedBox(height: KijiLook.museum ? 20 : 12),
-                          const PlaybackControlsRow(),
-                          const SizedBox(height: 20),
-                          const _BottomActions(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: compact ? 4 : (KijiLook.museum ? 20 : 12)),
+                          PlaybackControlsRow(playSize: compact ? 60 : KijiSizes.playButton),
+                          SizedBox(height: compact ? 8 : 20),
+                          const HideWhenIdle(child: _BottomActions()),
+                          SizedBox(height: compact ? 8 : 16),
                         ],
                       ),
                     ),
@@ -131,6 +154,8 @@ class PlayerScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    ),
       ),
     );
     return screen;
@@ -166,6 +191,17 @@ class _TopBar extends StatelessWidget {
               ],
             ),
           ),
+          // Pantalla completa: salir (en la PC también con Esc).
+          Consumer(
+            builder: (context, ref, _) => ref.watch(playerFullscreenProvider)
+                ? GlassIconButton(
+                    key: const Key('player-fullscreen-exit'),
+                    icon: Icons.fullscreen_exit_rounded,
+                    tooltip: tx.salirDePantallaCompleta,
+                    onPressed: () => ref.read(playerFullscreenProvider.notifier).state = false,
+                  )
+                : const SizedBox.shrink(),
+          ),
           GlassIconButton(
             icon: Icons.more_horiz_rounded,
             tooltip: tx.masOpciones,
@@ -197,6 +233,29 @@ class _TopBar extends StatelessWidget {
                 title: Text(tx.cancionGuardadaEnElDispositivo),
                 subtitle: Text(tx.yaSuenaSinConexion),
               ),
+            Consumer(
+              builder: (context, ref, _) => SwitchListTile(
+                secondary: const Icon(Icons.view_compact_alt_outlined),
+                title: Text(tx.modoCompacto),
+                subtitle: Text(tx.modoCompactoNota),
+                value: ref.watch(settingsProvider.select((s) => s.playerMode)) == 'compact',
+                onChanged: (on) => ref
+                    .read(settingsProvider.notifier)
+                    .update((s) => s.copyWith(playerMode: on ? 'compact' : 'normal')),
+              ),
+            ),
+            Consumer(
+              builder: (context, ref, _) => ListTile(
+                key: const Key('player-fullscreen'),
+                leading: const Icon(Icons.fullscreen_rounded),
+                title: Text(tx.pantallaCompleta),
+                subtitle: Text(tx.pantallaCompletaNota),
+                onTap: () {
+                  Navigator.pop(context);
+                  ref.read(playerFullscreenProvider.notifier).state = true;
+                },
+              ),
+            ),
             if (track.youtubeVideoId != null)
               ListTile(
                 leading: const Icon(Icons.health_and_safety_outlined),
@@ -352,9 +411,12 @@ class _Progress extends ConsumerWidget {
 /// Aleatorio / anterior / PLAY / siguiente / repetir. Los activos, en cian.
 /// [compact] para la barra del reproductor de la PC.
 class PlaybackControlsRow extends ConsumerWidget {
-  const PlaybackControlsRow({super.key, this.compact = false});
+  const PlaybackControlsRow({super.key, this.compact = false, this.playSize = KijiSizes.playButton});
 
   final bool compact;
+
+  /// Tamaño del play con su anillo (el reproductor compacto lo achica).
+  final double playSize;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -412,7 +474,7 @@ class PlaybackControlsRow extends ConsumerWidget {
             size: 52,
           )
         else
-          ProgressPlayButton(isPlaying: playback.isPlaying, onPressed: notifier.togglePlayPause),
+          ProgressPlayButton(isPlaying: playback.isPlaying, onPressed: notifier.togglePlayPause, size: playSize),
         PressScale(
           child: IconButton(
             tooltip: tx.siguiente,
@@ -524,12 +586,16 @@ class _BottomActions extends ConsumerWidget {
 /// tres estilos (Nocturne: degradado del acento; Grafito: blanco fino; Papel: su rojo). Es la acción
 /// principal y, de paso, dice cuánto falta.
 class ProgressPlayButton extends ConsumerWidget {
-  const ProgressPlayButton({super.key, required this.isPlaying, required this.onPressed});
+  const ProgressPlayButton({
+    super.key,
+    required this.isPlaying,
+    required this.onPressed,
+    this.size = KijiSizes.playButton,
+  });
 
   final bool isPlaying;
   final VoidCallback onPressed;
-
-  static const size = KijiSizes.playButton;
+  final double size;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -545,7 +611,7 @@ class ProgressPlayButton extends ConsumerWidget {
         children: [
           RepaintBoundary(
             child: CustomPaint(
-              size: const Size.square(size * 1.3),
+              size: Size.square(size * 1.3),
               painter: _ProgressRingPainter(
                 progress: progress,
                 rest: KijiColors.waveRest,

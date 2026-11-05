@@ -2713,5 +2713,11 @@
   "personalizaKiji": "Personaliza Kiji",
   "@personalizaKiji": {"description": "Configuración → Apariencia: abre el asistente."},
   "personalizaKijiDescripcion": "Estilo, color, fuente y fondo, con la vista previa en vivo",
-  "@personalizaKijiDescripcion": {"description": "Configuración → Apariencia."}
+  "@personalizaKijiDescripcion": {"description": "Configuración → Apariencia."},
+  "modoCompacto": "Modo compacto",
+  "@modoCompacto": {"description": "Reproductor: todo en menos espacio."},
+  "modoCompactoNota": "Todo en menos espacio (ideal para una ventana chica)",
+  "@modoCompactoNota": {"description": "Reproductor: qué hace el modo compacto."},
+  "pantallaCompletaNota": "Portada grande y las barras se esconden solas",
+  "@pantallaCompletaNota": {"description": "Reproductor: qué hace la pantalla completa."}
 }

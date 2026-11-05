@@ -18,12 +18,18 @@ import '../domain/screen_mode.dart';
 /// La letra está a pantalla completa (solo mientras la pantalla de la letra está abierta).
 final lyricsFullscreenProvider = StateProvider<bool>((ref) => false);
 
+/// El reproductor está a pantalla completa (solo mientras está abierto).
+final playerFullscreenProvider = StateProvider<bool>((ref) => false);
+
 /// Lleva la ventana (o el teléfono) a pantalla completa cuando se pide, y la devuelve a lo normal
 /// al salir de la letra. En la PC, Esc también sale.
 class FullscreenGuard extends ConsumerStatefulWidget {
-  const FullscreenGuard({super.key, required this.child});
+  const FullscreenGuard({super.key, required this.child, this.provider});
 
   final Widget child;
+
+  /// Qué pantalla completa cuida (la de la letra, de fábrica).
+  final StateProvider<bool>? provider;
 
   @override
   ConsumerState<FullscreenGuard> createState() => _FullscreenGuardState();
@@ -35,11 +41,13 @@ class _FullscreenGuardState extends ConsumerState<FullscreenGuard> {
   late final StateController<bool> _state;
   bool _on = false;
 
+  StateProvider<bool> get _provider => widget.provider ?? lyricsFullscreenProvider;
+
   @override
   void initState() {
     super.initState();
     _mode = ref.read(screenModeProvider);
-    _state = ref.read(lyricsFullscreenProvider.notifier);
+    _state = ref.read(_provider.notifier);
   }
 
   @override
@@ -54,14 +62,14 @@ class _FullscreenGuardState extends ConsumerState<FullscreenGuard> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(lyricsFullscreenProvider, (_, on) {
+    ref.listen(_provider, (_, on) {
       _on = on;
       unawaited(_mode.setFullScreen(on));
     });
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () {
-          if (ref.read(lyricsFullscreenProvider)) ref.read(lyricsFullscreenProvider.notifier).state = false;
+          if (ref.read(_provider)) ref.read(_provider.notifier).state = false;
         },
       },
       child: Focus(autofocus: true, child: widget.child),

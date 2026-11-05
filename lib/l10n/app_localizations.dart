@@ -7396,6 +7396,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Estilo, color, fuente y fondo, con la vista previa en vivo'**
   String get personalizaKijiDescripcion;
+
+  /// Reproductor: todo en menos espacio.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo compacto'**
+  String get modoCompacto;
+
+  /// Reproductor: qué hace el modo compacto.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo en menos espacio (ideal para una ventana chica)'**
+  String get modoCompactoNota;
+
+  /// Reproductor: qué hace la pantalla completa.
+  ///
+  /// In es, this message translates to:
+  /// **'Portada grande y las barras se esconden solas'**
+  String get pantallaCompletaNota;
 }
 
 class _AppLocalizationsDelegate

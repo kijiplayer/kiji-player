@@ -1233,5 +1233,8 @@
   "atras": "Back",
   "pasoDe": "Step {n} of {total}",
   "personalizaKiji": "Personalize Kiji",
-  "personalizaKijiDescripcion": "Style, color, font and background, with a live preview"
+  "personalizaKijiDescripcion": "Style, color, font and background, with a live preview",
+  "modoCompacto": "Compact mode",
+  "modoCompactoNota": "Everything in less space (great for a small window)",
+  "pantallaCompletaNota": "Big cover, and the bars hide on their own"
 }
