@@ -21,7 +21,8 @@ const controlVideos = <(String id, String name)>[
 
 /// Formas del motor A que se prueban una por una (las automáticas de InnerTubeX que sirven sin
 /// cuenta; las demás las usa solo si hacen falta).
-const engineAForms = ['VISIONOS_0_1', 'VISIONOS', 'WEB_REMIX', 'WEB_EMBEDDED_PLAYER', 'TVHTML5_SIMPLY'];
+/// WEB_EMBEDDED_PLAYER se retiró también del motor A (YouTube responde "This video is unavailable").
+const engineAForms = ['VISIONOS_0_1', 'VISIONOS', 'WEB_REMIX', 'TVHTML5_SIMPLY'];
 
 /// Resultado de probar un camino con una canción de control.
 /// Las listas HLS solo se reproducen en Android, iOS y macOS (en la PC todavía no).

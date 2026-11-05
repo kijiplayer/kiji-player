@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
 
+import 'package:kiji_player/features/extractor/data/extractor_tester.dart';
 import 'package:kiji_player/features/extractor/data/path_health.dart';
 import 'package:kiji_player/features/yt_music/data/player_script.dart';
 import 'package:kiji_player/features/yt_music/data/po_token.dart';
@@ -30,6 +31,7 @@ void main() {
       expect([for (final c in ytPlayerClients) if (c.isRetired) c.label],
           ['ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS', 'WEB_EMBEDDED_PLAYER', 'MWEB']);
       expect(clientByLabel('WEB_EMBEDDED_PLAYER')!.embedded, isTrue);
+      expect(engineAForms, isNot(contains('WEB_EMBEDDED_PLAYER')), reason: 'retirada también del motor A');
     });
 
     test('solo las web y de TV mandan PO token; solo las cifradas piden el reproductor', () {
