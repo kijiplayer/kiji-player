@@ -404,12 +404,15 @@ class PlaybackControlsRow extends ConsumerWidget {
             color: KijiColors.text,
           ),
         ),
-        BreathingPlayButton(
-          isPlaying: playback.isPlaying,
-          onPressed: notifier.togglePlayPause,
-          reduceMotion: reduceMotion(context, ref),
-          size: compact ? 52 : KijiSizes.playButton,
-        ),
+        if (compact)
+          BreathingPlayButton(
+            isPlaying: playback.isPlaying,
+            onPressed: notifier.togglePlayPause,
+            reduceMotion: reduceMotion(context, ref),
+            size: 52,
+          )
+        else
+          ProgressPlayButton(isPlaying: playback.isPlaying, onPressed: notifier.togglePlayPause),
         PressScale(
           child: IconButton(
             tooltip: tx.siguiente,
@@ -439,55 +442,169 @@ class PlaybackControlsRow extends ConsumerWidget {
   }
 }
 
-/// Botones de vidrio de abajo: Letra, Cola y Temporizador.
+/// Barra de herramientas de abajo: Letra, Cola, Sonido, Temporizador y Momento en una sola fila de
+/// íconos (el nombre, en el tooltip y para los lectores de pantalla). El temporizador activo muestra
+/// cuánto falta. Nocturne: una cápsula de vidrio; Grafito: sin cápsula; Papel: una línea fina.
 class _BottomActions extends ConsumerWidget {
   const _BottomActions();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timer = ref.watch(sleepTimerProvider);
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 10,
-      runSpacing: 10,
+    final soundOn = ref.watch(equalizerProvider.select((e) => e.settings.enabled));
+    Widget tool(IconData icon, String name, VoidCallback onTap, {bool active = false, String? label}) => Semantics(
+      button: true,
+      label: name,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: name,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 26,
+          child: SizedBox(
+            height: 48,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 22, color: active ? KijiColors.cyan : KijiColors.muted),
+                  if (label != null) ...[
+                    const SizedBox(width: 6),
+                    Text(label, style: KijiText.mono(size: 12, color: KijiColors.cyan)),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final row = Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        GlassIconButton(
-          icon: Icons.lyrics_outlined,
-          label: tx.letra,
-          tooltip: tx.letra,
-          onPressed: () => LyricsScreen.open(context),
-        ),
-        GlassIconButton(
-          icon: Icons.queue_music_rounded,
-          label: tx.cola,
-          tooltip: tx.cola,
-          onPressed: () => QueueScreen.open(context),
-        ),
-        // Sonido en un toque (ecualizador, bajos, velocidad…); activo si hay efectos encendidos.
-        GlassIconButton(
-          icon: Icons.graphic_eq_rounded,
-          label: tx.sonido,
-          tooltip: tx.sonido,
-          active: ref.watch(equalizerProvider.select((e) => e.settings.enabled)),
-          onPressed: () => SoundScreen.open(context),
-        ),
-        GlassIconButton(
-          icon: timer == null ? Icons.bedtime_outlined : Icons.bedtime_rounded,
-          // Activo: muestra cuánto falta, en cian.
-          label: sleepTimerButtonLabel(timer),
-          tooltip: timer == null ? tx.temporizador : tx.temporizadorActivo(timer.mode.label),
+        tool(Icons.lyrics_outlined, tx.letra, () => LyricsScreen.open(context)),
+        tool(Icons.queue_music_rounded, tx.cola, () => QueueScreen.open(context)),
+        tool(Icons.graphic_eq_rounded, tx.sonido, () => SoundScreen.open(context), active: soundOn),
+        tool(
+          timer == null ? Icons.bedtime_outlined : Icons.bedtime_rounded,
+          timer == null ? tx.temporizador : tx.temporizadorActivo(timer.mode.label),
+          () => showSleepTimerSheet(context),
           active: timer != null,
-          onPressed: () => showSleepTimerSheet(context),
+          label: timer == null ? null : sleepTimerButtonLabel(timer),
         ),
-        // Momentos: guardar este segundo. La lista se abre desde el
-        // aviso ("Ver") o desde Biblioteca → Playlists → Momentos.
-        GlassIconButton(
-          icon: Icons.bookmark_add_outlined,
-          label: tx.momento,
-          tooltip: tx.guardarEsteMomento,
-          onPressed: () => showNewMomentSheet(context, ref),
-        ),
+        // Momentos: guardar este segundo. La lista se abre desde el aviso ("Ver") o desde
+        // Biblioteca → Playlists → Momentos.
+        tool(Icons.bookmark_add_outlined, tx.guardarEsteMomento, () => showNewMomentSheet(context, ref)),
       ],
     );
+    final decoration = switch (KijiLook.style) {
+      KijiStyle.nocturne => BoxDecoration(
+        color: KijiColors.glassFill,
+        borderRadius: BorderRadius.circular(KijiRadii.pill),
+        border: Border.all(color: KijiColors.glassBorder),
+      ),
+      KijiStyle.graphite => null,
+      KijiStyle.paper => BoxDecoration(
+        borderRadius: BorderRadius.circular(KijiRadii.pill),
+        border: Border.all(color: KijiColors.glassBorder),
+      ),
+    };
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: DecoratedBox(
+        decoration: decoration ?? const BoxDecoration(),
+        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: row),
+      ),
+    );
   }
+}
+
+/// El play del reproductor, dentro de un anillo que se llena con la canción: el sello de Kiji en los
+/// tres estilos (Nocturne: degradado del acento; Grafito: blanco fino; Papel: su rojo). Es la acción
+/// principal y, de paso, dice cuánto falta.
+class ProgressPlayButton extends ConsumerWidget {
+  const ProgressPlayButton({super.key, required this.isPlaying, required this.onPressed});
+
+  final bool isPlaying;
+  final VoidCallback onPressed;
+
+  static const size = KijiSizes.playButton;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progress = ref.watch(
+      playbackProvider.select((p) => p.duration.inMilliseconds <= 0
+          ? 0.0
+          : (p.position.inMilliseconds / p.duration.inMilliseconds).clamp(0.0, 1.0)),
+    );
+    return SizedBox.square(
+      dimension: size * 1.35,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          RepaintBoundary(
+            child: CustomPaint(
+              size: const Size.square(size * 1.3),
+              painter: _ProgressRingPainter(
+                progress: progress,
+                rest: KijiColors.waveRest,
+                colors: switch (KijiLook.style) {
+                  KijiStyle.nocturne => [KijiColors.violet, KijiColors.cyan, KijiColors.violet],
+                  KijiStyle.graphite => [KijiColors.text, KijiColors.text],
+                  KijiStyle.paper => [KijiColors.like, KijiColors.like],
+                },
+                width: KijiLook.nocturne ? 3.5 : 2.5,
+              ),
+            ),
+          ),
+          BreathingPlayButton(
+            isPlaying: isPlaying,
+            onPressed: onPressed,
+            reduceMotion: reduceMotion(context, ref),
+            size: size,
+            breathingRing: false,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressRingPainter extends CustomPainter {
+  _ProgressRingPainter({required this.progress, required this.rest, required this.colors, required this.width});
+
+  final double progress;
+  final Color rest;
+  final List<Color> colors;
+  final double width;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = (Offset.zero & size).deflate(width / 2);
+    canvas.drawArc(rect, 0, 2 * pi, false, Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..color = rest);
+    if (progress <= 0) return;
+    canvas.drawArc(
+      rect,
+      -pi / 2,
+      2 * pi * progress,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width
+        ..strokeCap = StrokeCap.round
+        ..shader = SweepGradient(
+          startAngle: -pi / 2,
+          endAngle: 3 * pi / 2,
+          colors: colors,
+        ).createShader(rect),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ProgressRingPainter old) =>
+      old.progress != progress || old.rest != rest || old.width != width || old.colors != colors;
 }
