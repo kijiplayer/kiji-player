@@ -1,3 +1,5 @@
+import 'package:kiji_player/l10n/l10n.dart';
+import 'package:flutter/widgets.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -136,5 +138,14 @@ void main() {
       await c.read(updateProvider.notifier).checkNow();
       expect(c.read(updateProvider).message, 'Todavía no hay versiones publicadas.');
     });
+  });
+
+  test('El aviso de la última consulta sigue al idioma (no queda en el de cuando se consultó)', () {
+    addTearDown(() => setKijiLocale(const Locale('es')));
+    const state = UpdateState(note: UpdateNote.upToDate, noteVersion: '9.9.9');
+    setKijiLocale(const Locale('es'));
+    expect(state.message, 'Tienes la última versión (9.9.9).');
+    setKijiLocale(const Locale('en'));
+    expect(state.message, 'You have the latest version (9.9.9).');
   });
 }
