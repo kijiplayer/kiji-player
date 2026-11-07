@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:kiji_player/utils/webview_host.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -96,7 +97,7 @@ function kijiAsk(fn, args) {
 
 class WebViewEjsSolver implements JsChallengeSolver {
   WebViewEjsSolver({Future<Directory> Function()? directory})
-      : _directory = directory ?? getApplicationSupportDirectory;
+    : _directory = directory ?? getApplicationSupportDirectory;
 
   final Future<Directory> Function() _directory;
   HeadlessInAppWebView? _webView;
@@ -128,7 +129,7 @@ class WebViewEjsSolver implements JsChallengeSolver {
     _starting = null;
     _preparedHash = null;
     try {
-      await webView.dispose();
+      await webView.dispose().timeout(const Duration(seconds: 5));
       debugPrint('=== YTM solver: WebView cerrada ($why) ===');
     } catch (error) {
       debugPrint('=== YTM solver: al cerrar la WebView: $error ===');
@@ -141,10 +142,10 @@ class WebViewEjsSolver implements JsChallengeSolver {
     String function,
     List<Object?> args,
   ) async {
-    final result = await controller.callAsyncJavaScript(
-      functionBody: 'return await kijiAsk(fn, args);',
-      arguments: {'fn': function, 'args': args},
-    );
+    // Con tope: si la WebView quedó trabada, no se espera para siempre (se suelta y se crea otra).
+    final result = await controller
+        .callAsyncJavaScript(functionBody: 'return await kijiAsk(fn, args);', arguments: {'fn': function, 'args': args})
+        .timeout(const Duration(seconds: 45));
     if (result?.error != null) throw StateError('$function: ${result!.error}');
     final raw = result?.value;
     if (raw is! String) throw StateError('$function: respuesta inesperada ($raw)');
@@ -154,8 +155,7 @@ class WebViewEjsSolver implements JsChallengeSolver {
   }
 
   @override
-  bool get isSupported =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
+  bool get isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
 
   @override
   Future<ChallengeAnswers> solve({
@@ -198,6 +198,15 @@ class WebViewEjsSolver implements JsChallengeSolver {
     } catch (error) {
       debugPrint('=== YTM solver: falló: $error ===');
       _preparedHash = null;
+      // Trabada: se suelta para que el próximo pedido cree otra (con el entorno renovado).
+      // Trabada: se abandona sin cerrarla (cerrarla podría bloquear el hilo de la ventana) y el
+      // próximo pedido crea otra, con el entorno renovado.
+      if (error is TimeoutException) {
+        _webView = null;
+        _controller = null;
+        _starting = null;
+        await WebViewHost.instance.renew('el solver no respondía');
+      }
       return ChallengeAnswers(error: 'El solver falló: ${'$error'.split('\n').first}');
     }
   }
@@ -219,35 +228,40 @@ class WebViewEjsSolver implements JsChallengeSolver {
       // yt.solver.lib.js deja meriyah y astring dentro de "lib"; el núcleo
       // los espera como variables globales. Todo eso va al worker.
       final worker = [scripts[0], _workerBridge, scripts[1], _workerFunctions].join('\n');
-      final html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+      final html =
+          '<!DOCTYPE html><html><head><meta charset="utf-8">'
           '<script type="text/plain" id="kiji-worker">${worker.replaceAll('</script', r'<\/script')}</script>'
           '${tag(_pageScript)}</head><body></body></html>';
-      final webView = HeadlessInAppWebView(
-        initialData: InAppWebViewInitialData(data: html, baseUrl: WebUri('https://kiji.invalid/')),
-        initialSettings: InAppWebViewSettings(
-          javaScriptEnabled: true,
-          cacheEnabled: false,
-          useShouldOverrideUrlLoading: true,
+      // Con WebViewHost: entorno compartido y, si no se puede crear, se renueva y se reintenta.
+      final webView = await WebViewHost.instance.run(
+        'solver',
+        (environment) => HeadlessInAppWebView(
+          webViewEnvironment: environment,
+          initialData: InAppWebViewInitialData(data: html, baseUrl: WebUri('https://kiji.invalid/')),
+          initialSettings: InAppWebViewSettings(
+            javaScriptEnabled: true,
+            cacheEnabled: false,
+            useShouldOverrideUrlLoading: true,
+          ),
+          // La página del solver no navega nunca: el código del reproductor
+          // de YouTube podría intentarlo y se perdería todo lo preparado.
+          shouldOverrideUrlLoading: (_, action) async {
+            final first = !completer.isCompleted;
+            debugPrint('=== YTM solver: navegación ${first ? 'inicial' : 'BLOQUEADA'}: ${action.request.url} ===');
+            return first ? NavigationActionPolicy.ALLOW : NavigationActionPolicy.CANCEL;
+          },
+          onLoadStart: (_, url) => debugPrint('=== YTM solver: carga $url ==='),
+          onLoadStop: (controller, _) {
+            if (!completer.isCompleted) completer.complete(controller);
+          },
+          onConsoleMessage: (_, message) {
+            if (message.messageLevel == ConsoleMessageLevel.ERROR) {
+              debugPrint('=== YTM solver: consola: ${message.message} ===');
+            }
+          },
         ),
-        // La página del solver no navega nunca: el código del reproductor
-        // de YouTube podría intentarlo y se perdería todo lo preparado.
-        shouldOverrideUrlLoading: (_, action) async {
-          final first = !completer.isCompleted;
-          debugPrint('=== YTM solver: navegación ${first ? 'inicial' : 'BLOQUEADA'}: ${action.request.url} ===');
-          return first ? NavigationActionPolicy.ALLOW : NavigationActionPolicy.CANCEL;
-        },
-        onLoadStart: (_, url) => debugPrint('=== YTM solver: carga $url ==='),
-        onLoadStop: (controller, _) {
-          if (!completer.isCompleted) completer.complete(controller);
-        },
-        onConsoleMessage: (_, message) {
-          if (message.messageLevel == ConsoleMessageLevel.ERROR) {
-            debugPrint('=== YTM solver: consola: ${message.message} ===');
-          }
-        },
       );
       _webView = webView;
-      await webView.run();
       final controller = await completer.future.timeout(const Duration(seconds: 20));
       _controller = controller;
       debugPrint('=== YTM solver: WebView lista ===');
@@ -256,7 +270,12 @@ class WebViewEjsSolver implements JsChallengeSolver {
       _starting = null;
       await _webView?.dispose();
       _webView = null;
-      if (!completer.isCompleted) completer.completeError(error);
+      // Solo lo esperan los pedidos que llegaron mientras arrancaba: si no hay ninguno, el error
+      // no debe quedar sin dueño (salía como "ERROR NO CAPTURADO").
+      if (!completer.isCompleted) {
+        completer.future.ignore();
+        completer.completeError(error);
+      }
       rethrow;
     }
   }
@@ -288,8 +307,10 @@ class WebViewEjsSolver implements JsChallengeSolver {
     if (value['error'] != null) throw StateError('preparar: ${value['error']}');
     if (value['n'] != true) throw StateError('el solver no encontró la función de "n" (sig: ${value['sig']})');
     _preparedHash = hash;
-    debugPrint('=== YTM solver: $hash preparado (n: ${value['n']}, sig: ${value['sig']}, '
-        '${watch.elapsedMilliseconds} ms) ===');
+    debugPrint(
+      '=== YTM solver: $hash preparado (n: ${value['n']}, sig: ${value['sig']}, '
+      '${watch.elapsedMilliseconds} ms) ===',
+    );
     final code = cache == null ? null : (await _call(controller, 'kijiTakeCode', const []))['code'];
     if (cache != null && code is String) {
       try {

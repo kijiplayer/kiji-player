@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/battery_optimization.dart';
-import 'features/style/presentation/style_chooser_screen.dart';
+import 'features/customize/data/track_overrides.dart';
+import 'features/style/presentation/personalize_screen.dart';
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
@@ -117,7 +118,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     final settings = await ref.read(settingsProvider.notifier).loaded;
     final screens = startupScreens(
       freshInstall: fresh,
-      styleChosen: settings.styleChosen,
+      personalized: settings.personalized,
       lastSeenVersion: settings.lastSeenVersion,
     );
     Future<void> markSeen() async {
@@ -139,7 +140,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
             await WelcomeScreen.open(context, instant: true);
             await markSeen();
           case StartupScreen.style:
-            if (!ref.read(settingsProvider).styleChosen) await StyleChooserScreen.open(context, ref);
+            if (!ref.read(settingsProvider).personalized) await PersonalizeScreen.open(context, ref);
           case StartupScreen.whatsNew:
             await WhatsNewScreen.open(context);
         }
@@ -205,15 +206,26 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   /// Tema, acento y tipografía (Configuración → Apariencia). Los colores salen de una paleta
   /// global ([KijiColors.palette]): al cambiarla se redibuja todo, como con el idioma.
   void _applyAppearance() {
-    final (styleName, theme, accent, font, rich, calm) = ref.watch(
-      settingsProvider.select((s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion)),
+    final (styleName, theme, accent, font, rich, calm, custom) = ref.watch(
+      settingsProvider.select(
+        (s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion, s.customAccentColor),
+      ),
     );
     final style = KijiStyle.parse(styleName);
-    final palette = KijiPalette.forStyle(style, theme: theme, accent: accent);
+    // Estilo por canción: mientras suena, su color de acento manda sobre el general.
+    final songAccent = ref.watch(currentTrackStyleProvider.select((s) => s?.accent));
+    final palette = KijiPalette.forStyle(
+      style,
+      theme: theme,
+      accent: accent,
+      custom: songAccent != null ? Color(songAccent) : custom,
+    );
     final systemFont = font == 'system';
+    final family = KijiText.familyFor(font);
     if (style == KijiLook.style &&
         palette == KijiColors.palette &&
         systemFont == KijiText.useSystemFont &&
+        family == KijiText.chosenFamily &&
         rich == KijiEffects.rich &&
         calm == KijiEffects.calm) {
       return;
@@ -221,6 +233,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     KijiLook.style = style;
     KijiColors.palette = palette;
     KijiText.useSystemFont = systemFont;
+    KijiText.chosenFamily = family;
     KijiEffects.rich = rich;
     KijiEffects.calm = calm;
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.

@@ -4,8 +4,8 @@ import 'package:kiji_player/l10n/l10n.dart';
 
 import '../../../utils/json_access.dart';
 
-/// Un artista o un álbum de YouTube Music (resultado de búsqueda o carrusel).
-enum YtCollectionKind { artist, album }
+/// Un artista, un álbum o una playlist de YouTube Music (resultado de búsqueda o carrusel).
+enum YtCollectionKind { artist, album, playlist }
 
 class YtCollection {
   const YtCollection({
@@ -16,7 +16,7 @@ class YtCollection {
     this.thumbnailUrl,
   });
 
-  /// `UC…` para artistas, `MPREb_…` para álbumes.
+  /// `UC…` para artistas, `MPREb_…` para álbumes; para playlists, el id sin `VL`.
   final String browseId;
   final String title;
   final YtCollectionKind kind;
@@ -162,7 +162,7 @@ List<YtMusicSearchResult> _songRows(Object? root, {String? fallbackArtist, Strin
 
 /// Resultados de buscar con el filtro Artistas o Álbumes.
 List<YtCollection> parseCollectionResults(Map<String, dynamic> json, YtCollectionKind kind) {
-  final wanted = kind == YtCollectionKind.artist ? 'MUSIC_PAGE_TYPE_ARTIST' : 'MUSIC_PAGE_TYPE_ALBUM';
+  final wanted = _pageTypes[kind];
   final results = <YtCollection>[];
   final seen = <String>{};
   void walk(Object? n) {
@@ -170,17 +170,14 @@ List<YtCollection> parseCollectionResults(Map<String, dynamic> json, YtCollectio
       final r = n['musicResponsiveListItemRenderer'];
       if (r is Map) {
         final endpoint = (r['navigationEndpoint'] as Map?)?['browseEndpoint'] as Map?;
-        final id = endpoint?['browseId'] as String?;
+        final id = _collectionId(endpoint?['browseId'] as String?, kind);
         if (id != null && _pageType(endpoint) == wanted && seen.add(id)) {
           final texts = _flexTexts(r);
           results.add(YtCollection(
             browseId: id,
             title: texts.isEmpty ? tx.sinTitulo : texts.first,
             kind: kind,
-            // "Álbum · Daft Punk · 2001" → "Daft Punk · 2001" (sin el tipo).
-            subtitle: kind == YtCollectionKind.album && texts.length > 1
-                ? texts[1].split(' • ').skip(1).join(' · ')
-                : '',
+            subtitle: texts.length > 1 ? _collectionSubtitle(kind, texts[1]) : '',
             thumbnailUrl: _lastThumbnail(r['thumbnail']),
           ));
         }
@@ -192,7 +189,115 @@ List<YtCollection> parseCollectionResults(Map<String, dynamic> json, YtCollectio
   }
 
   walk(json['contents']);
+  walk(json['continuationContents']);
   return results;
+}
+
+const _pageTypes = {
+  YtCollectionKind.artist: 'MUSIC_PAGE_TYPE_ARTIST',
+  YtCollectionKind.album: 'MUSIC_PAGE_TYPE_ALBUM',
+  YtCollectionKind.playlist: 'MUSIC_PAGE_TYPE_PLAYLIST',
+};
+
+/// Las playlists se abren con su id sin el `VL` de la página.
+String? _collectionId(String? browseId, YtCollectionKind kind) =>
+    kind == YtCollectionKind.playlist && browseId != null && browseId.startsWith('VL') ? browseId.substring(2) : browseId;
+
+/// "Álbum • Grupo • 2001" → "Grupo · 2001" (sin el tipo). Las playlists no traen
+/// el tipo delante ("Autor • 2 M de visualizaciones"); los artistas no llevan subtítulo.
+String _collectionSubtitle(YtCollectionKind kind, String text) => switch (kind) {
+  YtCollectionKind.artist => '',
+  YtCollectionKind.album => text.split(' • ').skip(1).join(' · '),
+  YtCollectionKind.playlist => text.split(' • ').join(' · '),
+};
+
+/// El resultado principal de una búsqueda sin filtro (la tarjeta grande de
+/// YouTube Music): una canción o video, o un artista, álbum o playlist.
+class YtTopResult {
+  const YtTopResult.song(YtMusicSearchResult this.song) : collection = null;
+  const YtTopResult.collection(YtCollection this.collection) : song = null;
+
+  final YtMusicSearchResult? song;
+  final YtCollection? collection;
+}
+
+YtTopResult? parseTopResult(Map<String, dynamic> json) {
+  Map? card;
+  void walk(Object? n) {
+    if (card != null) return;
+    if (n is Map) {
+      final found = n['musicCardShelfRenderer'];
+      if (found is Map) {
+        card = found;
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json['contents']);
+  final top = card;
+  if (top == null) return null;
+  final title = _runsText(top['title']);
+  if (title.isEmpty) return null;
+  final runs = (top['title'] as Map?)?['runs'] as List?;
+  final endpoint = runs?.whereType<Map>().firstOrNull?['navigationEndpoint'] as Map?;
+  final thumbnail = _lastThumbnail(top['thumbnail']);
+
+  final videoId = jsonStringAt(endpoint, const ['watchEndpoint', 'videoId']);
+  if (videoId != null) {
+    final subtitle = parseSubtitleRuns((top['subtitle'] as Map?)?['runs'] as List? ?? const []);
+    return YtTopResult.song(
+      YtMusicSearchResult(
+        videoId: videoId,
+        title: title,
+        artist: subtitle.artist ?? unknownArtist,
+        album: subtitle.album,
+        durationMs: subtitle.durationMs,
+        thumbnailUrl: thumbnail,
+      ),
+    );
+  }
+  final browse = endpoint?['browseEndpoint'] as Map?;
+  final type = _pageType(browse);
+  final kind = _pageTypes.entries.where((e) => e.value == type).firstOrNull?.key;
+  final id = kind == null ? null : _collectionId(browse?['browseId'] as String?, kind);
+  if (kind == null || id == null) return null; // perfiles, pódcasts, etc.
+  return YtTopResult.collection(
+    YtCollection(
+      browseId: id,
+      title: title,
+      kind: kind,
+      subtitle: _collectionSubtitle(kind, _runsText(top['subtitle'])),
+      thumbnailUrl: thumbnail,
+    ),
+  );
+}
+
+/// Marca para pedir la página siguiente de una búsqueda (null si no hay más).
+/// Viene en `nextContinuationData` del estante de resultados, tanto en la
+/// primera página (`contents`) como en las siguientes (`continuationContents`).
+String? parseSearchContinuation(Map<String, dynamic> json) {
+  String? found;
+  void walk(Object? n) {
+    if (found != null) return;
+    if (n is Map) {
+      final token = jsonStringAt(n, const ['nextContinuationData', 'continuation']);
+      if (token != null && token.isNotEmpty) {
+        found = token;
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json['contents']);
+  walk(json['continuationContents']);
+  return found;
 }
 
 /// Página de un artista: nombre, sus canciones más escuchadas y sus álbumes.

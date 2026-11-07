@@ -72,7 +72,7 @@ class ExtractorTestWorker(context: Context, params: WorkerParameters) : Coroutin
     private const val NAME = "kiji_prueba_extractor"
     private const val DAY_MS = 24 * 60 * 60 * 1000L
     private val CONTROL = listOf("BSTsnWoslP4", "8Xv_Hg8o1fw", "BycLmWI97Nc")
-    private val FORMS = listOf("VISIONOS_0_1", "VISIONOS", "WEB_REMIX", "WEB_EMBEDDED_PLAYER", "TVHTML5_SIMPLY")
+    private val FORMS = listOf("VISIONOS_0_1", "VISIONOS", "WEB_REMIX", "TVHTML5_SIMPLY")
 
     /** Prende o apaga la prueba diaria (Configuración → Salud del Extractor). */
     fun schedule(context: Context, enabled: Boolean) {

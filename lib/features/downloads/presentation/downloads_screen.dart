@@ -12,6 +12,7 @@ import '../domain/download_settings.dart';
 import '../domain/downloaded_track.dart';
 import '../../selection/track_selection.dart';
 import '../../../theme/app_theme.dart' show KijiSelected;
+import 'batch_download_progress.dart';
 import 'download_button.dart';
 import '../../customize/presentation/track_text.dart';
 import 'download_status.dart';
@@ -94,6 +95,7 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
               SliverList.list(
                 children: [
                   _SettingsCard(downloads: downloads),
+                  const BatchDownloadProgress(padding: EdgeInsets.fromLTRB(16, 8, 16, 0)),
                   if (active.any((d) => d.status == ActiveDownloadStatus.failed))
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -173,9 +175,15 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
                       color: AppColors.onSurfaceMuted,
                       onPressed: () => confirmDeleteDownload(context, ref, track.title, track.videoId),
                     ),
-                    onTap: selecting
-                        ? () => _selection.toggle(track.videoId, track.toTrack())
-                        : () => _playAll(ref, completed, index),
+                    onTap: () {
+                      // Ctrl/Shift + clic en la PC: elegir sin reproducir.
+                      if (_selection.tapWithKeys(track.videoId, track.toTrack(), [
+                        for (final d in completed) MapEntry(d.videoId, d.toTrack()),
+                      ])) {
+                        return;
+                      }
+                      selecting ? _selection.toggle(track.videoId, track.toTrack()) : _playAll(ref, completed, index);
+                    },
                     // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
                     onLongPress: () => _selection.toggle(track.videoId, track.toTrack()),
                   );

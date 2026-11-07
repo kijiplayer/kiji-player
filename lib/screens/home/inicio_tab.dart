@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/style/presentation/custom_background.dart';
 import '../../features/customize/presentation/customize_sheets.dart';
 import '../../features/recommendations/data/home_feed_provider.dart';
 import '../../features/recommendations/domain/home_feed.dart';
@@ -76,8 +77,13 @@ class InicioTab extends ConsumerWidget {
       ),
     );
 
-    // Orden de Inicio: nunca se ve vacío.
-    return Stack(children: [aurora, _feed(context, ref, playback, recent, top, downloaded, isNew)]);
+    // Orden de Inicio: nunca se ve vacío. Con un fondo propio, sin la aurora encima.
+    return Stack(
+      children: [
+        if (!ref.watch(hasCustomBackgroundProvider)) aurora,
+        _feed(context, ref, playback, recent, top, downloaded, isNew),
+      ],
+    );
   }
 
   Widget _feed(
@@ -172,7 +178,7 @@ class _GreetingState extends State<_Greeting> {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(greetingFor(_now), style: KijiText.title(size: 30)),
+              Text(greetingFor(_now), style: KijiText.display(size: 30)),
             ],
           ),
         ),
@@ -227,12 +233,21 @@ class _ContinueCard extends ConsumerWidget {
               child: Ink(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
+                // Grafito: un aro fino (como el play del reproductor).
+                decoration: KijiLook.museum
+                    ? BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: KijiColors.text.withValues(alpha: 0.85), width: 1.2),
+                      )
+                    : BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
                 child: InkWell(
                   onTap: () => ref.read(playbackProvider.notifier).togglePlayPause(),
                   child: Tooltip(
                     message: isPlaying ? tx.pausar : tx.reproducir,
-                    child: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: KijiColors.onAccent),
+                    child: Icon(
+                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      color: KijiLook.museum ? KijiColors.text : KijiColors.onAccent,
+                    ),
                   ),
                 ),
               ),
@@ -293,7 +308,7 @@ class _PlaylistsRow extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(tx.tusPlaylists2, style: KijiText.title(size: 18)),
+        Text(KijiText.sectionText(tx.tusPlaylists2), style: KijiText.section(size: 18)),
         const SizedBox(height: 12),
         SizedBox(
           // Debajo de la portada van dos líneas de texto: se miden con la letra del teléfono

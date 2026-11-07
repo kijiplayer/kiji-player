@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,33 +8,11 @@ import 'package:path/path.dart' as p;
 
 import 'package:kiji_player/features/downloads/data/storage_info_impl.dart';
 import 'package:kiji_player/features/local_library/data/desktop_folder_source.dart';
+import 'package:kiji_player/features/local_library/data/local_scanner.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
 import 'package:kiji_player/widgets/playback_shortcuts.dart';
 
-/// MP3 mínimo: etiqueta ID3v2.3 con título y artista, y un cuadro MPEG
-/// válido (128 kbps, 44,1 kHz) para que el lector lo reconozca como audio.
-Uint8List _mp3WithTags({required String title, required String artist}) {
-  List<int> frame(String id, String text) {
-    final body = [0, ...latin1.encode(text)]; // 0 = ISO-8859-1
-    final size = body.length;
-    return [
-      ...ascii.encode(id),
-      (size >> 24) & 0xFF, (size >> 16) & 0xFF, (size >> 8) & 0xFF, size & 0xFF,
-      0, 0,
-      ...body,
-    ];
-  }
-
-  final frames = [...frame('TIT2', title), ...frame('TPE1', artist)];
-  final size = frames.length;
-  final header = [
-    ...ascii.encode('ID3'), 3, 0, 0,
-    // Tamaño "synchsafe" (7 bits por byte).
-    (size >> 21) & 0x7F, (size >> 14) & 0x7F, (size >> 7) & 0x7F, size & 0x7F,
-  ];
-  final mpegFrame = [0xFF, 0xFB, 0x90, 0x64, ...List.filled(413, 0)];
-  return Uint8List.fromList([...header, ...frames, ...mpegFrame, ...mpegFrame]);
-}
+import 'helpers/fake_mp3.dart';
 
 void main() {
   group('Biblioteca en PC (carpetas elegidas)', () {
@@ -78,11 +55,12 @@ void main() {
       expect(await source.folders(), isEmpty);
     });
 
-    test('Lee las etiquetas reales de un MP3', () {
+    test('Lee las etiquetas reales de un MP3', () async {
       File(p.join(music.path, 'archivo_feo_01.mp3'))
-          .writeAsBytesSync(_mp3WithTags(title: 'Cancion de prueba', artist: 'Luna Nova'));
-
-      final songs = scanFolders([music.path]);
+          .writeAsBytesSync(fakeMp3(title: 'Cancion de prueba', artist: 'Luna Nova'));
+      final source = DesktopFolderSource(baseDirectory: () async => base, pickFolder: () async => music.path);
+      await source.requestAccess();
+      final songs = await source.loadTracks();
       expect(songs, hasLength(1));
       expect(songs.single.title, 'Cancion de prueba');
       expect(songs.single.artist, 'Luna Nova');
@@ -93,17 +71,18 @@ void main() {
       File(p.join(music.path, 'Sub', 'Sin etiquetas.flac')).writeAsBytesSync([0, 1, 2]);
       File(p.join(music.path, 'portada.jpg')).writeAsBytesSync([0, 1, 2]);
       File(p.join(music.path, 'notas.txt')).writeAsStringSync('hola');
-
-      final songs = scanFolders([music.path, p.join(base.path, 'no-existe')]);
+      final source = DesktopFolderSource(baseDirectory: () async => base, pickFolder: () async => music.path);
+      await source.requestAccess();
+      final songs = await source.loadTracks();
       expect(songs, hasLength(1));
       expect(songs.single.title, 'Sin etiquetas');
       expect(songs.single.artist, 'Artista desconocido');
-      expect(songs.single.toTrack().audioUrl, p.join(music.path, 'Sub', 'Sin etiquetas.flac'));
+      expect(songs.single.audioUrl, p.join(music.path, 'Sub', 'Sin etiquetas.flac'));
     });
 
     test('Una carpeta elegida dos veces (o anidada) no duplica canciones', () {
       File(p.join(music.path, 'a.mp3')).writeAsBytesSync([0]);
-      expect(scanFolders([music.path, music.path]), hasLength(1));
+      expect(listAudioFiles([music.path, music.path]), hasLength(1));
     });
   });
 

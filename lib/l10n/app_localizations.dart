@@ -947,71 +947,17 @@ abstract class AppLocalizations {
   /// **'Auriculares con cable'**
   String get auricularesConCable;
 
-  /// No description provided for @plano.
-  ///
-  /// In es, this message translates to:
-  /// **'Plano'**
-  String get plano;
-
-  /// No description provided for @masGraves.
-  ///
-  /// In es, this message translates to:
-  /// **'Más graves'**
-  String get masGraves;
-
-  /// No description provided for @masAgudos.
-  ///
-  /// In es, this message translates to:
-  /// **'Más agudos'**
-  String get masAgudos;
-
-  /// No description provided for @voces.
-  ///
-  /// In es, this message translates to:
-  /// **'Voces'**
-  String get voces;
-
   /// No description provided for @electronica.
   ///
   /// In es, this message translates to:
   /// **'Electrónica'**
   String get electronica;
 
-  /// No description provided for @acustica.
-  ///
-  /// In es, this message translates to:
-  /// **'Acústica'**
-  String get acustica;
-
-  /// No description provided for @clasica.
-  ///
-  /// In es, this message translates to:
-  /// **'Clásica'**
-  String get clasica;
-
-  /// No description provided for @nocheSuave.
-  ///
-  /// In es, this message translates to:
-  /// **'Noche (suave)'**
-  String get nocheSuave;
-
   /// No description provided for @ecualizador2.
   ///
   /// In es, this message translates to:
   /// **'Ecualizador'**
   String get ecualizador2;
-
-  /// No description provided for @enLaPcTodaviaNoHay.
-  ///
-  /// In es, this message translates to:
-  /// **'En la PC todavía no hay ecualizador: por ahora funciona solo en Android. Lo que elijas aquí se guarda igual.'**
-  String get enLaPcTodaviaNoHay;
-
-  /// No description provided for @apagadoElSonidoNoCambia.
-  ///
-  /// In es, this message translates to:
-  /// **'Apagado: el sonido no cambia.'**
-  String get apagadoElSonidoNoCambia;
 
   /// No description provided for @unPerfilPorDispositivo.
   ///
@@ -1042,12 +988,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'BANDAS'**
   String get bandas;
-
-  /// No description provided for @enLaPcNoHayBandas.
-  ///
-  /// In es, this message translates to:
-  /// **'En la PC no hay bandas para ajustar todavía.'**
-  String get enLaPcNoHayBandas;
 
   /// No description provided for @sinAlternativa.
   ///
@@ -1859,7 +1799,7 @@ abstract class AppLocalizations {
   /// **'Formato'**
   String get formato;
 
-  /// No description provided for @fondo.
+  /// Apariencia: fondo propio de la app.
   ///
   /// In es, this message translates to:
   /// **'Fondo'**
@@ -2818,12 +2758,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Al abrir Kiji, vuelve a la canción y al segundo donde quedó, en pausa.'**
   String get alAbrirKijiVuelveALa;
-
-  /// No description provided for @presetsBandasAManoYUn.
-  ///
-  /// In es, this message translates to:
-  /// **'Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).'**
-  String get presetsBandasAManoYUn;
 
   /// No description provided for @apagado.
   ///
@@ -5699,12 +5633,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Se borra 1 canción del dispositivo. No se quita de tu cola: vuelve a sonar desde internet.} other{Se borran {count} canciones del dispositivo. No se quitan de tu cola: vuelven a sonar desde internet.}}'**
   String seBorranNDelDispositivo(num count);
 
-  /// No description provided for @encendidoPerfil.
-  ///
-  /// In es, this message translates to:
-  /// **'Encendido: {profile}'**
-  String encendidoPerfil(Object? profile);
-
   /// No description provided for @cable.
   ///
   /// In es, this message translates to:
@@ -6440,13 +6368,13 @@ abstract class AppLocalizations {
   /// No description provided for @tipografiaDescripcion.
   ///
   /// In es, this message translates to:
-  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema'**
+  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel), una de las incluidas en Kiji o la del sistema'**
   String get tipografiaDescripcion;
 
   /// No description provided for @tipografiaKiji.
   ///
   /// In es, this message translates to:
-  /// **'La de Kiji'**
+  /// **'La del estilo'**
   String get tipografiaKiji;
 
   /// No description provided for @tipografiaSistema.
@@ -7072,6 +7000,594 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.'**
   String get nuevoPcTexto;
+
+  /// Traducción de la letra: falló algo que no depende de la persona (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora no se pudo traducir. Vuelve a intentarlo en un momento.'**
+  String get traduccionNoDisponibleAhora;
+
+  /// Configuración → Cuenta: YouTube respondió 401 a la sesión guardada.
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube ya no acepta esta sesión. Vuelve a conectar la cuenta.'**
+  String get sesionVencidaVuelveAConectar;
+
+  /// Búsqueda, pestaña Todo: el resultado que mejor coincide.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado principal'**
+  String get resultadoPrincipal;
+
+  /// Búsqueda, pestaña Todo: abre la pestaña de esa sección.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver todo'**
+  String get verTodo;
+
+  /// Tipo de resultado de búsqueda: una playlist de YouTube Music.
+  ///
+  /// In es, this message translates to:
+  /// **'Playlist'**
+  String get playlist;
+
+  /// Salud del Extractor: por qué se retiró WEB_EMBEDDED_PLAYER.
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.'**
+  String get youtubeNoDisponibleIncrustado;
+
+  /// Preset del ecualizador: sin cambios.
+  ///
+  /// In es, this message translates to:
+  /// **'Normal'**
+  String get eqNormal;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajos'**
+  String get eqBajos;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Voz'**
+  String get eqVoz;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Acústico'**
+  String get eqAcustico;
+
+  /// Preset del ecualizador: suave, para escuchar bajito.
+  ///
+  /// In es, this message translates to:
+  /// **'Noche'**
+  String get eqNoche;
+
+  /// Reverb: sin reverb.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagado'**
+  String get reverbApagado;
+
+  /// Reverb: como en una sala.
+  ///
+  /// In es, this message translates to:
+  /// **'Sala'**
+  String get reverbSala;
+
+  /// Reverb: como en un estadio.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadio'**
+  String get reverbEstadio;
+
+  /// Pantalla Sonido (ecualizador y efectos).
+  ///
+  /// In es, this message translates to:
+  /// **'Sonido'**
+  String get sonido;
+
+  /// Configuración: subtítulo de Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador, bajos, velocidad, tono y mezcla entre canciones.'**
+  String get sonidoNota;
+
+  /// Sonido: el interruptor que enciende o apaga todos los efectos.
+  ///
+  /// In es, this message translates to:
+  /// **'Efectos'**
+  String get efectos;
+
+  /// Sonido: con los efectos apagados.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagados: la música suena tal cual.'**
+  String get efectosApagados;
+
+  /// Sonido: con los efectos encendidos.
+  ///
+  /// In es, this message translates to:
+  /// **'Encendidos: {profile}'**
+  String efectosEncendidos(String profile);
+
+  /// Sonido: título de las bandas.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador · {count} bandas'**
+  String ecualizadorBandas(int count);
+
+  /// Sonido: guarda la curva actual.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar como preset'**
+  String get guardarComoPreset;
+
+  /// Sonido: campo del nombre.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del preset'**
+  String get nombreDelPreset;
+
+  /// Sonido: menú de un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Renombrar'**
+  String get renombrarPreset;
+
+  /// Sonido: confirmación al borrar un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Borrar el preset «{name}»?'**
+  String borrarPresetPregunta(String name);
+
+  /// Sonido: al borrar un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que suena ahora no cambia: queda como Personalizado.'**
+  String get borrarPresetNota;
+
+  /// Sonido: ayuda bajo los presets.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantén presionado (o clic derecho) un preset propio para renombrarlo o borrarlo.'**
+  String get presetsPropiosNota;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Refuerzo de bajos'**
+  String get refuerzoDeBajos;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad'**
+  String get velocidad;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Tono'**
+  String get tono;
+
+  /// Sonido: velocidad 1x y tono 0.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a lo normal'**
+  String get volverALoNormal;
+
+  /// Sonido: velocidad y tono.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantener entre canciones'**
+  String get mantenerEntreCanciones;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagado, la velocidad y el tono vuelven a lo normal con cada canción.'**
+  String get mantenerEntreCancionesNota;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Reverb'**
+  String get reverb;
+
+  /// Sonido: transición suave entre canciones.
+  ///
+  /// In es, this message translates to:
+  /// **'Mezcla entre canciones'**
+  String get mezclaEntreCanciones;
+
+  /// Sonido: tono.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 semitono} other{{count} semitonos}}'**
+  String semitonos(int count);
+
+  /// Sonido (PC).
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC, el ecualizador tiene 10 bandas.'**
+  String get enLaPcLasBandasSon;
+
+  /// Sonido (Android).
+  ///
+  /// In es, this message translates to:
+  /// **'Tu teléfono tiene {count} bandas; los presets se adaptan solos.'**
+  String elTelefonoTieneBandas(int count);
+
+  /// Letra: botón para verla a pantalla completa.
+  ///
+  /// In es, this message translates to:
+  /// **'Pantalla completa'**
+  String get pantallaCompleta;
+
+  /// Letra: botón para volver a la vista normal (también con Esc en la PC).
+  ///
+  /// In es, this message translates to:
+  /// **'Salir de pantalla completa'**
+  String get salirDePantallaCompleta;
+
+  /// Configuración → Almacenamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajar la letra con las descargas'**
+  String get bajarLaLetraConLasDescargas;
+
+  /// Configuración → Almacenamiento: qué hace y a quién se pregunta.
+  ///
+  /// In es, this message translates to:
+  /// **'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.'**
+  String get bajarLaLetraConLasDescargasNota;
+
+  /// Color de acento elegido por el usuario.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu color'**
+  String get acentoPropio;
+
+  /// Color de acento: el propio de Grafito o Papel.
+  ///
+  /// In es, this message translates to:
+  /// **'El del estilo'**
+  String get acentoDelEstilo;
+
+  /// Selector de color: el tono (la rueda de colores).
+  ///
+  /// In es, this message translates to:
+  /// **'Tono'**
+  String get colorMatiz;
+
+  /// Selector de color: más claro o más oscuro.
+  ///
+  /// In es, this message translates to:
+  /// **'Luz'**
+  String get colorLuz;
+
+  /// Selector de color: el color en código, como #7C5CFF.
+  ///
+  /// In es, this message translates to:
+  /// **'Código (hex)'**
+  String get colorHex;
+
+  /// Selector de color: muestra del color ya ajustado.
+  ///
+  /// In es, this message translates to:
+  /// **'Así se verá'**
+  String get asiSeVera;
+
+  /// Selector de color: por qué el color puede verse un poco distinto.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji lo aclara u oscurece lo justo para que siempre se lea.'**
+  String get acentoAjustadoNota;
+
+  /// Apariencia: qué es el fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen, un GIF o un video tuyo detrás de Kiji'**
+  String get fondoDescripcion;
+
+  /// Apariencia (PC, sin video): qué es el fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen o un GIF tuyo detrás de Kiji'**
+  String get fondoDescripcionPc;
+
+  /// Apariencia: sin fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'El del estilo'**
+  String get fondoNinguno;
+
+  /// Fondo propio: es una imagen o un GIF.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen'**
+  String get fondoImagen;
+
+  /// Fondo propio: es un video.
+  ///
+  /// In es, this message translates to:
+  /// **'Video'**
+  String get fondoVideo;
+
+  /// Fondo propio: botón.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir una imagen o un GIF'**
+  String get elegirImagen;
+
+  /// Fondo propio: botón.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir un video'**
+  String get elegirVideo;
+
+  /// Fondo propio: botón para volver al del estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar fondo'**
+  String get quitarFondo;
+
+  /// Fondo propio: deslizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Desenfoque'**
+  String get desenfoque;
+
+  /// Fondo propio: deslizador (cuánto se ve).
+  ///
+  /// In es, this message translates to:
+  /// **'Opacidad'**
+  String get opacidad;
+
+  /// Fondo propio: privacidad y comportamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Se copia dentro de Kiji y nunca sale de este dispositivo. El video va sin sonido y en bucle, y se queda quieto cuando Kiji no está a la vista o con el ahorro de batería.'**
+  String get fondoPrivadoNota;
+
+  /// Fondo propio (PC): privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Se copia dentro de Kiji y nunca sale de este dispositivo.'**
+  String get fondoPrivadoNotaPc;
+
+  /// Fondo propio: el archivo no se pudo copiar o leer (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo usar ese archivo. Prueba con otro.'**
+  String get fondoNoSePudo;
+
+  /// Personaliza Kiji: cerrar el asistente.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar'**
+  String get saltar;
+
+  /// Personaliza Kiji: volver al paso anterior.
+  ///
+  /// In es, this message translates to:
+  /// **'Atrás'**
+  String get atras;
+
+  /// Personaliza Kiji: en qué paso va.
+  ///
+  /// In es, this message translates to:
+  /// **'Paso {n} de {total}'**
+  String pasoDe(int n, int total);
+
+  /// Configuración → Apariencia: abre el asistente.
+  ///
+  /// In es, this message translates to:
+  /// **'Personaliza Kiji'**
+  String get personalizaKiji;
+
+  /// Configuración → Apariencia.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo, color, fuente y fondo, con la vista previa en vivo'**
+  String get personalizaKijiDescripcion;
+
+  /// Reproductor: todo en menos espacio.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo compacto'**
+  String get modoCompacto;
+
+  /// Reproductor: qué hace el modo compacto.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo en menos espacio (ideal para una ventana chica)'**
+  String get modoCompactoNota;
+
+  /// Reproductor: qué hace la pantalla completa.
+  ///
+  /// In es, this message translates to:
+  /// **'Portada grande y las barras se esconden solas'**
+  String get pantallaCompletaNota;
+
+  /// ⋯ del reproductor: fondo, color y vista de la letra solo para esta canción.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo de esta canción'**
+  String get estiloDeEstaCancion;
+
+  /// ⋯ del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Fondo, color y vista de la letra solo para esta canción'**
+  String get estiloDeEstaCancionNota;
+
+  /// Estilo de esta canción: quita lo propio de la canción.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver al estilo general'**
+  String get volverAlEstiloGeneral;
+
+  /// Estilo de esta canción: usar el del estilo general.
+  ///
+  /// In es, this message translates to:
+  /// **'El general'**
+  String get elGeneral;
+
+  /// Estilo de esta canción: Completo, Simple o Escaparate.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista de la letra'**
+  String get vistaDeLaLetra;
+
+  /// Apariencia: exportar e importar temas .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Temas'**
+  String get temas;
+
+  /// Apariencia.
+  ///
+  /// In es, this message translates to:
+  /// **'Comparte tu estilo como archivo .kiji o usa uno'**
+  String get temasDescripcion;
+
+  /// Temas: guardar el estilo actual como .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar mi estilo'**
+  String get exportarTema;
+
+  /// Temas: abrir un archivo .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar un tema'**
+  String get importarTema;
+
+  /// Temas: se exportó.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema guardado'**
+  String get temaGuardado;
+
+  /// Temas: se importó y se aplicó.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema aplicado'**
+  String get temaAplicado;
+
+  /// Temas: el archivo no es válido (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'Ese archivo no es un tema de Kiji.'**
+  String get esoNoEsUnTemaDeKiji;
+
+  /// Temas: qué lleva un .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.'**
+  String get temasNota;
+
+  /// Configuración → Reproductor: nombres bajo los íconos de la fila de abajo.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar nombres de los botones'**
+  String get mostrarNombresDeLosBotones;
+
+  /// Configuración: explicación de mostrar nombres de los botones.
+  ///
+  /// In es, this message translates to:
+  /// **'Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).'**
+  String get mostrarNombresDeLosBotonesNota;
+
+  /// Biblioteca: pasar a la vista de lista.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver en lista'**
+  String get verEnLista;
+
+  /// Biblioteca: pasar a la vista de cuadrícula.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver en cuadrícula'**
+  String get verEnCuadricula;
+
+  /// Biblioteca: el filtro elegido no deja ninguna.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay canciones con este filtro.'**
+  String get noHayCancionesConEsteFiltro;
+
+  /// Biblioteca: ordenar por duración.
+  ///
+  /// In es, this message translates to:
+  /// **'Duración'**
+  String get duracion;
+
+  /// Biblioteca: el orden de siempre (lo más nuevo primero).
+  ///
+  /// In es, this message translates to:
+  /// **'Recientes'**
+  String get ordenRecientes;
+
+  /// Biblioteca: filtro de la música local (del teléfono o la PC).
+  ///
+  /// In es, this message translates to:
+  /// **'En el equipo'**
+  String get enEsteEquipo;
+
+  /// Biblioteca: botón del orden.
+  ///
+  /// In es, this message translates to:
+  /// **'Ordenar'**
+  String get ordenar;
+
+  /// Biblioteca: lo que ocupa cada parte, bajo la barra de espacio.
+  ///
+  /// In es, this message translates to:
+  /// **'DESCARGAS {downloads} · CACHÉ {cache}'**
+  String descargasYCache(String downloads, String cache);
+
+  /// Descarga de varias: cuántas van de la tanda.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajando: {done} de {total}'**
+  String bajandoNDeM(int done, int total);
+
+  /// Descarga de varias: frenadas por el ahorro de datos con datos móviles.
+  ///
+  /// In es, this message translates to:
+  /// **'Con el ahorro de datos, esperan al WiFi.'**
+  String get conElAhorroDeDatosEsperanAlWifi;
+
+  /// Descarga de varias: cuántas fallaron (se ven en Descargadas).
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 no se pudo bajar} other{{count} no se pudieron bajar}}'**
+  String nNoSePudieron(int count);
+
+  /// Biblioteca: vuelve a leer todos los archivos de música del equipo.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a escanear'**
+  String get volverAEscanear;
+
+  /// Biblioteca: cuántos álbumes tiene un artista.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 álbum} other{{count} álbumes}}'**
+  String nAlbumes(int count);
+
+  /// Biblioteca: terminó de volver a escanear.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{No se encontró música} =1{Listo: 1 canción} other{Listo: {count} canciones}}'**
+  String bibliotecaEscaneada(int count);
 }
 
 class _AppLocalizationsDelegate

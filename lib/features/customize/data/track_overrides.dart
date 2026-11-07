@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../models/track.dart';
+import '../../../providers/playback_provider.dart';
 import '../../../utils/json_file.dart';
 import 'cover_store.dart';
 
@@ -14,7 +15,15 @@ import 'cover_store.dart';
 /// Lo que el usuario cambió de una canción. Solo dentro de Kiji:
 /// el archivo de música no se toca.
 class TrackOverride {
-  const TrackOverride({this.title, this.artist, this.coverFile});
+  const TrackOverride({
+    this.title,
+    this.artist,
+    this.coverFile,
+    this.accent,
+    this.backgroundFile,
+    this.backgroundKind,
+    this.lyricsPanel,
+  });
 
   final String? title;
   final String? artist;
@@ -22,7 +31,42 @@ class TrackOverride {
   /// Foto propia: nombre del archivo en `<datos>/covers/`.
   final String? coverFile;
 
-  bool get isEmpty => title == null && artist == null && coverFile == null;
+  /// Estilo de esta canción (mientras suena; null = el general): color de acento (ARGB), fondo
+  /// propio (en `<datos>/backgrounds/canciones/`, 'image' o 'video') y vista de la letra.
+  final int? accent;
+  final String? backgroundFile;
+  final String? backgroundKind;
+  final String? lyricsPanel;
+
+  bool get hasStyle => accent != null || backgroundFile != null || lyricsPanel != null;
+
+  bool get isEmpty => title == null && artist == null && coverFile == null && !hasStyle;
+
+  TrackOverride copyWith({
+    String? title,
+    String? artist,
+    String? coverFile,
+    bool clearText = false,
+    bool clearCover = false,
+    int? accent,
+    bool clearAccent = false,
+    String? backgroundFile,
+    String? backgroundKind,
+    bool clearBackground = false,
+    String? lyricsPanel,
+    bool clearLyricsPanel = false,
+  }) => TrackOverride(
+    title: clearText ? null : title ?? this.title,
+    artist: clearText ? null : artist ?? this.artist,
+    coverFile: clearCover ? null : coverFile ?? this.coverFile,
+    accent: clearAccent ? null : accent ?? this.accent,
+    backgroundFile: clearBackground ? null : backgroundFile ?? this.backgroundFile,
+    backgroundKind: clearBackground ? null : backgroundKind ?? this.backgroundKind,
+    lyricsPanel: clearLyricsPanel ? null : lyricsPanel ?? this.lyricsPanel,
+  );
+
+  /// Sin el estilo de la canción ("Volver al estilo general"); el título, artista y foto quedan.
+  TrackOverride get withoutStyle => TrackOverride(title: title, artist: artist, coverFile: coverFile);
 
   /// La canción como se muestra.
   Track applyTo(Track track) => title == null && artist == null ? track : track.copyWith(title: title, artist: artist);
@@ -31,12 +75,27 @@ class TrackOverride {
     if (title != null) 'title': title,
     if (artist != null) 'artist': artist,
     if (coverFile != null) 'coverFile': coverFile,
+    'accent': ?accent,
+    'backgroundFile': ?backgroundFile,
+    'backgroundKind': ?backgroundKind,
+    'lyricsPanel': ?lyricsPanel,
   };
 
   factory TrackOverride.fromJson(Object? json) {
     String? read(String key) =>
         json is Map && json[key] is String && (json[key] as String).isNotEmpty ? json[key] as String : null;
-    return TrackOverride(title: read('title'), artist: read('artist'), coverFile: read('coverFile'));
+    final background = read('backgroundFile');
+    final panel = read('lyricsPanel');
+    return TrackOverride(
+      title: read('title'),
+      artist: read('artist'),
+      coverFile: read('coverFile'),
+      accent: json is Map && json['accent'] is int ? json['accent'] as int : null,
+      // Solo un nombre de archivo (nunca una ruta).
+      backgroundFile: background != null && !background.contains(RegExp(r'[\\/]')) ? background : null,
+      backgroundKind: read('backgroundKind') == 'video' ? 'video' : (background == null ? null : 'image'),
+      lyricsPanel: const ['full', 'simple', 'showcase'].contains(panel) ? panel : null,
+    );
   }
 }
 
@@ -102,10 +161,9 @@ class TrackOverridesNotifier extends Notifier<Map<String, TrackOverride>> {
         value == null || value.trim().isEmpty || value.trim() == base ? null : value.trim();
     _set(
       original.id,
-      TrackOverride(
+      current.copyWith(clearText: true).copyWith(
         title: clean(title, original.title),
         artist: clean(artist, original.artist),
-        coverFile: current.coverFile,
       ),
     );
   }
@@ -114,21 +172,37 @@ class TrackOverridesNotifier extends Notifier<Map<String, TrackOverride>> {
     final name = await covers.save('track-${track.id}', bytes);
     final current = state[track.id] ?? const TrackOverride();
     final old = current.coverFile;
-    _set(track.id, TrackOverride(title: current.title, artist: current.artist, coverFile: name));
+    _set(track.id, current.copyWith(coverFile: name));
     await covers.delete(old);
   }
 
-  /// "Restaurar original": sin título, artista ni foto propios.
+  /// "Restaurar original": sin título, artista ni foto propios (el estilo de la canción queda).
   Future<void> restoreOriginal(Track track) async {
-    final old = state[track.id]?.coverFile;
-    _set(track.id, const TrackOverride());
+    final current = state[track.id] ?? const TrackOverride();
+    final old = current.coverFile;
+    _set(track.id, current.copyWith(clearText: true, clearCover: true));
     await covers.delete(old);
   }
+
+  /// Cambia el estilo de la canción [id] (lo que no se pasa queda como estaba).
+  void setStyle(String id, TrackOverride Function(TrackOverride current) change) =>
+      _set(id, change(state[id] ?? const TrackOverride()));
+
+  /// "Volver al estilo general": sin color, fondo ni vista de la letra propios.
+  void clearStyle(String id) => _set(id, (state[id] ?? const TrackOverride()).withoutStyle);
 }
 
 final trackOverridesProvider = NotifierProvider<TrackOverridesNotifier, Map<String, TrackOverride>>(
   TrackOverridesNotifier.new,
 );
+
+/// El estilo propio de la canción que suena (null si no tiene): manda sobre el general mientras suena.
+final currentTrackStyleProvider = Provider<TrackOverride?>((ref) {
+  final id = ref.watch(playbackProvider.select((p) => p.track?.id));
+  if (id == null) return null;
+  final style = ref.watch(trackOverridesProvider.select((all) => all[id]));
+  return style != null && style.hasStyle ? style : null;
+});
 
 /// Carpeta de las fotos personalizadas, resuelta una vez (para dibujarlas).
 final coversFolderProvider = FutureProvider<Directory>(

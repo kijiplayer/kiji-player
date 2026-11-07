@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/l10n.dart';
 import '../../../theme/kiji_tokens.dart';
-import '../../../widgets/global_mini_player.dart';
-import '../../settings/data/settings_store.dart';
 
 /// Nombre de [style] en la interfaz.
 String styleName(KijiStyle style) => switch (style) {
@@ -13,124 +10,25 @@ String styleName(KijiStyle style) => switch (style) {
   KijiStyle.paper => tx.estiloPapel,
 };
 
+/// Nombre de cada opción de "Tipografía" (las fuentes van con su nombre propio).
+String fontLabel(String font) => switch (font) {
+  'system' => tx.tipografiaSistema,
+  'spacegrotesk' => 'Space Grotesk', // l10n-ignore
+  'inter' => 'Inter', // l10n-ignore
+  'newsreader' => 'Newsreader', // l10n-ignore
+  'jetbrainsmono' => 'JetBrains Mono', // l10n-ignore
+  _ => tx.tipografiaKiji,
+};
+
 String _phrase(KijiStyle style) => switch (style) {
   KijiStyle.nocturne => tx.estiloNocturneFrase,
   KijiStyle.graphite => tx.estiloGrafitoFrase,
   KijiStyle.paper => tx.estiloPapelFrase,
 };
 
-/// "¿Cómo quieres que se vea Kiji?": los tres estilos con una miniatura del reproductor. Aparece
-/// al instalar y una sola vez al actualizar a la 0.7; después, desde Configuración → Apariencia.
-class StyleChooserScreen extends ConsumerStatefulWidget {
-  const StyleChooserScreen({super.key});
-
-  /// Abre la pantalla. Al cerrarla (con el botón o hacia atrás) queda anotado que ya se vio.
-  static Future<void> open(BuildContext context, WidgetRef ref) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: const RouteSettings(name: KijiRoutes.style),
-        builder: (_) => const StyleChooserScreen(),
-      ),
-    );
-    if (!ref.read(settingsProvider).styleChosen) {
-      await ref.read(settingsProvider.notifier).update((s) => s.copyWith(styleChosen: true));
-    }
-  }
-
-  @override
-  ConsumerState<StyleChooserScreen> createState() => _StyleChooserScreenState();
-}
-
-class _StyleChooserScreenState extends ConsumerState<StyleChooserScreen> {
-  late KijiStyle _picked = KijiStyle.parse(ref.read(settingsProvider).style);
-
-  Future<void> _continue() async {
-    debugPrint('=== APARIENCIA: estilo elegido: ${_picked.name} ===');
-    await ref.read(settingsProvider.notifier).update((s) => s.copyWith(style: _picked.name, styleChosen: true));
-    if (mounted) Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // En pantallas anchas, las tres tarjetas una al lado de la otra.
-            final wide = constraints.maxWidth >= 760;
-            final cards = [
-              for (final style in KijiStyle.values)
-                _StyleCard(
-                  style: style,
-                  selected: style == _picked,
-                  wide: wide,
-                  onTap: () => setState(() => _picked = style),
-                ),
-            ];
-            return Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 980),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(tx.estiloPregunta, style: KijiText.title(size: 26)),
-                            const SizedBox(height: 8),
-                            Text(tx.estiloPreguntaTexto, style: TextStyle(color: KijiColors.muted)),
-                            const SizedBox(height: 20),
-                            if (wide)
-                              IntrinsicHeight(
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    for (var i = 0; i < cards.length; i++) ...[
-                                      if (i > 0) const SizedBox(width: 14),
-                                      Expanded(child: cards[i]),
-                                    ],
-                                  ],
-                                ),
-                              )
-                            else
-                              for (final card in cards) Padding(padding: const EdgeInsets.only(bottom: 12), child: card),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
-                  child: ConstrainedBox(
-                    // Del mismo ancho que las tarjetas en la PC.
-                    constraints: const BoxConstraints(maxWidth: 980),
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        // Todo el ancho disponible (hasta 980).
-                        minimumSize: const Size.fromHeight(0),
-                        backgroundColor: KijiColors.violet,
-                        foregroundColor: KijiColors.onAccent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      onPressed: _continue,
-                      child: Text(tx.continuarConEstilo(styleName(_picked))),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _StyleCard extends StatelessWidget {
-  const _StyleCard({required this.style, required this.selected, required this.wide, required this.onTap});
+/// Un estilo con su miniatura, para elegirlo ("Personaliza Kiji", paso 1).
+class StyleCard extends StatelessWidget {
+  const StyleCard({super.key, required this.style, required this.selected, required this.wide, required this.onTap});
 
   final KijiStyle style;
   final bool selected;
@@ -192,15 +90,20 @@ class _StyleCard extends StatelessWidget {
 /// Miniatura del reproductor en [style]: se dibuja con la paleta y la letra de ese estilo, no con
 /// las del estilo activo (así se ven los tres a la vez).
 class StylePreview extends StatelessWidget {
-  const StylePreview({super.key, required this.style});
+  const StylePreview({super.key, required this.style, this.palette, this.titleFont});
 
   final KijiStyle style;
 
+  /// Para la vista previa en vivo de "Personaliza Kiji": la paleta y la letra elegidas (si no, las
+  /// de fábrica de [style]).
+  final KijiPalette? palette;
+  final String? titleFont;
+
   @override
   Widget build(BuildContext context) {
-    final palette = KijiPalette.forStyle(style);
+    final palette = this.palette ?? KijiPalette.forStyle(style);
     final nocturne = style == KijiStyle.nocturne;
-    final titleFont = KijiText.titleFamilyOf(style);
+    final titleFont = this.titleFont ?? KijiText.titleFamilyOf(style);
     final coverRadius = switch (style) {
       KijiStyle.nocturne => 10.0,
       KijiStyle.graphite => 3.0,

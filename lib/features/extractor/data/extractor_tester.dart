@@ -21,9 +21,24 @@ const controlVideos = <(String id, String name)>[
 
 /// Formas del motor A que se prueban una por una (las automáticas de InnerTubeX que sirven sin
 /// cuenta; las demás las usa solo si hacen falta).
-const engineAForms = ['VISIONOS_0_1', 'VISIONOS', 'WEB_REMIX', 'WEB_EMBEDDED_PLAYER', 'TVHTML5_SIMPLY'];
+/// WEB_EMBEDDED_PLAYER se retiró también del motor A (YouTube responde "This video is unavailable").
+const engineAForms = ['VISIONOS_0_1', 'VISIONOS', 'WEB_REMIX', 'TVHTML5_SIMPLY'];
+
+/// Formas retiradas del motor A: no se usan ni se muestran (un registro viejo no cuenta).
+const retiredEngineAForms = {'WEB_EMBEDDED_PLAYER'};
+
+/// Si un camino del motor A ("A/FORMA" o "A/FORMA__variante") se muestra en la Salud.
+bool engineAPathShown(String path) =>
+    path.startsWith('A/') && !retiredEngineAForms.contains(path.substring(2).split('__').first);
 
 /// Resultado de probar un camino con una canción de control.
+/// Las listas HLS solo se reproducen en Android, iOS y macOS (en la PC todavía no).
+bool get hlsPlaysHere => !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
+
+/// Formas del motor B que se prueban y se muestran en este dispositivo: ni las retiradas ni,
+/// en la PC, las HLS (nunca se usan ahí: contarlas como "no funciona" confundía).
+bool formUsableHere(YtPlayerClient c, {bool? hls}) => !c.isRetired && (!c.useHls || (hls ?? hlsPlaysHere));
+
 class PathTestResult {
   const PathTestResult(this.path, {required this.ok, this.reason, this.elapsed = Duration.zero, this.control});
 
@@ -128,9 +143,8 @@ class ExtractorTester {
       }
     }
     // En la PC el reproductor no abre listas HLS: esas formas no aplican (no son una falla).
-    final hlsPlays = !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
     for (final c in ytPlayerClients) {
-      if (c.isRetired || (c.useHls && !hlsPlays)) continue;
+      if (!formUsableHere(c)) continue;
       final (videoId, name) = controlFor(i++);
       final attempt = await client.tryClient(videoId, c);
       // tryClient ya pide el final del archivo (y el último segmento en HLS).

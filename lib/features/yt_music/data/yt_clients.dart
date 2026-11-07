@@ -241,6 +241,8 @@ List<YtPlayerClient> get ytPlayerClients => <YtPlayerClient>[
     needsPlayerScript: true,
     embedded: true,
     note: tx.elReproductorIncrustadoUsaElVisitor,
+    // 11/2026: "no disponible" para todo (también videos comunes), con cualquier versión del cliente.
+    retired: tx.youtubeNoDisponibleIncrustado,
   ),
   YtPlayerClient(
     label: 'MWEB',

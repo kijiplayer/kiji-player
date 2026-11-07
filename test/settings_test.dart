@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -10,8 +12,23 @@ import 'package:kiji_player/features/settings/domain/app_settings.dart';
 import 'package:kiji_player/features/settings/domain/setting_search.dart';
 import 'package:kiji_player/features/settings/presentation/credits_screen.dart';
 import 'package:kiji_player/features/settings/presentation/settings_screen.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/providers/appearance_provider.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
+
+/// Assets de mentira para la pantalla de créditos.
+class _TextBundle extends CachingAssetBundle {
+  _TextBundle(this.files);
+
+  final Map<String, String> files;
+
+  @override
+  Future<ByteData> load(String key) async {
+    final text = files[key];
+    if (text == null) throw FlutterError('no existe $key');
+    return ByteData.sublistView(Uint8List.fromList(utf8.encode(text)));
+  }
+}
 
 class _EmptyPlayback extends PlaybackNotifier {
   @override
@@ -151,6 +168,54 @@ void main() {
       expect(rows.any((r) => r.cells.first.contains('Space Grotesk')), isTrue);
       expect(blocks.any((b) => b.text.contains('](')), isFalse, reason: 'sin enlaces crudos');
     });
+
+    test('Hay créditos en inglés con las mismas secciones y filas que en español', () {
+      final es = parseCredits(File('CREDITS.md').readAsStringSync());
+      final en = parseCredits(File('CREDITS.en.md').readAsStringSync());
+      expect(en.whereType<CreditsHeading>().first.text, 'Credits');
+      expect(en.whereType<CreditsHeading>().length, es.whereType<CreditsHeading>().length);
+      // Misma primera columna (proyecto, archivo, servicio o componente), fila por fila.
+      String firstCell(CreditsRow r) => r.cells.first;
+      final esRows = es.whereType<CreditsRow>().where((r) => !r.header).map(firstCell).toList();
+      final enRows = en.whereType<CreditsRow>().where((r) => !r.header).map(firstCell).toList();
+      expect(enRows.length, esRows.length, reason: 'al agregar una fila a CREDITS.md, va también en CREDITS.en.md');
+      expect(creditsAssetFor('es'), 'CREDITS.md');
+      expect(creditsAssetFor('en'), 'CREDITS.en.md');
+    });
+
+    test('Las líneas seguidas de un párrafo son un solo párrafo (no se corta la oración)', () {
+      final blocks = parseCredits(
+        [
+          '# T',
+          '',
+          'Una oración que sigue',
+          'en la línea de abajo.',
+          '',
+          'Otro párrafo.',
+          '- Viñeta larga',
+          '  que sigue.',
+        ].join('\n'),
+      );
+      expect(blocks.whereType<CreditsParagraph>().map((b) => b.text), [
+        'Una oración que sigue en la línea de abajo.',
+        'Otro párrafo.',
+      ]);
+      expect(blocks.whereType<CreditsBullet>().single.text, 'Viñeta larga que sigue.');
+      final en = parseCredits(File('CREDITS.en.md').readAsStringSync());
+      expect(en.whereType<CreditsParagraph>().any((b) => b.text.contains('their code and reused ideas')), isTrue);
+    });
+
+    testWidgets('La pantalla de créditos sale en el idioma de la app', (tester) async {
+      final bundle = _TextBundle({'CREDITS.md': '# Créditos\n\nHola', 'CREDITS.en.md': '# Credits\n\nHello'});
+      addTearDown(() => setKijiLocale(const Locale('es')));
+      for (final (language, title, body) in [('en', 'Credits', 'Hello'), ('es', 'Créditos', 'Hola')]) {
+        setKijiLocale(Locale(language)); // como al elegirlo en Configuración → Idioma
+        await tester.pumpWidget(MaterialApp(key: ValueKey(language), home: CreditsScreen(bundle: bundle)));
+        await tester.pumpAndSettle();
+        expect(find.text(title), findsWidgets, reason: language); // título de la barra y del texto
+        expect(find.text(body), findsOneWidget, reason: language);
+      }
+    });
   });
 
   Future<Directory> noDisk() async => throw const FileSystemException('sin disco en el test');
@@ -206,7 +271,7 @@ void main() {
     expect(find.text('No hay ninguna opción con ese nombre.'), findsOneWidget);
   });
 
-  testWidgets('Configuración: sinónimos ("oscuro" → tema, "volumen" → ecualizador, "dark" en español)', (tester) async {
+  testWidgets('Configuración: sinónimos ("oscuro" → tema, "volumen" → sonido, "dark" en español)', (tester) async {
     await pumpSettings(tester, const Size(400, 1600));
     Future<void> search(String text) async {
       await tester.enterText(find.byType(TextField), text);
@@ -218,7 +283,7 @@ void main() {
     await search('negro');
     expect(find.text('Tema'), findsOneWidget, reason: 'negro es como oscuro y noche');
     await search('volumen');
-    expect(find.text('Ecualizador'), findsOneWidget);
+    expect(find.text('Sonido'), findsOneWidget, reason: 'el ecualizador está en Sonido');
     expect(find.text('Pausar al silenciar'), findsOneWidget);
     await search('dark');
     expect(find.text('Tema'), findsOneWidget, reason: 'en inglés también, con la app en español');

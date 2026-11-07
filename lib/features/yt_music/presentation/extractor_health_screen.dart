@@ -25,11 +25,14 @@ String agoShort(DateTime? when, DateTime now) {
 /// Salud del Extractor 2.0: resumen simple arriba, caminos agrupados por motor, las
 /// formas retiradas aparte. Las pruebas usan canciones de CONTROL fijas, nunca tu historial.
 class ExtractorHealthScreen extends ConsumerStatefulWidget {
-  const ExtractorHealthScreen({super.key, this.health, this.tester});
+  const ExtractorHealthScreen({super.key, this.health, this.tester, this.hlsPlays});
 
   /// Para tests; si son null usa los globales.
   final PathHealth? health;
   final ExtractorTester? tester;
+
+  /// Para tests: si este dispositivo reproduce HLS (null: el de verdad, [hlsPlaysHere]).
+  final bool? hlsPlays;
 
   static Future<void> open(BuildContext context) =>
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ExtractorHealthScreen()));
@@ -75,17 +78,21 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
         builder: (context, _) {
           final now = DateTime.now();
           final all = _health.all;
-          final working = all.entries.where((e) => e.value.working).length;
+          final bForms = [
+            for (final c in ytPlayerClients)
+              if (formUsableHere(c, hls: widget.hlsPlays)) c.label,
+          ];
+          // Solo las que se muestran: un registro viejo de una forma retirada o de una HLS en la
+          // PC no cuenta.
+          final working = all.entries
+              .where((e) => e.value.working && (engineAPathShown(e.key) || bForms.contains(e.key.substring(2))))
+              .length;
           final summary = _results.isNotEmpty
               ? healthSummary(_results)
               : working == 0
               ? (all.isEmpty ? tx.todaviaNoSeProbo : tx.cancionesNormalesNingunaFormaFuncionaAho)
               : tx.cancionesNormalesFormas(working);
-          final aPaths = all.keys.where((k) => k.startsWith('A/')).toList()..sort();
-          final bForms = [
-            for (final c in ytPlayerClients)
-              if (!c.isRetired) c.label,
-          ];
+          final aPaths = all.keys.where(engineAPathShown).toList()..sort();
           final retired = [
             for (final c in ytPlayerClients)
               if (c.isRetired) c,

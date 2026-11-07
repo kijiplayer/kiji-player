@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -230,12 +231,24 @@ void main() {
         n.add('búsqueda $i');
       }
       expect(c.read(searchHistoryProvider).length, SearchHistoryNotifier.maxEntries);
-      // Se guarda en segundo plano: se espera hasta 3 s (con la PC cargada tarda más).
+      // Se guarda en segundo plano, juntando las escrituras: se espera a que termine (antes se
+      // miraba si el archivo existía y la carpeta se borraba con escrituras en curso).
+      await n.flush();
       final file = File('${dir.path}/search_history.json');
-      for (var i = 0; i < 60 && !file.existsSync(); i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(jsonDecode(file.readAsStringSync()), c.read(searchHistoryProvider), reason: 'quedó guardado lo último');
+
+      // Otra sesión lee lo mismo; lo buscado mientras se lee el archivo queda arriba.
+      final c2 = ProviderContainer(overrides: [
+        searchHistoryProvider.overrideWith(() => SearchHistoryNotifier(directory: () async => dir.path)),
+      ]);
+      addTearDown(c2.dispose);
+      final n2 = c2.read(searchHistoryProvider.notifier)..add('recién buscada');
+      for (var i = 0; i < 100 && c2.read(searchHistoryProvider).length < 2; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
       }
-      expect(file.existsSync(), isTrue);
+      await n2.flush();
+      expect(c2.read(searchHistoryProvider).first, 'recién buscada');
+      expect(c2.read(searchHistoryProvider)[1], 'búsqueda 29');
     });
   });
 }

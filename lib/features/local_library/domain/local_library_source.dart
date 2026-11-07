@@ -24,6 +24,7 @@ abstract interface class LocalLibrarySource {
   /// Deja de leer [folder] (solo PC). No borra ningún archivo.
   Future<void> removeFolder(String folder);
 
-  /// Las canciones, ordenadas por título.
-  Future<List<Track>> loadTracks();
+  /// Las canciones, ordenadas por título. Lo ya leído sale de una caché (solo se leen los
+  /// archivos nuevos o cambiados); con [force] ("Volver a escanear") se vuelve a leer todo.
+  Future<List<Track>> loadTracks({bool force = false});
 }

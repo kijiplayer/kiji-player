@@ -506,38 +506,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get auricularesConCable => 'Auriculares con cable';
 
   @override
-  String get plano => 'Plano';
-
-  @override
-  String get masGraves => 'Más graves';
-
-  @override
-  String get masAgudos => 'Más agudos';
-
-  @override
-  String get voces => 'Voces';
-
-  @override
   String get electronica => 'Electrónica';
 
   @override
-  String get acustica => 'Acústica';
-
-  @override
-  String get clasica => 'Clásica';
-
-  @override
-  String get nocheSuave => 'Noche (suave)';
-
-  @override
   String get ecualizador2 => 'Ecualizador';
-
-  @override
-  String get enLaPcTodaviaNoHay =>
-      'En la PC todavía no hay ecualizador: por ahora funciona solo en Android. Lo que elijas aquí se guarda igual.';
-
-  @override
-  String get apagadoElSonidoNoCambia => 'Apagado: el sonido no cambia.';
 
   @override
   String get unPerfilPorDispositivo => 'Un perfil por dispositivo';
@@ -555,10 +527,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bandas => 'BANDAS';
-
-  @override
-  String get enLaPcNoHayBandas =>
-      'En la PC no hay bandas para ajustar todavía.';
 
   @override
   String get sinAlternativa => 'sin alternativa';
@@ -1616,10 +1584,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get alAbrirKijiVuelveALa =>
       'Al abrir Kiji, vuelve a la canción y al segundo donde quedó, en pausa.';
-
-  @override
-  String get presetsBandasAManoYUn =>
-      'Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).';
 
   @override
   String get apagado => 'Apagado';
@@ -3459,11 +3423,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String encendidoPerfil(Object? profile) {
-    return 'Encendido: $profile';
-  }
-
-  @override
   String get cable => 'Cable';
 
   @override
@@ -3995,10 +3954,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tipografiaDescripcion =>
-      'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema';
+      'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel), una de las incluidas en Kiji o la del sistema';
 
   @override
-  String get tipografiaKiji => 'La de Kiji';
+  String get tipografiaKiji => 'La del estilo';
 
   @override
   String get tipografiaSistema => 'La del sistema';
@@ -4371,4 +4330,365 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get nuevoPcTexto =>
       'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.';
+
+  @override
+  String get traduccionNoDisponibleAhora =>
+      'Ahora no se pudo traducir. Vuelve a intentarlo en un momento.';
+
+  @override
+  String get sesionVencidaVuelveAConectar =>
+      'YouTube ya no acepta esta sesión. Vuelve a conectar la cuenta.';
+
+  @override
+  String get resultadoPrincipal => 'Resultado principal';
+
+  @override
+  String get verTodo => 'Ver todo';
+
+  @override
+  String get playlist => 'Playlist';
+
+  @override
+  String get youtubeNoDisponibleIncrustado =>
+      'YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.';
+
+  @override
+  String get eqNormal => 'Normal';
+
+  @override
+  String get eqBajos => 'Bajos';
+
+  @override
+  String get eqVoz => 'Voz';
+
+  @override
+  String get eqAcustico => 'Acústico';
+
+  @override
+  String get eqNoche => 'Noche';
+
+  @override
+  String get reverbApagado => 'Apagado';
+
+  @override
+  String get reverbSala => 'Sala';
+
+  @override
+  String get reverbEstadio => 'Estadio';
+
+  @override
+  String get sonido => 'Sonido';
+
+  @override
+  String get sonidoNota =>
+      'Ecualizador, bajos, velocidad, tono y mezcla entre canciones.';
+
+  @override
+  String get efectos => 'Efectos';
+
+  @override
+  String get efectosApagados => 'Apagados: la música suena tal cual.';
+
+  @override
+  String efectosEncendidos(String profile) {
+    return 'Encendidos: $profile';
+  }
+
+  @override
+  String ecualizadorBandas(int count) {
+    return 'Ecualizador · $count bandas';
+  }
+
+  @override
+  String get guardarComoPreset => 'Guardar como preset';
+
+  @override
+  String get nombreDelPreset => 'Nombre del preset';
+
+  @override
+  String get renombrarPreset => 'Renombrar';
+
+  @override
+  String borrarPresetPregunta(String name) {
+    return '¿Borrar el preset «$name»?';
+  }
+
+  @override
+  String get borrarPresetNota =>
+      'Lo que suena ahora no cambia: queda como Personalizado.';
+
+  @override
+  String get presetsPropiosNota =>
+      'Mantén presionado (o clic derecho) un preset propio para renombrarlo o borrarlo.';
+
+  @override
+  String get refuerzoDeBajos => 'Refuerzo de bajos';
+
+  @override
+  String get velocidad => 'Velocidad';
+
+  @override
+  String get tono => 'Tono';
+
+  @override
+  String get volverALoNormal => 'Volver a lo normal';
+
+  @override
+  String get mantenerEntreCanciones => 'Mantener entre canciones';
+
+  @override
+  String get mantenerEntreCancionesNota =>
+      'Apagado, la velocidad y el tono vuelven a lo normal con cada canción.';
+
+  @override
+  String get reverb => 'Reverb';
+
+  @override
+  String get mezclaEntreCanciones => 'Mezcla entre canciones';
+
+  @override
+  String semitonos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count semitonos',
+      one: '1 semitono',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enLaPcLasBandasSon => 'En la PC, el ecualizador tiene 10 bandas.';
+
+  @override
+  String elTelefonoTieneBandas(int count) {
+    return 'Tu teléfono tiene $count bandas; los presets se adaptan solos.';
+  }
+
+  @override
+  String get pantallaCompleta => 'Pantalla completa';
+
+  @override
+  String get salirDePantallaCompleta => 'Salir de pantalla completa';
+
+  @override
+  String get bajarLaLetraConLasDescargas => 'Bajar la letra con las descargas';
+
+  @override
+  String get bajarLaLetraConLasDescargasNota =>
+      'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.';
+
+  @override
+  String get acentoPropio => 'Tu color';
+
+  @override
+  String get acentoDelEstilo => 'El del estilo';
+
+  @override
+  String get colorMatiz => 'Tono';
+
+  @override
+  String get colorLuz => 'Luz';
+
+  @override
+  String get colorHex => 'Código (hex)';
+
+  @override
+  String get asiSeVera => 'Así se verá';
+
+  @override
+  String get acentoAjustadoNota =>
+      'Kiji lo aclara u oscurece lo justo para que siempre se lea.';
+
+  @override
+  String get fondoDescripcion =>
+      'Una imagen, un GIF o un video tuyo detrás de Kiji';
+
+  @override
+  String get fondoDescripcionPc => 'Una imagen o un GIF tuyo detrás de Kiji';
+
+  @override
+  String get fondoNinguno => 'El del estilo';
+
+  @override
+  String get fondoImagen => 'Imagen';
+
+  @override
+  String get fondoVideo => 'Video';
+
+  @override
+  String get elegirImagen => 'Elegir una imagen o un GIF';
+
+  @override
+  String get elegirVideo => 'Elegir un video';
+
+  @override
+  String get quitarFondo => 'Quitar fondo';
+
+  @override
+  String get desenfoque => 'Desenfoque';
+
+  @override
+  String get opacidad => 'Opacidad';
+
+  @override
+  String get fondoPrivadoNota =>
+      'Se copia dentro de Kiji y nunca sale de este dispositivo. El video va sin sonido y en bucle, y se queda quieto cuando Kiji no está a la vista o con el ahorro de batería.';
+
+  @override
+  String get fondoPrivadoNotaPc =>
+      'Se copia dentro de Kiji y nunca sale de este dispositivo.';
+
+  @override
+  String get fondoNoSePudo => 'No se pudo usar ese archivo. Prueba con otro.';
+
+  @override
+  String get saltar => 'Saltar';
+
+  @override
+  String get atras => 'Atrás';
+
+  @override
+  String pasoDe(int n, int total) {
+    return 'Paso $n de $total';
+  }
+
+  @override
+  String get personalizaKiji => 'Personaliza Kiji';
+
+  @override
+  String get personalizaKijiDescripcion =>
+      'Estilo, color, fuente y fondo, con la vista previa en vivo';
+
+  @override
+  String get modoCompacto => 'Modo compacto';
+
+  @override
+  String get modoCompactoNota =>
+      'Todo en menos espacio (ideal para una ventana chica)';
+
+  @override
+  String get pantallaCompletaNota =>
+      'Portada grande y las barras se esconden solas';
+
+  @override
+  String get estiloDeEstaCancion => 'Estilo de esta canción';
+
+  @override
+  String get estiloDeEstaCancionNota =>
+      'Fondo, color y vista de la letra solo para esta canción';
+
+  @override
+  String get volverAlEstiloGeneral => 'Volver al estilo general';
+
+  @override
+  String get elGeneral => 'El general';
+
+  @override
+  String get vistaDeLaLetra => 'Vista de la letra';
+
+  @override
+  String get temas => 'Temas';
+
+  @override
+  String get temasDescripcion =>
+      'Comparte tu estilo como archivo .kiji o usa uno';
+
+  @override
+  String get exportarTema => 'Exportar mi estilo';
+
+  @override
+  String get importarTema => 'Importar un tema';
+
+  @override
+  String get temaGuardado => 'Tema guardado';
+
+  @override
+  String get temaAplicado => 'Tema aplicado';
+
+  @override
+  String get esoNoEsUnTemaDeKiji => 'Ese archivo no es un tema de Kiji.';
+
+  @override
+  String get temasNota =>
+      'Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.';
+
+  @override
+  String get mostrarNombresDeLosBotones => 'Mostrar nombres de los botones';
+
+  @override
+  String get mostrarNombresDeLosBotonesNota =>
+      'Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).';
+
+  @override
+  String get verEnLista => 'Ver en lista';
+
+  @override
+  String get verEnCuadricula => 'Ver en cuadrícula';
+
+  @override
+  String get noHayCancionesConEsteFiltro => 'No hay canciones con este filtro.';
+
+  @override
+  String get duracion => 'Duración';
+
+  @override
+  String get ordenRecientes => 'Recientes';
+
+  @override
+  String get enEsteEquipo => 'En el equipo';
+
+  @override
+  String get ordenar => 'Ordenar';
+
+  @override
+  String descargasYCache(String downloads, String cache) {
+    return 'DESCARGAS $downloads · CACHÉ $cache';
+  }
+
+  @override
+  String bajandoNDeM(int done, int total) {
+    return 'Bajando: $done de $total';
+  }
+
+  @override
+  String get conElAhorroDeDatosEsperanAlWifi =>
+      'Con el ahorro de datos, esperan al WiFi.';
+
+  @override
+  String nNoSePudieron(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count no se pudieron bajar',
+      one: '1 no se pudo bajar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get volverAEscanear => 'Volver a escanear';
+
+  @override
+  String nAlbumes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count álbumes',
+      one: '1 álbum',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String bibliotecaEscaneada(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Listo: $count canciones',
+      one: 'Listo: 1 canción',
+      zero: 'No se encontró música',
+    );
+    return '$_temp0';
+  }
 }

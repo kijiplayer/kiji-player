@@ -14,12 +14,16 @@ class BreathingPlayButton extends StatefulWidget {
     required this.onPressed,
     this.reduceMotion = false,
     this.size = KijiSizes.playButton,
+    this.breathingRing = true,
   });
 
   final bool isPlaying;
   final VoidCallback onPressed;
   final bool reduceMotion;
   final double size;
+
+  /// El anillo que respira (Nocturne). Sin él cuando el botón va dentro del anillo de progreso.
+  final bool breathingRing;
 
   @override
   State<BreathingPlayButton> createState() => _BreathingPlayButtonState();
@@ -113,10 +117,11 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
                         opacity: glowOpacity.clamp(0.0, 1.0),
                         child: _RingGlow(size: size * 1.18),
                       ),
-                      Opacity(
-                        opacity: (ringOpacity / 0.7).clamp(0.0, 1.0),
-                        child: _Ring(size: size * 1.18),
-                      ),
+                      if (widget.breathingRing)
+                        Opacity(
+                          opacity: (ringOpacity / 0.7).clamp(0.0, 1.0),
+                          child: _Ring(size: size * 1.18),
+                        ),
                     ],
                   ),
                 ),
@@ -137,7 +142,10 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
                 child: Ink(
                   width: size,
                   height: size,
-                  decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
+                  // Grafito: un disco sólido del color del texto (el play es la acción principal).
+                  decoration: KijiLook.museum
+                      ? BoxDecoration(shape: BoxShape.circle, color: KijiColors.text)
+                      : BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradientDiagonal),
                   child: InkWell(
                     onTap: _tap,
                     child: ScaleTransition(
@@ -155,8 +163,8 @@ class _BreathingPlayButtonState extends State<BreathingPlayButton> with TickerPr
                         child: AnimatedIcon(
                           icon: AnimatedIcons.play_pause,
                           progress: _morph,
-                          color: KijiColors.onAccent,
-                          size: size * 0.48,
+                          color: KijiLook.museum ? KijiColors.background : KijiColors.onAccent,
+                          size: size * (KijiLook.museum ? 0.42 : 0.48),
                         ),
                       ),
                     ),

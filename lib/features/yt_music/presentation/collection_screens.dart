@@ -8,6 +8,7 @@ import '../../../widgets/nocturne/glass.dart';
 import '../../downloads/presentation/download_button.dart';
 import '../../playlists/presentation/playlist_screens.dart';
 import '../../queue/presentation/track_actions.dart';
+import '../../recommendations/presentation/home_sections.dart';
 import '../../system_media/data/cover_art.dart';
 import '../data/ytm_browse_parser.dart';
 import '../data/ytm_client.dart';
@@ -30,9 +31,18 @@ final albumPageProvider = FutureProvider.autoDispose.family<AlbumPage?, String>(
 /// Abre la página que corresponde a [collection].
 Future<void> openCollection(BuildContext context, YtCollection collection) => Navigator.of(context).push(
   MaterialPageRoute<void>(
-    builder: (_) => collection.kind == YtCollectionKind.artist
-        ? ArtistScreen(browseId: collection.browseId, title: collection.title)
-        : AlbumScreen(browseId: collection.browseId, title: collection.title),
+    builder: (_) => switch (collection.kind) {
+      YtCollectionKind.artist => ArtistScreen(browseId: collection.browseId, title: collection.title),
+      YtCollectionKind.album => AlbumScreen(browseId: collection.browseId, title: collection.title),
+      YtCollectionKind.playlist => YtPlaylistScreen(
+        card: YtPlaylistCard(
+          playlistId: collection.browseId,
+          title: collection.title,
+          subtitle: collection.subtitle,
+          thumbnailUrl: collection.thumbnailUrl,
+        ),
+      ),
+    },
   ),
 );
 
@@ -47,7 +57,11 @@ class CollectionTile extends StatelessWidget {
     final isArtist = collection.kind == YtCollectionKind.artist;
     final thumb = collection.thumbnailUrl;
     final image = thumb == null
-        ? Icon(isArtist ? Icons.person_rounded : Icons.album_rounded, color: KijiColors.muted)
+        ? Icon(switch (collection.kind) {
+            YtCollectionKind.artist => Icons.person_rounded,
+            YtCollectionKind.album => Icons.album_rounded,
+            YtCollectionKind.playlist => Icons.queue_music_rounded,
+          }, color: KijiColors.muted)
         : Image.network(
             largerThumbnailUrl(thumb),
             fit: BoxFit.cover,
@@ -63,7 +77,11 @@ class CollectionTile extends StatelessWidget {
       ),
       title: Text(collection.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
-        isArtist ? tx.artista : (collection.subtitle.isEmpty ? tx.album : collection.subtitle),
+        isArtist
+            ? tx.artista
+            : collection.subtitle.isNotEmpty
+            ? collection.subtitle
+            : (collection.kind == YtCollectionKind.playlist ? tx.playlist : tx.album),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(color: KijiColors.muted),

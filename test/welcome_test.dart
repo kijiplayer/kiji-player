@@ -8,13 +8,26 @@ import 'package:kiji_player/features/welcome/presentation/welcome_screen.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/theme/app_theme.dart';
 
+/// En memoria, para las pruebas de la pantalla: con el disco de verdad, la escritura solo avanza
+/// con el reloj real y mezclarlo con el de la prueba fallaba a veces con la PC cargada. Lo de
+/// guardar en disco se prueba arriba, con el de verdad.
+class _MemoryStore extends WelcomeStore {
+  bool seen = false;
+  @override
+  Future<bool> shouldShow() async => !seen;
+  @override
+  Future<void> markSeen() async => seen = true;
+}
+
 void main() {
   late Directory dir;
   late WelcomeStore store;
+  late _MemoryStore screenStore;
 
   setUp(() async {
     dir = await Directory.systemTemp.createTemp('kiji_bienvenida');
     store = WelcomeStore(directory: () async => dir);
+    screenStore = _MemoryStore();
   });
   tearDown(() async {
     setKijiLocale(const Locale('es'));
@@ -49,7 +62,7 @@ void main() {
               body: Center(
                 child: TextButton(
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => WelcomeScreen(store: store, playSound: false)),
+                    MaterialPageRoute<void>(builder: (_) => WelcomeScreen(store: screenStore, playSound: false)),
                   ),
                   child: const Text('abrir'),
                 ),
@@ -81,30 +94,20 @@ void main() {
         await settle(tester);
       }
     }
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Empezar'));
-      // Se espera a que quede guardado en disco (con la PC cargada puede tardar), con un tope.
-      final deadline = DateTime.now().add(const Duration(seconds: 5));
-      while (await store.shouldShow() && DateTime.now().isBefore(deadline)) {
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-      }
-    });
+    await tester.tap(find.text('Empezar'));
     await settle(tester);
     expect(find.text('abrir'), findsOneWidget);
-    expect(await tester.runAsync(store.shouldShow), isFalse);
+    expect(screenStore.seen, isTrue, reason: 'queda anotado');
   });
 
   testWidgets('"Saltar" cierra desde la primera pantalla', (tester) async {
     await tester.pumpWidget(app());
     await tester.tap(find.text('abrir'));
     await settle(tester);
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Saltar'));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
+    await tester.tap(find.text('Saltar'));
     await settle(tester);
     expect(find.text('abrir'), findsOneWidget);
-    expect(await tester.runAsync(store.shouldShow), isFalse);
+    expect(screenStore.seen, isTrue, reason: 'queda anotado');
   });
 
   for (final (language, scale) in [('es', 1.0), ('en', 1.0), ('en', 1.6), ('es', 1.6)]) {

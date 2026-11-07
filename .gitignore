@@ -76,3 +76,10 @@ CLAUDE.md
 # Graphify: grafo local del código (no se sube)
 graphify-out/
 .graphifyignore
+
+# Capturas del recorrido de Windows (pueden traer portadas reales de YouTube): viven en
+# %TEMP%\kiji_recorrido y en kiji-interno, nunca en el repo. Las del README van en docs/capturas/.
+kiji_recorrido/
+recorrido*_capturas/
+**/capturas_recorrido/
+integration_test/capturas/

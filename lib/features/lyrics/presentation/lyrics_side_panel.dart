@@ -167,39 +167,45 @@ class _LyricsSettings extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         label(tx.tamanoDeLasLetras),
-        SegmentedButton<String>(
-          showSelectedIcon: false,
-          segments: [
-            for (final option in AppSettings.lyricsSizes)
-              ButtonSegment(value: option, label: Text(lyricsSizeLabel(option), maxLines: 1)),
-          ],
-          selected: {settings.size},
-          onSelectionChanged: (v) => notifier.update((s) => s.copyWith(lyricsSize: v.first)),
+        FitWidth(
+          child: SegmentedButton<String>(
+            showSelectedIcon: false,
+            segments: [
+              for (final option in AppSettings.lyricsSizes)
+                ButtonSegment(value: option, label: Text(lyricsSizeLabel(option), maxLines: 1)),
+            ],
+            selected: {settings.size},
+            onSelectionChanged: (v) => notifier.update((s) => s.copyWith(lyricsSize: v.first)),
+          ),
         ),
         const SizedBox(height: 14),
         label(tx.disenoDeLaLetra),
-        LyricsLayoutPicker(
-          layout: settings.layout,
-          onChanged: (value) => notifier.update((s) => s.copyWith(lyricsLayout: value)),
+        FitWidth(
+          child: LyricsLayoutPicker(
+            layout: settings.layout,
+            onChanged: (value) => notifier.update((s) => s.copyWith(lyricsLayout: value)),
+          ),
         ),
         const SizedBox(height: 14),
         label(tx.alineacionDeLaLetra),
-        SegmentedButton<String>(
-          showSelectedIcon: false,
-          segments: [
-            ButtonSegment(
-              value: 'start',
-              icon: const Icon(Icons.format_align_left_rounded),
-              label: Text(tx.alinearIzquierda, maxLines: 1),
-            ),
-            ButtonSegment(
-              value: 'center',
-              icon: const Icon(Icons.format_align_center_rounded),
-              label: Text(tx.alinearCentro, maxLines: 1),
-            ),
-          ],
-          selected: {settings.align},
-          onSelectionChanged: (v) => notifier.update((s) => s.copyWith(lyricsAlign: v.first)),
+        FitWidth(
+          child: SegmentedButton<String>(
+            showSelectedIcon: false,
+            segments: [
+              ButtonSegment(
+                value: 'start',
+                icon: const Icon(Icons.format_align_left_rounded),
+                label: Text(tx.alinearIzquierda, maxLines: 1),
+              ),
+              ButtonSegment(
+                value: 'center',
+                icon: const Icon(Icons.format_align_center_rounded),
+                label: Text(tx.alinearCentro, maxLines: 1),
+              ),
+            ],
+            selected: {settings.align},
+            onSelectionChanged: (v) => notifier.update((s) => s.copyWith(lyricsAlign: v.first)),
+          ),
         ),
         const SizedBox(height: 6),
         SwitchListTile(
@@ -219,29 +225,61 @@ class _LyricsSettings extends ConsumerWidget {
         ),
         if (synced) ...[
           label(tx.sincroniaDeLaLetra),
-          Row(
-            children: [
-              OutlinedButton(
-                onPressed: () => move(-500),
-                child: Tooltip(message: tx.laLetraVaDespues, child: const Text('−0,5 s')), // l10n-ignore
-              ),
-              Expanded(
-                child: Text(
-                  offset == Duration.zero
-                      ? tx.sinDesfase
-                      : '${seconds > 0 ? '+' : ''}${seconds.toStringAsFixed(1).replaceAll('.', kijiLanguage == 'es' ? ',' : '.')} s',
-                  textAlign: TextAlign.center,
-                  style: KijiText.mono(size: 13, color: KijiColors.text),
+          // En un panel angosto la fila se achica entera en vez de salirse.
+          FitWidth(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                  style: _compact,
+                  onPressed: () => move(-500),
+                  child: Tooltip(message: tx.laLetraVaDespues, child: const Text('−0,5 s')), // l10n-ignore
                 ),
-              ),
-              OutlinedButton(
-                onPressed: () => move(500),
-                child: Tooltip(message: tx.laLetraVaAntes, child: const Text('+0,5 s')), // l10n-ignore
-              ),
-            ],
+                SizedBox(
+                  width: 84,
+                  child: Text(
+                    offset == Duration.zero
+                        ? tx.sinDesfase
+                        : '${seconds > 0 ? '+' : ''}${seconds.toStringAsFixed(1).replaceAll('.', kijiLanguage == 'es' ? ',' : '.')} s',
+                    textAlign: TextAlign.center,
+                    style: KijiText.mono(size: 13, color: KijiColors.text),
+                  ),
+                ),
+                OutlinedButton(
+                  style: _compact,
+                  onPressed: () => move(500),
+                  child: Tooltip(message: tx.laLetraVaAntes, child: const Text('+0,5 s')), // l10n-ignore
+                ),
+              ],
+            ),
           ),
         ],
       ],
     );
   }
+}
+
+final _compact = OutlinedButton.styleFrom(
+  padding: const EdgeInsets.symmetric(horizontal: 10),
+  minimumSize: const Size(0, 36),
+  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+);
+
+/// Ocupa todo el ancho disponible; si [child] no entra (panel angosto, ventana chica), se achica
+/// entero en vez de salirse del panel.
+class FitWidth extends StatelessWidget {
+  const FitWidth({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) => FittedBox(
+      fit: BoxFit.scaleDown,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: box.maxWidth),
+        child: child,
+      ),
+    ),
+  );
 }

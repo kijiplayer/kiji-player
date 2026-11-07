@@ -163,6 +163,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// Se incrementa en cada carga: si el usuario elige otra canción mientras
   /// una carga anterior sigue en curso, la anterior se descarta.
   int _loadToken = 0;
+  StreamSubscription<int?>? _sessionSubscription;
+
+  /// Velocidad y tono de "Sonido" en el reproductor (y en la cola de la mezcla, si suena).
+  Future<void> _applyRate(({double speed, double pitch}) rate) async {
+    for (final player in [?_player, ?_tail]) {
+      try {
+        await player.setSpeed(rate.speed);
+        await player.setPitch(rate.pitch);
+      } catch (error) {
+        debugPrint('=== SONIDO: no se pudo cambiar velocidad/tono: $error ===');
+      }
+    }
+  }
   bool _wasPlaying = false;
 
   /// Notificación, pantalla de bloqueo y auriculares.
@@ -207,6 +220,21 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]),
     );
     ref.read(equalizerProvider);
+    // "Sonido": margen de seguridad cuando el ecualizador o los bajos suben mucho (no satura).
+    _headroom = ref.read(equalizerProvider).headroom;
+    ref.listen(equalizerProvider.select((s) => s.headroom), (_, gain) {
+      _headroom = gain;
+      unawaited(_applyVolume());
+      final tail = _tail;
+      if (tail != null && _crossfading) unawaited(tail.setVolume(state.volume * _fade * gain));
+    });
+    // "Sonido": velocidad y tono (con "Efectos" apagado, siempre lo normal), en vivo.
+    ref.listen(equalizerProvider.select((s) => s.settings.playbackRate), (_, rate) => unawaited(_applyRate(rate)));
+    // Android: los bajos y la reverb se enganchan a la sesión de audio del reproductor.
+    _sessionSubscription = _audioPlayer.androidAudioSessionIdStream.listen(
+      (id) => ref.read(equalizerProvider.notifier).audioSessionChanged(id),
+      onError: (Object error) => debugPrint('=== SONIDO: sin sesión de audio: $error ==='),
+    );
     ref.onDispose(_dispose);
 
     _controls = ref.read(systemMediaControlsProvider);
@@ -420,6 +448,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     Set<String> skipClients = const {},
   }) async {
     final token = ++_loadToken;
+    // Otra canción (no un reintento de la misma): la velocidad y el tono vuelven a lo normal,
+    // salvo que se haya elegido mantenerlos.
+    if (state.track?.id != track.id) unawaited(ref.read(equalizerProvider.notifier).trackChanged());
     _fadeInToken = _fadeInPending ? token : -1;
     _fadeInPending = false;
     _requestedNext.remove(track.id);
@@ -466,6 +497,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('$stackTrace');
       state = state.copyWith(isInitialized: false);
       await _pausePlayer('error al cargar la canción'); // l10n-ignore
+      // Un archivo del equipo que no se puede reproducir (formato raro, dañado): se salta a la
+      // siguiente con un aviso simple; no es culpa de internet ni de YouTube.
+      if (track.source == TrackSource.local) {
+        _lastContentProblem = null;
+        return LoadResult.contentBlocked;
+      }
       return await _isOnline() ? LoadResult.unplayable : LoadResult.offline;
     }
   }
@@ -1031,6 +1068,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> _dispose() async {
     await _stopTail();
     _saveTimer?.cancel();
+    unawaited(_sessionSubscription?.cancel());
     _outputWait?.cancel();
     _lifecycleListener?.dispose();
     for (final subscription in _subscriptions) {
@@ -1153,6 +1191,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// volumen, que baja al final de la canción y sube al empezar la siguiente
   /// (solo si la anterior terminó sola).
   double _transition = 1;
+
+  /// Margen de seguridad de "Sonido" (1 = nada; menos si el ecualizador o los bajos suben mucho).
+  double _headroom = 1;
   bool _fadeInPending = false;
   int _fadeInToken = -1;
 
@@ -1212,6 +1253,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       }
       await tail.setAudioSource(source, initialPosition: _audioPlayer.position).timeout(const Duration(seconds: 8));
       await tail.setVolume(0);
+      final rate = ref.read(equalizerProvider).settings.playbackRate;
+      await tail.setSpeed(rate.speed);
+      await tail.setPitch(rate.pitch);
       if (state.track?.id != track.id) {
         await tail.dispose();
         return;
@@ -1231,7 +1275,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final tail = _tail;
     if (tail == null || _crossfading) return;
     _crossfading = true;
-    final volume = state.volume * _fade;
+    final volume = state.volume * _fade * _headroom;
     try {
       await tail.seek(_audioPlayer.position);
       await tail.setVolume(volume);
@@ -1316,7 +1360,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     unawaited(_applyVolume());
   }
 
-  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition);
+  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition * _headroom);
 
   Future<void> seekToProgress(double progress) async {
     final duration = state.duration;

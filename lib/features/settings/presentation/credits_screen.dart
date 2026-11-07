@@ -43,9 +43,27 @@ String stripInlineMarkdown(String text) => text
 /// filas de tabla). Alcanza para ese archivo; no es un Markdown completo.
 List<CreditsBlock> parseCredits(String markdown) {
   final blocks = <CreditsBlock>[];
+  // Como en Markdown: las líneas seguidas de un párrafo (o la continuación con sangría de una
+  // viñeta) son el mismo bloque; una línea en blanco lo cierra.
+  var open = false;
   for (final raw in markdown.split('\n')) {
     final line = raw.trimRight();
-    if (line.trim().isEmpty) continue;
+    if (line.trim().isEmpty) {
+      open = false;
+      continue;
+    }
+    final plain =
+        !line.trimLeft().startsWith('#') &&
+        !line.trimLeft().startsWith('|') &&
+        !line.startsWith('>') &&
+        !RegExp(r'^\s*(-|\*|\d+\.)\s+').hasMatch(line);
+    final last = blocks.lastOrNull;
+    if (open && plain && (last is CreditsParagraph || (last is CreditsBullet && raw.startsWith(' ')))) {
+      final joined = '${last!.text} ${stripInlineMarkdown(line)}';
+      blocks[blocks.length - 1] = last is CreditsBullet ? CreditsBullet(joined) : CreditsParagraph(joined);
+      continue;
+    }
+    open = true;
     final heading = RegExp(r'^(#{1,6})\s+(.*)$').firstMatch(line);
     if (heading != null) {
       blocks.add(CreditsHeading(stripInlineMarkdown(heading[2]!), heading[1]!.length));
@@ -65,7 +83,11 @@ List<CreditsBlock> parseCredits(String markdown) {
   return blocks;
 }
 
-/// "Acerca de → Créditos": muestra `CREDITS.md` dentro de la app.
+/// El archivo de créditos para el idioma de la app: `CREDITS.md` en español y `CREDITS.en.md`
+/// (su traducción) en cualquier otro idioma.
+String creditsAssetFor(String language) => language == 'es' ? 'CREDITS.md' : 'CREDITS.en.md';
+
+/// "Acerca de → Créditos": muestra los créditos dentro de la app, en el idioma elegido.
 class CreditsScreen extends StatelessWidget {
   const CreditsScreen({super.key, this.bundle});
 
@@ -80,7 +102,7 @@ class CreditsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(tx.creditos)),
       body: FutureBuilder<String>(
-        future: (bundle ?? rootBundle).loadString('CREDITS.md'),
+        future: (bundle ?? rootBundle).loadString(creditsAssetFor(kijiLanguage)),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text(tx.noSePudieronLeerLosCreditos));

@@ -41,6 +41,9 @@ object KijiChannels {
     fun register(context: Context, messenger: BinaryMessenger) {
         val app = context.applicationContext
 
+        // Refuerzo de bajos y reverb de "Sonido" (SoundEffects.kt).
+        SoundEffects.register(messenger)
+
         // Datos del equipo para el modo alto rendimiento. Sin pantalla no hay ventana para cambiar
         // la frecuencia: MainActivity reemplaza este canal al abrirse.
         MethodChannel(messenger, "kiji/display").setMethodCallHandler { call, result ->
@@ -80,6 +83,8 @@ object KijiChannels {
             val power = app.getSystemService(Context.POWER_SERVICE) as PowerManager
             when (call.method) {
                 "isIgnoring" -> result.success(power.isIgnoringBatteryOptimizations(app.packageName))
+                // Ahorro de batería del sistema: el video del fondo propio se queda quieto.
+                "powerSave" -> result.success(power.isPowerSaveMode)
                 "request" -> try {
                     val ask = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${app.packageName}"))
                     try {

@@ -149,7 +149,10 @@ class GlassIconButton extends StatelessWidget {
                       label!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                      // Grafito: etiquetas chicas y en gris.
+                      style: KijiLook.museum
+                          ? TextStyle(color: active ? color : KijiColors.muted, fontSize: 13, fontWeight: FontWeight.w500)
+                          : TextStyle(color: color, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -168,7 +171,12 @@ class GlassIconButton extends StatelessWidget {
         child: PressScale(
           enabled: onPressed != null,
           pressed: 0.94,
-          child: Glass(
+          child: KijiLook.museum
+              ? Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(onTap: onPressed, customBorder: const StadiumBorder(), child: content),
+                )
+              : Glass(
             radius: KijiRadii.pill,
             onDark: foreground != null,
             // Sin desenfoque del fondo: sobre la aurora animada se recalculaba en cada cuadro

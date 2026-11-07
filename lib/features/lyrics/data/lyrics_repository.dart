@@ -49,6 +49,7 @@ class LyricsRepository {
     List<LyricsFetcher>? fetchers,
     Future<Directory> Function()? baseDirectory,
     DateTime Function()? clock,
+    this.offline,
   }) : _fetchers = fetchers ?? defaultLyricsFetchers(lrclib: client),
        _baseDirectory = baseDirectory ?? getApplicationSupportDirectory,
        _clock = clock ?? DateTime.now;
@@ -58,6 +59,9 @@ class LyricsRepository {
   static const notFoundRetry = Duration(days: 7);
 
   final List<LyricsFetcher> _fetchers;
+
+  /// La letra guardada con la canción descargada (sin internet), si la hay.
+  final Future<Lyrics?> Function(LyricsRequest request)? offline;
   final Future<Directory> Function() _baseDirectory;
   final DateTime Function() _clock;
 
@@ -76,19 +80,42 @@ class LyricsRepository {
     List<LyricsSource> order = LyricsSource.online,
   }) async {
     final file = await _fileFor(request.id);
+    // 0) Canción del equipo con su .lrc al lado (mismo nombre): manda siempre, aunque haya otra
+    // guardada (se puede agregar o cambiar después).
+    final local = request.localPath;
+    if (local != null && local.isNotEmpty) {
+      final sidecar = await readSidecarLrc(local);
+      if (sidecar != null) return sidecar;
+    }
     // 1) Caché.
     final cached = await file.read();
     if (cached is Map<String, dynamic>) {
       try {
         final lyrics = Lyrics.fromJson(cached['lyrics'] as Map<String, dynamic>);
         final savedAt = DateTime.fromMillisecondsSinceEpoch(cached['savedAt'] as int);
-        if (!lyrics.isEmpty || _clock().difference(savedAt) < notFoundRetry) return lyrics;
+        final fits = syncMatches(lyrics, Duration(milliseconds: request.durationMs)) || cached['chosen'] == true;
+        if (!fits) {
+          debugPrint('=== LETRAS: la guardada no encaja con la duración de la canción; se busca otra ===');
+        } else if (!lyrics.isEmpty || _clock().difference(savedAt) < notFoundRetry) {
+          return lyrics;
+        }
       } catch (error) {
         await file.deleteCorrupt(error);
       }
     }
 
-    // 2) Incluida en el archivo local (sin internet).
+    // 2) Guardada con la descarga (sin internet).
+    try {
+      final saved = await offline?.call(request);
+      if (saved != null && !saved.isEmpty && syncMatches(saved, Duration(milliseconds: request.durationMs))) {
+        await _save(file, saved);
+        return saved;
+      }
+    } catch (error) {
+      debugPrint('=== LETRAS: no se pudo leer la guardada con la descarga: $error ===');
+    }
+
+    // 3) Incluida en el archivo local (sin internet).
     final path = request.localPath;
     if (path != null && path.isNotEmpty) {
       final embedded = await Isolate.run(() => readEmbeddedLyrics(path));
@@ -98,7 +125,7 @@ class LyricsRepository {
       }
     }
 
-    // 3) Las fuentes, en el orden que eligió el usuario.
+    // 4) Las fuentes, en el orden que eligió el usuario.
     final lyrics = await _fromSources(request, disabled, order);
     await _save(file, lyrics);
     return lyrics;
@@ -129,12 +156,21 @@ class LyricsRepository {
   Future<Lyrics> _fromSources(LyricsRequest request, Set<LyricsSource> disabled, List<LyricsSource> order) async {
     var answered = 0;
     final failures = <String>[];
+    // Una letra sincronizada que no encaja con la canción: se sigue buscando y, si ninguna otra
+    // sirve, se muestra esta sin sincronizar (nunca con un aviso técnico).
+    Lyrics? mismatched;
+    final duration = Duration(milliseconds: request.durationMs);
     for (final fetcher in _ordered(order)) {
       if (disabled.contains(fetcher.source)) continue;
       try {
         final lyrics = await fetcher.fetch(request);
         answered++;
         if (lyrics != null && !lyrics.isEmpty) {
+          if (!syncMatches(lyrics, duration)) {
+            debugPrint('=== LETRAS: la de ${fetcher.source.label} no encaja con la canción; se prueba otra ===');
+            mismatched ??= lyrics.unsynced;
+            continue;
+          }
           debugPrint('=== LETRAS: encontrada en ${fetcher.source.label} ===');
           return lyrics;
         }
@@ -144,6 +180,10 @@ class LyricsRepository {
         debugPrint('=== LETRAS: ${fetcher.source.label} falló: $error ===');
         answered++;
       }
+    }
+    if (mismatched != null) {
+      debugPrint('=== LETRAS: ninguna sincronizada encaja; se muestra sin sincronizar ===');
+      return mismatched;
     }
     // Ninguna respondió: probablemente sin conexión. No se guarda "no hay".
     if (answered == 0 && failures.isNotEmpty) {
@@ -185,14 +225,15 @@ class LyricsRepository {
   /// El usuario eligió [lyrics] para la canción [id] (⋯ → Fuente): se guarda y se usa siempre.
   Future<void> choose(String id, Lyrics lyrics) async {
     debugPrint('=== LETRAS: elegida a mano ${lyrics.source?.label} ===');
-    await _save(await _fileFor(id), lyrics);
+    await _save(await _fileFor(id), lyrics, chosen: true);
   }
 
   /// Importar un `.lrc` (o texto) para la canción [id].
   Future<Lyrics> importText(String id, String text) async {
     final lyrics = lyricsFromText(text, LyricsSource.imported);
     if (lyrics == null) throw FormatException(tx.elArchivoNoTieneUnaLetra);
-    await _save(await _fileFor(id), lyrics);
+    // La importó el usuario: se respeta aunque no encaje con la duración.
+    await _save(await _fileFor(id), lyrics, chosen: true);
     return lyrics;
   }
 
@@ -211,8 +252,33 @@ class LyricsRepository {
   }
 
   /// Al guardar una letra nueva el desfase vuelve a 0.
-  Future<void> _save(JsonFile file, Lyrics lyrics) =>
-      file.write({'savedAt': _clock().millisecondsSinceEpoch, 'lyrics': lyrics.toJson()});
+  /// [chosen]: la eligió el usuario (⋯ → Fuente): se respeta aunque no encaje con la duración.
+  Future<void> _save(JsonFile file, Lyrics lyrics, {bool chosen = false}) => file.write({
+    'savedAt': _clock().millisecondsSinceEpoch,
+    'lyrics': lyrics.toJson(),
+    if (chosen) 'chosen': true,
+  });
+}
+
+/// El .lrc junto al archivo de música ("Canción.mp3" → "Canción.lrc", también ".LRC"), o null.
+Future<Lyrics?> readSidecarLrc(String audioPath) async {
+  try {
+    final base = p.withoutExtension(audioPath);
+    for (final ext in const ['.lrc', '.LRC', '.Lrc']) {
+      final file = File('$base$ext');
+      if (!await file.exists()) continue;
+      final text = (await file.readAsString()).trim();
+      if (text.isEmpty) return null;
+      final synced = parseLrc(text);
+      debugPrint('=== LETRAS: .lrc junto al archivo (${synced.isNotEmpty ? 'sincronizada' : 'texto'}) ===');
+      return synced.isNotEmpty
+          ? Lyrics(synced: synced, source: LyricsSource.embedded)
+          : Lyrics(plain: text, source: LyricsSource.embedded);
+    }
+  } catch (error) {
+    debugPrint('=== LETRAS: no se pudo leer el .lrc junto al archivo: ${error.runtimeType} ===');
+  }
+  return null;
 }
 
 /// Letra guardada en las etiquetas del archivo (LRC o texto), o null.
@@ -225,7 +291,7 @@ Lyrics? readEmbeddedLyrics(String path) {
         ? Lyrics(synced: synced, source: LyricsSource.embedded)
         : Lyrics(plain: text, source: LyricsSource.embedded);
   } catch (error) {
-    debugPrint('=== LETRAS: sin letra incluida en $path: $error ===');
+    debugPrint('=== LETRAS: sin letra incluida en el archivo: ${error.runtimeType} ===');
     return null;
   }
 }

@@ -78,7 +78,7 @@ int compareVersions(String a, String b) {
 /// Estado de "Actualizaciones".
 @immutable
 class UpdateState {
-  const UpdateState({this.lastCheck, this.latest, this.checking = false, this.message});
+  const UpdateState({this.lastCheck, this.latest, this.checking = false, this.note, this.noteVersion});
 
   final DateTime? lastCheck;
 
@@ -86,9 +86,25 @@ class UpdateState {
   final Release? latest;
   final bool checking;
 
-  /// Resultado de la última consulta, en palabras simples.
-  final String? message;
+  /// Qué dijo la última consulta (se traduce al mostrarlo: si se cambia el idioma después, el
+  /// aviso cambia con él).
+  final UpdateNote? note;
+
+  /// La versión de la que habla [note].
+  final String? noteVersion;
+
+  /// Resultado de la última consulta, en palabras simples y en el idioma de ahora.
+  String? get message => switch (note) {
+    null => null,
+    UpdateNote.noReleases => tx.todaviaNoHayVersionesPublicadas,
+    UpdateNote.newer => tx.hayVersionNuevaPunto(noteVersion ?? ''),
+    UpdateNote.upToDate => tx.tienesLaUltimaVersion(noteVersion ?? kijiVersion),
+    UpdateNote.failed => tx.noSePudoConsultarRevisaTu,
+  };
 }
+
+/// Lo que respondió la última consulta de versiones.
+enum UpdateNote { noReleases, newer, upToDate, failed }
 
 /// Una vez por día (si está prendido) le pregunta a GitHub cuál es la última
 /// versión. GitHub ve esa consulta como cualquier visita a una página; no se
@@ -152,7 +168,7 @@ class UpdateNotifier extends Notifier<UpdateState> {
       final now = _now();
       unawaited((await _jsonFile()).write({'lastCheck': now.toIso8601String()}));
       if (response.statusCode == 404) {
-        state = UpdateState(lastCheck: now, message: tx.todaviaNoHayVersionesPublicadas);
+        state = UpdateState(lastCheck: now, note: UpdateNote.noReleases);
         return;
       }
       final release = Release.fromJson(response.data);
@@ -160,12 +176,13 @@ class UpdateNotifier extends Notifier<UpdateState> {
       state = UpdateState(
         lastCheck: now,
         latest: newer ? release : null,
-        message: newer ? tx.hayVersionNuevaPunto(release.version) : tx.tienesLaUltimaVersion(kijiVersion),
+        note: newer ? UpdateNote.newer : UpdateNote.upToDate,
+        noteVersion: newer ? release.version : kijiVersion,
       );
       debugPrint('=== ACTUALIZACIONES: última ${release?.version ?? '?'}, esta $kijiVersion ===');
     } catch (error) {
       debugPrint('=== ACTUALIZACIONES: no se pudo consultar (${error.runtimeType}) ===');
-      state = UpdateState(lastCheck: state.lastCheck, latest: state.latest, message: tx.noSePudoConsultarRevisaTu);
+      state = UpdateState(lastCheck: state.lastCheck, latest: state.latest, note: UpdateNote.failed);
     }
   }
 }

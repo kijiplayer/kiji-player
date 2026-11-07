@@ -130,6 +130,37 @@ void main() {
     expect(page.tracks.first.durationMs, 320000);
   });
 
+  test('Búsqueda por páginas: la marca de la siguiente, en la primera y en las que siguen', () {
+    final first = {
+      'contents': {
+        'musicShelfRenderer': {
+          'contents': [_collectionRow('MPREb_a', 'Álbum Inventado', 'Álbum • Grupo Inventado • 2020', 'MUSIC_PAGE_TYPE_ALBUM')],
+          'continuations': [
+            {'nextContinuationData': {'continuation': 'marca-1'}},
+          ],
+        },
+      },
+    };
+    expect(parseSearchContinuation(first), 'marca-1');
+
+    // Página siguiente: los resultados vienen en continuationContents.
+    final next = {
+      'continuationContents': {
+        'musicShelfContinuation': {
+          'contents': [_collectionRow('MPREb_b', 'Otro Álbum', 'Álbum • Grupo Inventado • 2021', 'MUSIC_PAGE_TYPE_ALBUM')],
+          'continuations': [
+            {'nextContinuationData': {'continuation': 'marca-2'}},
+          ],
+        },
+      },
+    };
+    expect(parseCollectionResults(next, YtCollectionKind.album).single.title, 'Otro Álbum');
+    expect(parseSearchContinuation(next), 'marca-2');
+
+    // La última página no trae marca: no hay más.
+    expect(parseSearchContinuation({'continuationContents': {'musicShelfContinuation': {'contents': []}}}), isNull);
+  });
+
   test('JSON vacío o raro no rompe nada', () {
     expect(parseCollectionResults({}, YtCollectionKind.album), isEmpty);
     expect(parseArtistPage({}).songs, isEmpty);
