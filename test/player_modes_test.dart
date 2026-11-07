@@ -158,4 +158,15 @@ void main() {
     await tester.pump();
     expect(find.byKey(const Key('player-cover-scale')), findsNothing);
   });
+
+  testWidgets('Pantalla completa: "Atrás" primero sale de ella, sin cerrar el reproductor', (tester) async {
+    final screen = _Mode();
+    final container = await _pump(tester, const Size(420, 860), full: true, screen: screen);
+    expect(container.read(playerFullscreenProvider), isTrue);
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    await navigator.maybePop();
+    await tester.pumpAndSettle();
+    expect(container.read(playerFullscreenProvider), isFalse);
+    expect(find.byType(PlayerScreen), findsOneWidget, reason: 'el reproductor sigue abierto');
+  });
 }

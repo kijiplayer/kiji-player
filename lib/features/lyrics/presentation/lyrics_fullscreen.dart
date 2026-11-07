@@ -66,13 +66,22 @@ class _FullscreenGuardState extends ConsumerState<FullscreenGuard> {
       _on = on;
       unawaited(_mode.setFullScreen(on));
     });
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.escape): () {
-          if (ref.read(_provider)) ref.read(_provider.notifier).state = false;
-        },
+    final full = ref.watch(_provider);
+    // "Atrás" (en el teléfono) con la pantalla completa: primero sale de ella, sin cerrar la
+    // pantalla.
+    return PopScope(
+      canPop: !full,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && ref.read(_provider)) ref.read(_provider.notifier).state = false;
       },
-      child: Focus(autofocus: true, child: widget.child),
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.escape): () {
+            if (ref.read(_provider)) ref.read(_provider.notifier).state = false;
+          },
+        },
+        child: Focus(autofocus: true, child: widget.child),
+      ),
     );
   }
 }
