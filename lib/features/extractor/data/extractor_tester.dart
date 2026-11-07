@@ -24,6 +24,13 @@ const controlVideos = <(String id, String name)>[
 /// WEB_EMBEDDED_PLAYER se retiró también del motor A (YouTube responde "This video is unavailable").
 const engineAForms = ['VISIONOS_0_1', 'VISIONOS', 'WEB_REMIX', 'TVHTML5_SIMPLY'];
 
+/// Formas retiradas del motor A: no se usan ni se muestran (un registro viejo no cuenta).
+const retiredEngineAForms = {'WEB_EMBEDDED_PLAYER'};
+
+/// Si un camino del motor A ("A/FORMA" o "A/FORMA__variante") se muestra en la Salud.
+bool engineAPathShown(String path) =>
+    path.startsWith('A/') && !retiredEngineAForms.contains(path.substring(2).split('__').first);
+
 /// Resultado de probar un camino con una canción de control.
 /// Las listas HLS solo se reproducen en Android, iOS y macOS (en la PC todavía no).
 bool get hlsPlaysHere => !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);

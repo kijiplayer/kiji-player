@@ -32,6 +32,8 @@ void main() {
           ['ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS', 'WEB_EMBEDDED_PLAYER', 'MWEB']);
       expect(clientByLabel('WEB_EMBEDDED_PLAYER')!.embedded, isTrue);
       expect(engineAForms, isNot(contains('WEB_EMBEDDED_PLAYER')), reason: 'retirada también del motor A');
+      expect(engineAPathShown('A/WEB_EMBEDDED_PLAYER'), isFalse, reason: 'un registro viejo no se muestra');
+      expect(engineAPathShown('A/VISIONOS_0_1__nopo'), isTrue);
     });
 
     test('solo las web y de TV mandan PO token; solo las cifradas piden el reproductor', () {

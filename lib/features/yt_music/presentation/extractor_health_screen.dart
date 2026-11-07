@@ -85,14 +85,14 @@ class _ExtractorHealthScreenState extends ConsumerState<ExtractorHealthScreen> {
           // Solo las que se muestran: un registro viejo de una forma retirada o de una HLS en la
           // PC no cuenta.
           final working = all.entries
-              .where((e) => e.value.working && (e.key.startsWith('A/') || bForms.contains(e.key.substring(2))))
+              .where((e) => e.value.working && (engineAPathShown(e.key) || bForms.contains(e.key.substring(2))))
               .length;
           final summary = _results.isNotEmpty
               ? healthSummary(_results)
               : working == 0
               ? (all.isEmpty ? tx.todaviaNoSeProbo : tx.cancionesNormalesNingunaFormaFuncionaAho)
               : tx.cancionesNormalesFormas(working);
-          final aPaths = all.keys.where((k) => k.startsWith('A/')).toList()..sort();
+          final aPaths = all.keys.where(engineAPathShown).toList()..sort();
           final retired = [
             for (final c in ytPlayerClients)
               if (c.isRetired) c,
