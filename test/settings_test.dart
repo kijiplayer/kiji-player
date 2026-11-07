@@ -183,6 +183,28 @@ void main() {
       expect(creditsAssetFor('en'), 'CREDITS.en.md');
     });
 
+    test('Las líneas seguidas de un párrafo son un solo párrafo (no se corta la oración)', () {
+      final blocks = parseCredits(
+        [
+          '# T',
+          '',
+          'Una oración que sigue',
+          'en la línea de abajo.',
+          '',
+          'Otro párrafo.',
+          '- Viñeta larga',
+          '  que sigue.',
+        ].join('\n'),
+      );
+      expect(blocks.whereType<CreditsParagraph>().map((b) => b.text), [
+        'Una oración que sigue en la línea de abajo.',
+        'Otro párrafo.',
+      ]);
+      expect(blocks.whereType<CreditsBullet>().single.text, 'Viñeta larga que sigue.');
+      final en = parseCredits(File('CREDITS.en.md').readAsStringSync());
+      expect(en.whereType<CreditsParagraph>().any((b) => b.text.contains('their code and reused ideas')), isTrue);
+    });
+
     testWidgets('La pantalla de créditos sale en el idioma de la app', (tester) async {
       final bundle = _TextBundle({'CREDITS.md': '# Créditos\n\nHola', 'CREDITS.en.md': '# Credits\n\nHello'});
       addTearDown(() => setKijiLocale(const Locale('es')));
