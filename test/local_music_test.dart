@@ -131,6 +131,9 @@ void main() {
     );
     expect((fromMediaStore['title'], fromMediaStore['artist']), ('Copper', ''));
     expect((fromMediaStore['discNumber'], fromMediaStore['trackNumber']), (2, 4));
+    // El MediaStore copia el nombre del archivo como título cuando no hay etiquetas: va el limpio.
+    final copied = readSong(ScanEntry(id: 'c', path: file.path, sizeBytes: 3, modifiedMs: 1, title: '02 - Copper Fields'));
+    expect(copied['title'], 'Copper Fields');
   });
 
   test('Caché: la segunda vez solo se lee lo nuevo o cambiado; "Volver a escanear" lee todo', () async {

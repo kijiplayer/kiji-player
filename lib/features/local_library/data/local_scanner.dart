@@ -191,11 +191,14 @@ Map<String, dynamic> readSong(ScanEntry entry, {String? artworkDir, String? fold
   }
 
   final fromName = titleFromFileName(p.basename(entry.path));
+  // Sin etiquetas, el MediaStore usa el nombre del archivo tal cual ("01 - Copper Fields"): ese no
+  // cuenta como título, va el nombre limpio.
+  final mediaTitle = clean(entry.title) == p.basenameWithoutExtension(entry.path) ? null : clean(entry.title);
   final mediaTrack = entry.track;
   final hasArt = artworkDir != null && _saveArtwork(tags, artworkDir, entry.path);
   return {
     'id': entry.id,
-    'title': clean(tags?.title) ?? clean(entry.title) ?? fromName.title,
+    'title': clean(tags?.title) ?? mediaTitle ?? fromName.title,
     // Vacío = "Artista desconocido" (se pone en el idioma de la app al mostrarlo).
     'artist': clean(artist) ?? clean(entry.artist) ?? fromName.artist ?? '',
     'audioUrl': entry.path,
