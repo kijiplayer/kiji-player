@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
+import '../../../utils/app_visible.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../models/track.dart';
@@ -93,10 +94,22 @@ class AudioServiceControls implements SystemMediaControls {
   void _askNotificationPermissionOnce() {
     if (_askedNotificationPermission || defaultTargetPlatform != TargetPlatform.android) return;
     _askedNotificationPermission = true;
-    Permission.notification.request().then(
-      (status) => debugPrint('=== CONTROLES: permiso de notificaciones: $status ==='),
-      onError: (Object error) => debugPrint('=== CONTROLES: no se pudo pedir el permiso de notificaciones: $error ==='),
-    );
+    unawaited(_askNotificationPermission());
+  }
+
+  /// Se pide con la pantalla ya lista: al abrir Kiji (cola restaurada) todavía no hay Activity y
+  /// el pedido fallaba ("Unable to detect current Android Activity"). Si igual falla, se vuelve a
+  /// intentar la próxima vez que suene algo.
+  Future<void> _askNotificationPermission() async {
+    try {
+      await whenAppVisible();
+      if (await Permission.notification.isGranted) return;
+      final status = await Permission.notification.request();
+      debugPrint('=== CONTROLES: permiso de notificaciones: $status ===');
+    } catch (error) {
+      debugPrint('=== CONTROLES: el permiso de notificaciones se pide después (${error.runtimeType}) ===');
+      _askedNotificationPermission = false;
+    }
   }
 }
 
