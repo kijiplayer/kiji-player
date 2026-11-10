@@ -4681,4 +4681,13 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get elegirPortada => 'Choose cover';
+
+  @override
+  String get elegirOtraPortada => 'Choose another cover';
+
+  @override
+  String get quitarLaPortadaElegida => 'Remove the chosen cover';
 }

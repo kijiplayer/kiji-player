@@ -7,7 +7,10 @@ import '../../../theme/app_theme.dart' show KijiSelected;
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/duration_formatter.dart';
 import '../../../widgets/album_cover.dart';
+import '../../customize/presentation/pick_and_crop.dart';
 import '../../customize/presentation/track_text.dart';
+import '../../../widgets/nocturne/kiji_sheet.dart';
+import '../data/group_covers.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
 import '../domain/local_groups.dart';
@@ -56,6 +59,48 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
 
   List<Track> get _tracks => widget.group.tracks;
 
+  /// "Elegir portada" (o quitar la elegida) para este álbum o carpeta.
+  Future<void> _chooseCover() async {
+    final key = widget.group.key;
+    final chosen = ref.read(groupCoversProvider).containsKey(key);
+    final remove = chosen &&
+        await showKijiSheet<bool>(
+              context: context,
+              builder: (sheet) => SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.add_photo_alternate_outlined),
+                      title: Text(tx.elegirOtraPortada),
+                      onTap: () => Navigator.pop(sheet, false),
+                    ),
+                    ListTile(
+                      key: const Key('local-group-cover-clear'),
+                      leading: const Icon(Icons.hide_image_outlined),
+                      title: Text(tx.quitarLaPortadaElegida),
+                      onTap: () => Navigator.pop(sheet, true),
+                    ),
+                  ],
+                ),
+              ),
+            ) ==
+            true;
+    if (!mounted) return;
+    if (remove) {
+      await ref.read(groupCoversProvider.notifier).clear(key);
+      return;
+    }
+    final bytes = await pickAndCropImage(context);
+    if (bytes == null || !mounted) return;
+    try {
+      await ref.read(groupCoversProvider.notifier).set(key, bytes);
+    } catch (error) {
+      debugPrint('=== PORTADAS: no se pudo guardar la portada elegida: ${error.runtimeType} ===');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.noSePudoAbrirEsaImagen)));
+    }
+  }
+
   void _tap(int index) {
     final track = _tracks[index];
     if (_selection.tapWithKeys(track.id, track, [for (final t in _tracks) MapEntry(t.id, t)])) return;
@@ -76,7 +121,19 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
       tx.nCanciones(group.tracks.length),
     ].join(' · ');
     return Scaffold(
-      appBar: AppBar(title: Text(group.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+      appBar: AppBar(
+        title: Text(group.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        actions: [
+          // Álbum o carpeta: elegir su portada con el selector de fotos del sistema (sin permisos).
+          if (widget.kind != LocalGroupKind.artist)
+            IconButton(
+              key: const Key('local-group-cover'),
+              tooltip: tx.elegirPortada,
+              icon: const Icon(Icons.add_photo_alternate_outlined),
+              onPressed: _chooseCover,
+            ),
+        ],
+      ),
       body: Stack(
         children: [
           ListView.builder(

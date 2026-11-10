@@ -7588,6 +7588,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, =0{No se encontró música} =1{Listo: 1 canción} other{Listo: {count} canciones}}'**
   String bibliotecaEscaneada(int count);
+
+  /// Álbum o carpeta: elegir la portada con el selector de fotos del sistema.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir portada'**
+  String get elegirPortada;
+
+  /// Álbum o carpeta: cambiar la portada elegida.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir otra portada'**
+  String get elegirOtraPortada;
+
+  /// Álbum o carpeta: vuelve la del archivo o la generada.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar la portada elegida'**
+  String get quitarLaPortadaElegida;
 }
 
 class _AppLocalizationsDelegate

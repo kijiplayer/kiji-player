@@ -24,6 +24,16 @@ String _fold(String s) => s.trim().toLowerCase();
 /// El artista "de verdad" de una canción para agrupar: el del álbum si lo hay.
 String groupArtist(Track t) => (t.albumArtist?.trim().isNotEmpty ?? false) ? t.albumArtist!.trim() : t.artist.trim();
 
+/// Clave del álbum de [t] (la misma que usa [groupByAlbum]), o null si no tiene álbum.
+String? albumKeyOf(Track t) {
+  final album = t.album?.trim() ?? '';
+  if (t.source != TrackSource.local || album.isEmpty) return null;
+  return 'album:${_fold(album)}\u0000${_fold(groupArtist(t))}';
+}
+
+/// Clave de la carpeta de [t] (la misma que usa [groupByFolderPath]).
+String? folderKeyOf(Track t) => t.source == TrackSource.local ? 'folder:${p.dirname(t.audioUrl)}' : null;
+
 /// Orden de las pistas de un álbum: disco, número de pista y, si faltan, el título.
 int compareAlbumOrder(Track a, Track b) {
   final disc = (a.discNumber ?? 1).compareTo(b.discNumber ?? 1);

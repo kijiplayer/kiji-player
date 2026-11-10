@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 
 import '../features/customize/data/artwork_cache.dart';
 import '../features/customize/data/track_overrides.dart';
+import '../features/local_library/data/group_covers.dart';
+import '../features/local_library/domain/local_groups.dart' show albumKeyOf, folderKeyOf;
 import '../features/system_media/data/cover_art.dart';
 import '../models/track.dart';
 import '../utils/file_exists_cache.dart';
@@ -166,6 +168,12 @@ List<ImageProvider> trackImageSources(WidgetRef ref, Track track, {int pixels = 
   final custom = ref.watch(trackOverridesProvider.select((all) => all[track.id]?.coverFile));
   final covers = ref.watch(coversFolderProvider).valueOrNull;
   if (custom != null && covers != null) return [FileImage(File(p.join(covers.path, custom)))];
+  // La portada elegida para su álbum o su carpeta ("Elegir portada"): manda sobre la del archivo.
+  if (track.source == TrackSource.local && covers != null) {
+    final chosen = ref.watch(groupCoversProvider);
+    final group = chosen[albumKeyOf(track)] ?? chosen[folderKeyOf(track)];
+    if (group != null) return [FileImage(File(p.join(covers.path, group)))];
+  }
   final url = track.thumbnailUrl;
   final network = url != null && url.startsWith('http') ? NetworkImage(thumbnailUrlForPixels(url, pixels)) : null;
   // Una guardada chica sirve en las listas; en grande, solo si no hay otra mejor.

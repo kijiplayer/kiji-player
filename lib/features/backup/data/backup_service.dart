@@ -22,6 +22,8 @@ const backedUpFiles = [
   'library_folders.json',
   // Título, artista y foto personalizados de cada canción.
   'track_overrides.json',
+  // Portadas elegidas para álbumes y carpetas de la música del equipo (las fotos van en covers/).
+  'group_covers.json',
   // Versión del formato de los datos: al restaurar una copia vieja se ponen al día.
   dataVersionFile,
 ];

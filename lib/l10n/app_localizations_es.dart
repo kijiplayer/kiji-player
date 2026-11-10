@@ -4691,4 +4691,13 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get elegirPortada => 'Elegir portada';
+
+  @override
+  String get elegirOtraPortada => 'Elegir otra portada';
+
+  @override
+  String get quitarLaPortadaElegida => 'Quitar la portada elegida';
 }
