@@ -2,6 +2,7 @@
 // Archivo de referencia: ui/screens/settings/BackupAndRestore.kt. Diseño y código propios.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -86,6 +87,15 @@ class BackupScreen extends ConsumerWidget {
                 : const Icon(Icons.backup_outlined),
             label: Text(tx.hacerUnaCopiaAhora),
           ),
+          const SizedBox(height: 8),
+          // Todo en un archivo (ajustes, playlists, estilos y fondos, estilo por canción, presets de
+          // sonido, reacciones de teatro), para llevarlo a otro teléfono o a la PC.
+          OutlinedButton.icon(
+            key: const Key('backup-export-file'),
+            onPressed: backup.busy ? null : () => _exportToFile(context, ref),
+            icon: const Icon(Icons.save_alt_rounded),
+            label: Text(tx.exportarAUnArchivo),
+          ),
           if (backup.error != null) ...[
             const SizedBox(height: 8),
             Text(backup.error!, style: const TextStyle(color: Colors.orangeAccent)),
@@ -121,6 +131,21 @@ class BackupScreen extends ConsumerWidget {
   static void _say(BuildContext context, String message) => ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(message)));
+
+  Future<void> _exportToFile(BuildContext context, WidgetRef ref) async {
+    try {
+      final (name, bytes) = await ref.read(backupProvider.notifier).exportBytes();
+      final saved = await FilePicker.saveFile(
+        dialogTitle: tx.exportarAUnArchivo,
+        fileName: name,
+        bytes: Uint8List.fromList(bytes),
+      );
+      if (saved != null && context.mounted) _say(context, tx.copiaExportada);
+    } catch (error) {
+      debugPrint('=== COPIA: no se pudo exportar: ${error.runtimeType} ===');
+      if (context.mounted) _say(context, tx.noSePudoGuardarElArchivo);
+    }
+  }
 
   Future<void> _chooseFolder(BuildContext context, WidgetRef ref) async {
     final path = await FilePicker.getDirectoryPath(dialogTitle: tx.carpetaParaLasCopiasDeKiji);

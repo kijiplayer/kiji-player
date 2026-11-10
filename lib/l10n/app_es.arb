@@ -2801,5 +2801,9 @@
   "elegir": "Elegir",
   "@elegir": {"description": "Botón: elegir algo de una lista."},
   "eligeLaCancion": "Elige la canción",
-  "@eligeLaCancion": {"description": "Importar: hoja para elegir una canción a mano."}
+  "@eligeLaCancion": {"description": "Importar: hoja para elegir una canción a mano."},
+  "exportarAUnArchivo": "Exportar a un archivo",
+  "@exportarAUnArchivo": {"description": "Copia de seguridad: guardar la copia completa donde el usuario elija."},
+  "copiaExportada": "Copia guardada. Ábrela desde \"Restaurar desde un archivo\" en otro teléfono o en la PC.",
+  "@copiaExportada": {"description": "Copia de seguridad: se exportó a un archivo."}
 }

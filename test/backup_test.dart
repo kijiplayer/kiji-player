@@ -151,10 +151,33 @@ void main() {
       await service(data).restore(evil, safetyFolder: folder);
       expect(File(p.join(root.path, 'malo.json')).existsSync(), isFalse);
       expect(File(p.join(root.path, 'fuera.json')).existsSync(), isFalse);
-      expect(File(p.join(data.path, 'covers', 'malo.json')).existsSync(), isTrue);
+      // Una ruta con ".." ni siquiera se guarda (solo los archivos directos de cada carpeta).
+      expect(File(p.join(data.path, 'covers', 'malo.json')).existsSync(), isFalse);
 
       final broken = File(p.join(root.path, 'roto.zip'))..writeAsStringSync('no es un zip');
       expect(() => service(data).preview(broken), throwsA(isA<BackupException>()));
+    });
+
+    test('la copia trae los fondos (el general y los de cada canción), las portadas elegidas y el teatro', () async {
+      _fillData(data);
+      File(p.join(data.path, 'backgrounds', 'fondo-1.png'))
+        ..parent.createSync(recursive: true)
+        ..writeAsBytesSync([1, 2, 3]);
+      File(p.join(data.path, 'backgrounds', 'canciones', 'cancion-x.png'))
+        ..parent.createSync(recursive: true)
+        ..writeAsBytesSync([4, 5]);
+      File(p.join(data.path, 'group_covers.json')).writeAsStringSync('{"album:x":"group-1.jpg"}');
+      File(p.join(data.path, 'theater.json')).writeAsStringSync('{"version":1}');
+      final copy = await service(data).create(folder);
+      // Se borra todo y se restaura.
+      Directory(p.join(data.path, 'backgrounds')).deleteSync(recursive: true);
+      File(p.join(data.path, 'group_covers.json')).deleteSync();
+      File(p.join(data.path, 'theater.json')).deleteSync();
+      await service(data).restore(copy, safetyFolder: folder);
+      expect(File(p.join(data.path, 'backgrounds', 'fondo-1.png')).readAsBytesSync(), [1, 2, 3]);
+      expect(File(p.join(data.path, 'backgrounds', 'canciones', 'cancion-x.png')).readAsBytesSync(), [4, 5]);
+      expect(File(p.join(data.path, 'group_covers.json')).existsSync(), isTrue);
+      expect(File(p.join(data.path, 'theater.json')).existsSync(), isTrue);
     });
 
     test('quedan las últimas 7 copias', () async {

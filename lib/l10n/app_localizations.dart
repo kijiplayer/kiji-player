@@ -7660,6 +7660,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Elige la canción'**
   String get eligeLaCancion;
+
+  /// Copia de seguridad: guardar la copia completa donde el usuario elija.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar a un archivo'**
+  String get exportarAUnArchivo;
+
+  /// Copia de seguridad: se exportó a un archivo.
+  ///
+  /// In es, this message translates to:
+  /// **'Copia guardada. Ábrela desde \"Restaurar desde un archivo\" en otro teléfono o en la PC.'**
+  String get copiaExportada;
 }
 
 class _AppLocalizationsDelegate

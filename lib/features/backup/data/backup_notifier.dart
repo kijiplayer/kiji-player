@@ -133,6 +133,17 @@ class BackupNotifier extends Notifier<BackupState> {
 
   Future<bool> backupNow() => _create('manual');
 
+  /// "Exportar a un archivo": la copia completa armada en una carpeta temporal, para guardarla
+  /// donde el usuario elija (otro teléfono, la PC, una nube). Devuelve (nombre, bytes).
+  Future<(String, List<int>)> exportBytes() async {
+    final temp = Directory(p.join((await getTemporaryDirectory()).path, 'kiji-exportar'));
+    if (await temp.exists()) await temp.delete(recursive: true);
+    final file = await _service.create(temp, reason: 'exportar', now: _clock());
+    final bytes = await file.readAsBytes();
+    await temp.delete(recursive: true);
+    return (p.basename(file.path), bytes);
+  }
+
   Future<bool> _create(String reason) async {
     final folder = state.folder ?? await _folder();
     state = state.copyWith(busy: true, clearError: true);

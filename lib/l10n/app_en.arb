@@ -1277,5 +1277,7 @@
   "importarEnlace": "Import link",
   "sinEncontrarElegirAMano": "{count, plural, =1{1 not found: choose it yourself} other{{count} not found: choose them yourself}}",
   "elegir": "Choose",
-  "eligeLaCancion": "Choose the song"
+  "eligeLaCancion": "Choose the song",
+  "exportarAUnArchivo": "Export to a file",
+  "copiaExportada": "Backup saved. Open it from \"Restore from a file\" on another phone or on your PC."
 }

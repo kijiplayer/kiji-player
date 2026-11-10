@@ -4738,4 +4738,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get eligeLaCancion => 'Elige la canción';
+
+  @override
+  String get exportarAUnArchivo => 'Exportar a un archivo';
+
+  @override
+  String get copiaExportada =>
+      'Copia guardada. Ábrela desde \"Restaurar desde un archivo\" en otro teléfono o en la PC.';
 }

@@ -4728,4 +4728,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eligeLaCancion => 'Choose the song';
+
+  @override
+  String get exportarAUnArchivo => 'Export to a file';
+
+  @override
+  String get copiaExportada =>
+      'Backup saved. Open it from \"Restore from a file\" on another phone or on your PC.';
 }
