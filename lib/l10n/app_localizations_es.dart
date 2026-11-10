@@ -4840,4 +4840,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get verTuTeatro => 'Tu Teatro 🎭';
+
+  @override
+  String perdonadaVuelveARecomendarse(String title) {
+    return '«$title» fue perdonada: vuelve a recomendarse.';
+  }
 }

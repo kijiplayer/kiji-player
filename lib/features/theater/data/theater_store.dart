@@ -21,8 +21,13 @@ class TheaterEntry {
   final int tomatoes;
   final int roses;
 
-  TheaterEntry copyWith({int? tomatoes, int? roses}) =>
-      TheaterEntry(id: id, title: title, artist: artist, tomatoes: tomatoes ?? this.tomatoes, roses: roses ?? this.roses);
+  TheaterEntry copyWith({int? tomatoes, int? roses}) => TheaterEntry(
+    id: id,
+    title: title,
+    artist: artist,
+    tomatoes: tomatoes ?? this.tomatoes,
+    roses: roses ?? this.roses,
+  );
 
   Map<String, dynamic> toJson() => {'title': title, 'artist': artist, 'tomatoes': tomatoes, 'roses': roses};
 
@@ -61,10 +66,14 @@ class TheaterState {
   bool get isEmpty => totalTomatoes == 0 && totalRoses == 0;
 
   List<TheaterEntry> topTomatoes([int count = 5]) =>
-      (songs.values.where((e) => e.tomatoes > 0).toList()..sort((a, b) => b.tomatoes.compareTo(a.tomatoes))).take(count).toList();
+      (songs.values.where((e) => e.tomatoes > 0).toList()..sort((a, b) => b.tomatoes.compareTo(a.tomatoes)))
+          .take(count)
+          .toList();
 
   List<TheaterEntry> topRoses([int count = 5]) =>
-      (songs.values.where((e) => e.roses > 0).toList()..sort((a, b) => b.roses.compareTo(a.roses))).take(count).toList();
+      (songs.values.where((e) => e.roses > 0).toList()..sort((a, b) => b.roses.compareTo(a.roses)))
+          .take(count)
+          .toList();
 
   /// El artista con más tomates (y cuántos), o null.
   (String, int)? get mostBooedArtist {
@@ -89,7 +98,8 @@ class TheaterState {
 /// Qué pasó con un tomate: si ya van [TheaterState.tomatoLimit], la canción se saltea.
 enum TomatoResult { counted, booedOff }
 
-String _day(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+String _day(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
 /// "Reacciones de teatro": tomates y rosas por canción. Todo queda solo en el dispositivo
 /// (`theater.json`, que entra en la copia de seguridad).
@@ -102,7 +112,8 @@ class TheaterNotifier extends Notifier<TheaterState> {
   final DateTime Function() _clock;
   JsonFile? _file;
 
-  Future<JsonFile> _json() async => _file ??= JsonFile(p.join((await _directory()).path, 'theater.json'), logTag: 'TEATRO');
+  Future<JsonFile> _json() async =>
+      _file ??= JsonFile(p.join((await _directory()).path, 'theater.json'), logTag: 'TEATRO');
 
   /// Se completa cuando se leyó lo guardado.
   final _loaded = Completer<void>();

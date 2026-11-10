@@ -7816,6 +7816,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Tu Teatro 🎭'**
   String get verTuTeatro;
+
+  /// Tu Teatro: se perdonó una canción abucheada.
+  ///
+  /// In es, this message translates to:
+  /// **'«{title}» fue perdonada: vuelve a recomendarse.'**
+  String perdonadaVuelveARecomendarse(String title);
 }
 
 class _AppLocalizationsDelegate

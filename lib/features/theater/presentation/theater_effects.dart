@@ -138,9 +138,12 @@ class _TheaterShakeState extends ConsumerState<TheaterShake> {
     super.initState();
     if (!_supported) return;
     try {
-      _sub = userAccelerometerEventStream(samplingPeriod: SensorInterval.gameInterval).listen(_onEvent, onError: (Object e) {
-        debugPrint('=== TEATRO: sin sensor de movimiento: ${e.runtimeType} ===');
-      });
+      _sub = userAccelerometerEventStream(samplingPeriod: SensorInterval.gameInterval).listen(
+        _onEvent,
+        onError: (Object e) {
+          debugPrint('=== TEATRO: sin sensor de movimiento: ${e.runtimeType} ===');
+        },
+      );
     } catch (error) {
       debugPrint('=== TEATRO: sin sensor de movimiento: ${error.runtimeType} ===');
     }
@@ -285,7 +288,13 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
 }
 
 class _TheaterPainter extends CustomPainter {
-  _TheaterPainter({required this.flyers, required this.stains, required this.now, required this.tomato, required this.rose});
+  _TheaterPainter({
+    required this.flyers,
+    required this.stains,
+    required this.now,
+    required this.tomato,
+    required this.rose,
+  });
 
   final List<_Flyer> flyers;
   final List<_Stain> stains;
@@ -336,11 +345,19 @@ class _TheaterPainter extends CustomPainter {
         final pos = Offset.lerp(at(f.start), at(f.target), k)! - Offset(0, sin(k * pi) * unit * 0.25);
         final r = unit * (0.09 - 0.035 * k);
         canvas.drawCircle(pos, r, Paint()..color = tomato);
-        canvas.drawCircle(pos - Offset(r * 0.35, r * 0.35), r * 0.3, Paint()..color = Colors.white.withValues(alpha: 0.25));
+        canvas.drawCircle(
+          pos - Offset(r * 0.35, r * 0.35),
+          r * 0.3,
+          Paint()..color = Colors.white.withValues(alpha: 0.25),
+        );
         canvas.drawCircle(pos - Offset(0, r * 0.95), r * 0.28, Paint()..color = const Color(0xFF2E9B3A));
       } else {
         // Rosas que suben girando y se desvanecen al final.
-        final pos = Offset.lerp(at(f.start), at(Offset(f.target.dx, -0.1)), Curves.easeOut.transform(t.clamp(0.0, 1.0) * 0.7 + 0.0))!;
+        final pos = Offset.lerp(
+          at(f.start),
+          at(Offset(f.target.dx, -0.1)),
+          Curves.easeOut.transform(t.clamp(0.0, 1.0) * 0.7 + 0.0),
+        )!;
         final alpha = (1 - (t - 0.6) / 0.4).clamp(0.0, 1.0);
         canvas.save();
         canvas.translate(pos.dx, pos.dy);
@@ -351,7 +368,11 @@ class _TheaterPainter extends CustomPainter {
           final a = i * 2 * pi / 5;
           canvas.drawCircle(Offset(cos(a), sin(a)) * r * 0.6, r * 0.6, petal);
         }
-        canvas.drawCircle(Offset.zero, r * 0.45, Paint()..color = Color.lerp(rose, Colors.black, 0.25)!.withValues(alpha: alpha));
+        canvas.drawCircle(
+          Offset.zero,
+          r * 0.45,
+          Paint()..color = Color.lerp(rose, Colors.black, 0.25)!.withValues(alpha: alpha),
+        );
         canvas.restore();
       }
     }

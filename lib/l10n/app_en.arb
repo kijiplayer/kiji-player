@@ -1303,5 +1303,6 @@
   "peorDiaDeTomates": "{count, plural, =1{the worst tomato day (1)} other{the worst tomato day ({count})}}",
   "reaccionesDeTeatro": "Theater reactions",
   "reaccionesDeTeatroNota": "🍅 and 🌹 in the player (and shake your phone for a tomato). With 3 tomatoes a song is skipped and never recommended again; a rose counts as a like. Everything stays on your device.",
-  "verTuTeatro": "Your Theater 🎭"
+  "verTuTeatro": "Your Theater 🎭",
+  "perdonadaVuelveARecomendarse": "“{title}” was forgiven: it can be recommended again."
 }

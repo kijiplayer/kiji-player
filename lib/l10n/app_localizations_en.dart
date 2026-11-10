@@ -4830,4 +4830,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verTuTeatro => 'Your Theater 🎭';
+
+  @override
+  String perdonadaVuelveARecomendarse(String title) {
+    return '“$title” was forgiven: it can be recommended again.';
+  }
 }

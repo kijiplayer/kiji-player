@@ -51,7 +51,18 @@ class _TheaterScreenState extends ConsumerState<TheaterScreen> {
   Widget build(BuildContext context) {
     final theater = ref.watch(theaterProvider);
     final cards = [
-      _RankCard(title: tx.topTomateadas, emoji: '🍅', entries: theater.topTomatoes(), count: (e) => e.tomatoes),
+      _RankCard(
+        title: tx.topTomateadas,
+        emoji: '🍅',
+        entries: theater.topTomatoes(),
+        count: (e) => e.tomatoes,
+        // Mantener presionada una abucheada: "perdonarla" (vuelve a recomendarse).
+        onLongPress: (e) {
+          if (e.tomatoes < TheaterState.tomatoLimit) return;
+          ref.read(theaterProvider.notifier).forgive(e.id);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.perdonadaVuelveARecomendarse(e.title))));
+        },
+      ),
       _RankCard(title: tx.topAplaudidas, emoji: '🌹', entries: theater.topRoses(), count: (e) => e.roses),
       _FactsCard(theater: theater),
     ];
@@ -73,7 +84,11 @@ class _TheaterScreenState extends ConsumerState<TheaterScreen> {
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
-                child: Text(tx.tuTeatroVacio, textAlign: TextAlign.center, style: TextStyle(color: KijiColors.muted)),
+                child: Text(
+                  tx.tuTeatroVacio,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: KijiColors.muted),
+                ),
               ),
             )
           : Column(
@@ -125,12 +140,22 @@ class _Card extends StatelessWidget {
     radius: KijiRadii.card,
     padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
     // Se desplaza si no entra (pantalla chica, letra grande).
-    child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children)),
+    child: SingleChildScrollView(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+    ),
   );
 }
 
 class _RankCard extends StatelessWidget {
-  const _RankCard({required this.title, required this.emoji, required this.entries, required this.count});
+  const _RankCard({
+    required this.title,
+    required this.emoji,
+    required this.entries,
+    required this.count,
+    this.onLongPress,
+  });
+
+  final void Function(TheaterEntry entry)? onLongPress;
 
   final String title;
   final String emoji;
@@ -146,22 +171,33 @@ class _RankCard extends StatelessWidget {
       const SizedBox(height: 18),
       if (entries.isEmpty) Text(tx.nadaPorAhora, style: TextStyle(color: KijiColors.muted)),
       for (final (i, e) in entries.indexed)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: Row(
-            children: [
-              SizedBox(width: 30, child: Text('${i + 1}', style: KijiText.mono(size: 18, color: KijiColors.cyan))),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 16)),
-                    Text(e.artist, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: KijiColors.muted, fontSize: 13)),
-                  ],
+        GestureDetector(
+          onLongPress: onLongPress == null ? null : () => onLongPress!(e),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 30,
+                  child: Text('${i + 1}', style: KijiText.mono(size: 18, color: KijiColors.cyan)),
                 ),
-              ),
-              Text('$emoji ${count(e)}', style: KijiText.mono(size: 14)),
-            ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: KijiText.title(size: 16)),
+                      Text(
+                        e.artist,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: KijiColors.muted, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                Text('$emoji ${count(e)}', style: KijiText.mono(size: 14)),
+              ],
+            ),
           ),
         ),
       const SizedBox(height: 12),

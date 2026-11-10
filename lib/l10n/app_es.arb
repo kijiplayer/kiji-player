@@ -2853,5 +2853,7 @@
   "reaccionesDeTeatroNota": "🍅 y 🌹 en el reproductor (y sacudir el teléfono para un tomate). Con 3 tomates una canción se va y no vuelve a recomendarse; una rosa cuenta como \"me gusta\". Todo queda solo en tu dispositivo.",
   "@reaccionesDeTeatroNota": {"description": "Configuración: qué hacen las reacciones de teatro."},
   "verTuTeatro": "Tu Teatro 🎭",
-  "@verTuTeatro": {"description": "Inicio: entrada a Tu Teatro."}
+  "@verTuTeatro": {"description": "Inicio: entrada a Tu Teatro."},
+  "perdonadaVuelveARecomendarse": "«{title}» fue perdonada: vuelve a recomendarse.",
+  "@perdonadaVuelveARecomendarse": {"description": "Tu Teatro: se perdonó una canción abucheada.", "placeholders": {"title": {"type": "String"}}}
 }
