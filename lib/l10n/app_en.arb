@@ -1268,5 +1268,14 @@
   "bibliotecaEscaneada": "{count, plural, =0{No music found} =1{Done: 1 song} other{Done: {count} songs}}",
   "elegirPortada": "Choose cover",
   "elegirOtraPortada": "Choose another cover",
-  "quitarLaPortadaElegida": "Remove the chosen cover"
+  "quitarLaPortadaElegida": "Remove the chosen cover",
+  "noSePudoLeerEseEnlace": "That playlist couldn't be read. Check that the link is public and that you're online.",
+  "eseEnlaceNoEsDeUnaPlaylist": "That link isn't a playlist Kiji can read (YouTube Music, Spotify, Apple Music or SoundCloud).",
+  "importarDesdeUnEnlace": "IMPORT FROM A LINK",
+  "importarDesdeUnEnlaceNota": "Paste the public link to a YouTube Music, Spotify, Apple Music or SoundCloud playlist. Kiji only opens that link (no sign-in) and looks for each song on YouTube Music.",
+  "pegaElEnlaceDeLaPlaylist": "Paste the playlist link",
+  "importarEnlace": "Import link",
+  "sinEncontrarElegirAMano": "{count, plural, =1{1 not found: choose it yourself} other{{count} not found: choose them yourself}}",
+  "elegir": "Choose",
+  "eligeLaCancion": "Choose the song"
 }

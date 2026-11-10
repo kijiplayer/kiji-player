@@ -4700,4 +4700,42 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get quitarLaPortadaElegida => 'Quitar la portada elegida';
+
+  @override
+  String get noSePudoLeerEseEnlace =>
+      'No se pudo leer esa playlist. Revisa que el enlace sea público y que tengas conexión.';
+
+  @override
+  String get eseEnlaceNoEsDeUnaPlaylist =>
+      'Ese enlace no es de una playlist que Kiji sepa leer (YouTube Music, Spotify, Apple Music o SoundCloud).';
+
+  @override
+  String get importarDesdeUnEnlace => 'IMPORTAR DESDE UN ENLACE';
+
+  @override
+  String get importarDesdeUnEnlaceNota =>
+      'Pega el enlace público de una playlist de YouTube Music, Spotify, Apple Music o SoundCloud. Kiji solo abre ese enlace (sin iniciar sesión) y busca cada canción en YouTube Music.';
+
+  @override
+  String get pegaElEnlaceDeLaPlaylist => 'Pega el enlace de la playlist';
+
+  @override
+  String get importarEnlace => 'Importar enlace';
+
+  @override
+  String sinEncontrarElegirAMano(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sin encontrar: elígelas a mano',
+      one: '1 sin encontrar: elígela a mano',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get elegir => 'Elegir';
+
+  @override
+  String get eligeLaCancion => 'Elige la canción';
 }

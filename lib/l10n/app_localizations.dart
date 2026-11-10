@@ -7606,6 +7606,60 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Quitar la portada elegida'**
   String get quitarLaPortadaElegida;
+
+  /// Importar por enlace: la página no se pudo leer (sin detalles técnicos).
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo leer esa playlist. Revisa que el enlace sea público y que tengas conexión.'**
+  String get noSePudoLeerEseEnlace;
+
+  /// Importar por enlace: enlace no reconocido.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese enlace no es de una playlist que Kiji sepa leer (YouTube Music, Spotify, Apple Music o SoundCloud).'**
+  String get eseEnlaceNoEsDeUnaPlaylist;
+
+  /// Importar: título de la sección del enlace.
+  ///
+  /// In es, this message translates to:
+  /// **'IMPORTAR DESDE UN ENLACE'**
+  String get importarDesdeUnEnlace;
+
+  /// Importar: qué hace el enlace (privacidad).
+  ///
+  /// In es, this message translates to:
+  /// **'Pega el enlace público de una playlist de YouTube Music, Spotify, Apple Music o SoundCloud. Kiji solo abre ese enlace (sin iniciar sesión) y busca cada canción en YouTube Music.'**
+  String get importarDesdeUnEnlaceNota;
+
+  /// Importar: pista del campo del enlace.
+  ///
+  /// In es, this message translates to:
+  /// **'Pega el enlace de la playlist'**
+  String get pegaElEnlaceDeLaPlaylist;
+
+  /// Importar: botón del enlace.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar enlace'**
+  String get importarEnlace;
+
+  /// Importar: canciones no encontradas para elegir a mano.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 sin encontrar: elígela a mano} other{{count} sin encontrar: elígelas a mano}}'**
+  String sinEncontrarElegirAMano(int count);
+
+  /// Botón: elegir algo de una lista.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir'**
+  String get elegir;
+
+  /// Importar: hoja para elegir una canción a mano.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la canción'**
+  String get eligeLaCancion;
 }
 
 class _AppLocalizationsDelegate
