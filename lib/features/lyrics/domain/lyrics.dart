@@ -98,6 +98,9 @@ class Lyrics {
   final LyricsSource? source;
 
   bool get isSynced => synced.isNotEmpty;
+
+  /// Trae tiempos por palabra (karaoke palabra por palabra).
+  bool get hasWordTiming => synced.any((line) => line.hasWords);
   bool get isEmpty => synced.isEmpty && (plain == null || plain!.trim().isEmpty) && !instrumental;
 
   Map<String, dynamic> toJson() => {

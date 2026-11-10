@@ -60,6 +60,25 @@ class LyricsRepository {
 
   final List<LyricsFetcher> _fetchers;
 
+  /// Fuentes que suelen traer tiempos por palabra: se consultan en paralelo con las demás y, si
+  /// responden a tiempo ([wordWait]) con palabras, ganan sobre una letra por línea.
+  static const wordSources = {
+    LyricsSource.youlyplus,
+    LyricsSource.paxsenix,
+    LyricsSource.unison,
+    LyricsSource.betterlyrics,
+  };
+  static const wordWait = Duration(seconds: 2);
+
+  /// Una fuente que no respondió (403, caída, sin red) se saltea este tiempo, sin avisos.
+  static const failureCooldown = Duration(minutes: 30);
+  final _cooldownUntil = <LyricsSource, DateTime>{};
+
+  bool _coolingDown(LyricsSource source) {
+    final until = _cooldownUntil[source];
+    return until != null && _clock().isBefore(until);
+  }
+
   /// La letra guardada con la canción descargada (sin internet), si la hay.
   final Future<Lyrics?> Function(LyricsRequest request)? offline;
   final Future<Directory> Function() _baseDirectory;
@@ -160,16 +179,60 @@ class LyricsRepository {
     // sirve, se muestra esta sin sincronizar (nunca con un aviso técnico).
     Lyrics? mismatched;
     final duration = Duration(milliseconds: request.durationMs);
-    for (final fetcher in _ordered(order)) {
-      if (disabled.contains(fetcher.source)) continue;
+    final ordered = [
+      for (final f in _ordered(order))
+        if (!disabled.contains(f.source) && !_coolingDown(f.source)) f,
+    ];
+
+    // Cada fuente se consulta una sola vez (la carrera de palabras y la búsqueda en orden comparten
+    // la respuesta). Una que no responde queda en pausa un rato.
+    final asked = <LyricsSource, Future<Lyrics?>>{};
+    Future<Lyrics?> ask(LyricsFetcher f) => asked.putIfAbsent(f.source, () async {
       try {
-        final lyrics = await fetcher.fetch(request);
+        return await f.fetch(request);
+      } on LyricsUnavailableException {
+        _cooldownUntil[f.source] = _clock().add(failureCooldown);
+        debugPrint('=== LETRAS: ${f.source.label} en pausa ${failureCooldown.inMinutes} min ===');
+        rethrow;
+      }
+    });
+
+    // Karaoke por palabra: las fuentes con palabras arrancan ya, en paralelo; la primera que traiga
+    // palabras (y encaje con la canción) en [wordWait] gana sobre una letra por línea.
+    final withWords = Completer<Lyrics?>();
+    final racers = [for (final f in ordered) if (wordSources.contains(f.source)) f];
+    var pending = racers.length;
+    if (pending == 0) withWords.complete(null);
+    for (final f in racers) {
+      unawaited(
+        ask(f)
+            .then((lyrics) {
+              if (lyrics != null && lyrics.hasWordTiming && syncMatches(lyrics, duration) && !withWords.isCompleted) {
+                debugPrint('=== LETRAS: con palabras en ${f.source.label} ===');
+                withWords.complete(lyrics);
+              }
+            })
+            .catchError((Object _) {})
+            .whenComplete(() {
+              if (--pending == 0 && !withWords.isCompleted) withWords.complete(null);
+            }),
+      );
+    }
+    final wordResult = withWords.future.timeout(wordWait, onTimeout: () => null);
+
+    for (final fetcher in ordered) {
+      try {
+        final lyrics = await ask(fetcher);
         answered++;
         if (lyrics != null && !lyrics.isEmpty) {
           if (!syncMatches(lyrics, duration)) {
             debugPrint('=== LETRAS: la de ${fetcher.source.label} no encaja con la canción; se prueba otra ===');
             mismatched ??= lyrics.unsynced;
             continue;
+          }
+          if (!lyrics.hasWordTiming) {
+            final words = await wordResult;
+            if (words != null) return words;
           }
           debugPrint('=== LETRAS: encontrada en ${fetcher.source.label} ===');
           return lyrics;
