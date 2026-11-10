@@ -39,7 +39,7 @@ PlaylistLink? parsePlaylistLink(String text) {
     return list == null || list.isEmpty ? null : PlaylistLink(LinkSource.youtube, uri.toString(), id: list);
   }
   if (host == 'open.spotify.com') {
-    final i = uri.pathSegments.indexOf('playlist');
+    final i = uri.pathSegments.indexOf('playlist'); // l10n-ignore
     if (i < 0 || i + 1 >= uri.pathSegments.length) return null;
     return PlaylistLink(LinkSource.spotify, uri.toString(), id: uri.pathSegments[i + 1]);
   }
@@ -211,13 +211,13 @@ int? isoDurationMs(String? text) {
 /// claves, así que quedan afuera.
 @visibleForTesting
 LinkPlaylist parseSoundCloudPage(String html) {
-  final start = html.indexOf('window.__sc_hydration = ');
+  final start = html.indexOf('window.__sc_hydration = '); // l10n-ignore
   if (start < 0) return (name: null, songs: const []);
-  final from = start + 'window.__sc_hydration = '.length;
+  final from = start + 'window.__sc_hydration = '.length; // l10n-ignore
   final end = html.indexOf(';</script>', from);
   if (end < 0) return (name: null, songs: const []);
   final data = jsonDecode(html.substring(from, end));
-  final playlist = _findMaps(data, (m) => m['hydratable'] == 'playlist').firstOrNull?['data'];
+  final playlist = _findMaps(data, (m) => m['hydratable'] == 'playlist').firstOrNull?['data']; // l10n-ignore
   if (playlist is! Map) return (name: null, songs: const []);
   return (
     name: _str(playlist['title']),
