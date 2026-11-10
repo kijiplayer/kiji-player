@@ -179,10 +179,16 @@ class LyricsRepository {
     // sirve, se muestra esta sin sincronizar (nunca con un aviso técnico).
     Lyrics? mismatched;
     final duration = Duration(milliseconds: request.durationMs);
-    final ordered = [
-      for (final f in _ordered(order))
-        if (!disabled.contains(f.source) && !_coolingDown(f.source)) f,
-    ];
+    final ordered = <LyricsFetcher>[];
+    for (final f in _ordered(order)) {
+      if (disabled.contains(f.source)) continue;
+      // En pausa: cuenta como "no respondió" (así nunca se guarda "no hay letra" por eso).
+      if (_coolingDown(f.source)) {
+        failures.add(tx.noRespondio(f.source.label));
+        continue;
+      }
+      ordered.add(f);
+    }
 
     // Cada fuente se consulta una sola vez (la carrera de palabras y la búsqueda en orden comparten
     // la respuesta). Una que no responde queda en pausa un rato.
@@ -190,9 +196,11 @@ class LyricsRepository {
     Future<Lyrics?> ask(LyricsFetcher f) => asked.putIfAbsent(f.source, () async {
       try {
         return await f.fetch(request);
-      } on LyricsUnavailableException {
-        _cooldownUntil[f.source] = _clock().add(failureCooldown);
-        debugPrint('=== LETRAS: ${f.source.label} en pausa ${failureCooldown.inMinutes} min ===');
+      } on LyricsUnavailableException catch (error) {
+        if (error.refused) {
+          _cooldownUntil[f.source] = _clock().add(failureCooldown);
+          debugPrint('=== LETRAS: ${f.source.label} en pausa ${failureCooldown.inMinutes} min ===');
+        }
         rethrow;
       }
     });

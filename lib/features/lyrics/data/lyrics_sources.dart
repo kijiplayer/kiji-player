@@ -53,7 +53,7 @@ Future<Lyrics?> _guard(LyricsSource source, Future<Lyrics?> Function() run) asyn
     final status = error.response?.statusCode;
     if (status == 404) return null;
     debugPrint('=== LETRAS: ${source.label} no respondió: ${error.type} $status ===');
-    throw LyricsUnavailableException(tx.noRespondio(source.label));
+    throw LyricsUnavailableException(tx.noRespondio(source.label), refused: status != null);
   } on LyricsUnavailableException {
     rethrow;
   } catch (error) {

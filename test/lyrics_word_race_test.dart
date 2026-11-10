@@ -38,7 +38,7 @@ class _Fake implements LyricsFetcher {
   Future<Lyrics?> fetch(LyricsRequest request) async {
     calls++;
     await Future<void>.delayed(delay);
-    if (fails) throw const LyricsUnavailableException('403');
+    if (fails) throw const LyricsUnavailableException('403', refused: true);
     return lyrics;
   }
 }
