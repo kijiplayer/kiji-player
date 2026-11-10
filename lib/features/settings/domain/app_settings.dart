@@ -25,6 +25,7 @@ class AppSettings {
     this.libraryFilter = 'all',
     this.libraryView = 'list',
     this.libraryTab = 'playlists', // l10n-ignore
+    this.ytSync = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -167,6 +168,10 @@ class AppSettings {
 
   /// La última pestaña de la Biblioteca (se abre ahí).
   final String libraryTab;
+
+  /// Sincronizar con YouTube (solo con sesión iniciada): leer "Me gusta" y las playlists de la
+  /// cuenta. Apagado de fábrica; solo lectura.
+  final bool ytSync;
   static const libraryTabs = ['songs', 'artists', 'albums', 'downloads', 'playlists', 'folders']; // l10n-ignore
 
   /// Reproductor: segundos de la transición suave entre canciones.
@@ -299,6 +304,7 @@ class AppSettings {
     String? libraryFilter,
     String? libraryView,
     String? libraryTab,
+    bool? ytSync,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -357,6 +363,7 @@ class AppSettings {
         libraryFilter: libraryFilter ?? this.libraryFilter,
         libraryView: libraryView ?? this.libraryView,
         libraryTab: libraryTab ?? this.libraryTab,
+        ytSync: ytSync ?? this.ytSync,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -415,6 +422,7 @@ class AppSettings {
         'libraryFilter': libraryFilter,
         'libraryView': libraryView,
         'libraryTab': libraryTab,
+        'ytSync': ytSync,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -479,6 +487,7 @@ class AppSettings {
       libraryFilter: libraryFilters.contains(json['libraryFilter']) ? json['libraryFilter'] as String : d.libraryFilter,
       libraryView: libraryViews.contains(json['libraryView']) ? json['libraryView'] as String : d.libraryView,
       libraryTab: libraryTabs.contains(json['libraryTab']) ? json['libraryTab'] as String : d.libraryTab,
+      ytSync: read('ytSync', d.ytSync),
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

@@ -4735,4 +4735,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get copiaExportada =>
       'Backup saved. Open it from \"Restore from a file\" on another phone or on your PC.';
+
+  @override
+  String get sincronizarConYoutube => 'Sync with YouTube (read-only)';
+
+  @override
+  String get sincronizarConYoutubeNota =>
+      'Shows your YouTube Music likes and playlists in Kiji. Read-only: it never changes anything in your account. What it reads stays only on this device; turning it off deletes it.';
+
+  @override
+  String get todaviaNoSeLeyoLaCuenta => 'The account hasn\'t been read yet';
+
+  @override
+  String deTuCuentaMeGustaYPlaylists(int liked, int playlists) {
+    return 'From your account: $liked likes and $playlists playlists';
+  }
+
+  @override
+  String get leerAhora => 'Read now';
+
+  @override
+  String get deTuCuentaDeYoutube => 'FROM YOUR YOUTUBE ACCOUNT';
+
+  @override
+  String get meGustaDeYoutube => 'YouTube likes';
 }

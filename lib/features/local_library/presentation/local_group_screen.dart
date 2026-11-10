@@ -18,7 +18,7 @@ import '../domain/local_groups.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
 /// Qué es un grupo de la música del equipo (cambia la cabecera y si se ven los números de pista).
-enum LocalGroupKind { artist, album, folder }
+enum LocalGroupKind { artist, album, folder, playlist }
 
 /// Un artista, un álbum (con sus pistas en orden) o una carpeta: Reproducir, Aleatorio y sus
 /// canciones, con la selección múltiple de siempre.
@@ -125,7 +125,7 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
         title: Text(group.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
           // Álbum o carpeta: elegir su portada con el selector de fotos del sistema (sin permisos).
-          if (widget.kind != LocalGroupKind.artist)
+          if (widget.kind == LocalGroupKind.album || widget.kind == LocalGroupKind.folder)
             IconButton(
               key: const Key('local-group-cover'),
               tooltip: tx.elegirPortada,

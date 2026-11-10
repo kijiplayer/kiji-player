@@ -217,6 +217,26 @@ class YtMusicClient {
     return response.data;
   }
 
+  /// Una página de la biblioteca de la cuenta (solo lectura: "Me gusta", playlists). Solo con la
+  /// sesión que el usuario conectó; la sesión viaja únicamente a YouTube. Si YouTube la rechaza
+  /// (401), tira el error de siempre y quien llama sigue como invitado.
+  Future<Map<String, dynamic>?> browseWithAccount(String browseId, YtSession session) async {
+    final context = Map<String, dynamic>.from(_context['context'] as Map);
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/browse',
+      queryParameters: {'key': _apiKey, 'prettyPrint': false},
+      data: {
+        'context': {
+          ...context,
+          if (session.dataSyncId != null) 'user': {'onBehalfOfUser': session.dataSyncId},
+        },
+        'browseId': browseId,
+      },
+      options: Options(headers: session.authHeaders()),
+    );
+    return response.data;
+  }
+
   /// Página de un artista (anónimo): canciones más escuchadas y álbumes.
   Future<ArtistPage?> artist(String browseId) async {
     final data = await _browse(browseId);

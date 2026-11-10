@@ -21,6 +21,10 @@ import '../../moments/data/moments_store.dart';
 import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
+import '../../account/data/yt_sync.dart';
+import '../../local_library/domain/local_groups.dart' show LocalGroup;
+import '../../local_library/presentation/local_group_screen.dart';
+import '../../settings/data/settings_store.dart';
 import '../../settings/domain/setting_search.dart';
 import '../domain/smart_lists.dart';
 import '../playlists_provider.dart';
@@ -250,6 +254,40 @@ class PlaylistsView extends ConsumerWidget {
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => MomentsScreen.open(context),
         ),
+        // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
+        ...() {
+          final sync = ref.watch(ytSyncProvider);
+          if (sync.isEmpty || !ref.watch(settingsProvider.select((s) => s.ytSync))) return const <Widget>[];
+          LocalGroup group(String key, String name, List<Track> tracks) =>
+              LocalGroup(key: key, name: name, tracks: tracks);
+          return <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+              child: Text(tx.deTuCuentaDeYoutube, style: KijiText.mono(size: 11)),
+            ),
+            if (sync.liked.isNotEmpty)
+              ListTile(
+                key: const Key('yt-sync-liked'),
+                leading: Icon(Icons.thumb_up_alt_outlined, color: KijiColors.cyan),
+                title: Text(tx.meGustaDeYoutube),
+                subtitle: Text(_count(sync.liked.length), style: TextStyle(color: KijiColors.muted)),
+                onTap: () => LocalGroupScreen.open(
+                  context,
+                  group('yt:liked', tx.meGustaDeYoutube, sync.liked),
+                  LocalGroupKind.playlist,
+                ),
+              ),
+            for (final pl in sync.playlists)
+              ListTile(
+                leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                title: Text(pl.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(_count(pl.tracks.length), style: TextStyle(color: KijiColors.muted)),
+                onTap: pl.tracks.isEmpty
+                    ? null
+                    : () => LocalGroupScreen.open(context, group('yt:${pl.id}', pl.name, pl.tracks), LocalGroupKind.playlist),
+              ),
+          ];
+        }(),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
           child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),

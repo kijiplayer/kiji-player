@@ -7672,6 +7672,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Copia guardada. Ábrela desde \"Restaurar desde un archivo\" en otro teléfono o en la PC.'**
   String get copiaExportada;
+
+  /// Cuenta: interruptor de la sincronización.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar con YouTube (solo lectura)'**
+  String get sincronizarConYoutube;
+
+  /// Cuenta: qué hace la sincronización (privacidad).
+  ///
+  /// In es, this message translates to:
+  /// **'Muestra en Kiji tus \"Me gusta\" y tus playlists de YouTube Music. Solo lee: nunca cambia nada en tu cuenta. Lo leído queda solo en este dispositivo; al apagarlo se borra.'**
+  String get sincronizarConYoutubeNota;
+
+  /// Cuenta: sincronización sin leer.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no se leyó la cuenta'**
+  String get todaviaNoSeLeyoLaCuenta;
+
+  /// Cuenta: lo que se leyó.
+  ///
+  /// In es, this message translates to:
+  /// **'De tu cuenta: {liked} me gusta y {playlists} playlists'**
+  String deTuCuentaMeGustaYPlaylists(int liked, int playlists);
+
+  /// Cuenta: volver a leer la cuenta.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer ahora'**
+  String get leerAhora;
+
+  /// Biblioteca: playlists leídas de la cuenta (solo lectura).
+  ///
+  /// In es, this message translates to:
+  /// **'DE TU CUENTA DE YOUTUBE'**
+  String get deTuCuentaDeYoutube;
+
+  /// Biblioteca: los me gusta leídos de la cuenta.
+  ///
+  /// In es, this message translates to:
+  /// **'Me gusta de YouTube'**
+  String get meGustaDeYoutube;
 }
 
 class _AppLocalizationsDelegate

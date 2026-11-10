@@ -520,3 +520,31 @@ List<YtShelf> parseMoodCategory(Map<String, dynamic> json) {
   walk(json);
   return shelves;
 }
+
+/// Las canciones de una página (playlist, "Me gusta" de la cuenta).
+List<YtMusicSearchResult> parseSongRows(Map<String, dynamic> json) => _songRows(json);
+
+/// Playlists de la biblioteca de la cuenta (tarjetas con su `browseId` "VL…"): (id, nombre).
+List<({String id, String name})> parseLibraryPlaylists(Map<String, dynamic> json) {
+  final out = <({String id, String name})>[];
+  final seen = <String>{};
+  void walk(Object? n) {
+    if (n is Map) {
+      final card = n['musicTwoRowItemRenderer'];
+      if (card is Map) {
+        final browseId = jsonStringAt(card, const ['navigationEndpoint', 'browseEndpoint', 'browseId']);
+        final title = _runsText(card['title']);
+        // "VLLM" es "Me gusta" (va aparte); las demás, las playlists de la cuenta.
+        if (browseId != null && browseId.startsWith('VL') && browseId != 'VLLM' && title.isNotEmpty && seen.add(browseId)) {
+          out.add((id: browseId.substring(2), name: title));
+        }
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json);
+  return out;
+}

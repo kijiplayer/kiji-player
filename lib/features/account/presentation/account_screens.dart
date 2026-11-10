@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../settings/data/settings_store.dart';
+import '../data/yt_sync.dart';
 import '../data/account_store.dart';
 import '../domain/yt_session.dart';
 
@@ -102,6 +103,45 @@ class AccountScreen extends ConsumerWidget {
             value: !ref.watch(settingsProvider.select((s) => s.accountPromptsOff)),
             onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(accountPromptsOff: !v)),
           ),
+          // Sincronizar (solo lectura), solo con la sesión iniciada. Apagado de fábrica.
+          if (session != null) ...[
+            SwitchListTile(
+              key: const Key('account-yt-sync'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(tx.sincronizarConYoutube),
+              subtitle: Text(tx.sincronizarConYoutubeNota),
+              value: ref.watch(settingsProvider.select((s) => s.ytSync)),
+              onChanged: (v) async {
+                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytSync: v));
+                if (v) {
+                  await ref.read(ytSyncProvider.notifier).syncNow();
+                } else {
+                  await ref.read(ytSyncProvider.notifier).forget();
+                }
+              },
+            ),
+            if (ref.watch(settingsProvider.select((s) => s.ytSync)))
+              Builder(
+                builder: (context) {
+                  final sync = ref.watch(ytSyncProvider);
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.sync_rounded),
+                    title: Text(
+                      sync.syncedAt == null
+                          ? tx.todaviaNoSeLeyoLaCuenta
+                          : tx.deTuCuentaMeGustaYPlaylists(sync.liked.length, sync.playlists.length),
+                    ),
+                    trailing: sync.syncing
+                        ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : TextButton(
+                            onPressed: () => ref.read(ytSyncProvider.notifier).syncNow(),
+                            child: Text(tx.leerAhora),
+                          ),
+                  );
+                },
+              ),
+          ],
         ],
       ),
     );

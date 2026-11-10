@@ -2805,5 +2805,19 @@
   "exportarAUnArchivo": "Exportar a un archivo",
   "@exportarAUnArchivo": {"description": "Copia de seguridad: guardar la copia completa donde el usuario elija."},
   "copiaExportada": "Copia guardada. Ábrela desde \"Restaurar desde un archivo\" en otro teléfono o en la PC.",
-  "@copiaExportada": {"description": "Copia de seguridad: se exportó a un archivo."}
+  "@copiaExportada": {"description": "Copia de seguridad: se exportó a un archivo."},
+  "sincronizarConYoutube": "Sincronizar con YouTube (solo lectura)",
+  "@sincronizarConYoutube": {"description": "Cuenta: interruptor de la sincronización."},
+  "sincronizarConYoutubeNota": "Muestra en Kiji tus \"Me gusta\" y tus playlists de YouTube Music. Solo lee: nunca cambia nada en tu cuenta. Lo leído queda solo en este dispositivo; al apagarlo se borra.",
+  "@sincronizarConYoutubeNota": {"description": "Cuenta: qué hace la sincronización (privacidad)."},
+  "todaviaNoSeLeyoLaCuenta": "Todavía no se leyó la cuenta",
+  "@todaviaNoSeLeyoLaCuenta": {"description": "Cuenta: sincronización sin leer."},
+  "deTuCuentaMeGustaYPlaylists": "De tu cuenta: {liked} me gusta y {playlists} playlists",
+  "@deTuCuentaMeGustaYPlaylists": {"description": "Cuenta: lo que se leyó.", "placeholders": {"liked": {"type": "int"}, "playlists": {"type": "int"}}},
+  "leerAhora": "Leer ahora",
+  "@leerAhora": {"description": "Cuenta: volver a leer la cuenta."},
+  "deTuCuentaDeYoutube": "DE TU CUENTA DE YOUTUBE",
+  "@deTuCuentaDeYoutube": {"description": "Biblioteca: playlists leídas de la cuenta (solo lectura)."},
+  "meGustaDeYoutube": "Me gusta de YouTube",
+  "@meGustaDeYoutube": {"description": "Biblioteca: los me gusta leídos de la cuenta."}
 }

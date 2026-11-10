@@ -300,7 +300,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
         if (g.tracks.map((t) => t.album).whereType<String>().toSet().length case final n when n > 0) tx.nAlbumes(n),
       ].join(' · '),
       LocalGroupKind.album => [?g.subtitle, if (g.year case final y?) '$y'].join(' · '),
-      LocalGroupKind.folder => tx.nCanciones(g.tracks.length),
+      LocalGroupKind.folder || LocalGroupKind.playlist => tx.nCanciones(g.tracks.length),
     };
     if (grid) {
       return [

@@ -1279,5 +1279,12 @@
   "elegir": "Choose",
   "eligeLaCancion": "Choose the song",
   "exportarAUnArchivo": "Export to a file",
-  "copiaExportada": "Backup saved. Open it from \"Restore from a file\" on another phone or on your PC."
+  "copiaExportada": "Backup saved. Open it from \"Restore from a file\" on another phone or on your PC.",
+  "sincronizarConYoutube": "Sync with YouTube (read-only)",
+  "sincronizarConYoutubeNota": "Shows your YouTube Music likes and playlists in Kiji. Read-only: it never changes anything in your account. What it reads stays only on this device; turning it off deletes it.",
+  "todaviaNoSeLeyoLaCuenta": "The account hasn't been read yet",
+  "deTuCuentaMeGustaYPlaylists": "From your account: {liked} likes and {playlists} playlists",
+  "leerAhora": "Read now",
+  "deTuCuentaDeYoutube": "FROM YOUR YOUTUBE ACCOUNT",
+  "meGustaDeYoutube": "YouTube likes"
 }
