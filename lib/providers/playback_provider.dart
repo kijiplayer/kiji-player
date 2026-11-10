@@ -26,6 +26,7 @@ import '../features/extractor/data/ytdlp_engine.dart';
 import '../features/extractor/domain/extraction_failure.dart';
 import '../features/stream_cache/data/chunked_source.dart';
 import '../features/stream_cache/data/stream_cache.dart';
+import '../utils/app_visible.dart';
 import '../utils/duration_formatter.dart';
 import '../utils/startup_log.dart';
 import '../features/system_media/domain/system_media_controls.dart';
@@ -1045,8 +1046,31 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       shuffleEnabled: snapshot.shuffleEnabled,
     );
     debugPrint('=== MEMORIA: restaurada "${queue[index].title}", posición ${formatDuration(position)} ===');
-    await _loadTrack(queue[index], index, autoPlay: false, initialPosition: position);
+    // Arranque rápido: la canción y la posición se ven ya; el audio se prepara después, con Kiji ya
+    // a la vista y quieta (crear el reproductor y saltar a la posición tarda ~1,5 s). Si se toca
+    // play antes, play() la carga en ese momento.
+    final track = queue[index];
+    state = state.copyWith(
+      track: track,
+      currentIndex: index,
+      isInitialized: false,
+      position: position,
+      duration: Duration(milliseconds: track.durationMs),
+    );
+    unawaited(_preloadRestored(track, index));
   }
+
+  /// Prepara el audio de la canción restaurada (en pausa), si nadie la tocó mientras tanto.
+  Future<void> _preloadRestored(Track track, int index) async {
+    await whenAppVisible();
+    await Future<void>.delayed(restoredPreloadDelay);
+    if (state.track?.id != track.id || state.isInitialized || _player?.playing == true) return;
+    debugPrint('=== MEMORIA: se prepara el audio de la canción restaurada ===');
+    await _loadTrack(track, index, autoPlay: false, initialPosition: state.position);
+  }
+
+  /// Cuánto espera el audio de la cola restaurada después de que Kiji se ve.
+  static const restoredPreloadDelay = Duration(seconds: 2);
 
   Future<bool> _isAvailable(Track track) async {
     if (track.source != TrackSource.local) return true;
