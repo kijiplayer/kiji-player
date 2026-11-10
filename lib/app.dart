@@ -108,6 +108,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     ErrorReporter.instance.pending.removeListener(_offerReport);
+    _veil.dispose();
     super.dispose();
   }
 
@@ -233,6 +234,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
         calm == KijiEffects.calm) {
       return;
     }
+    final styleChanged = style != KijiLook.style || palette.isLight != KijiColors.palette.isLight;
     KijiLook.style = style;
     KijiColors.palette = palette;
     KijiText.useSystemFont = systemFont;
@@ -242,8 +244,18 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
     if (!_appearanceReady) return;
     debugPrint('=== APARIENCIA: estilo ${style.name}, tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
-    WidgetsBinding.instance.addPostFrameCallback((_) => _rebuildAll());
+    // Otro estilo: redibujar todo tarda (~0,7 s en el teléfono). Un velo del fondo nuevo tapa ese
+    // cuadro y se desvanece después: se ve un fundido en vez de una pantalla trabada a medias. Con
+    // "reducir animaciones", sin velo.
+    if (styleChanged && !calm) _veil.value = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _rebuildAll();
+      if (_veil.value) WidgetsBinding.instance.addPostFrameCallback((_) => _veil.value = false);
+    });
   }
+
+  /// El velo del cambio de estilo (ver [_applyAppearance]).
+  final _veil = ValueNotifier<bool>(false);
 
   bool _appearanceReady = false;
 
@@ -290,8 +302,25 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: kijiUse24Hour),
           child: BackdropGroup(
-            child: PlaybackShortcuts(
-              child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+            child: Stack(
+              children: [
+                PlaybackShortcuts(
+                  child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+                ),
+                // El velo del cambio de estilo: aparece de golpe y se va en 250 ms.
+                ValueListenableBuilder<bool>(
+                  valueListenable: _veil,
+                  builder: (context, on, _) => IgnorePointer(
+                    child: AnimatedOpacity(
+                      key: const Key('style-veil'),
+                      opacity: on ? 1 : 0,
+                      duration: on ? Duration.zero : KijiMotion.normal,
+                      curve: Curves.easeOut,
+                      child: ColoredBox(color: KijiColors.background, child: const SizedBox.expand()),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
