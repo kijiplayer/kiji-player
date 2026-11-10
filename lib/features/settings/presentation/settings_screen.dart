@@ -302,6 +302,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
+        title: tx.reaccionesDeTeatro,
+        subtitle: tx.reaccionesDeTeatroNota,
+        keywords: const ['tomate', 'tomato', 'rosa', 'rose', 'teatro', 'theater', 'abucheo', 'aplausos', 'sacudir'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('setting-theater'),
+          title: Text(tx.reaccionesDeTeatro),
+          subtitle: Text(tx.reaccionesDeTeatroNota),
+          value: ref.watch(settingsProvider.select((s) => s.theaterReactions)),
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(theaterReactions: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
         title: tx.sonido,
         subtitle: tx.sonidoNota,
         // l10n-ignore

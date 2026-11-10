@@ -8,6 +8,7 @@ import '../../../models/track.dart';
 import '../../downloads/data/auto_downloads.dart' show connectivityChangesProvider;
 import '../../favorites/favorites.dart';
 import '../../history/listening_history.dart';
+import '../../theater/data/theater_store.dart';
 import '../../yt_music/data/ytm_browse_parser.dart';
 import '../../yt_music/data/ytm_client.dart';
 import '../../yt_music/domain/yt_track_mapper.dart';
@@ -48,6 +49,8 @@ final homeOnlineCheckProvider = Provider<Future<bool> Function()>((ref) => () as
 /// descargadas, playlists), no pide nada a YouTube y, al volver la conexión, se completa solo.
 final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
   ref.watch(_seedKeyProvider);
+  // Una canción abucheada (3 tomates) sale de las recomendaciones al instante.
+  ref.watch(theaterProvider.select((t) => (t.booedOff.toList()..sort()).join('|')));
   final seeds = ref.read(homeSeedsProvider);
   if (seeds.all.isEmpty) return const HomeFeed();
   final client = ref.read(ytMusicClientProvider);
@@ -76,6 +79,7 @@ final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
     related: Map.of(_relatedCache),
     history: ref.read(listeningHistoryProvider),
     liked: ref.read(favoritesProvider).values.toList(),
+    booed: ref.read(theaterProvider).booedOff,
   );
 });
 

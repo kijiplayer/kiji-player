@@ -26,6 +26,7 @@ class AppSettings {
     this.libraryView = 'list',
     this.libraryTab = 'playlists', // l10n-ignore
     this.ytSync = false,
+    this.theaterReactions = true,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -172,6 +173,9 @@ class AppSettings {
   /// Sincronizar con YouTube (solo con sesión iniciada): leer "Me gusta" y las playlists de la
   /// cuenta. Apagado de fábrica; solo lectura.
   final bool ytSync;
+
+  /// Reacciones de teatro en el reproductor (tomates y rosas). Encendido de fábrica.
+  final bool theaterReactions;
   static const libraryTabs = ['songs', 'artists', 'albums', 'downloads', 'playlists', 'folders']; // l10n-ignore
 
   /// Reproductor: segundos de la transición suave entre canciones.
@@ -305,6 +309,7 @@ class AppSettings {
     String? libraryView,
     String? libraryTab,
     bool? ytSync,
+    bool? theaterReactions,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -364,6 +369,7 @@ class AppSettings {
         libraryView: libraryView ?? this.libraryView,
         libraryTab: libraryTab ?? this.libraryTab,
         ytSync: ytSync ?? this.ytSync,
+        theaterReactions: theaterReactions ?? this.theaterReactions,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -423,6 +429,7 @@ class AppSettings {
         'libraryView': libraryView,
         'libraryTab': libraryTab,
         'ytSync': ytSync,
+        'theaterReactions': theaterReactions,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -488,6 +495,7 @@ class AppSettings {
       libraryView: libraryViews.contains(json['libraryView']) ? json['libraryView'] as String : d.libraryView,
       libraryTab: libraryTabs.contains(json['libraryTab']) ? json['libraryTab'] as String : d.libraryTab,
       ytSync: read('ytSync', d.ytSync),
+      theaterReactions: read('theaterReactions', d.theaterReactions),
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

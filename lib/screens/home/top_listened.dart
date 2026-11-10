@@ -8,6 +8,8 @@ import '../../features/customize/presentation/track_text.dart';
 import '../../features/history/listening_history.dart';
 import '../../features/recommendations/presentation/home_sections.dart';
 import '../../providers/playback_provider.dart';
+import '../../features/theater/data/theater_store.dart';
+import '../../features/theater/presentation/theater_screen.dart';
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/nocturne/glass.dart';
@@ -59,6 +61,17 @@ class TopListened extends ConsumerWidget {
             },
           ),
         ],
+        // "Tu Teatro" (tomates y rosas), en cuanto hubo alguna función.
+        if (!ref.watch(theaterProvider.select((t) => t.isEmpty)))
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              key: const Key('open-theater'),
+              onPressed: () => TheaterScreen.open(context),
+              icon: const Icon(Icons.theater_comedy_outlined),
+              label: Text(tx.verTuTeatro),
+            ),
+          ),
       ],
     );
   }

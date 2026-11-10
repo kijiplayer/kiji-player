@@ -4759,4 +4759,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get meGustaDeYoutube => 'YouTube likes';
+
+  @override
+  String get tirarUnTomate => 'Throw a tomato';
+
+  @override
+  String get tirarUnaRosa => 'Throw a rose';
+
+  @override
+  String abucheadaNoVuelveARecomendarse(String title) {
+    return '“$title” was booed off: it won\'t be recommended again.';
+  }
+
+  @override
+  String get tuTeatro => 'Your Theater';
+
+  @override
+  String get tuTeatroVacio =>
+      'No show yet. Throw tomatoes 🍅 or roses 🌹 from the player (or shake your phone for a tomato).';
+
+  @override
+  String get compartirEstaTarjeta => 'Share this card';
+
+  @override
+  String get topTomateadas => 'Most Tomatoed';
+
+  @override
+  String get topAplaudidas => 'Most Applauded';
+
+  @override
+  String get nadaPorAhora => 'Nothing yet.';
+
+  @override
+  String get datosDelTeatro => 'Theater facts';
+
+  @override
+  String get tomatesEnTotal => 'tomatoes in total';
+
+  @override
+  String get rosasEnTotal => 'roses in total';
+
+  @override
+  String elMasAbucheado(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'the most booed artist ($count tomatoes)',
+      one: 'the most booed artist (1 tomato)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String peorDiaDeTomates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'the worst tomato day ($count)',
+      one: 'the worst tomato day (1)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reaccionesDeTeatro => 'Theater reactions';
+
+  @override
+  String get reaccionesDeTeatroNota =>
+      '🍅 and 🌹 in the player (and shake your phone for a tomato). With 3 tomatoes a song is skipped and never recommended again; a rose counts as a like. Everything stays on your device.';
+
+  @override
+  String get verTuTeatro => 'Your Theater 🎭';
 }

@@ -53,6 +53,8 @@ dependencies:
 
   # Compartir, abrir enlaces y fotos personalizadas.
   share_plus: ^13.3.1
+  # Sacudir el teléfono para tirar un tomate (Android e iOS; en la PC no se usa).
+  sensors_plus: ^6.1.1
   url_launcher: ^6.3.3
   crop_your_image: ^2.0.1
   image: ^4.12.0
@@ -89,6 +91,10 @@ flutter:
     - assets/translation/
     # Las 5 notas de Kiji (bienvenida); se generan con tool/make_kiji_notes.py.
     - assets/sounds/kiji_notes.wav
+    # Reacciones de teatro (tomate, abucheo y aplausos): sonidos originales, tool/make_theater_sounds.py.
+    - assets/sounds/splat.wav
+    - assets/sounds/boo.wav
+    - assets/sounds/applause.wav
     # Ícono de la bandeja del sistema (PC).
     - assets/tray/
     # "Novedades de esta versión": las mismas notas de la tienda de apps (una por compilación).

@@ -17,6 +17,7 @@ import '../../features/lyrics/presentation/lyrics_views.dart' show ChromeAutoHid
 import '../../features/settings/data/settings_store.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import '../../features/sleep_timer/sleep_timer_provider.dart';
+import '../../features/theater/presentation/theater_effects.dart';
 import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../models/track.dart';
@@ -93,88 +94,91 @@ class PlayerScreen extends ConsumerWidget {
         track.youtubeVideoId != null &&
         ref.watch(downloadsProvider.select((d) => d.completed.containsKey(track.youtubeVideoId)));
 
-    final screen = FullscreenGuard(
-      provider: playerFullscreenProvider,
-      child: ChromeAutoHide(
-        enabled: full,
-        child: Scaffold(
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Un fondo propio (el de esta canción o el general) reemplaza al del estilo.
-              if (ref.watch(hasCustomBackgroundProvider))
-                const CustomBackground()
-              else
-                PlayerHalo(track: track, playing: playback.isPlaying),
-              // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
-              // del sistema (salir de Kiji desde abajo no debe abrir la letra).
-              LyricsSwipeDetector(
-                onSwipeUp: () => LyricsScreen.open(context),
-                child: SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      // Pantalla completa: la portada grande. Compacto: chica, al lado del título.
-                      // Ventana ancha: todo en una columna centrada (la onda, el título y los controles no
-                      // quedan de punta a punta).
-                      final width = min(
-                        constraints.maxWidth,
-                        full ? KijiSizes.playerFullWidth : KijiSizes.playerMaxWidth,
-                      );
-                      final coverSize = full
-                          ? min(640.0, min(width - 48, constraints.maxHeight * 0.58))
-                          : compact
-                          ? min(132.0, constraints.maxHeight * 0.24)
-                          : min(KijiSizes.playerCover, min(width - 48, constraints.maxHeight * 0.38));
-                      final cover = RepaintBoundary(
-                        child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
-                      );
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Center(
-                          child: ConstrainedBox(
-                            key: const Key('player-column'),
-                            constraints: BoxConstraints(minHeight: constraints.maxHeight, maxWidth: width),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                HideWhenIdle(
-                                  child: _TopBar(track: track, downloaded: downloaded),
-                                ),
-                                SizedBox(height: compact ? 8 : 16),
-                                // Capas propias: la sombra grande de la carátula no se vuelve a
-                                // rasterizar con cada avance de la posición.
-                                if (compact)
-                                  Row(
-                                    children: [
-                                      cover,
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: _TitleRow(track: track, downloaded: downloaded, compact: true),
-                                      ),
-                                    ],
-                                  )
-                                else ...[
-                                  cover,
-                                  SizedBox(height: KijiLook.museum ? 36 : 24),
-                                  _TitleRow(track: track, downloaded: downloaded),
+    // Sacudir el teléfono tira un tomate (con el reproductor a la vista).
+    final screen = TheaterShake(
+      child: FullscreenGuard(
+        provider: playerFullscreenProvider,
+        child: ChromeAutoHide(
+          enabled: full,
+          child: Scaffold(
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Un fondo propio (el de esta canción o el general) reemplaza al del estilo.
+                if (ref.watch(hasCustomBackgroundProvider))
+                  const CustomBackground()
+                else
+                  PlayerHalo(track: track, playing: playback.isPlaying),
+                // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
+                // del sistema (salir de Kiji desde abajo no debe abrir la letra).
+                LyricsSwipeDetector(
+                  onSwipeUp: () => LyricsScreen.open(context),
+                  child: SafeArea(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Pantalla completa: la portada grande. Compacto: chica, al lado del título.
+                        // Ventana ancha: todo en una columna centrada (la onda, el título y los controles no
+                        // quedan de punta a punta).
+                        final width = min(
+                          constraints.maxWidth,
+                          full ? KijiSizes.playerFullWidth : KijiSizes.playerMaxWidth,
+                        );
+                        final coverSize = full
+                            ? min(640.0, min(width - 48, constraints.maxHeight * 0.58))
+                            : compact
+                            ? min(132.0, constraints.maxHeight * 0.24)
+                            : min(KijiSizes.playerCover, min(width - 48, constraints.maxHeight * 0.38));
+                        final cover = RepaintBoundary(
+                          child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
+                        );
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Center(
+                            child: ConstrainedBox(
+                              key: const Key('player-column'),
+                              constraints: BoxConstraints(minHeight: constraints.maxHeight, maxWidth: width),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  HideWhenIdle(
+                                    child: _TopBar(track: track, downloaded: downloaded),
+                                  ),
+                                  SizedBox(height: compact ? 8 : 16),
+                                  // Capas propias: la sombra grande de la carátula no se vuelve a
+                                  // rasterizar con cada avance de la posición.
+                                  if (compact)
+                                    Row(
+                                      children: [
+                                        cover,
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _TitleRow(track: track, downloaded: downloaded, compact: true),
+                                        ),
+                                      ],
+                                    )
+                                  else ...[
+                                    cover,
+                                    SizedBox(height: KijiLook.museum ? 36 : 24),
+                                    _TitleRow(track: track, downloaded: downloaded),
+                                  ],
+                                  SizedBox(height: compact ? 12 : (KijiLook.museum ? 28 : 20)),
+                                  const RepaintBoundary(child: _Progress()),
+                                  SizedBox(height: compact ? 4 : (KijiLook.museum ? 20 : 12)),
+                                  PlaybackControlsRow(playSize: compact ? 60 : KijiSizes.playButton),
+                                  SizedBox(height: compact ? 8 : 20),
+                                  const HideWhenIdle(child: _BottomActions()),
+                                  SizedBox(height: compact ? 8 : 16),
                                 ],
-                                SizedBox(height: compact ? 12 : (KijiLook.museum ? 28 : 20)),
-                                const RepaintBoundary(child: _Progress()),
-                                SizedBox(height: compact ? 4 : (KijiLook.museum ? 20 : 12)),
-                                PlaybackControlsRow(playSize: compact ? 60 : KijiSizes.playButton),
-                                SizedBox(height: compact ? 8 : 20),
-                                const HideWhenIdle(child: _BottomActions()),
-                                SizedBox(height: compact ? 8 : 16),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -343,13 +347,15 @@ class _Cover extends ConsumerWidget {
     // Grafito 0.8: la portada sola, con su borde de vidrio. Sin la luz que respira, el brillo, el
     // reflejo ni la inclinación de la 0.7: menos efectos a la vez.
     // Con "reducir animaciones", la portada queda quieta del tamaño de siempre.
-    if (reduceMotion(context, ref)) return cover;
+    // Tomates y rosas que caen sobre la portada (sin partículas con "reducir animaciones").
+    final staged = TheaterOverlay(trackId: track.id, child: cover);
+    if (reduceMotion(context, ref)) return staged;
     return AnimatedScale(
       key: const Key('player-cover-scale'),
       scale: playing ? 1 : pausedScale,
       duration: KijiMotion.normal,
       curve: KijiLook.museum ? KijiMotion.softSpring : Curves.easeOutCubic,
-      child: cover,
+      child: staged,
     );
   }
 }
@@ -383,8 +389,10 @@ class _TitleRow extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   // Grafito: grande y fino.
                   style: KijiLook.museum
-                      ? KijiText.title(size: compact ? 24 : 38, weight: FontWeight.w300)
-                            .copyWith(letterSpacing: compact ? -0.5 : -1, height: 1.05)
+                      ? KijiText.title(
+                          size: compact ? 24 : 38,
+                          weight: FontWeight.w300,
+                        ).copyWith(letterSpacing: compact ? -0.5 : -1, height: 1.05)
                       : KijiText.title(size: compact ? 20 : 26),
                 ),
               ),
@@ -410,6 +418,9 @@ class _TitleRow extends ConsumerWidget {
             ],
           ),
         ),
+        // Reacciones de teatro: 🍅 y 🌹 (en el modo compacto no entran al lado de la portada chica;
+        // sacudir el teléfono sigue tirando tomates).
+        if (!compact) TheaterButtons(track: track),
         if (track.youtubeVideoId != null)
           downloaded
               ? Tooltip(
@@ -695,9 +706,11 @@ class ProgressPlayButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(
-      playbackProvider.select((p) => p.duration.inMilliseconds <= 0
-          ? 0.0
-          : (p.position.inMilliseconds / p.duration.inMilliseconds).clamp(0.0, 1.0)),
+      playbackProvider.select(
+        (p) => p.duration.inMilliseconds <= 0
+            ? 0.0
+            : (p.position.inMilliseconds / p.duration.inMilliseconds).clamp(0.0, 1.0),
+      ),
     );
     final seed = ref.watch(playbackProvider.select((p) => p.track?.id ?? ''));
     return SizedBox.square(

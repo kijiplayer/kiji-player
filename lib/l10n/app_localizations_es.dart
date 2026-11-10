@@ -4769,4 +4769,75 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get meGustaDeYoutube => 'Me gusta de YouTube';
+
+  @override
+  String get tirarUnTomate => 'Tirar un tomate';
+
+  @override
+  String get tirarUnaRosa => 'Tirar una rosa';
+
+  @override
+  String abucheadaNoVuelveARecomendarse(String title) {
+    return '«$title» se fue abucheada: no vuelve a recomendarse.';
+  }
+
+  @override
+  String get tuTeatro => 'Tu Teatro';
+
+  @override
+  String get tuTeatroVacio =>
+      'Todavía no hubo función. Tira tomates 🍅 o rosas 🌹 desde el reproductor (o sacude el teléfono para un tomate).';
+
+  @override
+  String get compartirEstaTarjeta => 'Compartir esta tarjeta';
+
+  @override
+  String get topTomateadas => 'Top Tomateadas';
+
+  @override
+  String get topAplaudidas => 'Top Aplaudidas';
+
+  @override
+  String get nadaPorAhora => 'Nada por ahora.';
+
+  @override
+  String get datosDelTeatro => 'Datos del teatro';
+
+  @override
+  String get tomatesEnTotal => 'tomates en total';
+
+  @override
+  String get rosasEnTotal => 'rosas en total';
+
+  @override
+  String elMasAbucheado(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'el artista más abucheado ($count tomates)',
+      one: 'el artista más abucheado (1 tomate)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String peorDiaDeTomates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'el peor día de tomates ($count)',
+      one: 'el peor día de tomates (1)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reaccionesDeTeatro => 'Reacciones de teatro';
+
+  @override
+  String get reaccionesDeTeatroNota =>
+      '🍅 y 🌹 en el reproductor (y sacudir el teléfono para un tomate). Con 3 tomates una canción se va y no vuelve a recomendarse; una rosa cuenta como \"me gusta\". Todo queda solo en tu dispositivo.';
+
+  @override
+  String get verTuTeatro => 'Tu Teatro 🎭';
 }

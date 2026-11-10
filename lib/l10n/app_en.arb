@@ -1286,5 +1286,22 @@
   "deTuCuentaMeGustaYPlaylists": "From your account: {liked} likes and {playlists} playlists",
   "leerAhora": "Read now",
   "deTuCuentaDeYoutube": "FROM YOUR YOUTUBE ACCOUNT",
-  "meGustaDeYoutube": "YouTube likes"
+  "meGustaDeYoutube": "YouTube likes",
+  "tirarUnTomate": "Throw a tomato",
+  "tirarUnaRosa": "Throw a rose",
+  "abucheadaNoVuelveARecomendarse": "“{title}” was booed off: it won't be recommended again.",
+  "tuTeatro": "Your Theater",
+  "tuTeatroVacio": "No show yet. Throw tomatoes 🍅 or roses 🌹 from the player (or shake your phone for a tomato).",
+  "compartirEstaTarjeta": "Share this card",
+  "topTomateadas": "Most Tomatoed",
+  "topAplaudidas": "Most Applauded",
+  "nadaPorAhora": "Nothing yet.",
+  "datosDelTeatro": "Theater facts",
+  "tomatesEnTotal": "tomatoes in total",
+  "rosasEnTotal": "roses in total",
+  "elMasAbucheado": "{count, plural, =1{the most booed artist (1 tomato)} other{the most booed artist ({count} tomatoes)}}",
+  "peorDiaDeTomates": "{count, plural, =1{the worst tomato day (1)} other{the worst tomato day ({count})}}",
+  "reaccionesDeTeatro": "Theater reactions",
+  "reaccionesDeTeatroNota": "🍅 and 🌹 in the player (and shake your phone for a tomato). With 3 tomatoes a song is skipped and never recommended again; a rose counts as a like. Everything stays on your device.",
+  "verTuTeatro": "Your Theater 🎭"
 }

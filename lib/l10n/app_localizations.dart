@@ -7714,6 +7714,108 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Me gusta de YouTube'**
   String get meGustaDeYoutube;
+
+  /// Reproductor: reacción de teatro (abucheo).
+  ///
+  /// In es, this message translates to:
+  /// **'Tirar un tomate'**
+  String get tirarUnTomate;
+
+  /// Reproductor: reacción de teatro (aplausos, cuenta como me gusta).
+  ///
+  /// In es, this message translates to:
+  /// **'Tirar una rosa'**
+  String get tirarUnaRosa;
+
+  /// Teatro: tercer tomate a la misma canción.
+  ///
+  /// In es, this message translates to:
+  /// **'«{title}» se fue abucheada: no vuelve a recomendarse.'**
+  String abucheadaNoVuelveARecomendarse(String title);
+
+  /// Pantalla de estadísticas de las reacciones de teatro.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu Teatro'**
+  String get tuTeatro;
+
+  /// Tu Teatro: sin reacciones todavía.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hubo función. Tira tomates 🍅 o rosas 🌹 desde el reproductor (o sacude el teléfono para un tomate).'**
+  String get tuTeatroVacio;
+
+  /// Tu Teatro: compartir la tarjeta como imagen.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir esta tarjeta'**
+  String get compartirEstaTarjeta;
+
+  /// Tu Teatro: las canciones con más tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'Top Tomateadas'**
+  String get topTomateadas;
+
+  /// Tu Teatro: las canciones con más rosas.
+  ///
+  /// In es, this message translates to:
+  /// **'Top Aplaudidas'**
+  String get topAplaudidas;
+
+  /// Tu Teatro: tarjeta vacía.
+  ///
+  /// In es, this message translates to:
+  /// **'Nada por ahora.'**
+  String get nadaPorAhora;
+
+  /// Tu Teatro: tarjeta de datos graciosos.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos del teatro'**
+  String get datosDelTeatro;
+
+  /// Tu Teatro: total de tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'tomates en total'**
+  String get tomatesEnTotal;
+
+  /// Tu Teatro: total de rosas.
+  ///
+  /// In es, this message translates to:
+  /// **'rosas en total'**
+  String get rosasEnTotal;
+
+  /// Tu Teatro: artista con más tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{el artista más abucheado (1 tomate)} other{el artista más abucheado ({count} tomates)}}'**
+  String elMasAbucheado(int count);
+
+  /// Tu Teatro: día con más tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{el peor día de tomates (1)} other{el peor día de tomates ({count})}}'**
+  String peorDiaDeTomates(int count);
+
+  /// Configuración: interruptor de tomates y rosas.
+  ///
+  /// In es, this message translates to:
+  /// **'Reacciones de teatro'**
+  String get reaccionesDeTeatro;
+
+  /// Configuración: qué hacen las reacciones de teatro.
+  ///
+  /// In es, this message translates to:
+  /// **'🍅 y 🌹 en el reproductor (y sacudir el teléfono para un tomate). Con 3 tomates una canción se va y no vuelve a recomendarse; una rosa cuenta como \"me gusta\". Todo queda solo en tu dispositivo.'**
+  String get reaccionesDeTeatroNota;
+
+  /// Inicio: entrada a Tu Teatro.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu Teatro 🎭'**
+  String get verTuTeatro;
 }
 
 class _AppLocalizationsDelegate

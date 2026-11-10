@@ -75,15 +75,20 @@ abstract final class HomeFeedLogic {
     required Map<String, List<Track>> related,
     required List<HistoryEntry> history,
     required List<Track> liked,
+    Set<String> booed = const {},
   }) {
-    final known = {for (final e in history) e.track.id, for (final t in liked) t.id};
+    // Las abucheadas (3 tomates) no se recomiendan nunca, ni como nuevas ni en "Para ti".
+    final known = {for (final e in history) e.track.id, for (final t in liked) t.id, ...booed};
     final because = [
       for (final t in related[seeds.becauseOf?.id] ?? const <Track>[])
         if (!known.contains(t.id)) t,
     ].take(15).toList();
 
     final shown = {for (final t in because) t.id};
-    final top = HistoryLogic.forYou(history, limit: 10);
+    final top = [
+      for (final t in HistoryLogic.forYou(history, limit: 10 + booed.length))
+        if (!booed.contains(t.id)) t,
+    ].take(10).toList();
     final fresh = [
       for (final seed in seeds.mix)
         for (final t in related[seed.id] ?? const <Track>[])
