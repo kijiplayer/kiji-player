@@ -227,6 +227,24 @@ class KijiPalette {
     );
   }
 
+  /// Con un fondo propio: el gris secundario más cerca del color del texto. Así se lee a 4,5:1 sobre
+  /// la foto con mucha menos capa encima, y la foto se ve.
+  KijiPalette withBackgroundPhoto() => KijiPalette(
+    brightness: brightness,
+    background: background,
+    violet: violet,
+    cyan: cyan,
+    onAccent: onAccent,
+    text: text,
+    muted: Color.lerp(muted, text, 0.55)!,
+    glassFill: glassFill,
+    glassBorder: glassBorder,
+    waveRest: waveRest,
+    surface: surface,
+    surfaceHigh: surfaceHigh,
+    like: like,
+  );
+
   /// Acentos (el primer color y el segundo del degradado). En el tema claro el segundo se
   /// oscurece un poco para que se lea sobre blanco.
   static const accents = <String, (Color, Color)>{
@@ -342,10 +360,12 @@ abstract final class KijiColors {
 }
 
 /// Fondo propio (Apariencia → Fondo): la capa del color del estilo que va encima de la foto o el
-/// video para que el texto se lea siempre (4,5:1 el texto y el gris secundario), aunque la foto sea
-/// blanca (estilos oscuros) o negra (Papel). Se usa la menor que alcance.
-double backgroundScrim(KijiPalette palette, double opacity) {
-  final worst = palette.isLight ? Colors.black : Colors.white;
+/// video para que el texto se lea (4,5:1 el texto y el gris secundario). Se usa la menor que
+/// alcance para [tone], el tono medio de la foto (ver
+/// `backgroundToneProvider`). Sin [tone] (un video, o mientras se mide) se supone el peor caso: una
+/// foto blanca (estilos oscuros) o negra (Papel).
+double backgroundScrim(KijiPalette palette, double opacity, {Color? tone}) {
+  final worst = tone ?? (palette.isLight ? Colors.black : Colors.white);
   final behind = Color.lerp(palette.background, worst, opacity.clamp(0, 1))!;
   for (var s = 0.0; s <= 1.0; s += 0.02) {
     final result = Color.lerp(behind, palette.background, s)!;

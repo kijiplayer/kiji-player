@@ -26,6 +26,36 @@ final effectiveBackgroundProvider = Provider<({String path, String kind})?>((ref
   return s.file == null ? null : (path: s.file!, kind: s.kind);
 });
 
+/// El tono de una foto de fondo, para que la capa de
+/// legibilidad sea la justa: una foto oscura casi no necesita capa y se ve entera; una blanca
+/// necesita más. Se mide una vez por archivo, achicada a 16 × 16: el tono medio (la mediana de
+/// brillo), así la mayor parte de la foto queda con 4,5:1. null si no se pudo medir (o es un video).
+final backgroundToneProvider = FutureProvider.family<Color?, ({String path, bool light})>((ref, key) async {
+  try {
+    final bytes = await File(key.path).readAsBytes();
+    final codec = await instantiateImageCodec(bytes, targetWidth: 16, targetHeight: 16);
+    final frame = await codec.getNextFrame();
+    final data = await frame.image.toByteData();
+    frame.image.dispose();
+    codec.dispose();
+    if (data == null) return null;
+    final pixels = <Color>[
+      for (var i = 0; i + 3 < data.lengthInBytes; i += 4)
+        Color.fromARGB(255, data.getUint8(i), data.getUint8(i + 1), data.getUint8(i + 2)),
+    ]..sort((a, b) => a.computeLuminance().compareTo(b.computeLuminance()));
+    if (pixels.isEmpty) return null;
+    return pixels[((pixels.length - 1) * 0.5).round()];
+  } catch (error) {
+    debugPrint('=== FONDO: no se pudo medir el tono de la foto: ${error.runtimeType} ===');
+    return null;
+  }
+});
+
+/// Tono que se supone para un video (no se mide cada cuadro): uno medio, ni el peor caso (que lo
+/// taparía casi entero) ni ninguno.
+Color videoBackgroundTone(KijiPalette palette) =>
+    Color.lerp(palette.background, palette.isLight ? Colors.black : Colors.white, 0.45)!;
+
 /// Hay un fondo propio a la vista (las pantallas principales dejan ver lo de atrás).
 final hasCustomBackgroundProvider = Provider<bool>((ref) => ref.watch(effectiveBackgroundProvider) != null);
 
@@ -42,7 +72,14 @@ class CustomBackground extends ConsumerWidget {
     final folder = ref.watch(backgroundFolderProvider).valueOrNull;
     if (bg == null || folder == null) return const SizedBox.shrink();
     final file = File(p.join(folder.path, bg.path));
-    final media = bg.kind == 'video' && BackgroundStore.videoSupported
+    final video = bg.kind == 'video' && BackgroundStore.videoSupported;
+    final palette = KijiColors.palette;
+    // Mientras se mide la foto (un instante) queda la capa del peor caso: nunca texto ilegible.
+    final tone = video
+        ? videoBackgroundTone(palette)
+        : ref.watch(backgroundToneProvider((path: file.path, light: palette.isLight))).valueOrNull;
+    final scrim = backgroundScrim(palette, s.opacity, tone: tone);
+    final media = video
         ? (BackgroundStore.videoWithMediaKit ? _PcVideoBackground(file: file) : _VideoBackground(file: file))
         : Image.file(
             file,
@@ -63,7 +100,7 @@ class CustomBackground extends ConsumerWidget {
                 : ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: s.blur, sigmaY: s.blur), child: media),
           ),
           // Capa oscura (o clara en Papel) que asegura que el texto se lea.
-          ColoredBox(color: KijiColors.background.withValues(alpha: backgroundScrim(KijiColors.palette, s.opacity))),
+          ColoredBox(key: const Key('background-scrim'), color: KijiColors.background.withValues(alpha: scrim)),
         ],
       ),
     );

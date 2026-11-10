@@ -7,6 +7,7 @@ import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/battery_optimization.dart';
 import 'features/customize/data/track_overrides.dart';
 import 'features/style/presentation/personalize_screen.dart';
+import 'features/style/presentation/custom_background.dart' show hasCustomBackgroundProvider;
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
@@ -214,12 +215,14 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     final style = KijiStyle.parse(styleName);
     // Estilo por canción: mientras suena, su color de acento manda sobre el general.
     final songAccent = ref.watch(currentTrackStyleProvider.select((s) => s?.accent));
-    final palette = KijiPalette.forStyle(
+    final base = KijiPalette.forStyle(
       style,
       theme: theme,
       accent: accent,
       custom: songAccent != null ? Color(songAccent) : custom,
     );
+    // Con un fondo propio, el gris secundario más claro: la foto se ve con menos capa encima.
+    final palette = ref.watch(hasCustomBackgroundProvider) ? base.withBackgroundPhoto() : base;
     final systemFont = font == 'system';
     final family = KijiText.familyFor(font);
     if (style == KijiLook.style &&
