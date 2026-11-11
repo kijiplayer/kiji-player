@@ -86,7 +86,8 @@ jobs:
 
   linux:
     name: Compilar Linux
-    runs-on: ubuntu-24.04
+    # 22.04: la última con WebKit WPE en sus paquetes (y el .tar.gz anda en más distribuciones).
+    runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
