@@ -101,7 +101,7 @@ void main() {
     expect(s.totalTomatoes, 22);
     expect(s.mostBooedArtist, ('Ana Inventada', 13));
     expect(s.worstDay, (DateTime(2026, 11, 9), 21));
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await n.saved;
     expect(File(p.join(dir.path, 'theater.json')).existsSync(), isTrue);
     // Al reabrir, sigue igual.
     final again = make();

@@ -119,6 +119,10 @@ class TheaterNotifier extends Notifier<TheaterState> {
   final _loaded = Completer<void>();
   Future<void> get loaded => _loaded.future;
 
+  /// El último guardado pedido (los guardados van en fila, así que también espera a los anteriores).
+  Future<void> _lastSave = Future.value();
+  Future<void> get saved => _lastSave;
+
   @override
   TheaterState build() {
     unawaited(_load());
@@ -177,7 +181,7 @@ class TheaterNotifier extends Notifier<TheaterState> {
       songs: {...state.songs, track.id: entry},
       tomatoDays: {...state.tomatoDays, day: (state.tomatoDays[day] ?? 0) + 1},
     );
-    unawaited(_save());
+    unawaited(_lastSave = _save());
     debugPrint('=== TEATRO: tomate (${entry.tomatoes}) ===');
     return entry.tomatoes >= TheaterState.tomatoLimit ? TomatoResult.booedOff : TomatoResult.counted;
   }
@@ -186,7 +190,7 @@ class TheaterNotifier extends Notifier<TheaterState> {
   void rose(Track track) {
     final entry = _entry(track).copyWith(roses: _entry(track).roses + 1);
     state = TheaterState(songs: {...state.songs, track.id: entry}, tomatoDays: state.tomatoDays);
-    unawaited(_save());
+    unawaited(_lastSave = _save());
     if (!ref.read(favoritesProvider).containsKey(track.id)) ref.read(favoritesProvider.notifier).toggle(track);
     debugPrint('=== TEATRO: rosa (${entry.roses}) ===');
   }
@@ -196,7 +200,7 @@ class TheaterNotifier extends Notifier<TheaterState> {
     final entry = state.songs[id];
     if (entry == null) return;
     state = TheaterState(songs: {...state.songs, id: entry.copyWith(tomatoes: 0)}, tomatoDays: state.tomatoDays);
-    unawaited(_save());
+    unawaited(_lastSave = _save());
   }
 }
 
