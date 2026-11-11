@@ -4,4 +4,4 @@
 • Sound and lyrics: equalizer, speed, pitch, crossfade and word-by-word karaoke.
 • Import playlists by link and full backup.
 • Theater reactions: 🍅 and 🌹.
-• Android widgets and Kiji for Linux.
+• Android widgets.

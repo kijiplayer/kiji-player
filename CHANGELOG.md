@@ -38,7 +38,6 @@
 
 **Plataformas**
 - Widgets de Android (chico y grande) con la canción, la portada y los controles.
-- Kiji para Linux (.tar.gz).
 - Arranque más rápido, el permiso de notificaciones se pide cuando Kiji ya está a la vista y sin
   conexión no se repiten pedidos inútiles.
 

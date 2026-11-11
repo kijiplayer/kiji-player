@@ -4,4 +4,4 @@
 • Sonido y letras: ecualizador, velocidad, tono, mezcla y karaoke palabra por palabra.
 • Importa playlists por enlace y copia de seguridad completa.
 • Reacciones de teatro: 🍅 y 🌹.
-• Widgets de Android y Kiji para Linux.
+• Widgets de Android.
