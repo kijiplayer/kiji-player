@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:kiji_player/features/import/domain/imported.dart';
 
 import 'package:kiji_player/features/import/data/link_import.dart';
 
@@ -71,7 +75,43 @@ String _soundcloud() {
   return '<html><script>window.__sc_hydration = ${jsonEncode(hydration)};</script></html>';
 }
 
+/// Responde con [body] (o falla con [status]) y anota qué dirección se pidió. Sin red.
+class _FakePage implements HttpClientAdapter {
+  _FakePage(this.body, {this.status = 200});
+  final String body;
+  final int status;
+  final urls = <String>[];
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    urls.add(options.uri.toString());
+    return ResponseBody.fromString(body, status, headers: {Headers.contentTypeHeader: ['text/html']});
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
+  test('Enlace de Spotify: pide la página pública del reproductor y arma la playlist', () async {
+    final fake = _FakePage(_spotify());
+    final link = parsePlaylistLink('https://open.spotify.com/playlist/37i9dQZF1DXinventado?si=x')!;
+    final bundle = await fetchLinkBundle(link, dio: Dio()..httpClientAdapter = fake);
+    expect(fake.urls.single, 'https://open.spotify.com/embed/playlist/37i9dQZF1DXinventado');
+    expect(bundle.playlists.single.name, 'Lista Inventada');
+    expect(bundle.playlists.single.songs.map((s) => s.title), ['Glass Harbor', 'Slow Comet']);
+  });
+
+  test('Página caída o sin canciones: un mensaje simple, nunca un error técnico', () async {
+    final link = parsePlaylistLink('https://soundcloud.com/alguien/sets/set-inventado')!;
+    for (final fake in [_FakePage('caído', status: 503), _FakePage('<html></html>')]) {
+      await expectLater(
+        fetchLinkBundle(link, dio: Dio()..httpClientAdapter = fake),
+        throwsA(isA<ImportFormatException>()),
+      );
+    }
+  });
+
   test('Reconoce los enlaces públicos de playlist (y nada más)', () {
     expect(parsePlaylistLink('https://music.youtube.com/playlist?list=PLinventada')!.id, 'PLinventada');
     expect(parsePlaylistLink('https://www.youtube.com/watch?v=abc&list=PLotra')!.source, LinkSource.youtube);
