@@ -142,9 +142,49 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  linux:
+    name: Linux (.tar.gz)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - name: Librerías del sistema (GTK, mpv, WebKit WPE, bandeja y atajos)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libmpv-dev libepoxy-dev libayatana-appindicator3-dev libkeybinder-3.0-dev
+          # WebKit WPE (el visor web del solucionador de YouTube): el nombre cambia según la versión
+          # de Ubuntu; se instala el primero que exista.
+          apt-cache search --names-only 'wpe' | grep -i dev || true
+          for pkg in libwpewebkit-2.0-dev libwpewebkit-1.1-dev libwpewebkit-1.0-dev; do
+            if sudo apt-get install -y "$pkg"; then echo "WPE: $pkg"; break; fi
+          done
+          for pkg in libwpe-platform-2.0-dev libwpebackend-fdo-1.0-dev; do
+            sudo apt-get install -y "$pkg" && echo "WPE backend: $pkg" || true
+          done
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Linux release
+        run: flutter build linux --release
+      - name: Empaquetar (.tar.gz con la carpeta lista para abrir)
+        run: |
+          version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
+          mkdir -p dist
+          tar -czf "dist/Kiji_Player_${version}_Linux_x86_64.tar.gz" -C build/linux/x64/release bundle
+      - uses: actions/upload-artifact@v6
+        with:
+          name: linux
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
   publicar:
     name: Release de GitHub
-    needs: [android, windows]
+    needs: [android, windows, linux]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
