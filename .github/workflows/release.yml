@@ -170,6 +170,9 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Linux release
+        # flutter_inappwebview_linux pide una opción del clang 20 que el de 22.04 no conoce.
+        env:
+          CXXFLAGS: -Wno-unknown-warning-option
         run: flutter build linux --release
       - name: Empaquetar (.tar.gz con la carpeta lista para abrir)
         run: |
