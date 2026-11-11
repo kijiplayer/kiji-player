@@ -8,6 +8,7 @@ import 'features/playback_extras/data/battery_optimization.dart';
 import 'features/customize/data/track_overrides.dart';
 import 'features/style/presentation/personalize_screen.dart';
 import 'features/style/presentation/custom_background.dart' show hasCustomBackgroundProvider;
+import 'features/system_media/data/home_widgets.dart';
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
@@ -279,6 +280,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     ref.watch(playbackAutomationProvider);
     // Copia de seguridad diaria: se revisa al abrir Kiji.
     ref.watch(backupProvider);
+    // Widgets de Android (canción, controles y colores del estilo).
+    ref.watch(homeWidgetsProvider);
     return MaterialApp(
       title: 'Kiji Player', // l10n-ignore
       debugShowCheckedModeBanner: false,

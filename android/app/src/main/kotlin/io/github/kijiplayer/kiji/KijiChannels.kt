@@ -47,6 +47,9 @@ object KijiChannels {
         // La música del teléfono (MediaStore), sin plugins de terceros (MediaLibrary.kt).
         MediaLibrary.register(app, messenger)
 
+        // Widgets de la pantalla de inicio (KijiWidgets.kt).
+        KijiWidgets.register(app, messenger)
+
         // Datos del equipo para el modo alto rendimiento. Sin pantalla no hay ventana para cambiar
         // la frecuencia: MainActivity reemplaza este canal al abrirse.
         MethodChannel(messenger, "kiji/display").setMethodCallHandler { call, result ->

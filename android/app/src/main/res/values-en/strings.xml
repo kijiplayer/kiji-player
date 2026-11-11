@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textos de Android (widgets): español de fábrica, inglés en values-en. -->
+<resources>
+    <string name="kiji_widget_small">Kiji · controls</string>
+    <string name="kiji_widget_large">Kiji · player</string>
+    <string name="kiji_widget_small_description">Previous, play or pause and next</string>
+    <string name="kiji_widget_large_description">Cover, song, progress and controls</string>
+    <string name="kiji_widget_prev">Previous</string>
+    <string name="kiji_widget_play">Play or pause</string>
+    <string name="kiji_widget_next">Next</string>
+    <string name="kiji_widget_cover">Cover</string>
+    <string name="kiji_widget_idle">Kiji Player</string>
+</resources>
