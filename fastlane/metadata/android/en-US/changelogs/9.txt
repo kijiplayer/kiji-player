@@ -1,5 +1,7 @@
-• New player: play inside a ring with the song's wave, compact and full screen modes.
-• Personalize Kiji: style, color, font and your own background (video on PC too), per-song style and .kiji themes.
-• New Library: artists, albums and folders with your files' covers and tags, filters, grid and multi-select with batch downloads.
-• Sound: equalizer on PC, presets, bass, speed, pitch and crossfade.
-• Lyrics: word-by-word karaoke, saved with downloads.
+• New player: wave ring, compact and full screen modes.
+• Personalize Kiji: color, font, your own background, per-song style and .kiji themes.
+• Library and local music: artists, albums, folders, covers and batch downloads.
+• Sound and lyrics: equalizer, speed, pitch, crossfade and word-by-word karaoke.
+• Import playlists by link and full backup.
+• Theater reactions: 🍅 and 🌹.
+• Android widgets and Kiji for Linux.
