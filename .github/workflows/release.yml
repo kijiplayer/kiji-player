@@ -201,6 +201,14 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      # Copias con nombre fijo: la página de descarga (docs/site) apunta a
+      # releases/latest/download/<nombre> y así siempre baja la última versión.
+      - name: Nombres fijos para la página de descarga
+        run: |
+          version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
+          cp "dist/Kiji-Player-${version}.apk" dist/Kiji-Player.apk
+          cp "dist/Kiji_Player_${version}_Windows_Setup.exe" dist/Kiji-Player-Windows-Setup.exe
+          cp "dist/Kiji_Player_${version}_Linux_x86_64.tar.gz" dist/Kiji-Player-Linux-x86_64.tar.gz
       - name: Notas en inglés y español (desde fastlane)
         run: |
           dart run tool/release_notes.dart dist notas.md

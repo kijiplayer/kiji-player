@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiji Player · Descargar</title>
+  <meta name="description" content="Kiji Player: reproductor de música libre (GPL-3.0), sin anuncios, sin pagos y sin telemetría. Música local y YouTube Music. Android, Windows y Linux.">
+  <!-- Sin analíticas, sin cookies y sin nada de terceros: esta página no guarda ni manda datos. -->
+  <style>
+    :root {
+      --bg: #0b0b14; --surface: #16161f; --border: #2a2a3a; --text: #ececf4; --muted: #a9a9c4;
+      --violet: #7c5cff; --cyan: #3df5ff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text); line-height: 1.55;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    a { color: var(--cyan); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+    header { padding: 28px 0 12px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
+    .lang { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
+      padding: 8px 14px; font: inherit; cursor: pointer; min-height: 44px; }
+    .hero { padding: 56px 0 40px; text-align: center; }
+    h1 { font-size: clamp(32px, 6vw, 56px); line-height: 1.05; margin: 0 0 14px; letter-spacing: -1px; }
+    .grad { background: linear-gradient(90deg, var(--violet), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lead { color: var(--muted); font-size: 18px; max-width: 640px; margin: 0 auto 30px; }
+    .download { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none;
+      background: linear-gradient(90deg, var(--violet), #4d7bff); color: #fff; border-radius: 999px;
+      padding: 18px 40px; font-size: 20px; font-weight: 700; box-shadow: 0 10px 40px rgba(124, 92, 255, .35); }
+    .download small { font-weight: 500; font-size: 13px; opacity: .85; }
+    .others { margin-top: 16px; color: var(--muted); font-size: 14px; }
+    .others a { margin: 0 6px; }
+    .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 14px; margin: 40px 0; }
+    .fact { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+    .fact b { display: block; font-size: 17px; margin-bottom: 4px; }
+    .fact > span { color: var(--muted); font-size: 14px; }
+    h2 { font-size: 28px; margin: 56px 0 18px; letter-spacing: -0.5px; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 18px; }
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 18px; }
+    .step img { width: 100%; height: auto; border-radius: 16px; display: block; margin-bottom: 12px; aspect-ratio: 9 / 16; object-fit: cover; }
+    .step b { color: var(--cyan); font-family: ui-monospace, Consolas, monospace; }
+    details { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 18px; margin-bottom: 10px; }
+    summary { cursor: pointer; font-weight: 700; min-height: 32px; }
+    details p { color: var(--muted); margin: 10px 0 2px; }
+    footer { margin: 60px 0 40px; color: var(--muted); font-size: 13px; text-align: center; }
+    [data-l="en"] { display: none; }
+    html[lang="en"] [data-l="es"] { display: none; }
+    html[lang="en"] [data-l="en"] { display: revert; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">Kiji <span class="grad">Player</span></div>
+      <button class="lang" id="lang" type="button" aria-label="English / Español">English</button>
+    </header>
+
+    <section class="hero">
+      <h1>
+        <span data-l="es">Tu música, <span class="grad">sin sorpresas</span></span>
+        <span data-l="en">Your music, <span class="grad">no surprises</span></span>
+      </h1>
+      <p class="lead">
+        <span data-l="es">Reproductor libre para tu música y YouTube Music. Sin anuncios, sin pagos, sin cuenta obligatoria y sin telemetría: nada sale de tu dispositivo sin que lo pidas.</span>
+        <span data-l="en">A free player for your music and YouTube Music. No ads, no payments, no account required and no telemetry: nothing leaves your device unless you ask.</span>
+      </p>
+      <a class="download" id="download" href="https://github.com/kijiplayer/kiji-player/releases/latest">
+        <span id="download-label">
+          <span data-l="es">Descargar Kiji</span><span data-l="en">Download Kiji</span>
+        </span>
+        <small id="download-os"></small>
+      </a>
+      <p class="others">
+        <span data-l="es">Otras plataformas:</span><span data-l="en">Other platforms:</span>
+        <a href="https://github.com/kijiplayer/kiji-player/releases/latest/download/Kiji-Player.apk">Android (.apk)</a>
+        <a href="https://github.com/kijiplayer/kiji-player/releases/latest/download/Kiji-Player-Windows-Setup.exe">Windows</a>
+        <a href="https://github.com/kijiplayer/kiji-player/releases/latest/download/Kiji-Player-Linux-x86_64.tar.gz">Linux (.tar.gz)</a>
+        <a href="https://github.com/kijiplayer/kiji-player/releases/latest"><span data-l="es">todas las versiones</span><span data-l="en">all versions</span></a>
+      </p>
+    </section>
+
+    <section class="facts">
+      <div class="fact"><b>GPL-3.0</b><span data-l="es">Código abierto: cualquiera puede revisarlo.</span><span data-l="en">Open source: anyone can review it.</span></div>
+      <div class="fact"><b><span data-l="es">Sin telemetría</span><span data-l="en">No telemetry</span></b><span data-l="es">Sin analíticas ni servidores propios.</span><span data-l="en">No analytics and no servers of our own.</span></div>
+      <div class="fact"><b><span data-l="es">Sin cuenta</span><span data-l="en">No account</span></b><span data-l="es">Iniciar sesión es opcional, siempre.</span><span data-l="en">Signing in is always optional.</span></div>
+      <div class="fact"><b>Android · Windows · Linux</b><span data-l="es">La misma app en el teléfono y la PC.</span><span data-l="en">The same app on your phone and PC.</span></div>
+    </section>
+
+    <h2><span data-l="es">Instalar en Android, en 3 pasos</span><span data-l="en">Install on Android in 3 steps</span></h2>
+    <div class="steps">
+      <div class="step">
+        <img src="img/paso-1.webp" width="360" height="640" loading="lazy" alt="">
+        <b>1</b> <span data-l="es">Toca «Descargar Kiji» y abre el archivo <code>Kiji-Player.apk</code>.</span>
+        <span data-l="en">Tap “Download Kiji” and open the <code>Kiji-Player.apk</code> file.</span>
+      </div>
+      <div class="step">
+        <img src="img/paso-2.webp" width="360" height="640" loading="lazy" alt="">
+        <b>2</b> <span data-l="es">Permite instalar desde el navegador y toca «Instalar». Si aparece Play Protect, mira la pregunta de abajo.</span>
+        <span data-l="en">Allow installs from your browser and tap “Install”. If Play Protect shows up, see the question below.</span>
+      </div>
+      <div class="step">
+        <img src="img/paso-3.webp" width="360" height="640" loading="lazy" alt="">
+        <b>3</b> <span data-l="es">Abre Kiji y elige tu estilo. Listo: sin cuenta, sin anuncios.</span>
+        <span data-l="en">Open Kiji and pick your style. Done: no account, no ads.</span>
+      </div>
+    </div>
+
+    <h2><span data-l="es">Preguntas frecuentes</span><span data-l="en">FAQ</span></h2>
+    <details>
+      <summary><span data-l="es">¿Es seguro?</span><span data-l="en">Is it safe?</span></summary>
+      <p data-l="es">Sí. Kiji es software libre (GPL-3.0): todo el código está publicado y se compila en GitHub a la vista de todos. No tiene anuncios, ni rastreadores, ni analíticas. Cada versión se firma siempre con la misma clave, así Android solo acepta actualizaciones del mismo autor.</p>
+      <p data-l="en">Yes. Kiji is free software (GPL-3.0): all the code is published and built on GitHub in the open. It has no ads, trackers or analytics. Every release is always signed with the same key, so Android only accepts updates from the same author.</p>
+    </details>
+    <details>
+      <summary><span data-l="es">Play Protect dice que la app es desconocida</span><span data-l="en">Play Protect says the app is unknown</span></summary>
+      <p data-l="es">Aparece con las apps que no vienen de Google Play. Toca «Más detalles» y luego «Instalar de todas formas». Kiji no está en Google Play porque no usa sus servicios ni sus pagos.</p>
+      <p data-l="en">It shows up for apps that don't come from Google Play. Tap “More details” and then “Install anyway”. Kiji isn't on Google Play because it doesn't use its services or payments.</p>
+    </details>
+    <details>
+      <summary><span data-l="es">Windows muestra «Windows protegió tu PC»</span><span data-l="en">Windows shows “Windows protected your PC”</span></summary>
+      <p data-l="es">Es el aviso de SmartScreen para instaladores nuevos. Toca «Más información» y «Ejecutar de todas formas».</p>
+      <p data-l="en">That's SmartScreen's warning for new installers. Click “More info” and “Run anyway”.</p>
+    </details>
+    <details>
+      <summary><span data-l="es">¿Cómo actualizo?</span><span data-l="en">How do I update?</span></summary>
+      <p data-l="es">Kiji te avisa cuando hay una versión nueva (lo puedes apagar). Descárgala desde aquí e instálala encima: tus playlists y ajustes se quedan. También puedes usar Obtainium con el enlace de GitHub.</p>
+      <p data-l="en">Kiji lets you know when there's a new version (you can turn this off). Download it here and install it over the old one: your playlists and settings stay. You can also use Obtainium with the GitHub link.</p>
+    </details>
+    <details>
+      <summary><span data-l="es">¿Y en Linux?</span><span data-l="en">What about Linux?</span></summary>
+      <p data-l="es">Descarga el .tar.gz, descomprímelo y abre <code>kiji_player</code>. Necesitas mpv (libmpv) instalado.</p>
+      <p data-l="en">Download the .tar.gz, extract it and run <code>kiji_player</code>. You need mpv (libmpv) installed.</p>
+    </details>
+
+    <footer>
+      Kiji Player · GPL-3.0 · <a href="https://github.com/kijiplayer/kiji-player">GitHub</a><br>
+      <span data-l="es">Esta página no usa cookies ni analíticas.</span><span data-l="en">This page uses no cookies or analytics.</span>
+    </footer>
+  </div>
+
+  <script>
+    // Idioma: el del navegador (sin guardar nada); el botón cambia entre español e inglés.
+    (function () {
+      var root = document.documentElement;
+      var lang = (navigator.language || 'es').toLowerCase().indexOf('es') === 0 ? 'es' : 'en';
+      var button = document.getElementById('lang');
+      function setLang(l) {
+        root.lang = l;
+        button.textContent = l === 'es' ? 'English' : 'Español';
+        updateOs();
+      }
+      // Sistema: el botón grande baja directo lo que corresponde (siempre la última versión).
+      var base = 'https://github.com/kijiplayer/kiji-player/releases/latest/download/';
+      function updateOs() {
+        var ua = navigator.userAgent;
+        var link = document.getElementById('download');
+        var os = document.getElementById('download-os');
+        var es = root.lang === 'es';
+        if (/android/i.test(ua)) {
+          link.href = base + 'Kiji-Player.apk';
+          os.textContent = es ? 'Para Android · APK' : 'For Android · APK';
+        } else if (/windows/i.test(ua)) {
+          link.href = base + 'Kiji-Player-Windows-Setup.exe';
+          os.textContent = es ? 'Para Windows · instalador' : 'For Windows · installer';
+        } else if (/linux/i.test(ua)) {
+          link.href = base + 'Kiji-Player-Linux-x86_64.tar.gz';
+          os.textContent = es ? 'Para Linux · .tar.gz' : 'For Linux · .tar.gz';
+        } else {
+          link.href = 'https://github.com/kijiplayer/kiji-player/releases/latest';
+          os.textContent = es ? 'Elige tu plataforma' : 'Pick your platform';
+        }
+      }
+      button.addEventListener('click', function () { setLang(root.lang === 'es' ? 'en' : 'es'); });
+      setLang(lang);
+    })();
+  </script>
+</body>
+</html>
