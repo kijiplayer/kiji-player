@@ -3,7 +3,7 @@ import '../../../models/track.dart';
 /// De dónde sale la música guardada en el dispositivo.
 ///
 /// Es una interfaz: en Android se lee del MediaStore
-/// (`on_audio_query`, que no existe en PC); en Windows/Linux, de las carpetas
+/// (canal propio `kiji/media`, que no existe en PC); en Windows/Linux, de las carpetas
 /// que elige el usuario. Implementaciones en `data/`.
 abstract interface class LocalLibrarySource {
   /// true si la música sale de carpetas elegidas por el usuario (PC). La

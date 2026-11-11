@@ -37,7 +37,6 @@ dependencies:
   media_kit_libs_linux: ^1.2.1
 
   # Biblioteca local y archivos.
-  on_audio_query: ^2.9.0
   audio_metadata_reader: ^1.8.1
   permission_handler: ^11.3.1
   path_provider: ^2.1.6

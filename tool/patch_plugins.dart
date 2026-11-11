@@ -3,6 +3,10 @@
 // no hace nada.
 //
 // on_audio_query_android 1.1.0: le falta `namespace` y pide compileSdk 33 con Java 1.8.
+//
+// Desde la 0.8.0 Kiji ya no usa on_audio_query (consulta propia al MediaStore, MediaLibrary.kt) y
+// este parche no hace falta. Queda solo para volver a compilar las versiones 0.7.0 y anteriores
+// (docs/REPRODUCIBLE_BUILDS.md).
 
 import 'dart:convert';
 import 'dart:io';

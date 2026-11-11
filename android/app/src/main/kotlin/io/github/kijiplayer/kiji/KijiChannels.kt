@@ -44,6 +44,9 @@ object KijiChannels {
         // Refuerzo de bajos y reverb de "Sonido" (SoundEffects.kt).
         SoundEffects.register(messenger)
 
+        // La música del teléfono (MediaStore), sin plugins de terceros (MediaLibrary.kt).
+        MediaLibrary.register(app, messenger)
+
         // Datos del equipo para el modo alto rendimiento. Sin pantalla no hay ventana para cambiar
         // la frecuencia: MainActivity reemplaza este canal al abrirse.
         MethodChannel(messenger, "kiji/display").setMethodCallHandler { call, result ->

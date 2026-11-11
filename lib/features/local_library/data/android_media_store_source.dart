@@ -6,7 +6,7 @@ import 'local_library_service.dart';
 import 'local_scan_store.dart';
 import 'local_scanner.dart';
 
-/// Android: la lista sale de la biblioteca del sistema (MediaStore, mediante `on_audio_query`),
+/// Android: la lista sale de la biblioteca del sistema (MediaStore, por el canal propio `kiji/media`),
 /// con su fecha de agregado; los datos completos y la portada, de cada archivo (con caché: solo
 /// se leen los nuevos o cambiados). Si un archivo no se puede leer, queda lo del MediaStore.
 class AndroidMediaStoreSource implements LocalLibrarySource {
