@@ -86,25 +86,19 @@ jobs:
 
   linux:
     name: Compilar Linux
-    # 22.04: la última con WebKit WPE en sus paquetes (y el .tar.gz anda en más distribuciones).
-    runs-on: ubuntu-22.04
+    # flutter_inappwebview_linux necesita WebKit WPE 2.0 (libsoup3), que ninguna Ubuntu trae en apt:
+    # se compila en un contenedor de Debian 13 (trixie), que sí la trae.
+    runs-on: ubuntu-latest
+    container: debian:trixie
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
-      - name: Librerías del sistema (GTK, mpv, WebKit WPE, bandeja y atajos)
+      - name: Librerías del sistema (GTK, mpv, WebKit WPE 2.0, bandeja y atajos)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev \
-            libmpv-dev libepoxy-dev libayatana-appindicator3-dev libkeybinder-3.0-dev
-          # WebKit WPE (el visor web del solucionador de YouTube): el nombre cambia según la versión
-          # de Ubuntu; se instala el primero que exista.
-          apt-cache search --names-only 'wpe' | grep -i dev || true
-          for pkg in libwpewebkit-2.0-dev libwpewebkit-1.1-dev libwpewebkit-1.0-dev; do
-            if sudo apt-get install -y "$pkg"; then echo "WPE: $pkg"; break; fi
-          done
-          for pkg in libwpe-platform-2.0-dev libwpebackend-fdo-1.0-dev; do
-            sudo apt-get install -y "$pkg" && echo "WPE backend: $pkg" || true
-          done
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git unzip xz-utils zip jq file             clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libepoxy-dev             libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libwayland-dev             libwpewebkit-2.0-dev libwpebackend-fdo-1.0-dev
+          apt-get install -y --no-install-recommends libwpe-platform-2.0-dev || true
+          git config --global --add safe.directory '*'
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -112,7 +106,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Linux release
-        # flutter_inappwebview_linux pide una opción del clang 20 que el de 22.04 no conoce.
+        # flutter_inappwebview_linux pide opciones de un clang más nuevo: que no frenen la compilación.
         env:
           CXXFLAGS: -Wno-unknown-warning-option
         run: flutter build linux --release
