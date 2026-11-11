@@ -87,9 +87,9 @@ jobs:
   linux:
     name: Compilar Linux
     # flutter_inappwebview_linux necesita WebKit WPE 2.0 (libsoup3), que ninguna Ubuntu trae en apt:
-    # se compila en un contenedor de Debian 13 (trixie), que sí la trae.
+    # se compila en un contenedor de Debian forky (testing): trixie trae la 2.48 y el plugin usa API de la 2.50.
     runs-on: ubuntu-latest
-    container: debian:trixie
+    container: debian:forky
     timeout-minutes: 45
     steps:
       - name: Librerías del sistema (GTK, mpv, WebKit WPE 2.0, bandeja y atajos)
