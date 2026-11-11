@@ -800,6 +800,9 @@ class LibraryTabs extends StatelessWidget {
           child: AnimatedContainer(
             duration: KijiMotion.fast,
             padding: EdgeInsets.symmetric(horizontal: pill ? 14 : 4, vertical: 9),
+            // Fácil de tocar: 48 px de alto como mínimo.
+            constraints: const BoxConstraints(minHeight: 48),
+            alignment: Alignment.center,
             margin: EdgeInsets.only(right: pill ? 2 : 18),
             decoration: pill
                 ? BoxDecoration(
