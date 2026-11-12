@@ -352,6 +352,25 @@ abstract final class KijiColors {
   /// El "me gusta".
   static Color get like => palette.like ?? palette.violet;
 
+  /// Reacciones de teatro: el tomate (rojo en Nocturne, el rojo tinta en Papel, blanco y negro en
+  /// Grafito), su hojita y el brillo, según el estilo.
+  static Color get theaterTomato => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFD7262E),
+    KijiStyle.paper => const Color(0xFFB4462B),
+    KijiStyle.graphite => palette.text,
+  };
+  static Color get theaterLeaf => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFF2E9B3A),
+    KijiStyle.paper => const Color(0xFF4F6B3A),
+    KijiStyle.graphite => palette.muted,
+  };
+
+  /// Un brillo claro sobre [c] (el reflejo del tomate).
+  static Color shine(Color c) => Color.lerp(c, const Color(0xFFFFFFFF), 0.6)!.withValues(alpha: 0.35);
+
+  /// [c] más oscuro (el centro de la rosa).
+  static Color shade(Color c) => Color.lerp(c, const Color(0xFF000000), 0.25)!;
+
   static LinearGradient get accentGradient =>
       LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [violet, cyan]);
 

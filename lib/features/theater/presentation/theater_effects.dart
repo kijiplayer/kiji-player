@@ -352,7 +352,8 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
                     flyers: List.of(_flyers),
                     stains: List.of(_stains),
                     now: _now,
-                    tomato: const Color(0xFFD7262E),
+                    tomato: KijiColors.theaterTomato,
+                    leaf: KijiColors.theaterLeaf,
                     rose: KijiColors.like,
                   ),
                 ),
@@ -370,6 +371,7 @@ class _TheaterPainter extends CustomPainter {
     required this.stains,
     required this.now,
     required this.tomato,
+    required this.leaf,
     required this.rose,
   });
 
@@ -377,6 +379,7 @@ class _TheaterPainter extends CustomPainter {
   final List<_Stain> stains;
   final Duration now;
   final Color tomato;
+  final Color leaf;
   final Color rose;
 
   @override
@@ -425,9 +428,9 @@ class _TheaterPainter extends CustomPainter {
         canvas.drawCircle(
           pos - Offset(r * 0.35, r * 0.35),
           r * 0.3,
-          Paint()..color = Colors.white.withValues(alpha: 0.25),
+          Paint()..color = KijiColors.shine(tomato),
         );
-        canvas.drawCircle(pos - Offset(0, r * 0.95), r * 0.28, Paint()..color = const Color(0xFF2E9B3A));
+        canvas.drawCircle(pos - Offset(0, r * 0.95), r * 0.28, Paint()..color = leaf);
       } else {
         // Rosas que suben girando y se desvanecen al final.
         final pos = Offset.lerp(
@@ -448,7 +451,7 @@ class _TheaterPainter extends CustomPainter {
         canvas.drawCircle(
           Offset.zero,
           r * 0.45,
-          Paint()..color = Color.lerp(rose, Colors.black, 0.25)!.withValues(alpha: alpha),
+          Paint()..color = KijiColors.shade(rose).withValues(alpha: alpha),
         );
         canvas.restore();
       }
