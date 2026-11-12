@@ -170,7 +170,7 @@ class _KaraokePainter extends CustomPainter {
     required this.sung,
     required this.direction,
   }) : super(repaint: sung) {
-    final colors = karaokeColors(style.color ?? Colors.white);
+    final colors = karaokeColors(style.color ?? KijiColors.text);
     _unsung = _layout(style.copyWith(color: colors.unsung));
     _from = colors.from;
     _to = colors.to;
@@ -240,6 +240,7 @@ class _KaraokePainter extends CustomPainter {
         fade,
         Paint()
           ..blendMode = BlendMode.dstIn
+          // Máscara de transparencia (dstIn): solo cuenta el alfa, no es un color que se vea.
           ..shader = const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)]).createShader(fade),
       );
     }
