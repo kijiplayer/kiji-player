@@ -95,6 +95,8 @@ void main() {
     expect(second.read(playlistsProvider), hasLength(1));
     second.read(playlistsProvider.notifier).restore(removed.$1, removed.$2);
     expect(second.read(playlistsProvider).first.name, 'Rock clásico');
+    // Que termine de guardar antes de borrar la carpeta (si no, el borrado choca con la escritura).
+    await second.read(playlistsProvider.notifier).flush();
   });
 
   group('Listas inteligentes', () {
