@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Biblioteca local: Android 13+ usa READ_MEDIA_AUDIO; versiones
          previas usan READ_EXTERNAL_STORAGE (limitado con maxSdkVersion). -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -13,6 +14,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Abre el pedido del sistema "quitar la optimización de batería" (solo si la persona acepta). -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- WorkManager (la prueba diaria del extractor) pide "al encender el teléfono" para reprogramar
+         sus tareas. Kiji ya la vuelve a programar cada vez que se abre, así que no hace falta: nada
+         de Kiji se despierta al encender el teléfono. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
 
     <application
         android:label="${appName}"
