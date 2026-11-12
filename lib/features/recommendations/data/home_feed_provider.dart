@@ -70,7 +70,7 @@ final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
         if (result.every((r) => r == ConnectivityResult.none)) return;
         unawaited(waiting?.cancel());
         ref.invalidateSelf();
-      }, onError: (Object _) {});
+      }, onError: (Object error) => debugPrint('=== INICIO: no se puede seguir la conexión (${error.runtimeType}) ==='));
       ref.onDispose(() => waiting?.cancel());
     }
   }

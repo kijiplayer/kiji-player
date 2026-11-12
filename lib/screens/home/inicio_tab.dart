@@ -99,7 +99,10 @@ class InicioTab extends ConsumerWidget {
       onRefresh: () async {
         refreshHomeFeed(ref);
         if (isNew) ref.invalidate(moodsProvider);
-        await ref.read(homeFeedProvider.future).catchError((Object _) => const HomeFeed());
+        await ref.read(homeFeedProvider.future).catchError((Object error) {
+          debugPrint('=== INICIO: no se pudo actualizar (${error.runtimeType}) ===');
+          return const HomeFeed();
+        });
       },
       child: StaggerScope(
         child: ListView(

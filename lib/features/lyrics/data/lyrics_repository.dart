@@ -220,7 +220,7 @@ class LyricsRepository {
                 withWords.complete(lyrics);
               }
             })
-            .catchError((Object _) {})
+            .catchError((Object error) => debugPrint('=== LETRAS: ${f.source.label} no respondió (${error.runtimeType}) ==='))
             .whenComplete(() {
               if (--pending == 0 && !withWords.isCompleted) withWords.complete(null);
             }),
