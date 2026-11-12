@@ -7,6 +7,8 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../utils/secret_store.dart';
+import '../../settings/data/settings_store.dart';
+import 'yt_sync.dart';
 import '../domain/yt_session.dart';
 import '../../../models/track.dart';
 
@@ -62,6 +64,16 @@ class AccountNotifier extends Notifier<YtSession?> {
       debugPrint('=== CUENTA: no se pudieron borrar las cookies de la WebView (${error.runtimeType}) ===');
     }
     await _apply(null);
+    // Lo leído de la cuenta (Me gusta y playlists) también se borra y la sincronización se apaga:
+    // sin sesión no queda nada de la cuenta en Kiji.
+    try {
+      await ref.read(ytSyncProvider.notifier).forget();
+      if (ref.read(settingsProvider).ytSync) {
+        await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytSync: false));
+      }
+    } catch (error) {
+      debugPrint('=== CUENTA: no se pudo borrar lo leído de la cuenta (${error.runtimeType}) ===');
+    }
     debugPrint('=== CUENTA: sesión cerrada y borrada ===');
   }
 

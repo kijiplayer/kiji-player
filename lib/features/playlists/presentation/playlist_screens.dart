@@ -21,6 +21,7 @@ import '../../moments/data/moments_store.dart';
 import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
+import '../../account/data/account_store.dart';
 import '../../account/data/yt_sync.dart';
 import '../../local_library/domain/local_groups.dart' show LocalGroup;
 import '../../local_library/presentation/local_group_screen.dart';
@@ -257,7 +258,10 @@ class PlaylistsView extends ConsumerWidget {
         // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
         ...() {
           final sync = ref.watch(ytSyncProvider);
-          if (sync.isEmpty || !ref.watch(settingsProvider.select((s) => s.ytSync))) return const <Widget>[];
+          // Solo con la sesión iniciada: al cerrarla, la sección se va al momento.
+          if (sync.isEmpty || ref.watch(accountProvider) == null || !ref.watch(settingsProvider.select((s) => s.ytSync))) {
+            return const <Widget>[];
+          }
           LocalGroup group(String key, String name, List<Track> tracks) =>
               LocalGroup(key: key, name: name, tracks: tracks);
           return <Widget>[

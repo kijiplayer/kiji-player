@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:kiji_player/features/account/data/account_store.dart';
 import 'package:kiji_player/features/account/data/yt_sync.dart';
 import 'package:kiji_player/features/account/domain/yt_session.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
+import 'package:kiji_player/utils/secret_store.dart';
 
 // Páginas inventadas con la forma de YouTube Music (datos inventados).
 Map<String, dynamic> _flex(String text) => {
@@ -74,6 +76,24 @@ class _Settings extends SettingsNotifier {
   final AppSettings initial;
   @override
   AppSettings build() => initial;
+  @override
+  Future<void> update(AppSettings Function(AppSettings) change) async => state = change(state);
+}
+
+class _MemorySecrets implements SecretStore {
+  final values = <String, String>{};
+  @override
+  bool get isSupported => true;
+  @override
+  Future<String?> read(String name) async => values[name];
+  @override
+  Future<bool> write(String name, String value) async {
+    values[name] = value;
+    return true;
+  }
+
+  @override
+  Future<void> delete(String name) async => values.remove(name);
 }
 
 void main() {
@@ -120,6 +140,26 @@ void main() {
     await c.read(ytSyncProvider.notifier).forget();
     expect(c.read(ytSyncProvider).isEmpty, isTrue);
     expect(File(p.join(dir.path, 'yt_sync.json')).existsSync(), isFalse);
+  });
+
+  test('Cerrar sesión borra lo leído de la cuenta y apaga la sincronización', () async {
+    final reader = _Reader();
+    final c = ProviderContainer(overrides: [
+      ytAccountReaderProvider.overrideWithValue(reader),
+      settingsProvider.overrideWith(() => _Settings(const AppSettings(ytSync: true))),
+      ytSyncProvider.overrideWith(() => YtSyncNotifier(directory: () async => dir)),
+      accountProvider.overrideWith(() => AccountNotifier(secrets: _MemorySecrets())),
+    ]);
+    addTearDown(c.dispose);
+    await c.read(accountProvider.notifier).loaded;
+    expect(await c.read(accountProvider.notifier).signIn(const YtSession(cookie: 'SAPISID=inventada')), isTrue);
+    expect(await c.read(ytSyncProvider.notifier).syncNow(), isTrue);
+    expect(c.read(ytSyncProvider).isEmpty, isFalse);
+
+    await c.read(accountProvider.notifier).signOut();
+    expect(c.read(ytSyncProvider).isEmpty, isTrue, reason: 'nada de la cuenta en la Biblioteca');
+    expect(File(p.join(dir.path, 'yt_sync.json')).existsSync(), isFalse);
+    expect(c.read(settingsProvider).ytSync, isFalse);
   });
 
   test('Si la sesión vence (401), sigue como invitado sin romper nada', () async {
