@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kiji Player · Descargar</title>
-  <meta name="description" content="Kiji Player: reproductor de música libre (GPL-3.0), sin anuncios, sin pagos y sin telemetría. Música local y YouTube Music. Android, Windows y Linux.">
+  <meta name="description" content="Kiji Player: reproductor de música libre (GPL-3.0), sin anuncios, sin pagos y sin telemetría. Música local y YouTube Music. Android y Windows (Linux, próximamente).">
   <!-- Sin analíticas, sin cookies y sin nada de terceros: esta página no guarda ni manda datos. -->
   <style>
     :root {
@@ -33,7 +33,8 @@
       padding: 18px 40px; font-size: 20px; font-weight: 700; box-shadow: 0 10px 40px rgba(124, 92, 255, .35); }
     .download small { font-weight: 500; font-size: 13px; opacity: .85; }
     .others { margin-top: 16px; color: var(--muted); font-size: 14px; }
-    .others a { margin: 0 6px; }
+    .others a, .others .soon { margin: 0 6px; }
+    .others .soon { white-space: nowrap; }
     .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 14px; margin: 40px 0; }
     .fact { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
     .fact b { display: block; font-size: 17px; margin-bottom: 4px; }
@@ -78,7 +79,7 @@
         <span data-l="es">Otras plataformas:</span><span data-l="en">Other platforms:</span>
         <a href="https://github.com/kijiplayer/kiji-player/releases/latest/download/Kiji-Player.apk">Android (.apk)</a>
         <a href="https://github.com/kijiplayer/kiji-player/releases/latest/download/Kiji-Player-Windows-Setup.exe">Windows</a>
-        <a href="https://github.com/kijiplayer/kiji-player/releases/latest/download/Kiji-Player-Linux-x86_64.tar.gz">Linux (.tar.gz)</a>
+        <span class="soon">Linux · <span data-l="es">próximamente</span><span data-l="en">coming soon</span></span>
         <a href="https://github.com/kijiplayer/kiji-player/releases/latest"><span data-l="es">todas las versiones</span><span data-l="en">all versions</span></a>
       </p>
     </section>
@@ -87,7 +88,7 @@
       <div class="fact"><b>GPL-3.0</b><span data-l="es">Código abierto: cualquiera puede revisarlo.</span><span data-l="en">Open source: anyone can review it.</span></div>
       <div class="fact"><b><span data-l="es">Sin telemetría</span><span data-l="en">No telemetry</span></b><span data-l="es">Sin analíticas ni servidores propios.</span><span data-l="en">No analytics and no servers of our own.</span></div>
       <div class="fact"><b><span data-l="es">Sin cuenta</span><span data-l="en">No account</span></b><span data-l="es">Iniciar sesión es opcional, siempre.</span><span data-l="en">Signing in is always optional.</span></div>
-      <div class="fact"><b>Android · Windows · Linux</b><span data-l="es">La misma app en el teléfono y la PC.</span><span data-l="en">The same app on your phone and PC.</span></div>
+      <div class="fact"><b>Android · Windows</b><span data-l="es">La misma app en el teléfono y la PC. Linux, próximamente.</span><span data-l="en">The same app on your phone and PC. Linux coming soon.</span></div>
     </section>
 
     <h2><span data-l="es">Instalar en Android, en 3 pasos</span><span data-l="en">Install on Android in 3 steps</span></h2>
@@ -132,8 +133,8 @@
     </details>
     <details>
       <summary><span data-l="es">¿Y en Linux?</span><span data-l="en">What about Linux?</span></summary>
-      <p data-l="es">Descarga el .tar.gz, descomprímelo y abre <code>kiji_player</code>. Por ahora necesitas una distribución muy reciente con mpv (libmpv) y WPE WebKit 2.50 o más (por ejemplo Arch o Debian testing). En Ubuntu todavía no anda.</p>
-      <p data-l="en">Download the .tar.gz, extract it and run <code>kiji_player</code>. For now you need a very recent distribution with mpv (libmpv) and WPE WebKit 2.50 or newer (for example Arch or Debian testing). It does not work on Ubuntu yet.</p>
+      <p data-l="es">Próximamente. La versión para Linux todavía no está lista; cuando lo esté, va a aparecer aquí y en la página de versiones.</p>
+      <p data-l="en">Coming soon. The Linux version isn't ready yet; when it is, it will show up here and on the releases page.</p>
     </details>
 
     <footer>
@@ -167,8 +168,9 @@
           link.href = base + 'Kiji-Player-Windows-Setup.exe';
           os.textContent = es ? 'Para Windows · instalador' : 'For Windows · installer';
         } else if (/linux/i.test(ua)) {
-          link.href = base + 'Kiji-Player-Linux-x86_64.tar.gz';
-          os.textContent = es ? 'Para Linux · .tar.gz' : 'For Linux · .tar.gz';
+          // Linux todavía no tiene versión: la página de versiones, con el aviso.
+          link.href = 'https://github.com/kijiplayer/kiji-player/releases/latest';
+          os.textContent = es ? 'Linux, próximamente · otras plataformas' : 'Linux coming soon · other platforms';
         } else {
           link.href = 'https://github.com/kijiplayer/kiji-player/releases/latest';
           os.textContent = es ? 'Elige tu plataforma' : 'Pick your platform';
