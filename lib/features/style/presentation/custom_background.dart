@@ -131,7 +131,8 @@ class _VideoBackgroundState extends ConsumerState<_VideoBackground> with Widgets
   }
 
   Future<void> _open() async {
-    final controller = VideoPlayerController.file(widget.file);
+    // mixWithOthers: el video (mudo) no pide el foco de audio; si lo pidiera, Android pausaría la música.
+    final controller = VideoPlayerController.file(widget.file, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
     try {
       await controller.initialize();
       await controller.setVolume(0);
