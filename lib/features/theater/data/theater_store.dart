@@ -113,6 +113,20 @@ class TheaterState {
           .take(count)
           .toList();
 
+  /// "Canción más odiada del mes": la de más tomates entre las que recibieron alguno en el mes de
+  /// [now]. null si en el mes no voló ninguno.
+  TheaterEntry? mostHatedOfMonth(DateTime now) {
+    TheaterEntry? best;
+    for (final e in songs.values) {
+      final last = e.lastTomatoMs;
+      if (last == null || e.tomatoes == 0) continue;
+      final when = DateTime.fromMillisecondsSinceEpoch(last);
+      if (when.year != now.year || when.month != now.month) continue;
+      if (best == null || e.tomatoes > best.tomatoes) best = e;
+    }
+    return best;
+  }
+
   /// El artista con más tomates (y cuántos), o null.
   (String, int)? get mostBooedArtist {
     final byArtist = <String, int>{};

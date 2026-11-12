@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -202,6 +203,35 @@ void main() {
     expect(again.read(theaterProvider).totalTomatoes, 22);
   });
 
+  test('El cartel de Tu Teatro se lee en los tres estilos (4,5:1 o más)', () {
+    double ratio(Color a, Color b) {
+      final la = a.computeLuminance(), lb = b.computeLuminance();
+      return (max(la, lb) + 0.05) / (min(la, lb) + 0.05);
+    }
+
+    addTearDown(() => KijiLook.style = KijiStyle.nocturne);
+    for (final style in KijiStyle.values) {
+      KijiLook.style = style;
+      expect(ratio(KijiColors.theaterPosterInk, KijiColors.theaterPosterPaper), greaterThanOrEqualTo(4.5), reason: '${style.name}: tinta');
+      expect(ratio(KijiColors.theaterPosterAccent, KijiColors.theaterPosterPaper), greaterThanOrEqualTo(4.5), reason: '${style.name}: dorado/rojo');
+    }
+  });
+
+  test('Premio «más odiada del mes»: solo cuenta lo de este mes', () async {
+    var now = DateTime(2026, 10, 20);
+    final c = make(clock: () => now);
+    await c.read(theaterProvider.notifier).loaded;
+    final n = c.read(theaterProvider.notifier);
+    for (var i = 0; i < 4; i++) {
+      n.tomato(_t('vieja'));
+    }
+    now = DateTime(2026, 11, 3);
+    n.tomato(_t('nueva'));
+    n.tomato(_t('nueva'));
+    expect(c.read(theaterProvider).mostHatedOfMonth(DateTime(2026, 11, 12))?.id, 'yt-nueva');
+    expect(c.read(theaterProvider).mostHatedOfMonth(DateTime(2026, 12, 1)), isNull);
+  });
+
   test('Inicio no recomienda una canción abucheada', () {
     final booed = _t('mala'), ok = _t('buena');
     final feed = HomeFeedLogic.build(
@@ -279,10 +309,13 @@ void main() {
       await tester.pumpWidget(UncontrolledProviderScope(container: c, child: const MaterialApp(home: TheaterScreen())));
       await tester.pump();
       expect(tester.takeException(), isNull);
-      expect(find.text('Top Tomateadas'), findsOneWidget);
-      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
-      await tester.pumpAndSettle();
-      expect(find.text('Top Aplaudidas'), findsOneWidget);
+      expect(find.text('EN CARTELERA'), findsOneWidget);
+      for (final title in ['LAS MÁS ABUCHEADAS DE LA TEMPORADA', 'TOP APLAUDIDAS', 'LOS PREMIOS DEL PÚBLICO']) {
+        await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
+        await tester.pumpAndSettle();
+        expect(find.text(title), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
       await tester.pumpWidget(const SizedBox());
     });
   }

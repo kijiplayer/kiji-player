@@ -387,6 +387,26 @@ abstract final class KijiColors {
     _ => [palette.violet, palette.cyan, like, theaterGold, theaterTomato],
   };
 
+  /// El cartel de "Tu Teatro" (como uno de teatro antiguo): el papel y la tinta, según el estilo.
+  /// La tinta sobre el papel siempre con 4,5:1 o más (test/theater_test.dart).
+  static Color get theaterPosterPaper => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFF2A0D14),
+    KijiStyle.paper => const Color(0xFFF3E7CC),
+    KijiStyle.graphite => const Color(0xFF161618),
+  };
+  static Color get theaterPosterInk => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFF6E9CC),
+    KijiStyle.paper => const Color(0xFF2B211A),
+    KijiStyle.graphite => const Color(0xFFF2F2F2),
+  };
+
+  /// Lo destacado del cartel (títulos, puestos, adornos): dorado en Nocturne, rojo tinta en Papel.
+  static Color get theaterPosterAccent => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFE8C26A),
+    KijiStyle.paper => const Color(0xFF8E2A1E),
+    KijiStyle.graphite => const Color(0xFFFFFFFF),
+  };
+
   /// Un brillo claro sobre [c] (el reflejo del tomate).
   static Color shine(Color c) => Color.lerp(c, const Color(0xFFFFFFFF), 0.6)!.withValues(alpha: 0.35);
 
@@ -551,6 +571,16 @@ abstract final class KijiText {
   /// El resto del texto: el del sistema en Nocturne; Inter en Grafito y Papel.
   static String? get bodyFamily =>
       useSystemFont ? null : (chosenFamily ?? (KijiLook.nocturne ? null : inter));
+
+  /// Letra del cartel de "Tu Teatro": con serifa (Newsreader, incluida), como un cartel antiguo.
+  static TextStyle poster({double size = 28, FontWeight weight = FontWeight.w700, Color? color, double spacing = 0}) => TextStyle(
+    fontFamily: useSystemFont ? null : 'Newsreader',
+    fontSize: size,
+    fontWeight: weight,
+    height: 1.1,
+    letterSpacing: spacing,
+    color: color ?? KijiColors.theaterPosterInk,
+  );
 
   static TextStyle title({double size = 20, FontWeight weight = FontWeight.w700, Color? color}) => TextStyle(
     fontFamily: titleFamily,
