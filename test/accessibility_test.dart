@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,6 +19,7 @@ import 'package:kiji_player/models/track.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
 import 'package:kiji_player/screens/player/player_screen.dart';
 import 'package:kiji_player/theme/kiji_tokens.dart';
+import 'package:kiji_player/widgets/nocturne/glass.dart';
 
 // Datos inventados.
 const _track = Track(
@@ -81,6 +83,24 @@ void main() {
     );
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    handle.dispose();
+  });
+
+  testWidgets('Los botones redondos (como el engranaje de Inicio) se pueden tocar con TalkBack', (tester) async {
+    final handle = tester.ensureSemantics();
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(child: GlassIconButton(icon: Icons.settings_outlined, tooltip: 'Configuración', onPressed: () => taps++)),
+        ),
+      ),
+    );
+    final node = tester.getSemantics(find.byType(GlassIconButton));
+    expect(node.label, 'Configuración');
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue, reason: 'sin esto TalkBack no lo puede tocar');
+    tester.semantics.tap(find.semantics.byLabel('Configuración'));
+    expect(taps, 1);
     handle.dispose();
   });
 

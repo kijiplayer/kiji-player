@@ -165,6 +165,8 @@ class GlassIconButton extends StatelessWidget {
       button: true,
       enabled: onPressed != null,
       label: label ?? tooltip,
+      // La acción va acá: con excludeSemantics, la del InkWell no llega y TalkBack no podría tocarlo.
+      onTap: onPressed,
       excludeSemantics: true,
       child: Tooltip(
         message: tooltip,
