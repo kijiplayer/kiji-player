@@ -4862,4 +4862,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ningunaCarpetaExcluida =>
       'No excluded folders: all music on the device is read.';
+
+  @override
+  String copiaExportadaPesa(String size) {
+    return 'This backup is $size because it includes your backgrounds (videos too). Save it?';
+  }
 }

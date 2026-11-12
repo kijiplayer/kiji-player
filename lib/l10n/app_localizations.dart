@@ -7870,6 +7870,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ninguna carpeta excluida: se lee toda la música del dispositivo.'**
   String get ningunaCarpetaExcluida;
+
+  /// Aviso antes de exportar una copia grande
+  ///
+  /// In es, this message translates to:
+  /// **'Esta copia pesa {size} porque incluye tus fondos (también los videos). ¿Guardarla?'**
+  String copiaExportadaPesa(String size);
 }
 
 class _AppLocalizationsDelegate

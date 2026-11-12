@@ -4872,4 +4872,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get ningunaCarpetaExcluida =>
       'Ninguna carpeta excluida: se lee toda la música del dispositivo.';
+
+  @override
+  String copiaExportadaPesa(String size) {
+    return 'Esta copia pesa $size porque incluye tus fondos (también los videos). ¿Guardarla?';
+  }
 }

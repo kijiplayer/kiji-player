@@ -1312,5 +1312,6 @@
   "nombreDeLaCarpeta": "Folder name",
   "agregar": "Add",
   "volverALasDeFabrica": "Restore defaults",
-  "ningunaCarpetaExcluida": "No excluded folders: all music on the device is read."
+  "ningunaCarpetaExcluida": "No excluded folders: all music on the device is read.",
+  "copiaExportadaPesa": "This backup is {size} because it includes your backgrounds (videos too). Save it?"
 }

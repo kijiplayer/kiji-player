@@ -142,7 +142,7 @@ class BackupNotifier extends Notifier<BackupState> {
   Future<(String, List<int>)> exportBytes() async {
     final temp = Directory(p.join((await getTemporaryDirectory()).path, 'kiji-exportar'));
     if (await temp.exists()) await temp.delete(recursive: true);
-    final file = await _service.create(temp, reason: 'exportar', now: _clock());
+    final file = await _service.create(temp, reason: 'exportar', now: _clock(), includeVideos: true);
     final bytes = await file.readAsBytes();
     await temp.delete(recursive: true);
     return (p.basename(file.path), bytes);

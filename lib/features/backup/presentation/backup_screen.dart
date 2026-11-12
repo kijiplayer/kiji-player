@@ -132,9 +132,32 @@ class BackupScreen extends ConsumerWidget {
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(message)));
 
+  /// Más que esto (fotos y videos de fondo), se pregunta antes de guardar.
+  static const exportSizeWarningBytes = 15 * 1024 * 1024;
+
   Future<void> _exportToFile(BuildContext context, WidgetRef ref) async {
     try {
       final (name, bytes) = await ref.read(backupProvider.notifier).exportBytes();
+      // Con videos de fondo puede pesar mucho: se avisa antes de guardarla.
+      if (bytes.length > exportSizeWarningBytes) {
+        if (!context.mounted) return;
+        final go = await showDialog<bool>(
+          context: context,
+          builder: (dialog) => AlertDialog(
+            title: Text(tx.exportarAUnArchivo),
+            content: Text(tx.copiaExportadaPesa(formatBytes(bytes.length))),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialog, false), child: Text(tx.cancelar)),
+              FilledButton(
+                key: const Key('backup-export-big-ok'),
+                onPressed: () => Navigator.pop(dialog, true),
+                child: Text(tx.guardar),
+              ),
+            ],
+          ),
+        );
+        if (go != true) return;
+      }
       final saved = await FilePicker.saveFile(
         dialogTitle: tx.exportarAUnArchivo,
         fileName: name,

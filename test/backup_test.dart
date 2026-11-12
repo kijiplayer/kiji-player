@@ -185,6 +185,24 @@ void main() {
       expect(File(p.join(data.path, 'theater.json')).existsSync(), isTrue);
     });
 
+    test('videos de fondo: no van en la copia diaria (sí al exportar) y restaurar no los borra', () async {
+      _fillData(data);
+      final video = File(p.join(data.path, 'backgrounds', 'fondo-video.mp4'))
+        ..parent.createSync(recursive: true)
+        ..writeAsBytesSync(List.filled(64, 7));
+      File(p.join(data.path, 'backgrounds', 'fondo-foto.png')).writeAsBytesSync([1]);
+      final daily = await service(data).create(folder, reason: 'diaria');
+      final names = ZipDecoder().decodeBytes(daily.readAsBytesSync()).files.map((f) => f.name).toList();
+      expect(names, contains('backgrounds/fondo-foto.png'));
+      expect(names, isNot(contains('backgrounds/fondo-video.mp4')));
+      final exported = await service(data).create(Directory(p.join(folder.path, 'exportar')), reason: 'exportar', includeVideos: true);
+      expect(ZipDecoder().decodeBytes(exported.readAsBytesSync()).files.map((f) => f.name), contains('backgrounds/fondo-video.mp4'));
+      // Restaurar la diaria (sin el video) deja el video donde estaba.
+      await service(data).restore(daily, safetyFolder: folder);
+      expect(video.existsSync(), isTrue);
+      expect(File(p.join(data.path, 'backgrounds', 'fondo-foto.png')).existsSync(), isTrue);
+    });
+
     test('quedan las últimas 7 copias', () async {
       _fillData(data);
       File(p.join(folder.path, 'mis-notas.txt'))

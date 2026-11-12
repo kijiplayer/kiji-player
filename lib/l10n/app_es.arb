@@ -2871,5 +2871,7 @@
   "volverALasDeFabrica": "Volver a las de fábrica",
   "@volverALasDeFabrica": {"description": "Botón: volver a la lista de carpetas excluidas de fábrica"},
   "ningunaCarpetaExcluida": "Ninguna carpeta excluida: se lee toda la música del dispositivo.",
-  "@ningunaCarpetaExcluida": {"description": "Lista vacía de carpetas excluidas"}
+  "@ningunaCarpetaExcluida": {"description": "Lista vacía de carpetas excluidas"},
+  "copiaExportadaPesa": "Esta copia pesa {size} porque incluye tus fondos (también los videos). ¿Guardarla?",
+  "@copiaExportadaPesa": {"description": "Aviso antes de exportar una copia grande", "placeholders": {"size": {"type": "String"}}}
 }
