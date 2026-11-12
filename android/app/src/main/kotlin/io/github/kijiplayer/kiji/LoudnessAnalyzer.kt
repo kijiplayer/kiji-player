@@ -27,24 +27,36 @@ object LoudnessAnalyzer {
     private val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
 
+    // "cancel" lo sube: el análisis en curso (de otra canción) se corta en el próximo bloque.
+    @Volatile private var generation = 0
+
+    private class Cancelled : Exception()
+
     fun register(messenger: BinaryMessenger) {
         MethodChannel(messenger, "kiji/loudness").setMethodCallHandler { call, result ->
+            if (call.method == "cancel") {
+                generation++
+                return@setMethodCallHandler result.success(null)
+            }
             if (call.method != "analyze") return@setMethodCallHandler result.notImplemented()
             val path = call.argument<String>("path") ?: return@setMethodCallHandler result.error("args", "sin ruta", null)
             val stepMs = call.argument<Int>("stepMs") ?: 40
+            val mine = generation
             worker.execute {
                 try {
-                    val levels = analyze(path, stepMs)
+                    val levels = analyze(path, stepMs) { generation != mine }
                     main.post { result.success(levels) }
+                } catch (e: Cancelled) {
+                    main.post { result.error("cancelada", "otra canción", null) }
                 } catch (e: Exception) {
-                    Log.w(TAG, "No se pudo analizar el volumen: ${e.javaClass.simpleName} ${e.message}")
+                    Log.w(TAG, "No se pudo analizar el volumen: ${e.javaClass.simpleName}")
                     main.post { result.error("onda", "${e.javaClass.simpleName}: ${e.message}", null) }
                 }
             }
         }
     }
 
-    private fun analyze(path: String, stepMs: Int): ByteArray {
+    private fun analyze(path: String, stepMs: Int, cancelled: () -> Boolean): ByteArray {
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
         try {
@@ -68,6 +80,7 @@ object LoudnessAnalyzer {
             var inputDone = false
             var outputDone = false
             while (!outputDone) {
+                if (cancelled()) throw Cancelled()
                 // Se llenan todas las entradas libres sin esperar: el decodificador nunca queda ocioso.
                 while (!inputDone) {
                     val index = codec.dequeueInputBuffer(0)
