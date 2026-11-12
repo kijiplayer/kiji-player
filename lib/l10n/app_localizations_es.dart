@@ -4845,4 +4845,31 @@ class AppLocalizationsEs extends AppLocalizations {
   String perdonadaVuelveARecomendarse(String title) {
     return '«$title» fue perdonada: vuelve a recomendarse.';
   }
+
+  @override
+  String get carpetasExcluidas => 'Carpetas excluidas';
+
+  @override
+  String get carpetasExcluidasDescripcion =>
+      'Las notas de voz y los audios de WhatsApp, Telegram y las grabadoras no aparecen como música. Puedes quitar o agregar carpetas.';
+
+  @override
+  String get carpetasExcluidasNota =>
+      'Un nombre (por ejemplo «WhatsApp») deja afuera cualquier carpeta que se llame así, con todo lo que tenga adentro. Los archivos con nombre de nota de voz de WhatsApp nunca son música.';
+
+  @override
+  String get agregarCarpetaPorNombre => 'Agregar por nombre';
+
+  @override
+  String get nombreDeLaCarpeta => 'Nombre de la carpeta';
+
+  @override
+  String get agregar => 'Agregar';
+
+  @override
+  String get volverALasDeFabrica => 'Volver a las de fábrica';
+
+  @override
+  String get ningunaCarpetaExcluida =>
+      'Ninguna carpeta excluida: se lee toda la música del dispositivo.';
 }

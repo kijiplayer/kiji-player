@@ -9,6 +9,7 @@ import '../../../models/track.dart';
 import '../../../utils/json_file.dart';
 import '../../../utils/startup_log.dart';
 import '../../yt_music/domain/subtitle_parser.dart';
+import '../domain/local_exclusions.dart';
 import 'local_scanner.dart';
 
 /// Cuánto tardó el último escaneo y cuántos archivos se leyeron de verdad.
@@ -44,7 +45,12 @@ class LocalScanStore {
   /// Escanea: [roots] (carpetas, PC) o [entries] (archivos ya listados, Android). Si se escaneó
   /// hace menos de 10 s se devuelve lo mismo (la Biblioteca y la búsqueda lo piden casi a la vez);
   /// [force] ("Volver a escanear") vuelve a leer todos los archivos.
-  Future<List<Track>> scan({List<String>? roots, List<ScanEntry>? entries, bool force = false}) async {
+  Future<List<Track>> scan({
+    List<String>? roots,
+    List<ScanEntry>? entries,
+    bool force = false,
+    LocalExclusions exclusions = LocalExclusions.defaults,
+  }) async {
     // Uno a la vez: si ya hay un escaneo en curso, se espera ese (dos a la vez se pisan al
     // guardar las portadas). "Volver a escanear" espera y después lee todo.
     final running = _running;
@@ -52,7 +58,7 @@ class LocalScanStore {
       final result = await running;
       if (!force) return result;
     }
-    final future = _scan(roots: roots, entries: entries, force: force);
+    final future = _scan(roots: roots, entries: entries, force: force, exclusions: exclusions);
     _running = future;
     try {
       return await future;
@@ -62,10 +68,20 @@ class LocalScanStore {
   }
 
   Future<List<Track>>? _running;
+  String? _lastExclusions;
 
-  Future<List<Track>> _scan({List<String>? roots, List<ScanEntry>? entries, required bool force}) async {
+  Future<List<Track>> _scan({
+    List<String>? roots,
+    List<ScanEntry>? entries,
+    required bool force,
+    required LocalExclusions exclusions,
+  }) async {
     final last = _last, lastAt = _lastAt;
-    if (!force && last != null && lastAt != null && DateTime.now().difference(lastAt) < const Duration(seconds: 10)) {
+    if (!force &&
+        last != null &&
+        lastAt != null &&
+        _lastExclusions == exclusions.key &&
+        DateTime.now().difference(lastAt) < const Duration(seconds: 10)) {
       return last;
     }
     final watch = Stopwatch()..start();
@@ -82,7 +98,10 @@ class LocalScanStore {
       () => Isolate.run(
         () => scanLibrary(
           ScanJob(
-            entries: entries ?? listAudioFiles(roots ?? const []),
+            entries: [
+              for (final entry in entries ?? listAudioFiles(roots ?? const []))
+                if (!exclusions.excludes(entry.path)) entry,
+            ],
             cache: cache,
             artworkDir: artworkDir,
             force: force,
@@ -102,6 +121,7 @@ class LocalScanStore {
     );
     _last = tracks;
     _lastAt = DateTime.now();
+    _lastExclusions = exclusions.key;
     return tracks;
   }
 }

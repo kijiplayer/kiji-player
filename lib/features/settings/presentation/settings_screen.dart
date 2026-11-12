@@ -30,6 +30,7 @@ import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/sound_screen.dart';
 import '../../import/presentation/import_screen.dart';
+import '../../local_library/presentation/excluded_folders_screen.dart';
 import '../../lyrics/presentation/lyrics_menu_sheet.dart';
 import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
 import '../../reports/presentation/reports_screen.dart';
@@ -430,6 +431,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
       ],
       // Contenido
+      SettingOption(
+        section: SettingsSection.storage,
+        title: tx.carpetasExcluidas,
+        subtitle: tx.carpetasExcluidasDescripcion,
+        keywords: const ['whatsapp', 'telegram', 'notas de voz', 'grabadora', 'voice notes', 'recorder', 'ocultar'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-excluded-folders'),
+          leading: const Icon(Icons.folder_off_outlined),
+          title: Text(tx.carpetasExcluidas),
+          subtitle: Text(tx.carpetasExcluidasDescripcion),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => ExcludedFoldersScreen.open(context),
+        ),
+      ),
       SettingOption(
         section: SettingsSection.storage,
         title: tx.ocultarAudiosCortos,

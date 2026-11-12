@@ -56,6 +56,8 @@ object MediaLibrary {
         )
         // El género está en la tabla de audio desde Android 11.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) columns.add(MediaStore.Audio.Media.GENRE)
+        // Grabaciones (grabadora, notas de voz): Android 12 en adelante.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) columns.add(MediaStore.Audio.Media.IS_RECORDING)
         val out = ArrayList<Map<String, Any?>>()
         context.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -82,6 +84,7 @@ object MediaLibrary {
                         "duration" to long(MediaStore.Audio.Media.DURATION),
                         "isMusic" to (long(MediaStore.Audio.Media.IS_MUSIC)?.let { it != 0L }),
                         "genre" to if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) str(MediaStore.Audio.Media.GENRE) else null,
+                        "isRecording" to if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) long(MediaStore.Audio.Media.IS_RECORDING)?.let { it != 0L } else null,
                     ),
                 )
             }

@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:kiji_player/features/local_library/domain/local_exclusions.dart';
 import 'package:kiji_player/app.dart';
 import 'package:kiji_player/features/account/presentation/account_screens.dart';
 import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
@@ -283,7 +284,7 @@ class _DemoSource implements LocalLibrarySource {
   @override
   Future<void> removeFolder(String folder) async {}
   @override
-  Future<List<Track>> loadTracks({bool force = false}) async => tracks;
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async => tracks;
 }
 
 class _NoScreenMode implements ScreenMode {

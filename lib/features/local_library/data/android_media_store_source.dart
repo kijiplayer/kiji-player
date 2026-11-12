@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../models/track.dart';
+import '../domain/local_exclusions.dart';
 import '../domain/local_library_source.dart';
 import 'local_library_service.dart';
 import 'local_scan_store.dart';
@@ -33,11 +34,16 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
   Future<void> removeFolder(String folder) async {}
 
   @override
-  Future<List<Track>> loadTracks({bool force = false}) async {
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async {
     final songs = await _service.fetchSongs();
     final entries = <ScanEntry>[];
+    var skipped = 0;
     for (final song in songs) {
-      if (song.isMusic == false) continue;
+      // Notas de voz, audios de chats y grabaciones no son música (y no se registra su nombre).
+      if (song.isMusic == false || song.isRecording == true || exclusions.excludes(song.data)) {
+        skipped++;
+        continue;
+      }
       // Formatos que Kiji reproduce (lo demás se saltea sin avisos).
       final ext = song.fileExtension.toLowerCase();
       if (!localAudioExtensions.contains('.$ext')) {
@@ -61,7 +67,8 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
         ),
       );
     }
-    final tracks = await _store.scan(entries: entries, force: force);
+    if (skipped > 0) debugPrint('=== BIBLIOTECA: $skipped audios que no son música quedan afuera ===');
+    final tracks = await _store.scan(entries: entries, force: force, exclusions: exclusions);
     return [...tracks]..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
   }
 }

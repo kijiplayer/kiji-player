@@ -2855,5 +2855,21 @@
   "verTuTeatro": "Tu Teatro 🎭",
   "@verTuTeatro": {"description": "Inicio: entrada a Tu Teatro."},
   "perdonadaVuelveARecomendarse": "«{title}» fue perdonada: vuelve a recomendarse.",
-  "@perdonadaVuelveARecomendarse": {"description": "Tu Teatro: se perdonó una canción abucheada.", "placeholders": {"title": {"type": "String"}}}
+  "@perdonadaVuelveARecomendarse": {"description": "Tu Teatro: se perdonó una canción abucheada.", "placeholders": {"title": {"type": "String"}}},
+  "carpetasExcluidas": "Carpetas excluidas",
+  "@carpetasExcluidas": {"description": "Ajuste: carpetas que no se leen como música"},
+  "carpetasExcluidasDescripcion": "Las notas de voz y los audios de WhatsApp, Telegram y las grabadoras no aparecen como música. Puedes quitar o agregar carpetas.",
+  "@carpetasExcluidasDescripcion": {"description": "Descripción del ajuste Carpetas excluidas"},
+  "carpetasExcluidasNota": "Un nombre (por ejemplo «WhatsApp») deja afuera cualquier carpeta que se llame así, con todo lo que tenga adentro. Los archivos con nombre de nota de voz de WhatsApp nunca son música.",
+  "@carpetasExcluidasNota": {"description": "Explicación debajo de la lista de carpetas excluidas"},
+  "agregarCarpetaPorNombre": "Agregar por nombre",
+  "@agregarCarpetaPorNombre": {"description": "Botón: agregar una carpeta excluida escribiendo su nombre"},
+  "nombreDeLaCarpeta": "Nombre de la carpeta",
+  "@nombreDeLaCarpeta": {"description": "Campo de texto para el nombre de una carpeta excluida"},
+  "agregar": "Agregar",
+  "@agregar": {"description": "Botón: confirmar agregar"},
+  "volverALasDeFabrica": "Volver a las de fábrica",
+  "@volverALasDeFabrica": {"description": "Botón: volver a la lista de carpetas excluidas de fábrica"},
+  "ningunaCarpetaExcluida": "Ninguna carpeta excluida: se lee toda la música del dispositivo.",
+  "@ningunaCarpetaExcluida": {"description": "Lista vacía de carpetas excluidas"}
 }

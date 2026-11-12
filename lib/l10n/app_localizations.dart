@@ -7822,6 +7822,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'«{title}» fue perdonada: vuelve a recomendarse.'**
   String perdonadaVuelveARecomendarse(String title);
+
+  /// Ajuste: carpetas que no se leen como música
+  ///
+  /// In es, this message translates to:
+  /// **'Carpetas excluidas'**
+  String get carpetasExcluidas;
+
+  /// Descripción del ajuste Carpetas excluidas
+  ///
+  /// In es, this message translates to:
+  /// **'Las notas de voz y los audios de WhatsApp, Telegram y las grabadoras no aparecen como música. Puedes quitar o agregar carpetas.'**
+  String get carpetasExcluidasDescripcion;
+
+  /// Explicación debajo de la lista de carpetas excluidas
+  ///
+  /// In es, this message translates to:
+  /// **'Un nombre (por ejemplo «WhatsApp») deja afuera cualquier carpeta que se llame así, con todo lo que tenga adentro. Los archivos con nombre de nota de voz de WhatsApp nunca son música.'**
+  String get carpetasExcluidasNota;
+
+  /// Botón: agregar una carpeta excluida escribiendo su nombre
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar por nombre'**
+  String get agregarCarpetaPorNombre;
+
+  /// Campo de texto para el nombre de una carpeta excluida
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la carpeta'**
+  String get nombreDeLaCarpeta;
+
+  /// Botón: confirmar agregar
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar'**
+  String get agregar;
+
+  /// Botón: volver a la lista de carpetas excluidas de fábrica
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a las de fábrica'**
+  String get volverALasDeFabrica;
+
+  /// Lista vacía de carpetas excluidas
+  ///
+  /// In es, this message translates to:
+  /// **'Ninguna carpeta excluida: se lee toda la música del dispositivo.'**
+  String get ningunaCarpetaExcluida;
 }
 
 class _AppLocalizationsDelegate

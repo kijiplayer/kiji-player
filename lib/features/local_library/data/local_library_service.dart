@@ -17,6 +17,7 @@ class MediaStoreSong {
     this.track,
     this.duration,
     this.isMusic,
+    this.isRecording,
     this.genre,
   });
 
@@ -37,6 +38,9 @@ class MediaStoreSong {
   final int? track;
   final int? duration;
   final bool? isMusic;
+
+  /// Grabación (grabadora, nota de voz): Android 12 en adelante.
+  final bool? isRecording;
   final String? genre;
 
   /// "mp3", "m4a"… (de la ruta).
@@ -61,6 +65,7 @@ class MediaStoreSong {
       track: n(raw['track']),
       duration: n(raw['duration']),
       isMusic: raw['isMusic'] is bool ? raw['isMusic'] as bool : null,
+      isRecording: raw['isRecording'] is bool ? raw['isRecording'] as bool : null,
       genre: s(raw['genre']),
     );
   }

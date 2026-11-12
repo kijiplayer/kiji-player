@@ -1,5 +1,6 @@
 import 'dart:ui' show Color;
 
+import '../../local_library/domain/local_exclusions.dart';
 import '../../lyrics/domain/lyrics.dart';
 
 /// Preferencias de Kiji. Se guardan solo en el teléfono.
@@ -32,6 +33,7 @@ class AppSettings {
     this.downloadLyrics = true,
     this.autoBackup = true,
     this.backupFolder,
+    this.excludedFolders,
     this.disabledLyricsSources = const {},
     this.translationTarget = 'es',
     this.useGemini = false,
@@ -194,6 +196,12 @@ class AppSettings {
   /// Carpeta elegida para las copias; null = la de fábrica (Documentos/Kiji).
   final String? backupFolder;
 
+  /// "Carpetas excluidas" de la música del dispositivo; null = las de fábrica
+  /// ([LocalExclusions.defaultFolders]: WhatsApp, Telegram y grabadoras).
+  final List<String>? excludedFolders;
+
+  LocalExclusions get localExclusions => LocalExclusions(excludedFolders ?? LocalExclusions.defaultFolders);
+
   /// Letras: fuentes por internet apagadas por el usuario.
   final Set<LyricsSource> disabledLyricsSources;
 
@@ -316,6 +324,8 @@ class AppSettings {
     bool? autoBackup,
     String? backupFolder,
     bool defaultBackupFolder = false,
+    List<String>? excludedFolders,
+    bool defaultExcludedFolders = false,
     Set<LyricsSource>? disabledLyricsSources,
     String? translationTarget,
     bool? useGemini,
@@ -375,6 +385,7 @@ class AppSettings {
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
         autoBackup: autoBackup ?? this.autoBackup,
         backupFolder: defaultBackupFolder ? null : (backupFolder ?? this.backupFolder),
+        excludedFolders: defaultExcludedFolders ? null : (excludedFolders ?? this.excludedFolders),
         disabledLyricsSources: disabledLyricsSources ?? this.disabledLyricsSources,
         translationTarget: translationTarget ?? this.translationTarget,
         useGemini: useGemini ?? this.useGemini,
@@ -435,6 +446,7 @@ class AppSettings {
         'downloadLyrics': downloadLyrics,
         'autoBackup': autoBackup,
         if (backupFolder != null) 'backupFolder': backupFolder,
+        'excludedFolders': ?excludedFolders,
         'disabledLyricsSources': [for (final s in disabledLyricsSources) s.name],
         'translationTarget': translationTarget,
         'useGemini': useGemini,
@@ -502,6 +514,9 @@ class AppSettings {
       autoBackup: read('autoBackup', d.autoBackup),
       backupFolder: json['backupFolder'] is String && (json['backupFolder'] as String).isNotEmpty
           ? json['backupFolder'] as String
+          : null,
+      excludedFolders: json['excludedFolders'] is List
+          ? [for (final f in json['excludedFolders'] as List) if (f is String && f.trim().isNotEmpty) f]
           : null,
       disabledLyricsSources: {
         if (json['disabledLyricsSources'] is List)

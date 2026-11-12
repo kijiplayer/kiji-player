@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/json_file.dart';
 import '../../../models/track.dart';
+import '../domain/local_exclusions.dart';
 import '../domain/local_library_source.dart';
 import 'local_scan_store.dart';
 import 'local_scanner.dart';
@@ -74,8 +75,8 @@ class DesktopFolderSource implements LocalLibrarySource {
   }
 
   @override
-  Future<List<Track>> loadTracks({bool force = false}) async {
-    final tracks = await _store.scan(roots: await folders(), force: force);
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async {
+    final tracks = await _store.scan(roots: await folders(), force: force, exclusions: exclusions);
     return [...tracks]..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
   }
 }

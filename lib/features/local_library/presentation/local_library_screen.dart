@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -114,7 +115,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
     }
 
     try {
-      final tracks = await _source.loadTracks(force: force);
+      final tracks = await _source.loadTracks(force: force, exclusions: ref.read(settingsProvider).localExclusions);
       if (!mounted) return;
       setState(() {
         _local = tracks;
@@ -122,7 +123,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
       });
       ref.invalidate(localTracksProvider);
     } catch (error) {
-      debugPrint('=== BIBLIOTECA: no se pudo leer la música local: $error ===');
+      debugPrint('=== BIBLIOTECA: no se pudo leer la música local: ${error.runtimeType} ===');
       if (mounted) setState(() => _status = _LibraryStatus.error);
     }
   }
@@ -166,6 +167,8 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Otras "Carpetas excluidas": se vuelve a leer la música (lo ya leído sale de la caché).
+    ref.listen(settingsProvider.select((s) => s.localExclusions.key), (_, _) => unawaited(_load()));
     final all = _allSongs();
     final settings = ref.watch(settingsProvider);
     final songs = arrangeLibrarySongs(all, sort: settings.librarySort, filter: settings.libraryFilter);
@@ -588,7 +591,7 @@ class _StorageCard extends ConsumerWidget {
     try {
       cache = await StreamCache().sizeBytes();
     } catch (error) {
-      debugPrint('=== BIBLIOTECA: no se pudo medir la caché: $error ===');
+      debugPrint('=== BIBLIOTECA: no se pudo medir la caché: ${error.runtimeType} ===');
     }
     final dir = downloads.directoryPath;
     final free = dir == null ? null : await ref.read(storageInfoProvider).freeBytes(dir);

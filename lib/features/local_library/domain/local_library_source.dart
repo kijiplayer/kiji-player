@@ -1,4 +1,5 @@
 import '../../../models/track.dart';
+import 'local_exclusions.dart';
 
 /// De dónde sale la música guardada en el dispositivo.
 ///
@@ -25,6 +26,7 @@ abstract interface class LocalLibrarySource {
   Future<void> removeFolder(String folder);
 
   /// Las canciones, ordenadas por título. Lo ya leído sale de una caché (solo se leen los
-  /// archivos nuevos o cambiados); con [force] ("Volver a escanear") se vuelve a leer todo.
-  Future<List<Track>> loadTracks({bool force = false});
+  /// archivos nuevos o cambiados); con [force] ("Volver a escanear") se vuelve a leer todo. Lo que
+  /// [exclusions] deja afuera (notas de voz, audios de chats, grabaciones) ni se lee.
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults});
 }
