@@ -13,8 +13,12 @@ import '../../equalizer/data/equalizer_notifier.dart';
 import '../../favorites/favorites.dart';
 import '../../history/listening_history.dart';
 import '../../import/data/import_service.dart';
+import '../../customize/data/track_overrides.dart';
+import '../../local_library/data/group_covers.dart';
 import '../../playlists/playlists_provider.dart';
 import '../../settings/data/settings_store.dart';
+import '../../style/presentation/custom_background.dart' show backgroundToneProvider;
+import '../../theater/data/theater_store.dart';
 import '../domain/backup_manifest.dart';
 import 'backup_folder.dart';
 import 'backup_service.dart';
@@ -191,7 +195,17 @@ class BackupNotifier extends Notifier<BackupState> {
         ..invalidate(listeningHistoryProvider)
         ..invalidate(equalizerProvider)
         ..invalidate(importsProvider)
-        ..invalidate(localLibrarySourceProvider);
+        ..invalidate(localLibrarySourceProvider)
+        // Lo nuevo de la copia (0.8): estilos y fotos por canción, portadas elegidas y teatro. Si
+        // quedaran en memoria, el próximo cambio pisaría lo restaurado con lo de antes.
+        ..invalidate(trackOverridesProvider)
+        ..invalidate(groupCoversProvider)
+        ..invalidate(theaterProvider)
+        ..invalidate(backgroundToneProvider);
+      // Las fotos restauradas pueden tener el mismo nombre que las de antes: que se vuelvan a leer.
+      PaintingBinding.instance.imageCache
+        ..clear()
+        ..clearLiveImages();
       await ref.read(settingsProvider.notifier).loaded;
       state = state.copyWith(busy: false);
       await _locate();

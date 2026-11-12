@@ -2,13 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/painting.dart' show Color;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/backup/data/backup_notifier.dart';
 import 'package:kiji_player/features/backup/data/backup_service.dart';
 import 'package:kiji_player/features/backup/domain/backup_manifest.dart';
 import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
+import 'package:kiji_player/features/local_library/data/group_covers.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
+import 'package:kiji_player/features/theater/data/theater_store.dart';
+import 'package:kiji_player/models/track.dart';
 import 'package:path/path.dart' as p;
 
 void _write(Directory dir, String name, Object json) {
@@ -45,6 +49,7 @@ void _fillData(Directory data) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('nombres y reglas', () {
     test('nombre con fecha, ida y vuelta; los otros archivos no cuentan', () {
       final when = DateTime(2026, 10, 16, 8, 30, 5);
@@ -201,6 +206,53 @@ void main() {
     tearDown(() async {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       root.deleteSync(recursive: true);
+    });
+
+    test('restaurar recarga el teatro y las portadas elegidas: lo de antes no pisa lo restaurado', () async {
+      final data = Directory(p.join(root.path, 'datos'))..createSync();
+      _fillData(data);
+      final folder = Directory(p.join(root.path, 'Kiji'));
+      File(p.join(data.path, 'theater.json')).writeAsStringSync(
+        '{"version":1,"songs":{"yt-v":{"title":"Glass Harbor","artist":"The Velvet Tides","tomatoes":2}}}',
+      );
+      File(p.join(data.path, 'group_covers.json')).writeAsStringSync('{"album:inventado":"elegida.jpg"}');
+      final c = ProviderContainer(overrides: [
+        settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => data)),
+        theaterProvider.overrideWith(() => TheaterNotifier(directory: () async => data)),
+        groupCoversProvider.overrideWith(() => GroupCoversNotifier(directory: () async => data)),
+        backupProvider.overrideWith(() => BackupNotifier(
+              dataDirectory: () async => data,
+              defaultFolder: () async => folder,
+              clock: () => DateTime(2026, 10, 16, 9),
+              platform: 'windows',
+            )),
+      ]);
+      addTearDown(c.dispose);
+      c.read(backupProvider);
+      await c.read(backupProvider.notifier).ready;
+      final copy = c.read(backupProvider).copies.single.file;
+
+      // Después de la copia: se borra todo del teatro y de las portadas, y queda en memoria.
+      File(p.join(data.path, 'theater.json')).deleteSync();
+      File(p.join(data.path, 'group_covers.json')).deleteSync();
+      c.invalidate(theaterProvider);
+      c.invalidate(groupCoversProvider);
+      await c.read(theaterProvider.notifier).loaded;
+      expect(c.read(theaterProvider).songs, isEmpty);
+
+      await c.read(backupProvider.notifier).restore(copy);
+      await c.read(theaterProvider.notifier).loaded;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(c.read(theaterProvider).songs['yt-v']?.tomatoes, 2, reason: 'se volvió a leer lo restaurado');
+      expect(c.read(groupCoversProvider)['album:inventado'], 'elegida.jpg');
+      // Un tomate después de restaurar suma a lo restaurado (no lo pisa con lo de antes).
+      c.read(theaterProvider.notifier).tomato(
+        const Track(id: 'yt-w', title: 'Slow Comet', artist: 'Aurelio Fen', coverColor: Color(0xFF3A6EA5), audioUrl: '', source: TrackSource.youtube),
+      );
+      await c.read(theaterProvider.notifier).saved;
+      final saved = File(p.join(data.path, 'theater.json')).readAsStringSync();
+      expect(saved, contains('yt-v'));
+      expect(saved, contains('yt-w'));
     });
 
     test('copia diaria automática: una por día, y nada si está apagada', () async {
