@@ -99,6 +99,31 @@ class LyricsRepository {
     List<LyricsSource> order = LyricsSource.online,
   }) async {
     final file = await _fileFor(request.id);
+    final local = await _onDevice(request, file, keepNotFound: true);
+    if (local != null) return local;
+
+    // 4) Las fuentes, en el orden que eligió el usuario.
+    final lyrics = await _fromSources(request, disabled, order);
+    await _save(file, lyrics);
+    return lyrics;
+  }
+
+  /// Solo lo que ya está en el teléfono: el .lrc al lado del archivo, la caché, la guardada con la
+  /// descarga o la incluida en el archivo. **Nunca pregunta a internet** (para el widget: nada sale
+  /// del teléfono sin que el usuario lo pida). null si no hay.
+  Future<Lyrics?> onDeviceOnly(LyricsRequest request) async {
+    try {
+      final lyrics = await _onDevice(request, await _fileFor(request.id), keepNotFound: false);
+      return lyrics == null || lyrics.isEmpty ? null : lyrics;
+    } catch (error) {
+      debugPrint('=== LETRAS: no se pudo leer la guardada en el teléfono (${error.runtimeType}) ===');
+      return null;
+    }
+  }
+
+  /// Pasos 0 a 3 de [get] (sin internet). Con [keepNotFound], una "sin letra" reciente de la caché
+  /// también vale (para no volver a preguntar enseguida).
+  Future<Lyrics?> _onDevice(LyricsRequest request, JsonFile file, {required bool keepNotFound}) async {
     // 0) Canción del equipo con su .lrc al lado (mismo nombre): manda siempre, aunque haya otra
     // guardada (se puede agregar o cambiar después).
     final local = request.localPath;
@@ -115,8 +140,8 @@ class LyricsRepository {
         final fits = syncMatches(lyrics, Duration(milliseconds: request.durationMs)) || cached['chosen'] == true;
         if (!fits) {
           debugPrint('=== LETRAS: la guardada no encaja con la duración de la canción; se busca otra ===');
-        } else if (!lyrics.isEmpty || _clock().difference(savedAt) < notFoundRetry) {
-          return lyrics;
+        } else if (!lyrics.isEmpty || (keepNotFound && _clock().difference(savedAt) < notFoundRetry)) {
+          return lyrics.isEmpty && !keepNotFound ? null : lyrics;
         }
       } catch (error) {
         await file.deleteCorrupt(error);
@@ -143,11 +168,7 @@ class LyricsRepository {
         return embedded;
       }
     }
-
-    // 4) Las fuentes, en el orden que eligió el usuario.
-    final lyrics = await _fromSources(request, disabled, order);
-    await _save(file, lyrics);
-    return lyrics;
+    return null;
   }
 
   /// "Buscar a mano": con otro título o artista, en todas las

@@ -68,6 +68,8 @@
             </intent-filter>
         </receiver>
         <!-- Widgets de la pantalla de inicio: chico (controles) y grande (portada y controles). -->
+        <!-- ❤️ y 🍅 de los widgets (solo los manda el propio widget). -->
+        <receiver android:name=".KijiWidgetActions" android:exported="false" />
         <receiver android:name=".KijiWidgetSmall" android:label="@string/kiji_widget_small" android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

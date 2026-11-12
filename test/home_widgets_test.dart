@@ -5,7 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:kiji_player/features/customize/data/artwork_cache.dart';
+import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
 import 'package:kiji_player/features/system_media/data/cover_art.dart';
+import 'package:kiji_player/features/system_media/data/home_widgets.dart';
+import 'package:kiji_player/theme/kiji_tokens.dart';
 import 'package:kiji_player/models/track.dart';
 
 void main() {
@@ -77,5 +80,52 @@ void main() {
     final file = touch(p.join(support.path, 'descargas', 'bbbbbbbbbbb.hq.jpg'));
     expect(await coverArtFor(yt, deviceCover: file.path), Uri.file(file.path));
     expect((await coverArtFor(yt))!.scheme, 'https');
+  });
+
+  test('El widget recibe el estado y los colores del estilo (y la misma onda del reproductor)', () {
+    const track = Track(
+      id: 'yt-ccccccccccc',
+      title: 'Glass Harbor',
+      artist: 'The Velvet Tides',
+      coverColor: Color(0xFF3A6EA5),
+      audioUrl: '',
+      source: TrackSource.youtube,
+    );
+    addTearDown(() {
+      KijiLook.style = KijiStyle.nocturne;
+      KijiColors.palette = KijiPalette.nocturne;
+    });
+    for (final style in KijiStyle.values) {
+      KijiLook.style = style;
+      KijiColors.palette = KijiPalette.forStyle(style);
+      final p = widgetPayload(
+        track: track,
+        playing: true,
+        position: const Duration(seconds: 30),
+        duration: const Duration(minutes: 2),
+        cover: '/x/portada.jpg',
+        liked: true,
+        theater: false,
+        lyric: null,
+      );
+      expect(p['style'], style.name);
+      expect(p['progress'], 250);
+      expect(p['accent'], KijiColors.palette.violet.toARGB32());
+      expect(p['text'], KijiColors.palette.text.toARGB32());
+      expect(p['light'], KijiColors.palette.isLight);
+      expect(p['bars'], hasLength(widgetBars));
+      expect((p['bars']! as List).every((b) => b is int && b >= 0 && b <= 100), isTrue);
+      expect((p['liked'], p['theater']), (true, false));
+    }
+    expect(widgetPayload(track: null, playing: false, position: Duration.zero, duration: Duration.zero, cover: null, liked: false, theater: true, lyric: null)['progress'], 0);
+  });
+
+  test('La línea de la letra que suena (solo con letra sincronizada)', () {
+    final lyrics = Lyrics(synced: parseLrc('[00:02.00]Primera inventada\n[00:06.00]Segunda inventada'));
+    expect(lyricLineAt(lyrics, const Duration(seconds: 1)), isNull);
+    expect(lyricLineAt(lyrics, const Duration(seconds: 3)), 'Primera inventada');
+    expect(lyricLineAt(lyrics, const Duration(seconds: 7)), 'Segunda inventada');
+    expect(lyricLineAt(const Lyrics(plain: 'Sin tiempos inventada'), const Duration(seconds: 3)), isNull);
+    expect(lyricLineAt(null, Duration.zero), isNull);
   });
 }

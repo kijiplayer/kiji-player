@@ -80,6 +80,23 @@ void main() {
     expect(File(await repository.pathFor('inventado.lrc')).existsSync(), isFalse);
   });
 
+  test('Para el widget: solo la letra que ya está en el teléfono, nunca pregunta a internet', () async {
+    final dir = Directory.systemTemp.createTempSync('kiji_letra_widget_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final online = _Fake(LyricsSource.lrclib, const Lyrics(plain: 'De internet', source: LyricsSource.lrclib));
+    var saved = false;
+    final repository = LyricsRepository(
+      fetchers: [online],
+      baseDirectory: () async => dir,
+      offline: (request) async => saved ? lyricsFromLrcFile('[00:02.00]Guardada inventada') : null,
+    );
+    expect(await repository.onDeviceOnly(_request), isNull, reason: 'no hay nada guardado');
+    expect(online.calls, 0, reason: 'el widget nunca pregunta a internet');
+    saved = true;
+    expect((await repository.onDeviceOnly(_request))!.synced.single.text, 'Guardada inventada');
+    expect(online.calls, 0);
+  });
+
   test('Sin internet, la letra guardada con la descarga se usa antes que las fuentes', () async {
     final dir = Directory.systemTemp.createTempSync('kiji_letra_offline_');
     addTearDown(() => dir.deleteSync(recursive: true));
