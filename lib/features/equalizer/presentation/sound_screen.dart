@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../settings/data/settings_store.dart';
+import '../../../widgets/nocturne/kiji_sheet.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../settings/domain/app_settings.dart';
@@ -231,7 +232,7 @@ class _SoundScreenState extends ConsumerState<SoundScreen> {
   }
 
   Future<void> _presetMenu(EqUserPreset preset) async {
-    final action = await showModalBottomSheet<String>(
+    final action = await showKijiSheet<String>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(
