@@ -48,7 +48,7 @@ on Android 7 or newer and on Windows 10/11.
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/kijiplayer/kiji-player"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a>
 </p>
 
-With Obtainium, Kiji updates on Android straight from those releases.
+With Obtainium, Kiji updates on Android straight from those releases. If it asks which APK to use, pick `Kiji-Player.apk` (works on every phone) or the one for your architecture (`arm64-v8a` on most phones).
 
 To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 

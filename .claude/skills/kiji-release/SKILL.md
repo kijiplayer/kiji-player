@@ -35,6 +35,8 @@ antes de crear la etiqueta. Seguir también la skill `kiji-reglas`.
   de siempre. Si no coincide, retirar la release y avisar.
 - SHA-256 de cada archivo en las notas.
 - Obtainium: la release es "Latest" (no pre-release), la etiqueta es `vX.Y.Z` y el APK universal
-  se llama `Kiji-Player-X.Y.Z.apk`. Comprobar que la API la ve:
+  se llama `Kiji-Player-X.Y.Z.apk` (más `Kiji-Player.apk`, la misma con nombre fijo para la página
+  de descarga, y el instalador también con su copia `Kiji-Player-Windows-Setup.exe`). El flujo deja
+  solo esos archivos. Comprobar que la API la ve:
   `gh api repos/kijiplayer/kiji-player/releases/latest --jq '.tag_name, [.assets[].name]'`.
 - El aviso de actualizaciones de la app lee el mismo `releases/latest`.
