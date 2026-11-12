@@ -91,6 +91,7 @@ personas que los construyen y mantienen.
 | [libmpv](https://mpv.io) (compilación de [media-kit/libmpv-win32-video-build](https://github.com/media-kit/libmpv-win32-video-build)) | GPL-2.0 o posterior / LGPL | PC: el motor de audio y video (incluye FFmpeg). |
 | [ANGLE](https://chromium.googlesource.com/angle/angle) (`libGLESv2.dll`, `libEGL.dll`) | BSD-3-Clause | PC: dibuja el video del fondo (lo trae media_kit). |
 | [video_player](https://pub.dev/packages/video_player) (Flutter) | BSD-3-Clause | Teléfono: el video del fondo propio. |
+| [sensors_plus](https://pub.dev/packages/sensors_plus) (Flutter Community, plus_plugins) | BSD-3-Clause | Teléfono: sacudirlo para tirar un tomate (solo con el reproductor a la vista y la música sonando). |
 
 ## Cómo mantener este archivo
 
