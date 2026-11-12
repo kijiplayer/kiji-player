@@ -303,6 +303,22 @@ void main() {
     });
   });
 
+  test('Copia de Android en la nube: solo los datos del usuario (los mismos de la copia de Kiji), sin cachés', () {
+    for (final xml in ['android/app/src/main/res/xml/data_extraction_rules.xml', 'android/app/src/main/res/xml/full_backup_content.xml']) {
+      final text = File(xml).readAsStringSync();
+      final cloud = xml.contains('data_extraction')
+          ? text.substring(text.indexOf('<cloud-backup>'), text.indexOf('</cloud-backup>'))
+          : text;
+      for (final name in backedUpFiles) {
+        expect(cloud, contains('path="$name"'), reason: '$name va en la copia de Kiji: también en la de Android ($xml)');
+      }
+      for (final big in ['artwork', 'translation', 'downloads', 'backgrounds', 'covers', 'secrets', 'yt_sync']) {
+        expect(cloud, isNot(contains('path="$big')), reason: '$big no va a la nube ($xml)');
+      }
+      expect(cloud, isNot(contains('<exclude')), reason: 'lista de lo que entra, no de lo que no ($xml)');
+    }
+  });
+
   test('fechas en palabras', () {
     final now = DateTime(2026, 10, 16, 12);
     expect(describeDate(DateTime(2026, 10, 16, 8, 5), now), 'hoy 08:05');

@@ -1,16 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copia de seguridad de Android, Android 12 en adelante: entran los datos de Kiji
-     (playlists, me gusta, historial, ajustes). Quedan afuera el audio descargado y las cachés,
-     que se pueden volver a bajar y superarían el límite de la copia. -->
+<!-- Copia de seguridad de Android, Android 12 en adelante.
+
+     En la nube (Google, límite de 25 MB por app; si se pasa, Android no hace ninguna copia): solo
+     los datos del usuario, los mismos JSON que la copia de Kiji (playlists, me gusta, historial,
+     ajustes…), unos pocos cientos de KB. Nada de cachés, portadas, fondos, descargas, modelos de
+     traducción, registros ni la sesión de la cuenta (cifrada con una clave del teléfono que no viaja).
+
+     De teléfono a teléfono (sin ese límite): todo menos lo que se vuelve a bajar o a calcular. -->
 <data-extraction-rules>
     <cloud-backup>
-        <exclude domain="file" path="downloads/" />
-        <exclude domain="file" path="player_js/" />
-        <exclude domain="file" path="lyrics/" />
+        <include domain="file" path="settings.json" />
+        <include domain="file" path="equalizer.json" />
+        <include domain="file" path="playlists.json" />
+        <include domain="file" path="favorites.json" />
+        <include domain="file" path="history.json" />
+        <include domain="file" path="imports.json" />
+        <include domain="file" path="library_folders.json" />
+        <include domain="file" path="track_overrides.json" />
+        <include domain="file" path="group_covers.json" />
+        <include domain="file" path="theater.json" />
+        <include domain="file" path="auto_downloads.json" />
+        <include domain="file" path="welcome.json" />
+        <include domain="file" path="data_version.json" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="file" path="downloads/" />
         <exclude domain="file" path="player_js/" />
         <exclude domain="file" path="lyrics/" />
+        <exclude domain="file" path="artwork/" />
+        <exclude domain="file" path="translation/" />
+        <exclude domain="file" path="loudness/" />
+        <exclude domain="file" path="logs/" />
+        <exclude domain="file" path="migration_backups/" />
+        <exclude domain="file" path="secrets/" />
+        <exclude domain="file" path="local_library_cache.json" />
+        <exclude domain="file" path="yt_sync.json" />
+        <exclude domain="file" path="libCachedImageData.db" />
+        <exclude domain="file" path="libCachedImageData.db-journal" />
+        <exclude domain="file" path="player_configs_remote.json" />
+        <exclude domain="file" path="player_configs_remote.meta" />
+        <exclude domain="root" path="app_flutter/" />
     </device-transfer>
 </data-extraction-rules>

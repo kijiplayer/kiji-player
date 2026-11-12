@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copia de seguridad de Android, hasta Android 11. Mismas reglas que
-     data_extraction_rules.xml. -->
+<!-- Copia de seguridad de Android, hasta Android 11 (en la nube, límite de 25 MB): solo los datos
+     del usuario, igual que la copia en la nube de data_extraction_rules.xml. -->
 <full-backup-content>
-    <exclude domain="file" path="downloads/" />
-    <exclude domain="file" path="player_js/" />
-    <exclude domain="file" path="lyrics/" />
+    <include domain="file" path="settings.json" />
+    <include domain="file" path="equalizer.json" />
+    <include domain="file" path="playlists.json" />
+    <include domain="file" path="favorites.json" />
+    <include domain="file" path="history.json" />
+    <include domain="file" path="imports.json" />
+    <include domain="file" path="library_folders.json" />
+    <include domain="file" path="track_overrides.json" />
+    <include domain="file" path="group_covers.json" />
+    <include domain="file" path="theater.json" />
+    <include domain="file" path="auto_downloads.json" />
+    <include domain="file" path="welcome.json" />
+    <include domain="file" path="data_version.json" />
 </full-backup-content>
