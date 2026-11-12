@@ -14,6 +14,7 @@ import 'package:kiji_player/features/theater/data/theater_store.dart';
 import 'package:kiji_player/features/theater/presentation/theater_effects.dart';
 import 'package:kiji_player/features/theater/presentation/theater_screen.dart';
 import 'package:kiji_player/models/track.dart';
+import 'package:kiji_player/providers/playback_provider.dart';
 import 'package:kiji_player/theme/kiji_tokens.dart';
 
 Track _t(String id, {String artist = 'Banda Inventada'}) => Track(
@@ -39,6 +40,29 @@ class _Settings extends SettingsNotifier {
   final AppSettings initial;
   @override
   AppSettings build() => initial;
+}
+
+/// En pausa con [_t('a')]; anota qué se le pidió.
+class _PausedPlayback extends PlaybackNotifier {
+  final calls = <String>[];
+  @override
+  PlaybackState build() => PlaybackState(
+    track: _t('a'),
+    isPlaying: false,
+    position: Duration.zero,
+    duration: const Duration(minutes: 3),
+    shuffleEnabled: false,
+    isInitialized: true,
+    queue: [_t('a'), _t('b')],
+    currentIndex: 0,
+    repeatMode: PlaybackRepeatMode.off,
+  );
+  @override
+  Future<void> skipKeepingPause() async => calls.add('saltar sin sonar');
+  @override
+  Future<void> nextTrack() async => calls.add('siguiente');
+  @override
+  Future<void> play() async => calls.add('play');
 }
 
 void main() {
@@ -74,6 +98,75 @@ void main() {
     expect(c.read(theaterProvider).booedOff, {'yt-a'});
     n.forgive('yt-a');
     expect(c.read(theaterProvider).booedOff, isEmpty, reason: '"perdonar" la vuelve a recomendar');
+  });
+
+  test('La racha de tomates vuelve a 0 si pasan 10 min sin tirar (los tomates sueltos no abuchean)', () async {
+    var now = DateTime(2026, 11, 11, 8);
+    final c = make(clock: () => now);
+    await c.read(theaterProvider.notifier).loaded;
+    final n = c.read(theaterProvider.notifier);
+    for (var i = 0; i < 4; i++) {
+      expect(n.tomato(_t('a')), TomatoResult.counted, reason: 'uno cada 11 min: nunca 3 seguidos');
+      now = now.add(const Duration(minutes: 11));
+    }
+    expect(c.read(theaterProvider).booedOff, isEmpty);
+    expect(c.read(theaterProvider).songs['yt-a']!.tomatoes, 4, reason: '"Tu Teatro" los cuenta igual');
+    n.tomato(_t('a'));
+    now = now.add(const Duration(minutes: 9));
+    n.tomato(_t('a'));
+    now = now.add(const Duration(minutes: 9));
+    expect(n.tomato(_t('a')), TomatoResult.booedOff);
+    await n.saved;
+    // Al reabrir sigue abucheada.
+    final again = make();
+    await again.read(theaterProvider.notifier).loaded;
+    expect(again.read(theaterProvider).booedOff, {'yt-a'});
+  });
+
+  test('Datos guardados antes de la racha: 3 tomates o más sigue abucheada', () {
+    expect(TheaterEntry.fromJson('yt-v', {'title': 'Vieja', 'tomatoes': 3})!.booed, isTrue);
+    expect(TheaterEntry.fromJson('yt-w', {'title': 'Vieja', 'tomatoes': 2})!.booed, isFalse);
+    expect(TheaterEntry.fromJson('yt-x', {'title': 'Nueva', 'tomatoes': 5, 'booed': false})!.booed, isFalse);
+  });
+
+  test('Sacudida: hacen falta 3 golpes fuertes y separados en menos de 1 s (caminar o el bolsillo no)', () {
+    var now = DateTime(2026, 11, 11, 8);
+    final d = ShakeDetector(clock: () => now);
+    void step(int ms) => now = now.add(Duration(milliseconds: ms));
+    // Caminar / bolsillo: muchos movimientos de 12–20 m/s².
+    for (var i = 0; i < 200; i++) {
+      step(20);
+      expect(d.add(i.isEven ? 18 : 4, 6, 3), isFalse);
+    }
+    // Un golpe fuerte que se mantiene no cuenta como 3.
+    for (var i = 0; i < 10; i++) {
+      step(20);
+      expect(d.add(30, 0, 0), isFalse);
+    }
+    d.add(0, 0, 0);
+    // Dos golpes y una pausa larga: tampoco.
+    step(200);
+    expect(d.add(30, 0, 0), isFalse);
+    step(100);
+    d.add(0, 0, 0);
+    step(1200);
+    expect(d.add(30, 0, 0), isFalse);
+    // Tres golpes claros, cada uno separado: sí.
+    var shook = false;
+    for (var i = 0; i < 3; i++) {
+      step(150);
+      shook = d.add(0, 28, 0) || shook;
+      step(150);
+      d.add(0, 2, 0);
+    }
+    expect(shook, isTrue);
+    // Y enseguida, nada (espera entre una sacudida y otra).
+    for (var i = 0; i < 3; i++) {
+      step(100);
+      expect(d.add(0, 28, 0), isFalse);
+      step(100);
+      d.add(0, 2, 0);
+    }
   });
 
   test('Una rosa aplaude y cuenta como "me gusta"', () async {
@@ -122,6 +215,29 @@ void main() {
     );
     expect([for (final t in [...feed.because, ...feed.mix, ...feed.discover]) t.id], isNot(contains('yt-mala')));
     expect(feed.because.map((t) => t.id), ['yt-buena']);
+  });
+
+  testWidgets('El tercer tomate en pausa saltea la canción sin hacerla sonar', (tester) async {
+    final playback = _PausedPlayback();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith(() => _Settings(const AppSettings())),
+          playbackProvider.overrideWith(() => playback),
+          theaterProvider.overrideWith(() => TheaterNotifier(directory: () async => dir)),
+          favoritesProvider.overrideWith(_Favorites.new),
+        ],
+        child: MaterialApp(home: Scaffold(body: TheaterButtons(track: _t('a')))),
+      ),
+    );
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byKey(const Key('theater-tomato')));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pump(const Duration(seconds: 1));
+    expect(playback.calls, ['saltar sin sonar']);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
   });
 
   testWidgets('Los botones 🍅 y 🌹 siguen el ajuste (encendido de fábrica)', (tester) async {

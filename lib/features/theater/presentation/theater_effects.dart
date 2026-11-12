@@ -72,8 +72,9 @@ Future<void> throwTomato(BuildContext context, WidgetRef ref, Track track) async
   if (result == TomatoResult.booedOff) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     await Future<void>.delayed(const Duration(milliseconds: 900));
-    // Si todavía suena la misma, se va del escenario.
-    if (ref.read(playbackProvider).track?.id == track.id) await ref.read(playbackProvider.notifier).nextTrack();
+    // Si todavía es la misma, se va del escenario (en pausa queda en pausa: un tomate nunca
+    // arranca la música).
+    if (ref.read(playbackProvider).track?.id == track.id) await ref.read(playbackProvider.notifier).skipKeepingPause();
     messenger
       ?..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(tx.abucheadaNoVuelveARecomendarse(track.title))));
@@ -114,59 +115,135 @@ class TheaterButtons extends ConsumerWidget {
   }
 }
 
-/// Sacudir el teléfono tira un tomate (Android e iOS; con el reproductor a la vista).
+/// Reconoce una sacudida fuerte y clara, no el movimiento del bolsillo o de caminar: hacen falta
+/// [peaks] golpes por encima de [threshold] (m/s², sin la gravedad) en menos de [window], cada
+/// uno separado del anterior (la fuerza tiene que bajar de [release] entre golpe y golpe). Después
+/// de una sacudida, nada durante [cooldown].
+class ShakeDetector {
+  ShakeDetector({DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
+
+  final DateTime Function() _clock;
+
+  static const threshold = 25.0;
+  static const release = 10.0;
+  static const peaks = 3;
+  static const window = Duration(milliseconds: 900);
+  static const cooldown = Duration(milliseconds: 1500);
+
+  final _peaks = <DateTime>[];
+  bool _above = false;
+  DateTime _last = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// Una lectura del acelerómetro. true si con ella se completó una sacudida.
+  bool add(double x, double y, double z) {
+    final force = sqrt(x * x + y * y + z * z);
+    if (force < release) {
+      _above = false;
+      return false;
+    }
+    if (_above || force < threshold) return false;
+    _above = true;
+    final now = _clock();
+    if (now.difference(_last) < cooldown) return false;
+    _peaks
+      ..removeWhere((t) => now.difference(t) > window)
+      ..add(now);
+    if (_peaks.length < peaks) return false;
+    _peaks.clear();
+    _last = now;
+    return true;
+  }
+
+  void reset() {
+    _peaks.clear();
+    _above = false;
+  }
+}
+
+/// Sacudir el teléfono tira un tomate (Android e iOS). El sensor solo está prendido con Kiji a la
+/// vista, en la pantalla del reproductor y con la música sonando; en cualquier otro caso se apaga
+/// (tampoco gasta batería).
 class TheaterShake extends ConsumerStatefulWidget {
   const TheaterShake({super.key, required this.child});
 
   final Widget child;
 
-  /// Fuerza de la sacudida (m/s², sin la gravedad).
-  static const threshold = 18.0;
-
   @override
   ConsumerState<TheaterShake> createState() => _TheaterShakeState();
 }
 
-class _TheaterShakeState extends ConsumerState<TheaterShake> {
+class _TheaterShakeState extends ConsumerState<TheaterShake> with WidgetsBindingObserver {
   StreamSubscription<UserAccelerometerEvent>? _sub;
-  DateTime _last = DateTime.fromMillisecondsSinceEpoch(0);
+  final _detector = ShakeDetector();
+  bool _resumed = true;
 
   bool get _supported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   @override
   void initState() {
     super.initState();
-    if (!_supported) return;
-    try {
-      _sub = userAccelerometerEventStream(samplingPeriod: SensorInterval.gameInterval).listen(
-        _onEvent,
-        onError: (Object e) {
-          debugPrint('=== TEATRO: sin sensor de movimiento: ${e.runtimeType} ===');
-        },
-      );
-    } catch (error) {
-      debugPrint('=== TEATRO: sin sensor de movimiento: ${error.runtimeType} ===');
+    WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _resumed = lifecycle == null || lifecycle == AppLifecycleState.resumed;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _resumed = state == AppLifecycleState.resumed;
+    _update();
+  }
+
+  /// ¿Corresponde escuchar el sensor ahora?
+  bool get _wanted {
+    if (!_supported || !mounted || !_resumed) return false;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    return ref.read(settingsProvider).theaterReactions && ref.read(playbackProvider).isPlaying;
+  }
+
+  void _update() {
+    final wanted = _wanted;
+    if (wanted && _sub == null) {
+      try {
+        _detector.reset();
+        _sub = userAccelerometerEventStream(samplingPeriod: SensorInterval.gameInterval).listen(
+          _onEvent,
+          onError: (Object e) {
+            debugPrint('=== TEATRO: sin sensor de movimiento: ${e.runtimeType} ===');
+          },
+        );
+      } catch (error) {
+        debugPrint('=== TEATRO: sin sensor de movimiento: ${error.runtimeType} ===');
+      }
+    } else if (!wanted && _sub != null) {
+      unawaited(_sub!.cancel());
+      _sub = null;
     }
   }
 
   void _onEvent(UserAccelerometerEvent e) {
-    if (sqrt(e.x * e.x + e.y * e.y + e.z * e.z) < TheaterShake.threshold) return;
-    final now = DateTime.now();
-    if (now.difference(_last) < const Duration(milliseconds: 700)) return;
-    _last = now;
-    if (!mounted || !ref.read(settingsProvider).theaterReactions) return;
+    if (!_detector.add(e.x, e.y, e.z)) return;
+    // Por las dudas: lo mismo que para prender el sensor, en el momento de la sacudida.
+    if (!_wanted) return;
     final track = ref.read(playbackProvider).track;
     if (track != null) unawaited(throwTomato(context, ref, track));
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _sub?.cancel();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    // Se vuelve a decidir al cambiar play/pausa, el ajuste o la pantalla de arriba.
+    ref.listen(playbackProvider.select((s) => s.isPlaying), (_, _) => _update());
+    ref.listen(settingsProvider.select((s) => s.theaterReactions), (_, _) => _update());
+    ModalRoute.of(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _update());
+    return widget.child;
+  }
 }
 
 class _Flyer {

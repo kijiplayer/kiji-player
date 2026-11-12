@@ -13,33 +13,68 @@ import '../../favorites/favorites.dart';
 /// Las reacciones de una canción: tomates (abucheos) y rosas (aplausos).
 @immutable
 class TheaterEntry {
-  const TheaterEntry({required this.id, required this.title, required this.artist, this.tomatoes = 0, this.roses = 0});
+  const TheaterEntry({
+    required this.id,
+    required this.title,
+    required this.artist,
+    this.tomatoes = 0,
+    this.roses = 0,
+    this.streak = 0,
+    this.lastTomatoMs,
+    this.booed = false,
+  });
 
   final String id;
   final String title;
   final String artist;
+
+  /// Todos los tomates que recibió (para "Tu Teatro").
   final int tomatoes;
   final int roses;
 
-  TheaterEntry copyWith({int? tomatoes, int? roses}) => TheaterEntry(
+  /// Tomates seguidos (sin pasar [TheaterState.streakWindow] entre uno y otro): con
+  /// [TheaterState.tomatoLimit] la canción se saltea y deja de recomendarse.
+  final int streak;
+  final int? lastTomatoMs;
+
+  /// Abucheada: ya no se recomienda (hasta que se perdone).
+  final bool booed;
+
+  TheaterEntry copyWith({int? tomatoes, int? roses, int? streak, int? lastTomatoMs, bool? booed}) => TheaterEntry(
     id: id,
     title: title,
     artist: artist,
     tomatoes: tomatoes ?? this.tomatoes,
     roses: roses ?? this.roses,
+    streak: streak ?? this.streak,
+    lastTomatoMs: lastTomatoMs ?? this.lastTomatoMs,
+    booed: booed ?? this.booed,
   );
 
-  Map<String, dynamic> toJson() => {'title': title, 'artist': artist, 'tomatoes': tomatoes, 'roses': roses};
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'artist': artist,
+    'tomatoes': tomatoes,
+    'roses': roses,
+    if (streak > 0) 'streak': streak,
+    'lastTomatoMs': ?lastTomatoMs,
+    if (booed) 'booed': true,
+  };
 
   static TheaterEntry? fromJson(String id, Object? json) {
     if (json is! Map || json['title'] is! String) return null;
     int count(Object? v) => v is int && v > 0 ? v : 0;
+    final tomatoes = count(json['tomatoes']);
     return TheaterEntry(
       id: id,
       title: json['title'] as String,
       artist: json['artist'] is String ? json['artist'] as String : '',
-      tomatoes: count(json['tomatoes']),
+      tomatoes: tomatoes,
       roses: count(json['roses']),
+      streak: count(json['streak']),
+      lastTomatoMs: json['lastTomatoMs'] is int ? json['lastTomatoMs'] as int : null,
+      // Guardado antes de que existiera "booed" (0.8.0 en pruebas): abucheada con 3 tomates.
+      booed: json['booed'] is bool ? json['booed'] as bool : tomatoes >= TheaterState.tomatoLimit,
     );
   }
 }
@@ -52,13 +87,16 @@ class TheaterState {
   final Map<String, TheaterEntry> songs;
   final Map<String, int> tomatoDays;
 
-  /// Con estos tomates una canción se saltea y deja de recomendarse.
+  /// Con estos tomates seguidos una canción se saltea y deja de recomendarse.
   static const tomatoLimit = 3;
 
-  /// Canciones que ya no se recomiendan (3 tomates o más).
+  /// Si pasa este tiempo sin tirarle otro, la racha de una canción vuelve a 0.
+  static const streakWindow = Duration(minutes: 10);
+
+  /// Canciones que ya no se recomiendan (abucheadas).
   Set<String> get booedOff => {
     for (final e in songs.values)
-      if (e.tomatoes >= tomatoLimit) e.id,
+      if (e.booed) e.id,
   };
 
   int get totalTomatoes => songs.values.fold(0, (sum, e) => sum + e.tomatoes);
@@ -173,17 +211,28 @@ class TheaterNotifier extends Notifier<TheaterState> {
   TheaterEntry _entry(Track track) =>
       state.songs[track.id] ?? TheaterEntry(id: track.id, title: track.title, artist: track.artist);
 
-  /// 🍅 a [track]. Con el tercero, la canción se saltea y deja de recomendarse.
+  /// 🍅 a [track]. Con el tercero seguido (sin pasar [TheaterState.streakWindow] entre uno y
+  /// otro), la canción se saltea y deja de recomendarse.
   TomatoResult tomato(Track track) {
-    final entry = _entry(track).copyWith(tomatoes: _entry(track).tomatoes + 1);
-    final day = _day(_clock());
+    final now = _clock();
+    final old = _entry(track);
+    final last = old.lastTomatoMs;
+    final fresh = last == null || now.difference(DateTime.fromMillisecondsSinceEpoch(last)) > TheaterState.streakWindow;
+    final streak = (fresh ? 0 : old.streak) + 1;
+    final entry = old.copyWith(
+      tomatoes: old.tomatoes + 1,
+      streak: streak,
+      lastTomatoMs: now.millisecondsSinceEpoch,
+      booed: old.booed || streak >= TheaterState.tomatoLimit,
+    );
+    final day = _day(now);
     state = TheaterState(
       songs: {...state.songs, track.id: entry},
       tomatoDays: {...state.tomatoDays, day: (state.tomatoDays[day] ?? 0) + 1},
     );
     unawaited(_lastSave = _save());
-    debugPrint('=== TEATRO: tomate (${entry.tomatoes}) ===');
-    return entry.tomatoes >= TheaterState.tomatoLimit ? TomatoResult.booedOff : TomatoResult.counted;
+    debugPrint('=== TEATRO: tomate (seguidos: ${entry.streak}) ===');
+    return entry.booed ? TomatoResult.booedOff : TomatoResult.counted;
   }
 
   /// 🌹 a [track]: aplausos, y cuenta como "me gusta".
@@ -199,7 +248,10 @@ class TheaterNotifier extends Notifier<TheaterState> {
   void forgive(String id) {
     final entry = state.songs[id];
     if (entry == null) return;
-    state = TheaterState(songs: {...state.songs, id: entry.copyWith(tomatoes: 0)}, tomatoDays: state.tomatoDays);
+    state = TheaterState(
+      songs: {...state.songs, id: entry.copyWith(tomatoes: 0, streak: 0, booed: false)},
+      tomatoDays: state.tomatoDays,
+    );
     unawaited(_lastSave = _save());
   }
 }

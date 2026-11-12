@@ -1432,6 +1432,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     await _advance();
   }
 
+  /// Pasa a la siguiente sin cambiar play/pausa: sonando sigue sonando; en pausa queda en pausa
+  /// (un tomate nunca arranca la música). En la última de la cola, en pausa, no hace nada.
+  Future<void> skipKeepingPause() async {
+    if (state.isPlaying) return nextTrack();
+    final queue = state.queue;
+    final next = _queueSnapshot.nextRequestedIndex(_requestedNext) ?? state.currentIndex + 1;
+    if (next < 0 || next >= queue.length) return;
+    await _stopTail();
+    // Sin el Modo de Gracia (que seguiría con otra y la haría sonar): si no carga (sin conexión),
+    // queda elegida y en pausa, y al tocar play se reintenta como siempre.
+    await _loadTrack(queue[next], next, autoPlay: false);
+  }
+
   /// Pasa a la siguiente canción (también desde la mezcla, sin cortar la cola).
   Future<void> _advance() async {
     final queue = state.queue;
