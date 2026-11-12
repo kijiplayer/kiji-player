@@ -18,10 +18,25 @@ final homeWidgetsProvider = Provider<void>((ref) {
   Timer? ticker;
   var sending = false;
 
+  /// ¿Hay algún widget de Kiji puesto? Sin ninguno, no se manda nada (ni el temporizador corre).
+  Future<bool> anyPlaced() async {
+    try {
+      return (await channel.invokeMethod<int>('count') ?? 0) > 0;
+    } catch (error) {
+      debugPrint('=== WIDGETS: no se pudo saber si hay widgets: ${error.runtimeType} ===');
+      return false;
+    }
+  }
+
   Future<void> send() async {
     if (sending) return;
     sending = true;
     try {
+      if (!await anyPlaced()) {
+        ticker?.cancel();
+        ticker = null;
+        return;
+      }
       final playback = ref.read(playbackProvider);
       final track = playback.track;
       // Los widgets no bajan nada de internet: solo la portada que ya está en el dispositivo.
@@ -49,9 +64,16 @@ final homeWidgetsProvider = Provider<void>((ref) {
   ref.listen(
     playbackProvider.select((s) => (id: s.track?.id, playing: s.isPlaying, ready: s.isInitialized)),
     (_, next) {
-      unawaited(send());
       ticker?.cancel();
-      ticker = next.playing ? Timer.periodic(const Duration(seconds: 15), (_) => unawaited(send())) : null;
+      ticker = null;
+      unawaited(() async {
+        if (!await anyPlaced()) return;
+        await send();
+        if (next.playing && ref.read(playbackProvider).isPlaying) {
+          ticker?.cancel();
+          ticker = Timer.periodic(const Duration(seconds: 15), (_) => unawaited(send()));
+        }
+      }());
     },
     fireImmediately: true,
   );

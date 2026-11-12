@@ -47,8 +47,17 @@ object KijiWidgets {
                     refreshAll(app)
                     result.success(null)
                 }
+                // Cuántos widgets de Kiji hay puestos (con 0, Kiji no les manda nada).
+                "count" -> result.success(count(app))
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    fun count(context: Context): Int {
+        val manager = AppWidgetManager.getInstance(context)
+        return listOf(KijiWidgetSmall::class.java, KijiWidgetLarge::class.java).sumOf {
+            manager.getAppWidgetIds(ComponentName(context, it)).size
         }
     }
 
