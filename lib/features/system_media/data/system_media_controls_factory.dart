@@ -39,7 +39,7 @@ class NoSystemMediaControls implements SystemMediaControls {
   void attach(MediaCommands commands) {}
 
   @override
-  Future<void> showTrack(Track track, {Duration? duration}) async {}
+  Future<void> showTrack(Track track, {Duration? duration, String? coverFile}) async {}
 
   @override
   void updatePlayback({

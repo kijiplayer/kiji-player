@@ -44,7 +44,7 @@ class AudioServiceControls implements SystemMediaControls {
   void attach(MediaCommands commands) => _handler.commands = commands;
 
   @override
-  Future<void> showTrack(Track track, {Duration? duration}) async {
+  Future<void> showTrack(Track track, {Duration? duration, String? coverFile}) async {
     _handler.mediaItem.add(
       MediaItem(
         id: track.id,
@@ -52,7 +52,7 @@ class AudioServiceControls implements SystemMediaControls {
         artist: track.artist,
         album: track.album,
         duration: duration ?? (track.durationMs > 0 ? Duration(milliseconds: track.durationMs) : null),
-        artUri: await coverArtFor(track),
+        artUri: await coverArtFor(track, deviceCover: coverFile),
       ),
     );
   }

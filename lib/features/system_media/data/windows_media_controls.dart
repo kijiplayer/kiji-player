@@ -55,10 +55,10 @@ class WindowsMediaControls implements SystemMediaControls {
   void attach(MediaCommands commands) => _commands = commands;
 
   @override
-  Future<void> showTrack(Track track, {Duration? duration}) async {
+  Future<void> showTrack(Track track, {Duration? duration, String? coverFile}) async {
     _duration = duration ?? Duration(milliseconds: track.durationMs);
     _lastPlaying = null;
-    final art = await coverArtFor(track);
+    final art = await coverArtFor(track, deviceCover: coverFile);
     try {
       await _channel.invokeMethod('track', {
         'title': track.title,

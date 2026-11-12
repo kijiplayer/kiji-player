@@ -1,47 +1,19 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
-import '../../../models/track.dart';
-import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
-import '../../customize/data/artwork_cache.dart' show ArtworkCache, artworkCacheName;
 import '../../settings/data/settings_store.dart';
-import 'cover_art.dart' show fullThumbnailUrl;
-
-/// La portada de [track] como archivo del dispositivo (los widgets no bajan nada de internet): la
-/// incluida en el archivo local, la de su carpeta, la de la descarga o la guardada en la caché.
-/// null si no hay (el widget muestra el ícono de Kiji).
-Future<String?> widgetCoverPath(Track track, {required Directory support, String? downloadsDir, String? downloadThumb}) async {
-  final artwork = p.join(support.path, 'artwork');
-  final candidates = <String>[
-    if (track.source == TrackSource.local) ...[
-      p.join(artwork, artworkCacheName(ArtworkCache.fileKey(track.audioUrl))),
-      if (track.thumbnailUrl case final t? when !t.startsWith('http')) t,
-    ],
-    if (downloadsDir != null && downloadThumb != null) p.join(downloadsDir, downloadThumb),
-    if (track.thumbnailUrl case final t? when t.startsWith('http')) ...[
-      p.join(artwork, artworkCacheName(fullThumbnailUrl(t))),
-      p.join(artwork, artworkCacheName(t)),
-    ],
-  ];
-  for (final path in candidates) {
-    if (await File(path).exists()) return path;
-  }
-  return null;
-}
+import 'device_cover.dart';
 
 /// Mantiene al día los widgets de Android: la canción, si suena, el progreso, la portada y los
 /// colores del estilo. Se actualiza al cambiar de canción o de play/pausa y cada 15 s mientras
 /// suena (no más seguido: cuida la batería).
 final homeWidgetsProvider = Provider<void>((ref) {
-  if (kIsWeb || !Platform.isAndroid) return;
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   const channel = MethodChannel('kiji/widgets');
   Timer? ticker;
   var sending = false;
@@ -52,16 +24,8 @@ final homeWidgetsProvider = Provider<void>((ref) {
     try {
       final playback = ref.read(playbackProvider);
       final track = playback.track;
-      final downloads = ref.read(downloadsProvider);
-      final videoId = track?.youtubeVideoId;
-      final cover = track == null
-          ? null
-          : await widgetCoverPath(
-              track,
-              support: await getApplicationSupportDirectory(),
-              downloadsDir: downloads.directoryPath,
-              downloadThumb: videoId == null ? null : downloads.completed[videoId]?.thumbnailFileName,
-            );
+      // Los widgets no bajan nada de internet: solo la portada que ya está en el dispositivo.
+      final cover = track == null ? null : await deviceCoverFor(ref, track);
       final total = playback.duration.inMilliseconds;
       final palette = KijiColors.palette;
       await channel.invokeMethod<void>('update', {

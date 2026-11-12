@@ -29,6 +29,7 @@ import '../features/stream_cache/data/stream_cache.dart';
 import '../utils/app_visible.dart';
 import '../utils/duration_formatter.dart';
 import '../utils/startup_log.dart';
+import '../features/system_media/data/device_cover.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/ytm_client.dart';
 import '../features/yt_music/domain/subtitle_parser.dart';
@@ -311,7 +312,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final track = state.track;
     if (Platform.isWindows && track != null && !_shownInSystem) {
       _shownInSystem = true;
-      await _controls.showTrack(track, duration: _player?.duration);
+      await _showInSystem(track, duration: _player?.duration);
       _pushSystemState();
     }
   }
@@ -379,11 +380,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
             state = state.copyWith(duration: duration);
             final track = state.track;
             if (_shownInSystem && track != null) {
-              unawaited(_controls.showTrack(track, duration: duration));
+              unawaited(_showInSystem(track, duration: duration));
             }
           }
         }),
       );
+  }
+
+  /// Muestra [track] en la notificación / pantalla de bloqueo con la portada guardada en el
+  /// dispositivo si la hay (descarga, música local, portada elegida): así se ve también sin
+  /// internet. La de internet queda solo para lo que suena por streaming.
+  Future<void> _showInSystem(Track track, {Duration? duration}) async {
+    final cover = await deviceCoverFor(ref, track);
+    await _controls.showTrack(track, duration: duration, coverFile: cover);
   }
 
   /// Informa al sistema (notificación, pantalla de bloqueo) qué está pasando.
@@ -394,7 +403,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (!_shownInSystem) {
       if (!player.playing) return;
       _shownInSystem = true;
-      unawaited(_controls.showTrack(track, duration: player.duration));
+      unawaited(_showInSystem(track, duration: player.duration));
     }
     final waiting = _outputWait != null;
     _controls.updatePlayback(
@@ -464,7 +473,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       position: initialPosition,
       duration: Duration(milliseconds: track.durationMs),
     );
-    if (_shownInSystem) unawaited(_controls.showTrack(track));
+    if (_shownInSystem) unawaited(_showInSystem(track));
 
     try {
       final loading = Stopwatch()..start();
