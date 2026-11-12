@@ -248,9 +248,13 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
 
   /// Portadas chicas de descargas viejas → alta calidad, en segundo plano (ver [CoverUpgrade]).
   /// Después, la letra de las que todavía no la tienen.
-  /// Con "solo con WiFi", también espera al WiFi.
+  /// Con "solo con WiFi" o el ahorro de datos, solo con WiFi (o cable): si no, nada por datos
+  /// móviles (se retoma la próxima vez que se abra Kiji).
   Future<void> _upgradeCovers() async {
-    if (state.settings.wifiOnly && !await onWifiOrEthernet()) return;
+    if (!await _lyricsNetworkOk()) {
+      debugPrint('=== DESCARGAS: portadas viejas, se esperan al WiFi (ahorro de datos o solo WiFi) ===');
+      return;
+    }
     final client = YtMusicClient();
     await CoverUpgrade(
       coverUrlFor: (videoId) async => (await client.videoDetails(videoId))?.thumbnailUrl,
@@ -265,11 +269,12 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     await _lyricsForOldDownloads();
   }
 
-  /// La letra se baja solo si no hay que cuidar los datos: con "solo con WiFi" o el ahorro de
-  /// datos, únicamente con WiFi (o cable).
+  /// Letras y portadas se bajan solo si no hay que cuidar los datos: con "solo con WiFi" o el
+  /// ahorro de datos, únicamente con WiFi (o cable).
   Future<bool> _lyricsNetworkOk() async {
-    final careful = state.settings.wifiOnly || ref.read(settingsProvider).dataSaver;
-    return !careful || await onWifiOrEthernet();
+    final s = state.settings;
+    if (!(s.wifiOnly || ref.read(settingsProvider).dataSaver)) return true;
+    return canFetchExtras(wifiOnly: s.wifiOnly, dataSaver: ref.read(settingsProvider).dataSaver, onWifi: await onWifiOrEthernet());
   }
 
   StreamSubscription<List<ConnectivityResult>>? _wifiForLyrics;
@@ -658,3 +663,8 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
 }
 
 final downloadsProvider = NotifierProvider<DownloadsNotifier, DownloadsState>(DownloadsNotifier.new);
+
+/// Letras y portadas en segundo plano: con "solo con WiFi" o el ahorro de datos, solo con WiFi (o
+/// cable); si no, siempre.
+bool canFetchExtras({required bool wifiOnly, required bool dataSaver, required bool onWifi}) =>
+    !(wifiOnly || dataSaver) || onWifi;

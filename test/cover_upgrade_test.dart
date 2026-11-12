@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/downloads/data/cover_upgrade.dart';
 import 'package:kiji_player/features/downloads/data/downloads_repository.dart';
 import 'package:kiji_player/features/downloads/domain/downloaded_track.dart';
+import 'package:kiji_player/providers/downloads_provider.dart' show canFetchExtras;
 
 DownloadedTrack _track(String id, String? thumb) => DownloadedTrack(
   videoId: id,
@@ -19,6 +20,13 @@ DownloadedTrack _track(String id, String? thumb) => DownloadedTrack(
 );
 
 void main() {
+  test('Portadas y letras en segundo plano: con ahorro de datos o "solo WiFi", nada por datos móviles', () {
+    expect(canFetchExtras(wifiOnly: false, dataSaver: false, onWifi: false), isTrue);
+    expect(canFetchExtras(wifiOnly: false, dataSaver: true, onWifi: false), isFalse, reason: 'ahorro de datos');
+    expect(canFetchExtras(wifiOnly: true, dataSaver: false, onWifi: false), isFalse, reason: 'solo WiFi');
+    expect(canFetchExtras(wifiOnly: true, dataSaver: true, onWifi: true), isTrue);
+  });
+
   test('Solo mejora las portadas viejas, de a una, y anota el archivo nuevo', () async {
     final downloaded = <String>[];
     final replaced = <String, String>{};
