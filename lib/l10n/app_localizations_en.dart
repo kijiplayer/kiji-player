@@ -4867,4 +4867,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String copiaExportadaPesa(String size) {
     return 'This backup is $size because it includes your backgrounds (videos too). Save it?';
   }
+
+  @override
+  String get vibracionDelTeatro => 'Vibrate with reactions';
+
+  @override
+  String get vibracionDelTeatroNota =>
+      'A tap with each tomato and a long one with a standing ovation.';
+
+  @override
+  String tomateBuuu(int count) {
+    return 'x$count BOOO!';
+  }
+
+  @override
+  String tomateFuera(int count) {
+    return 'x$count OFF STAGE!';
+  }
+
+  @override
+  String get bravo => 'BRAVO!';
+
+  @override
+  String get teatroEnCartelera => 'Now showing';
+
+  @override
+  String get teatroEstrella => 'Star of the season';
+
+  @override
+  String get teatroMasAbucheadas => 'The season\'s most booed';
+
+  @override
+  String get teatroPremios => 'The audience awards';
+
+  @override
+  String get teatroPremioOdiadaMes => 'Most hated song of the month';
+
+  @override
+  String get teatroPremioOvacion => 'Standing ovation of the season';
+
+  @override
+  String get teatroPremioArtista => 'Most booed artist';
+
+  @override
+  String get teatroPremioNoche => 'The worst night';
+
+  @override
+  String get teatroPremioTelon => 'Booed off stage';
+
+  @override
+  String teatroFunciones(int tomatoes, int roses) {
+    return '$tomatoes tomatoes · $roses roses';
+  }
+
+  @override
+  String get teatroSinFuncion =>
+      'No show yet: throw a 🍅 or a 🌹 from the player.';
+
+  @override
+  String teatroCanciones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs',
+      one: '1 song',
+    );
+    return '$_temp0';
+  }
 }

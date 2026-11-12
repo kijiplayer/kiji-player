@@ -1313,5 +1313,22 @@
   "agregar": "Add",
   "volverALasDeFabrica": "Restore defaults",
   "ningunaCarpetaExcluida": "No excluded folders: all music on the device is read.",
-  "copiaExportadaPesa": "This backup is {size} because it includes your backgrounds (videos too). Save it?"
+  "copiaExportadaPesa": "This backup is {size} because it includes your backgrounds (videos too). Save it?",
+  "vibracionDelTeatro": "Vibrate with reactions",
+  "vibracionDelTeatroNota": "A tap with each tomato and a long one with a standing ovation.",
+  "tomateBuuu": "x{count} BOOO!",
+  "tomateFuera": "x{count} OFF STAGE!",
+  "bravo": "BRAVO!",
+  "teatroEnCartelera": "Now showing",
+  "teatroEstrella": "Star of the season",
+  "teatroMasAbucheadas": "The season's most booed",
+  "teatroPremios": "The audience awards",
+  "teatroPremioOdiadaMes": "Most hated song of the month",
+  "teatroPremioOvacion": "Standing ovation of the season",
+  "teatroPremioArtista": "Most booed artist",
+  "teatroPremioNoche": "The worst night",
+  "teatroPremioTelon": "Booed off stage",
+  "teatroFunciones": "{tomatoes} tomatoes · {roses} roses",
+  "teatroSinFuncion": "No show yet: throw a 🍅 or a 🌹 from the player.",
+  "teatroCanciones": "{count, plural, =1{1 song} other{{count} songs}}"
 }

@@ -365,6 +365,28 @@ abstract final class KijiColors {
     KijiStyle.graphite => palette.muted,
   };
 
+  /// El telón (terciopelo) y su sombra, el dorado de los flecos y el "¡BRAVO!", el reflector y el
+  /// confeti, según el estilo (Grafito en grises, Papel en tinta).
+  static Color get theaterCurtain => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFF8E1B2B),
+    KijiStyle.paper => const Color(0xFF9C2F22),
+    KijiStyle.graphite => const Color(0xFF2B2B2E),
+  };
+  static Color get theaterCurtainShadow => Color.lerp(theaterCurtain, const Color(0xFF000000), 0.55)!;
+  static Color get theaterGold => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFE8C26A),
+    KijiStyle.paper => const Color(0xFF8A6A2A),
+    KijiStyle.graphite => palette.text,
+  };
+  static Color get theaterSpot => switch (KijiLook.style) {
+    KijiStyle.paper => const Color(0xFFFFF4D6),
+    _ => const Color(0xFFFFF1C8),
+  };
+  static List<Color> get theaterConfetti => switch (KijiLook.style) {
+    KijiStyle.graphite => [palette.text, palette.muted, palette.waveRest, const Color(0xFF8C8C90)],
+    _ => [palette.violet, palette.cyan, like, theaterGold, theaterTomato],
+  };
+
   /// Un brillo claro sobre [c] (el reflejo del tomate).
   static Color shine(Color c) => Color.lerp(c, const Color(0xFFFFFFFF), 0.6)!.withValues(alpha: 0.35);
 

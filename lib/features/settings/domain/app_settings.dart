@@ -28,6 +28,7 @@ class AppSettings {
     this.libraryTab = 'playlists', // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
+    this.theaterVibration = true,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -178,6 +179,9 @@ class AppSettings {
 
   /// Reacciones de teatro en el reproductor (tomates y rosas). Encendido de fábrica.
   final bool theaterReactions;
+
+  /// Vibrar con cada tomate y con la ovación (se puede apagar).
+  final bool theaterVibration;
   static const libraryTabs = ['songs', 'artists', 'albums', 'downloads', 'playlists', 'folders']; // l10n-ignore
 
   /// Reproductor: segundos de la transición suave entre canciones.
@@ -318,6 +322,7 @@ class AppSettings {
     String? libraryTab,
     bool? ytSync,
     bool? theaterReactions,
+    bool? theaterVibration,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -380,6 +385,7 @@ class AppSettings {
         libraryTab: libraryTab ?? this.libraryTab,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
+        theaterVibration: theaterVibration ?? this.theaterVibration,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -441,6 +447,7 @@ class AppSettings {
         'libraryTab': libraryTab,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
+        'theaterVibration': theaterVibration,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -508,6 +515,7 @@ class AppSettings {
       libraryTab: libraryTabs.contains(json['libraryTab']) ? json['libraryTab'] as String : d.libraryTab,
       ytSync: read('ytSync', d.ytSync),
       theaterReactions: read('theaterReactions', d.theaterReactions),
+      theaterVibration: read('theaterVibration', d.theaterVibration),
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

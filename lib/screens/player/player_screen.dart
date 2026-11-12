@@ -18,6 +18,7 @@ import '../../features/settings/data/settings_store.dart';
 import '../../features/sleep_timer/presentation/sleep_timer_sheet.dart';
 import '../../features/sleep_timer/sleep_timer_provider.dart';
 import '../../features/theater/presentation/theater_effects.dart';
+import '../../features/theater/presentation/theater_stage.dart';
 import '../../features/queue/presentation/queue_screen.dart';
 import '../../features/yt_music/presentation/extractor_health_screen.dart';
 import '../../models/track.dart';

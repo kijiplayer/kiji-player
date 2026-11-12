@@ -7876,6 +7876,108 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Esta copia pesa {size} porque incluye tus fondos (también los videos). ¿Guardarla?'**
   String copiaExportadaPesa(String size);
+
+  /// Ajuste: vibración del teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Vibrar con las reacciones'**
+  String get vibracionDelTeatro;
+
+  /// Descripción del ajuste de vibración del teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Un golpe con cada tomate y uno largo con la ovación.'**
+  String get vibracionDelTeatroNota;
+
+  /// Contador sobre la portada con el segundo tomate seguido
+  ///
+  /// In es, this message translates to:
+  /// **'x{count} ¡BUUU!'**
+  String tomateBuuu(int count);
+
+  /// Contador sobre la portada con el tercer tomate seguido (la canción se va)
+  ///
+  /// In es, this message translates to:
+  /// **'x{count} ¡FUERA!'**
+  String tomateFuera(int count);
+
+  /// Grito de la ovación de pie (5 rosas o más)
+  ///
+  /// In es, this message translates to:
+  /// **'¡BRAVO!'**
+  String get bravo;
+
+  /// Cartel de Tu Teatro: la canción estrella
+  ///
+  /// In es, this message translates to:
+  /// **'En cartelera'**
+  String get teatroEnCartelera;
+
+  /// Subtítulo: la canción con más rosas
+  ///
+  /// In es, this message translates to:
+  /// **'La estrella de la temporada'**
+  String get teatroEstrella;
+
+  /// Cartel de Tu Teatro: el top de tomates
+  ///
+  /// In es, this message translates to:
+  /// **'Las más abucheadas de la temporada'**
+  String get teatroMasAbucheadas;
+
+  /// Cartel de Tu Teatro: premios graciosos
+  ///
+  /// In es, this message translates to:
+  /// **'Los premios del público'**
+  String get teatroPremios;
+
+  /// Premio gracioso: la canción con más tomates este mes
+  ///
+  /// In es, this message translates to:
+  /// **'Canción más odiada del mes'**
+  String get teatroPremioOdiadaMes;
+
+  /// Premio: la canción con más rosas
+  ///
+  /// In es, this message translates to:
+  /// **'Ovación de la temporada'**
+  String get teatroPremioOvacion;
+
+  /// Premio gracioso: artista con más tomates
+  ///
+  /// In es, this message translates to:
+  /// **'Artista más abucheado'**
+  String get teatroPremioArtista;
+
+  /// Premio gracioso: el día con más tomates
+  ///
+  /// In es, this message translates to:
+  /// **'La peor función'**
+  String get teatroPremioNoche;
+
+  /// Premio gracioso: cuántas canciones se abuchearon (3 tomates)
+  ///
+  /// In es, this message translates to:
+  /// **'Salieron de escena'**
+  String get teatroPremioTelon;
+
+  /// Pie del cartel: totales
+  ///
+  /// In es, this message translates to:
+  /// **'{tomatoes} tomates · {roses} rosas'**
+  String teatroFunciones(int tomatoes, int roses);
+
+  /// Cartel vacío de Tu Teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hubo función: tira un 🍅 o una 🌹 desde el reproductor.'**
+  String get teatroSinFuncion;
+
+  /// Cantidad de canciones en un premio
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 canción} other{{count} canciones}}'**
+  String teatroCanciones(int count);
 }
 
 class _AppLocalizationsDelegate

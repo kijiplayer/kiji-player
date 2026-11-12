@@ -316,6 +316,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
+        title: tx.vibracionDelTeatro,
+        subtitle: tx.vibracionDelTeatroNota,
+        keywords: const ['vibrar', 'vibrate', 'vibración', 'vibration', 'tomate', 'tomato', 'háptica', 'haptic'], // l10n-ignore
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('setting-theater-vibration'),
+          title: Text(tx.vibracionDelTeatro),
+          subtitle: Text(tx.vibracionDelTeatroNota),
+          value: ref.watch(settingsProvider.select((s) => s.theaterVibration)),
+          onChanged: ref.watch(settingsProvider.select((s) => s.theaterReactions))
+              ? (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(theaterVibration: value))
+              : null,
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
         title: tx.sonido,
         subtitle: tx.sonidoNota,
         // l10n-ignore

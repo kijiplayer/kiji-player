@@ -90,10 +90,19 @@ flutter:
     - assets/translation/
     # Las 5 notas de Kiji (bienvenida); se generan con tool/make_kiji_notes.py.
     - assets/sounds/kiji_notes.wav
-    # Reacciones de teatro (tomate, abucheo y aplausos): sonidos originales, tool/make_theater_sounds.py.
-    - assets/sounds/splat.wav
-    - assets/sounds/boo.wav
-    - assets/sounds/applause.wav
+    # Reacciones de teatro (tomates, abucheos, aplausos, ovación y telón; varias versiones de cada uno):
+    # sonidos originales, tool/make_theater_sounds.py.
+    - assets/sounds/splat_1.wav
+    - assets/sounds/splat_2.wav
+    - assets/sounds/splat_3.wav
+    - assets/sounds/boo_1.wav
+    - assets/sounds/boo_2.wav
+    - assets/sounds/boo_3.wav
+    - assets/sounds/applause_1.wav
+    - assets/sounds/applause_2.wav
+    - assets/sounds/applause_3.wav
+    - assets/sounds/ovation.wav
+    - assets/sounds/curtain.wav
     # Ícono de la bandeja del sistema (PC).
     - assets/tray/
     # "Novedades de esta versión": las mismas notas de la tienda de apps (una por compilación).
