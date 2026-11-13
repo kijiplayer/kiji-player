@@ -162,6 +162,9 @@ class GlassIconButton extends StatelessWidget {
 
     // Nombre explícito para lectores de pantalla (el Tooltip solo no alcanza).
     return Semantics(
+      // Su propio nodo: si no, el nombre y la acción se funden con lo de alrededor (en Inicio, el
+      // engranaje quedaba dentro del saludo y TalkBack no lo podía tocar aparte).
+      container: true,
       button: true,
       enabled: onPressed != null,
       label: label ?? tooltip,

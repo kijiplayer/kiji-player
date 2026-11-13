@@ -92,7 +92,13 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: Center(child: GlassIconButton(icon: Icons.settings_outlined, tooltip: 'Configuración', onPressed: () => taps++)),
+          // Como en Inicio: el saludo al lado del engranaje (no se tienen que fundir en un solo nodo).
+          body: Row(
+            children: [
+              const Expanded(child: Text('Buenas noches')),
+              GlassIconButton(icon: Icons.settings_outlined, tooltip: 'Configuración', onPressed: () => taps++),
+            ],
+          ),
         ),
       ),
     );
