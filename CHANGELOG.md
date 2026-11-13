@@ -29,15 +29,24 @@
   no se encuentran se eligen a mano.
 - Copia de seguridad completa (con portadas y fondos) para exportar a un archivo, con vista previa
   antes de restaurar.
-- Con la sesión de YouTube iniciada, tus playlists de la cuenta en Kiji (apagado de fábrica, solo
-  lectura).
+- Cuenta de YouTube Music opcional, fácil de encontrar (Configuración → Cuenta, una tarjeta en la
+  Biblioteca que se puede cerrar y la opción en Importar): con la sesión, tus Me gusta y playlists en
+  Kiji. La sincronización está apagada de fábrica, es solo lectura y Kiji pregunta una sola vez si
+  activarla. Cerrar sesión borra todo lo leído de la cuenta.
 
 **Reacciones de teatro**
-- 🍅 y 🌹 en el reproductor (o agitando el teléfono). Tres tomates y la canción sale de escena;
-  las rosas la guardan en favoritas. "Tu Teatro" muestra tus tops, y todo queda en tu equipo.
+- 🍅 y 🌹 en el reproductor (o sacudiendo el teléfono mientras suena). Tomates de varias formas que
+  dejan una mancha que escurre; con el tercero seguido ("x3 ¡FUERA!") cae un telón rojo y la canción
+  sale de escena (en pausa, queda en pausa). Las rosas traen reflector, pétalos y aplausos que
+  crecen; con 5, ovación de pie con "¡BRAVO!", confeti y reverencia. Sonidos originales, vibración
+  que se puede apagar y una versión simple con "reducir animaciones".
+- "Tu Teatro", como un cartel de teatro antiguo: En cartelera, las más abucheadas, las más
+  aplaudidas y los premios del público. Todo queda en tu teléfono.
 
 **Plataformas**
-- Widgets de Android (chico y grande) con la canción, la portada y los controles.
+- Cinco widgets de Android en los tres estilos: Anillo (2x2), Ahora suena (4x2, o 4x4 con la letra),
+  Letra (4x2), Teatro (2x2) y Barra (4x1). Con la portada guardada en el teléfono (también sin
+  internet) y livianos: se actualizan solo al cambiar de canción o de estado.
 - Arranque más rápido, el permiso de notificaciones se pide cuando Kiji ya está a la vista y sin
   conexión no se repiten pedidos inútiles.
 
