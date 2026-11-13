@@ -4947,4 +4947,77 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get siguienteActo => '¡Siguiente acto!';
+
+  @override
+  String get fuera => '¡FUERA!';
+
+  @override
+  String get conectaTuYoutubeMusic => 'Conecta tu YouTube Music (opcional)';
+
+  @override
+  String get conectaTuYoutubeMusicNota =>
+      'Tus Me gusta y las playlists de tu biblioteca, para verlos en Kiji. Solo lectura y solo en este dispositivo; Kiji funciona igual sin cuenta.';
+
+  @override
+  String get iniciarSesionBoton => 'Iniciar sesión';
+
+  @override
+  String get cerrarSesionBoton => 'Cerrar sesión';
+
+  @override
+  String get noMostrarMas => 'No mostrar más';
+
+  @override
+  String get prefieresIniciarSesion =>
+      '¿Prefieres iniciar sesión en YouTube Music?';
+
+  @override
+  String get prefieresIniciarSesionNota =>
+      'Trae tus Me gusta y tus playlists sin pegar enlaces (opcional).';
+
+  @override
+  String get seccionCuenta => 'Cuenta';
+
+  @override
+  String get seccionCuentaDescripcion =>
+      'YouTube Music opcional: iniciar sesión y sincronizar';
+
+  @override
+  String get cuentaYoutubeMusic => 'Cuenta de YouTube Music';
+
+  @override
+  String get cuentaOpcionalNota =>
+      'Opcional: tus Me gusta y playlists en Kiji. Kiji funciona igual sin cuenta.';
+
+  @override
+  String get sesionSoloEnEsteDispositivo =>
+      'Guardada cifrada, solo en este dispositivo.';
+
+  @override
+  String get iniciaSesionParaSincronizar => 'Inicia sesión para usarla.';
+
+  @override
+  String ultimaSincronizacion(String when) {
+    return 'Última sincronización: $when';
+  }
+
+  @override
+  String get todaviaNoSeSincronizo => 'Todavía no se sincronizó.';
+
+  @override
+  String get sincronizarAhora => 'Sincronizar ahora';
+
+  @override
+  String get activarSincronizacionTitulo => '¿Sincronizar con YouTube Music?';
+
+  @override
+  String get activarSincronizacionNota =>
+      'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá: solo lectura, como mucho cada 12 horas y guardado solo en este dispositivo. Lo puedes cambiar cuando quieras en Configuración → Cuenta.';
+
+  @override
+  String get activarSincronizacion => 'Activar';
+
+  @override
+  String get conSesionActivaSincronizar =>
+      'Ya tienes la sesión: activa «Sincronizar» en Configuración → Cuenta.';
 }

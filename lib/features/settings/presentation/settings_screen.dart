@@ -45,9 +45,7 @@ import '../domain/app_settings.dart';
 import '../domain/setting_search.dart';
 import 'credits_screen.dart';
 import '../../../l10n/l10n.dart';
-import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart';
-import '../../account/domain/yt_session.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
@@ -63,6 +61,7 @@ import '../../style/presentation/style_parts.dart';
 /// descripción corta.
 enum SettingsSection {
   appearance(Icons.palette_outlined),
+  account(Icons.account_circle_outlined),
   player(Icons.play_circle_outline_rounded),
   lyrics(Icons.lyrics_outlined),
   storage(Icons.sd_storage_outlined),
@@ -74,6 +73,7 @@ enum SettingsSection {
   const SettingsSection(this.icon);
   String get label => switch (this) {
     SettingsSection.appearance => tx.apariencia,
+    SettingsSection.account => tx.seccionCuenta,
     SettingsSection.player => tx.reproductorYAudio,
     SettingsSection.lyrics => tx.letras2,
     SettingsSection.storage => tx.descargasYAlmacenamiento,
@@ -85,6 +85,7 @@ enum SettingsSection {
 
   String get description => switch (this) {
     SettingsSection.appearance => tx.seccionAparienciaDescripcion,
+    SettingsSection.account => tx.seccionCuentaDescripcion,
     SettingsSection.player => tx.seccionReproductorDescripcion,
     SettingsSection.lyrics => tx.seccionLetrasDescripcion,
     SettingsSection.storage => tx.seccionDescargasDescripcion,
@@ -1071,27 +1072,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => ExtractorHealthScreen.open(context),
         ),
       ),
-      // Cuenta de Google opcional.
+      // Cuenta de YouTube Music (opcional): su propia sección, clara.
       SettingOption(
-        section: SettingsSection.privacy,
-        title: tx.cuentaDeGoogleOpcional,
-        subtitle: tx.soloParaCancionesQueYoutubeEntrega,
-        keywords: ['cuenta', 'google', tx.iniciarSesion2, 'login', 'edad', tx.cerrarSesion],
-        builder: (context, ref) {
-          final session = ref.watch(accountProvider);
-          return ListTile(
-            leading: Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded),
-            title: Text(session == null ? tx.cuentaDeGoogleOpcional : tx.sesionIniciada2),
-            // YouTube rechazó la sesión guardada: se avisa para volver a conectarla.
-            subtitle: Text(
-              session == null
-                  ? tx.soloParaCancionesConCuenta
-                  : (YtSessionHolder.rejected ? tx.sesionVencidaVuelveAConectar : tx.tocaParaVerOCerrarLa),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => AccountScreen.open(context),
-          );
-        },
+        section: SettingsSection.account,
+        title: tx.cuentaYoutubeMusic,
+        subtitle: tx.cuentaOpcionalNota,
+        keywords: ['cuenta', 'account', 'google', 'youtube', 'login', tx.iniciarSesion2, tx.cerrarSesion, 'edad'], // l10n-ignore
+        builder: (context, ref) => const AccountStatusTile(),
+      ),
+      SettingOption(
+        section: SettingsSection.account,
+        title: tx.sincronizarConYoutube,
+        subtitle: tx.sincronizarConYoutubeNota,
+        keywords: const ['sincronizar', 'sync', 'me gusta', 'likes', 'playlists', 'youtube music'], // l10n-ignore
+        builder: (context, ref) => const SyncSwitchTile(),
+      ),
+      SettingOption(
+        section: SettingsSection.account,
+        title: tx.sincronizarAhora,
+        subtitle: tx.todaviaNoSeSincronizo,
+        keywords: const ['sincronizar ahora', 'sync now', 'última', 'last'], // l10n-ignore
+        builder: (context, ref) => const SyncNowTile(),
       ),
       // Registros e informes.
       SettingOption(

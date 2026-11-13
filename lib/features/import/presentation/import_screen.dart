@@ -6,7 +6,10 @@ import 'package:path_provider/path_provider.dart';
 import '../../../providers/local_library_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/nocturne/glass.dart';
+import '../../account/data/account_store.dart';
+import '../../account/presentation/account_screens.dart' show signInToYouTubeMusic;
 import '../../playlists/playlists_provider.dart';
+import '../../settings/data/settings_store.dart';
 import '../data/import_parsers.dart';
 import '../data/link_import.dart';
 import '../../yt_music/data/ytm_client.dart' show YtMusicSearchResult;
@@ -261,6 +264,23 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
               label: Text(tx.importarEnlace),
             ),
           ),
+          // La otra forma: con la cuenta, sin pegar enlaces (opcional).
+          const SizedBox(height: 12),
+          if (ref.watch(accountProvider) == null)
+            ListTile(
+              key: const Key('import-sign-in'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.login_rounded),
+              title: Text(tx.prefieresIniciarSesion),
+              subtitle: Text(tx.prefieresIniciarSesionNota),
+              onTap: () => signInToYouTubeMusic(context, ref),
+            )
+          else if (!ref.watch(settingsProvider.select((s) => s.ytSync)))
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.sync_rounded),
+              title: Text(tx.conSesionActivaSincronizar),
+            ),
         ];
       case _Step.reading:
         return [Text(tx.leyendo(_fileName)), const SizedBox(height: 8), const LinearProgressIndicator()];

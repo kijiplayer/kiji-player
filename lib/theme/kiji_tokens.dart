@@ -407,6 +407,14 @@ abstract final class KijiColors {
     KijiStyle.graphite => const Color(0xFFFFFFFF),
   };
 
+  /// Las rosas del teatro: siempre rosas (no el "me gusta", que con un acento propio puede ser gris),
+  /// blancas en Grafito.
+  static Color get theaterRose => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFE8335F),
+    KijiStyle.paper => const Color(0xFFB02A47),
+    KijiStyle.graphite => palette.text,
+  };
+
   /// Un brillo claro sobre [c] (el reflejo del tomate).
   static Color shine(Color c) => Color.lerp(c, const Color(0xFFFFFFFF), 0.6)!.withValues(alpha: 0.35);
 

@@ -4937,4 +4937,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get siguienteActo => 'Next act!';
+
+  @override
+  String get fuera => 'OFF STAGE!';
+
+  @override
+  String get conectaTuYoutubeMusic => 'Connect your YouTube Music (optional)';
+
+  @override
+  String get conectaTuYoutubeMusicNota =>
+      'Your likes and the playlists in your library, right in Kiji. Read-only and only on this device; Kiji works the same without an account.';
+
+  @override
+  String get iniciarSesionBoton => 'Sign in';
+
+  @override
+  String get cerrarSesionBoton => 'Sign out';
+
+  @override
+  String get noMostrarMas => 'Don\'t show again';
+
+  @override
+  String get prefieresIniciarSesion => 'Rather sign in to YouTube Music?';
+
+  @override
+  String get prefieresIniciarSesionNota =>
+      'Brings your likes and playlists without pasting links (optional).';
+
+  @override
+  String get seccionCuenta => 'Account';
+
+  @override
+  String get seccionCuentaDescripcion =>
+      'Optional YouTube Music: sign in and sync';
+
+  @override
+  String get cuentaYoutubeMusic => 'YouTube Music account';
+
+  @override
+  String get cuentaOpcionalNota =>
+      'Optional: your likes and playlists in Kiji. Kiji works the same without an account.';
+
+  @override
+  String get sesionSoloEnEsteDispositivo =>
+      'Stored encrypted, only on this device.';
+
+  @override
+  String get iniciaSesionParaSincronizar => 'Sign in to use it.';
+
+  @override
+  String ultimaSincronizacion(String when) {
+    return 'Last synced: $when';
+  }
+
+  @override
+  String get todaviaNoSeSincronizo => 'Not synced yet.';
+
+  @override
+  String get sincronizarAhora => 'Sync now';
+
+  @override
+  String get activarSincronizacionTitulo => 'Sync with YouTube Music?';
+
+  @override
+  String get activarSincronizacionNota =>
+      'Kiji can read your likes and the playlists in your library to show them here: read-only, at most every 12 hours and stored only on this device. You can change it anytime in Settings → Account.';
+
+  @override
+  String get activarSincronizacion => 'Turn on';
+
+  @override
+  String get conSesionActivaSincronizar =>
+      'You\'re signed in: turn on «Sync» in Settings → Account.';
 }

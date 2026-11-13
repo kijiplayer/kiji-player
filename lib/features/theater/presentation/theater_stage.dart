@@ -199,7 +199,9 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
         _hitAt = _now;
       }
       if (burst.count >= 3 || burst.booedOff) {
-        _label = _Label(tx.tomateFuera(burst.count), _now + (simple ? Duration.zero : flight), KijiColors.theaterTomato);
+        // Una que ya estaba abucheada se va con el primero: "¡FUERA!" sin contador.
+        final text = burst.count >= 3 ? tx.tomateFuera(burst.count) : tx.fuera;
+        _label = _Label(text, _now + (simple ? Duration.zero : flight), KijiColors.theaterTomato);
       } else if (burst.count == 2) {
         _label = _Label(tx.tomateBuuu(burst.count), _now + (simple ? Duration.zero : flight), KijiColors.theaterTomato);
       }
@@ -390,7 +392,7 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
                   now: _now,
                   tomato: KijiColors.theaterTomato,
                   leaf: KijiColors.theaterLeaf,
-                  rose: KijiColors.like,
+                  rose: KijiColors.theaterRose,
                 ),
               ),
             ),
@@ -562,22 +564,19 @@ class _CurtainPainter extends CustomPainter {
       if (w <= 1) continue;
       final x0 = left ? 0.0 : size.width - w;
       // El borde de abajo ondea (la tela se mece) y el de adentro se curva un poco.
-      final path = Path()..moveTo(x0, 0);
-      path.lineTo(x0 + w, 0);
+      // Contorno sin cruces: arriba de izquierda a derecha, baja por el borde derecho y vuelve por
+      // abajo de derecha a izquierda (los dos paños igual; si no, uno no se pinta entero).
+      final path = Path()
+        ..moveTo(x0, 0)
+        ..lineTo(x0 + w, 0);
       const steps = 12;
       for (var s = 0; s <= steps; s++) {
         final f = s / steps;
-        final x = left ? x0 + w - f * w : x0 + f * w;
+        final x = x0 + w - f * w;
         final wave = sin(f * pi * 3 + sway * 6) * 5 * sway;
-        if (s == 0) {
-          path.lineTo(x + (left ? -4 * sway : 4 * sway), size.height + wave);
-        } else {
-          path.lineTo(x, size.height + wave);
-        }
+        path.lineTo(x, size.height + wave);
       }
-      path
-        ..lineTo(x0, size.height)
-        ..close();
+      path.close();
       final rect = Rect.fromLTWH(x0, 0, w, size.height);
       final folds = <Color>[];
       final stops = <double>[];

@@ -29,6 +29,8 @@ class AppSettings {
     this.ytSync = false,
     this.theaterReactions = true,
     this.theaterVibration = true,
+    this.ytConnectCardHidden = false,
+    this.ytSyncOffered = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
@@ -182,6 +184,12 @@ class AppSettings {
 
   /// Vibrar con cada tomate y con la ovación (se puede apagar).
   final bool theaterVibration;
+
+  /// La tarjeta "Conecta tu YouTube Music" de la Biblioteca se cerró (no vuelve a aparecer).
+  final bool ytConnectCardHidden;
+
+  /// Ya se preguntó una vez, al iniciar sesión, si activar la sincronización.
+  final bool ytSyncOffered;
   static const libraryTabs = ['songs', 'artists', 'albums', 'downloads', 'playlists', 'folders']; // l10n-ignore
 
   /// Reproductor: segundos de la transición suave entre canciones.
@@ -323,6 +331,8 @@ class AppSettings {
     bool? ytSync,
     bool? theaterReactions,
     bool? theaterVibration,
+    bool? ytConnectCardHidden,
+    bool? ytSyncOffered,
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
@@ -386,6 +396,8 @@ class AppSettings {
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
         theaterVibration: theaterVibration ?? this.theaterVibration,
+        ytConnectCardHidden: ytConnectCardHidden ?? this.ytConnectCardHidden,
+        ytSyncOffered: ytSyncOffered ?? this.ytSyncOffered,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
@@ -448,6 +460,8 @@ class AppSettings {
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
         'theaterVibration': theaterVibration,
+        'ytConnectCardHidden': ytConnectCardHidden,
+        'ytSyncOffered': ytSyncOffered,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
@@ -516,6 +530,8 @@ class AppSettings {
       ytSync: read('ytSync', d.ytSync),
       theaterReactions: read('theaterReactions', d.theaterReactions),
       theaterVibration: read('theaterVibration', d.theaterVibration),
+      ytConnectCardHidden: read('ytConnectCardHidden', d.ytConnectCardHidden),
+      ytSyncOffered: read('ytSyncOffered', d.ytSyncOffered),
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),

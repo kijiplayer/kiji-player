@@ -22,6 +22,7 @@ import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
 import '../../account/data/account_store.dart';
+import '../../account/presentation/account_screens.dart' show YtConnectCard;
 import '../../account/data/yt_sync.dart';
 import '../../local_library/domain/local_groups.dart' show LocalGroup;
 import '../../local_library/presentation/local_group_screen.dart';
@@ -255,6 +256,8 @@ class PlaylistsView extends ConsumerWidget {
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => MomentsScreen.open(context),
         ),
+        // Sin sesión: "Conecta tu YouTube Music (opcional)" (se puede cerrar para siempre).
+        const YtConnectCard(),
         // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
         ...() {
           final sync = ref.watch(ytSyncProvider);

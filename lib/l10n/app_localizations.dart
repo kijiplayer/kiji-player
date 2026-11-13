@@ -7984,6 +7984,132 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'¡Siguiente acto!'**
   String get siguienteActo;
+
+  /// Cartel cuando una canción ya abucheada recibe otro tomate y se va
+  ///
+  /// In es, this message translates to:
+  /// **'¡FUERA!'**
+  String get fuera;
+
+  /// Tarjeta de la Biblioteca sin sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Conecta tu YouTube Music (opcional)'**
+  String get conectaTuYoutubeMusic;
+
+  /// Qué trae iniciar sesión (tarjeta de la Biblioteca)
+  ///
+  /// In es, this message translates to:
+  /// **'Tus Me gusta y las playlists de tu biblioteca, para verlos en Kiji. Solo lectura y solo en este dispositivo; Kiji funciona igual sin cuenta.'**
+  String get conectaTuYoutubeMusicNota;
+
+  /// Botón para iniciar sesión en YouTube Music
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión'**
+  String get iniciarSesionBoton;
+
+  /// Botón para cerrar sesión (y borrarla del dispositivo)
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar sesión'**
+  String get cerrarSesionBoton;
+
+  /// Cerrar la tarjeta para siempre
+  ///
+  /// In es, this message translates to:
+  /// **'No mostrar más'**
+  String get noMostrarMas;
+
+  /// Opción en Importar por enlace
+  ///
+  /// In es, this message translates to:
+  /// **'¿Prefieres iniciar sesión en YouTube Music?'**
+  String get prefieresIniciarSesion;
+
+  /// Explicación de la opción de iniciar sesión en Importar
+  ///
+  /// In es, this message translates to:
+  /// **'Trae tus Me gusta y tus playlists sin pegar enlaces (opcional).'**
+  String get prefieresIniciarSesionNota;
+
+  /// Sección de Configuración: la cuenta de YouTube Music opcional
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta'**
+  String get seccionCuenta;
+
+  /// Descripción de la sección Cuenta
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube Music opcional: iniciar sesión y sincronizar'**
+  String get seccionCuentaDescripcion;
+
+  /// Ajuste: estado de la cuenta
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta de YouTube Music'**
+  String get cuentaYoutubeMusic;
+
+  /// Descripción sin sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional: tus Me gusta y playlists en Kiji. Kiji funciona igual sin cuenta.'**
+  String get cuentaOpcionalNota;
+
+  /// Descripción con la sesión iniciada
+  ///
+  /// In es, this message translates to:
+  /// **'Guardada cifrada, solo en este dispositivo.'**
+  String get sesionSoloEnEsteDispositivo;
+
+  /// El interruptor de sincronizar sin sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Inicia sesión para usarla.'**
+  String get iniciaSesionParaSincronizar;
+
+  /// Cuándo se sincronizó por última vez
+  ///
+  /// In es, this message translates to:
+  /// **'Última sincronización: {when}'**
+  String ultimaSincronizacion(String when);
+
+  /// Sin sincronizar todavía
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no se sincronizó.'**
+  String get todaviaNoSeSincronizo;
+
+  /// Botón para sincronizar ya
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar ahora'**
+  String get sincronizarAhora;
+
+  /// Pregunta una vez después de iniciar sesión
+  ///
+  /// In es, this message translates to:
+  /// **'¿Sincronizar con YouTube Music?'**
+  String get activarSincronizacionTitulo;
+
+  /// Explicación de la pregunta de sincronizar
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá: solo lectura, como mucho cada 12 horas y guardado solo en este dispositivo. Lo puedes cambiar cuando quieras en Configuración → Cuenta.'**
+  String get activarSincronizacionNota;
+
+  /// Botón: activar la sincronización
+  ///
+  /// In es, this message translates to:
+  /// **'Activar'**
+  String get activarSincronizacion;
+
+  /// En Importar, con la sesión iniciada
+  ///
+  /// In es, this message translates to:
+  /// **'Ya tienes la sesión: activa «Sincronizar» en Configuración → Cuenta.'**
+  String get conSesionActivaSincronizar;
 }
 
 class _AppLocalizationsDelegate
