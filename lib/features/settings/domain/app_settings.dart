@@ -1,3 +1,6 @@
+import 'dart:ui' show Color;
+
+import '../../local_library/domain/local_exclusions.dart';
 import '../../lyrics/domain/lyrics.dart';
 
 /// Preferencias de Kiji. Se guardan solo en el teléfono.
@@ -16,10 +19,24 @@ class AppSettings {
     this.batteryAsked = false,
     this.style = 'nocturne',
     this.styleChosen = false,
+    this.personalized = false,
+    this.playerMode = 'normal',
+    this.playerButtonLabels = true,
+    this.librarySort = 'recent',
+    this.libraryFilter = 'all',
+    this.libraryView = 'list',
+    this.libraryTab = 'playlists', // l10n-ignore
+    this.ytSync = false,
+    this.theaterReactions = true,
+    this.theaterVibration = true,
+    this.ytConnectCardHidden = false,
+    this.ytSyncOffered = false,
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
+    this.downloadLyrics = true,
     this.autoBackup = true,
     this.backupFolder,
+    this.excludedFolders,
     this.disabledLyricsSources = const {},
     this.translationTarget = 'es',
     this.useGemini = false,
@@ -36,6 +53,11 @@ class AppSettings {
     this.timeFormat = 'system',
     this.downloadLiked = false,
     this.accent = 'nocturne',
+    this.customAccent,
+    this.backgroundFile,
+    this.backgroundKind = 'image',
+    this.backgroundBlur = 12,
+    this.backgroundOpacity = 0.6,
     this.theme = 'dark',
     this.font = 'kiji',
     this.lyricsSize = 'normal',
@@ -50,8 +72,10 @@ class AppSettings {
     this.highPerformance = false,
   });
 
-  /// Opciones de la transición suave entre canciones (0 = apagada).
+  /// Opciones rápidas de la transición suave entre canciones (0 = apagada). En Sonido se elige
+  /// cualquier valor entero de 0 a [maxCrossfadeSeconds].
   static const crossfadeOptions = [0, 3, 5, 8, 12];
+  static const maxCrossfadeSeconds = 12;
 
   static const _mb = 1024 * 1024;
   static const defaultCacheLimit = 300 * _mb;
@@ -68,11 +92,14 @@ class AppSettings {
   /// Colores de acento (Configuración → Apariencia). El primero es el de siempre.
   static const accents = ['nocturne', 'aurora', 'ember', 'mint', 'ocean'];
 
+  /// Acento propio (un color elegido por el usuario, en los tres estilos): va en [customAccent].
+  static const customAccentName = 'custom';
+
   /// Temas: oscuro (el de siempre), más oscuro (negro puro, ahorra batería en OLED) y claro.
   static const themes = ['dark', 'darker', 'light'];
 
-  /// Tipografía de los títulos: la de Kiji (Space Grotesk) o la del sistema.
-  static const fonts = ['kiji', 'system'];
+  /// Tipografía: la del estilo, una de las incluidas en la app (OFL, `assets/fonts`) o la del sistema.
+  static const fonts = ['kiji', 'spacegrotesk', 'inter', 'newsreader', 'jetbrainsmono', 'system'];
 
   /// Estilos de Kiji (ver `KijiStyle`): Nocturne (de fábrica), Grafito y Papel.
   static const styles = ['nocturne', 'graphite', 'paper'];
@@ -126,6 +153,45 @@ class AppSettings {
   /// Ya se mostró "¿Cómo quieres que se vea Kiji?" (al instalar o, una vez, al actualizar a la 0.7).
   final bool styleChosen;
 
+  /// Ya se vio "Personaliza Kiji" (al instalar, o una vez al actualizar a la 0.8.0).
+  final bool personalized;
+
+  /// Modo del reproductor: 'normal' o 'compact' (todo en menos espacio, para una ventana chica).
+  final String playerMode;
+  static const playerModes = ['normal', 'compact'];
+
+  /// La fila de abajo del reproductor muestra el nombre de cada botón (si no, solo los íconos).
+  final bool playerButtonLabels;
+
+  /// Biblioteca → Canciones: el orden ('recent', 'title', 'artist', 'duration'), qué se muestra
+  /// ('all', 'downloaded', 'local') y la vista de canciones y playlists ('list' o 'grid').
+  final String librarySort;
+  final String libraryFilter;
+  final String libraryView;
+  static const librarySorts = ['recent', 'title', 'artist', 'duration'];
+  static const libraryFilters = ['all', 'downloaded', 'local'];
+  static const libraryViews = ['list', 'grid'];
+
+  /// La última pestaña de la Biblioteca (se abre ahí).
+  final String libraryTab;
+
+  /// Sincronizar con YouTube (solo con sesión iniciada): leer "Me gusta" y las playlists de la
+  /// cuenta. Apagado de fábrica; solo lectura.
+  final bool ytSync;
+
+  /// Reacciones de teatro en el reproductor (tomates y rosas). Encendido de fábrica.
+  final bool theaterReactions;
+
+  /// Vibrar con cada tomate y con la ovación (se puede apagar).
+  final bool theaterVibration;
+
+  /// La tarjeta "Conecta tu YouTube Music" de la Biblioteca se cerró (no vuelve a aparecer).
+  final bool ytConnectCardHidden;
+
+  /// Ya se preguntó una vez, al iniciar sesión, si activar la sincronización.
+  final bool ytSyncOffered;
+  static const libraryTabs = ['songs', 'artists', 'albums', 'downloads', 'playlists', 'folders']; // l10n-ignore
+
   /// Reproductor: segundos de la transición suave entre canciones.
   final int crossfadeSeconds;
 
@@ -133,11 +199,20 @@ class AppSettings {
   /// baja. Con WiFi, siempre la mejor.
   final bool dataSaver;
 
+  /// Al descargar una canción, bajar también su letra (con las fuentes que estén prendidas).
+  final bool downloadLyrics;
+
   /// Copia de seguridad: una copia por día, automática.
   final bool autoBackup;
 
   /// Carpeta elegida para las copias; null = la de fábrica (Documentos/Kiji).
   final String? backupFolder;
+
+  /// "Carpetas excluidas" de la música del dispositivo; null = las de fábrica
+  /// ([LocalExclusions.defaultFolders]: WhatsApp, Telegram y grabadoras).
+  final List<String>? excludedFolders;
+
+  LocalExclusions get localExclusions => LocalExclusions(excludedFolders ?? LocalExclusions.defaultFolders);
 
   /// Letras: fuentes por internet apagadas por el usuario.
   final Set<LyricsSource> disabledLyricsSources;
@@ -188,6 +263,23 @@ class AppSettings {
 
   /// Personalización: color de acento, tema, tipografía y tamaño de la letra de las canciones.
   final String accent;
+
+  /// Con `accent == 'custom'`: el color elegido (ARGB). Kiji lo ajusta para que se lea.
+  final int? customAccent;
+
+  /// Fondo propio: el archivo copiado en `<datos de Kiji>/backgrounds/` (null = sin fondo propio).
+  final String? backgroundFile;
+
+  /// 'image' (también GIF) o 'video'.
+  final String backgroundKind;
+
+  /// Desenfoque del fondo (0 a [maxBackgroundBlur]) y cuánto se ve (0,1 a 1).
+  final double backgroundBlur;
+  final double backgroundOpacity;
+  static const maxBackgroundBlur = 30.0;
+
+  /// El color propio, si se eligió uno.
+  Color? get customAccentColor => accent == customAccentName && customAccent != null ? Color(customAccent!) : null;
   final String theme;
   final String font;
   final String lyricsSize;
@@ -229,11 +321,26 @@ class AppSettings {
     bool? batteryAsked,
     String? style,
     bool? styleChosen,
+    bool? personalized,
+    String? playerMode,
+    bool? playerButtonLabels,
+    String? librarySort,
+    String? libraryFilter,
+    String? libraryView,
+    String? libraryTab,
+    bool? ytSync,
+    bool? theaterReactions,
+    bool? theaterVibration,
+    bool? ytConnectCardHidden,
+    bool? ytSyncOffered,
     int? crossfadeSeconds,
     bool? dataSaver,
+    bool? downloadLyrics,
     bool? autoBackup,
     String? backupFolder,
     bool defaultBackupFolder = false,
+    List<String>? excludedFolders,
+    bool defaultExcludedFolders = false,
     Set<LyricsSource>? disabledLyricsSources,
     String? translationTarget,
     bool? useGemini,
@@ -250,6 +357,12 @@ class AppSettings {
     String? timeFormat,
     bool? downloadLiked,
     String? accent,
+    int? customAccent,
+    String? backgroundFile,
+    bool clearBackground = false,
+    String? backgroundKind,
+    double? backgroundBlur,
+    double? backgroundOpacity,
     String? theme,
     String? font,
     String? lyricsSize,
@@ -273,10 +386,24 @@ class AppSettings {
         batteryAsked: batteryAsked ?? this.batteryAsked,
         style: style ?? this.style,
         styleChosen: styleChosen ?? this.styleChosen,
+        personalized: personalized ?? this.personalized,
+        playerMode: playerMode ?? this.playerMode,
+        playerButtonLabels: playerButtonLabels ?? this.playerButtonLabels,
+        librarySort: librarySort ?? this.librarySort,
+        libraryFilter: libraryFilter ?? this.libraryFilter,
+        libraryView: libraryView ?? this.libraryView,
+        libraryTab: libraryTab ?? this.libraryTab,
+        ytSync: ytSync ?? this.ytSync,
+        theaterReactions: theaterReactions ?? this.theaterReactions,
+        theaterVibration: theaterVibration ?? this.theaterVibration,
+        ytConnectCardHidden: ytConnectCardHidden ?? this.ytConnectCardHidden,
+        ytSyncOffered: ytSyncOffered ?? this.ytSyncOffered,
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
+        downloadLyrics: downloadLyrics ?? this.downloadLyrics,
         autoBackup: autoBackup ?? this.autoBackup,
         backupFolder: defaultBackupFolder ? null : (backupFolder ?? this.backupFolder),
+        excludedFolders: defaultExcludedFolders ? null : (excludedFolders ?? this.excludedFolders),
         disabledLyricsSources: disabledLyricsSources ?? this.disabledLyricsSources,
         translationTarget: translationTarget ?? this.translationTarget,
         useGemini: useGemini ?? this.useGemini,
@@ -293,6 +420,11 @@ class AppSettings {
         timeFormat: timeFormat ?? this.timeFormat,
         downloadLiked: downloadLiked ?? this.downloadLiked,
         accent: accent ?? this.accent,
+        customAccent: customAccent ?? this.customAccent,
+        backgroundFile: clearBackground ? null : backgroundFile ?? this.backgroundFile,
+        backgroundKind: backgroundKind ?? this.backgroundKind,
+        backgroundBlur: backgroundBlur ?? this.backgroundBlur,
+        backgroundOpacity: backgroundOpacity ?? this.backgroundOpacity,
         theme: theme ?? this.theme,
         font: font ?? this.font,
         lyricsSize: lyricsSize ?? this.lyricsSize,
@@ -318,10 +450,24 @@ class AppSettings {
         'batteryAsked': batteryAsked,
         'style': style,
         'styleChosen': styleChosen,
+        'personalized': personalized,
+        'playerMode': playerMode,
+        'playerButtonLabels': playerButtonLabels,
+        'librarySort': librarySort,
+        'libraryFilter': libraryFilter,
+        'libraryView': libraryView,
+        'libraryTab': libraryTab,
+        'ytSync': ytSync,
+        'theaterReactions': theaterReactions,
+        'theaterVibration': theaterVibration,
+        'ytConnectCardHidden': ytConnectCardHidden,
+        'ytSyncOffered': ytSyncOffered,
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
+        'downloadLyrics': downloadLyrics,
         'autoBackup': autoBackup,
         if (backupFolder != null) 'backupFolder': backupFolder,
+        'excludedFolders': ?excludedFolders,
         'disabledLyricsSources': [for (final s in disabledLyricsSources) s.name],
         'translationTarget': translationTarget,
         'useGemini': useGemini,
@@ -338,6 +484,11 @@ class AppSettings {
         'timeFormat': timeFormat,
         'downloadLiked': downloadLiked,
         'accent': accent,
+        'customAccent': ?customAccent,
+        'backgroundFile': ?backgroundFile,
+        'backgroundKind': backgroundKind,
+        'backgroundBlur': backgroundBlur,
+        'backgroundOpacity': backgroundOpacity,
         'theme': theme,
         'font': font,
         'lyricsSize': lyricsSize,
@@ -369,11 +520,27 @@ class AppSettings {
       batteryAsked: read('batteryAsked', d.batteryAsked),
       style: styles.contains(json['style']) ? json['style'] as String : d.style,
       styleChosen: read('styleChosen', d.styleChosen),
-      crossfadeSeconds: crossfadeOptions.contains(crossfade) ? crossfade : d.crossfadeSeconds,
+      personalized: read('personalized', d.personalized),
+      playerMode: playerModes.contains(json['playerMode']) ? json['playerMode'] as String : d.playerMode,
+      playerButtonLabels: read('playerButtonLabels', d.playerButtonLabels),
+      librarySort: librarySorts.contains(json['librarySort']) ? json['librarySort'] as String : d.librarySort,
+      libraryFilter: libraryFilters.contains(json['libraryFilter']) ? json['libraryFilter'] as String : d.libraryFilter,
+      libraryView: libraryViews.contains(json['libraryView']) ? json['libraryView'] as String : d.libraryView,
+      libraryTab: libraryTabs.contains(json['libraryTab']) ? json['libraryTab'] as String : d.libraryTab,
+      ytSync: read('ytSync', d.ytSync),
+      theaterReactions: read('theaterReactions', d.theaterReactions),
+      theaterVibration: read('theaterVibration', d.theaterVibration),
+      ytConnectCardHidden: read('ytConnectCardHidden', d.ytConnectCardHidden),
+      ytSyncOffered: read('ytSyncOffered', d.ytSyncOffered),
+      crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
+      downloadLyrics: read('downloadLyrics', d.downloadLyrics),
       autoBackup: read('autoBackup', d.autoBackup),
       backupFolder: json['backupFolder'] is String && (json['backupFolder'] as String).isNotEmpty
           ? json['backupFolder'] as String
+          : null,
+      excludedFolders: json['excludedFolders'] is List
+          ? [for (final f in json['excludedFolders'] as List) if (f is String && f.trim().isNotEmpty) f]
           : null,
       disabledLyricsSources: {
         if (json['disabledLyricsSources'] is List)
@@ -393,7 +560,17 @@ class AppSettings {
       language: languages.contains(json['language']) ? json['language'] as String : d.language,
       timeFormat: timeFormats.contains(json['timeFormat']) ? json['timeFormat'] as String : d.timeFormat,
       downloadLiked: read('downloadLiked', d.downloadLiked),
-      accent: accents.contains(json['accent']) ? json['accent'] as String : d.accent,
+      accent: accents.contains(json['accent']) || (json['accent'] == customAccentName && json['customAccent'] is int)
+          ? json['accent'] as String
+          : d.accent,
+      customAccent: json['customAccent'] is int ? json['customAccent'] as int : null,
+      // Solo un nombre de archivo (nunca una ruta: siempre dentro de la carpeta de Kiji).
+      backgroundFile: json['backgroundFile'] is String && !(json['backgroundFile'] as String).contains(RegExp(r'[\\/]'))
+          ? json['backgroundFile'] as String
+          : null,
+      backgroundKind: json['backgroundKind'] == 'video' ? 'video' : 'image',
+      backgroundBlur: (json['backgroundBlur'] as num?)?.toDouble().clamp(0, maxBackgroundBlur) ?? d.backgroundBlur,
+      backgroundOpacity: (json['backgroundOpacity'] as num?)?.toDouble().clamp(0.1, 1) ?? d.backgroundOpacity,
       theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,

@@ -6,8 +6,15 @@ import 'package:path_provider/path_provider.dart';
 import '../../../providers/local_library_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../widgets/nocturne/glass.dart';
+import '../../account/data/account_store.dart';
+import '../../account/presentation/account_screens.dart' show signInToYouTubeMusic;
 import '../../playlists/playlists_provider.dart';
+import '../../settings/data/settings_store.dart';
 import '../data/import_parsers.dart';
+import '../data/link_import.dart';
+import '../../yt_music/data/ytm_client.dart' show YtMusicSearchResult;
+import '../../yt_music/domain/yt_track_mapper.dart';
+import '../../../widgets/nocturne/kiji_sheet.dart';
 import '../data/import_service.dart';
 import '../../../utils/save_text_file.dart';
 import '../data/playlist_export.dart';
@@ -40,6 +47,14 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   ImportPlan? _plan;
   ImportRecord? _record;
 
+  final _link = TextEditingController();
+
+  @override
+  void dispose() {
+    _link.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickAndRead() async {
     final files = await FilePicker.pickFiles(
       dialogTitle: tx.eligeElArchivoDeLaOtra,
@@ -49,20 +64,39 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     );
     if (files.isEmpty || !mounted) return;
     final file = files.first;
+    await _read(
+      file.name,
+      () async => parseImportBytes(
+        await file.readAsBytes(),
+        file.name,
+        tempDir: await getTemporaryDirectory(),
+        baseDir: file.path == null ? null : _parentOf(file.path!),
+      ),
+    );
+  }
+
+  /// "Importar desde un enlace": playlist pública de YouTube Music, Spotify, Apple Music o
+  /// SoundCloud. Solo se consulta ese enlace (sin iniciar sesión ni claves).
+  Future<void> _readLink() async {
+    final link = parsePlaylistLink(_link.text);
+    if (link == null) {
+      setState(() => _error = tx.eseEnlaceNoEsDeUnaPlaylist);
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    await _read(link.label, () => fetchLinkBundle(link));
+  }
+
+  Future<void> _read(String name, Future<ImportBundle> Function() load) async {
     setState(() {
       _step = _Step.reading;
-      _fileName = file.name;
+      _fileName = name;
       _error = null;
       _plan = null;
       _record = null;
     });
     try {
-      final bundle = await parseImportBytes(
-        await file.readAsBytes(),
-        file.name,
-        tempDir: await getTemporaryDirectory(),
-        baseDir: file.path == null ? null : _parentOf(file.path!),
-      );
+      final bundle = await load();
       if (bundle.isEmpty) throw ImportFormatException(tx.elArchivoNoTieneCancionesPara);
       if (!mounted) return;
       setState(() => _step = _Step.searching);
@@ -99,6 +133,49 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   String _parentOf(String path) {
     final i = path.replaceAll('\\', '/').lastIndexOf('/');
     return i <= 0 ? path : path.substring(0, i);
+  }
+
+  /// Una canción no encontrada: se muestran resultados de YouTube Music para elegirla a mano.
+  Future<void> _chooseByHand(ImportedSong song) async {
+    final plan = _plan;
+    if (plan == null) return;
+    final query = [?song.title, ?song.artist].join(' ');
+    final results = YtMusicLookup().searchSongs(query);
+    final chosen = await showKijiSheet<YtMusicSearchResult>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheet) => SafeArea(
+        child: FutureBuilder<List<YtMusicSearchResult>>(
+          future: results,
+          builder: (context, snapshot) {
+            final list = snapshot.data ?? const <YtMusicSearchResult>[];
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  ListTile(title: Text(tx.eligeLaCancion), subtitle: Text(query)),
+                  if (snapshot.connectionState != ConnectionState.done) const LinearProgressIndicator(),
+                  if (snapshot.connectionState == ConnectionState.done && list.isEmpty)
+                    ListTile(title: Text(tx.sinResultados)),
+                  for (final r in list.take(8))
+                    ListTile(
+                      title: Text(r.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      subtitle: Text(r.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      onTap: () => Navigator.pop(sheet, r),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    setState(() {
+      plan.resolved[song.key] = ytTrackFromResult(chosen, audioUrl: '');
+      plan.unresolved.remove(song);
+    });
   }
 
   void _apply() {
@@ -163,6 +240,47 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
             icon: const Icon(Icons.file_open_outlined),
             label: Text(tx.elegirArchivo),
           ),
+          const SizedBox(height: 20),
+          // Importar por enlace público.
+          Text(tx.importarDesdeUnEnlace, style: KijiText.mono(size: 11)),
+          const SizedBox(height: 6),
+          Text(tx.importarDesdeUnEnlaceNota, style: TextStyle(color: KijiColors.muted, fontSize: 12)),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('import-link'),
+            controller: _link,
+            keyboardType: TextInputType.url,
+            autocorrect: false,
+            decoration: InputDecoration(hintText: tx.pegaElEnlaceDeLaPlaylist, border: const OutlineInputBorder()),
+            onSubmitted: (_) => _readLink(),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              key: const Key('import-link-go'),
+              onPressed: _readLink,
+              icon: const Icon(Icons.link_rounded),
+              label: Text(tx.importarEnlace),
+            ),
+          ),
+          // La otra forma: con la cuenta, sin pegar enlaces (opcional).
+          const SizedBox(height: 12),
+          if (ref.watch(accountProvider) == null)
+            ListTile(
+              key: const Key('import-sign-in'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.login_rounded),
+              title: Text(tx.prefieresIniciarSesion),
+              subtitle: Text(tx.prefieresIniciarSesionNota),
+              onTap: () => signInToYouTubeMusic(context, ref),
+            )
+          else if (!ref.watch(settingsProvider.select((s) => s.ytSync)))
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.sync_rounded),
+              title: Text(tx.conSesionActivaSincronizar),
+            ),
         ];
       case _Step.reading:
         return [Text(tx.leyendo(_fileName)), const SizedBox(height: 8), const LinearProgressIndicator()];
@@ -193,6 +311,24 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                     ),
                   if (plan.bundle.playlists.length > 8)
                     Text(tx.yMas(plan.bundle.playlists.length - 8), style: TextStyle(color: KijiColors.muted)),
+                  if (plan.unresolved.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ExpansionTile(
+                      key: const Key('import-unresolved'),
+                      tilePadding: EdgeInsets.zero,
+                      title: Text(tx.sinEncontrarElegirAMano(plan.unresolved.length)),
+                      children: [
+                        for (final song in plan.unresolved.take(50))
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            title: Text(song.title ?? '$song', maxLines: 1, overflow: TextOverflow.ellipsis),
+                            subtitle: song.artist == null ? null : Text(song.artist!, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            trailing: TextButton(onPressed: () => _chooseByHand(song), child: Text(tx.elegir)),
+                          ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Text(tx.siYaTienesUnaPlaylistCon, style: TextStyle(color: KijiColors.muted, fontSize: 12)),
                   const SizedBox(height: 12),

@@ -1,0 +1,52 @@
+# Página de descarga: publica docs/site/ en GitHub Pages.
+#
+# Corre solo al publicar una release o a mano ("Run workflow"). Nada más.
+#
+# Está APAGADO hasta que el mantenedor lo prenda (este archivo no cambia la configuración del
+# repo). Para prenderlo:
+#   1. Settings → Pages → Source: "GitHub Actions".
+#   2. Settings → Secrets and variables → Actions → Variables: KIJI_PAGES = true.
+# Sin la variable, el trabajo se saltea (no falla).
+#
+# La página no tiene analíticas, cookies ni nada de terceros (ver docs/site/index.html).
+name: Página de descarga
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: Publicar en GitHub Pages
+    if: vars.KIJI_PAGES == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Solo la página (sin nada de terceros)
+        run: |
+          if grep -RniE 'googleapis|gstatic|google-analytics|googletagmanager|gtag\(|document\.cookie|<script[^>]+src=' docs/site; then
+            echo "::error::La página no puede cargar nada de terceros ni usar cookies."
+            exit 1
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/site
+      - id: deploy
+        uses: actions/deploy-pages@v4

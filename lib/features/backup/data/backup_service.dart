@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 import '../../migrations/data_migrations.dart';
+import '../../style/data/background_store.dart' show BackgroundStore;
 import '../domain/backup_manifest.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -22,6 +24,10 @@ const backedUpFiles = [
   'library_folders.json',
   // Título, artista y foto personalizados de cada canción.
   'track_overrides.json',
+  // Portadas elegidas para álbumes y carpetas de la música del equipo (las fotos van en covers/).
+  'group_covers.json',
+  // Reacciones de teatro (tomates y rosas de cada canción).
+  'theater.json',
   // Versión del formato de los datos: al restaurar una copia vieja se ponen al día.
   dataVersionFile,
 ];
@@ -33,6 +39,16 @@ const downloadsListEntry = 'downloads_list.json';
 
 /// Carátulas personalizadas: todo lo que haya en esta carpeta.
 const coversFolder = 'covers';
+
+/// Carpetas que van enteras en la copia: las fotos propias, los fondos (el general y los de cada
+/// canción). Un archivo de más de [maxFolderFileBytes] (un video largo) no entra.
+const backedUpFolders = [coversFolder, 'backgrounds', 'backgrounds/canciones'];
+const maxFolderFileBytes = 40 * 1024 * 1024;
+
+/// Los videos de fondo solo van en "Exportar a un archivo": la copia diaria (se guardan 7) y la de
+/// antes de restaurar quedan chicas.
+bool isBackgroundVideo(String path) =>
+    BackgroundStore.videoExtensions.contains(p.extension(path).replaceFirst('.', '').toLowerCase());
 
 /// Una canción de la lista de descargas de la copia.
 class BackupDownload {
@@ -75,8 +91,9 @@ class BackupService {
   /// Para el manifiesto (en los tests, fijo).
   final String? platform;
 
-  /// Hace una copia en [folder] y borra las que sobran (quedan 7).
-  Future<File> create(Directory folder, {String reason = 'manual', DateTime? now}) async {
+  /// Hace una copia en [folder] y borra las que sobran (quedan 7). Con [includeVideos] (solo
+  /// "Exportar a un archivo") también van los videos de fondo.
+  Future<File> create(Directory folder, {String reason = 'manual', DateTime? now, bool includeVideos = false}) async {
     final when = now ?? DateTime.now();
     final data = await dataDirectory();
     final archive = Archive();
@@ -93,14 +110,19 @@ class BackupService {
     }
     final downloads = File(p.join(data.path, _downloadsIndex));
     if (await downloads.exists()) add(downloadsListEntry, await downloads.readAsBytes());
-    final covers = Directory(p.join(data.path, coversFolder));
     var coverCount = 0;
-    if (await covers.exists()) {
-      await for (final entity in covers.list()) {
-        if (entity is File) {
-          add('$coversFolder/${p.basename(entity.path)}', await entity.readAsBytes());
-          coverCount++;
+    for (final folderName in backedUpFolders) {
+      final dir = Directory(p.join(data.path, folderName));
+      if (!await dir.exists()) continue;
+      await for (final entity in dir.list()) {
+        if (entity is! File) continue;
+        if (!includeVideos && isBackgroundVideo(entity.path)) continue;
+        if (await entity.length() > maxFolderFileBytes) {
+          debugPrint('=== COPIA: un archivo de $folderName es muy grande y no entra ===');
+          continue;
         }
+        add('$folderName/${p.basename(entity.path)}', await entity.readAsBytes());
+        if (folderName == coversFolder) coverCount++;
       }
     }
 
@@ -118,7 +140,9 @@ class BackupService {
     final name = backupFileName(when, suffix: reason == 'antes-de-restaurar' ? reason : null);
     final target = File(p.join(folder.path, name));
     final temp = File('${target.path}.tmp');
-    await temp.writeAsBytes(ZipEncoder().encodeBytes(archive), flush: true);
+    // El zip se arma en otro isolate: con fotos y fondos puede pesar varios MB y trabaría la app.
+    final zipped = await Isolate.run(() => ZipEncoder().encodeBytes(archive));
+    await temp.writeAsBytes(zipped, flush: true);
     if (await target.exists()) await target.delete();
     await temp.rename(target.path);
     debugPrint('=== COPIA: hecha $name (${included.length} archivos, $reason) ===');
@@ -185,16 +209,34 @@ class BackupService {
         await target.delete();
       }
     }
-    final covers = Directory(p.join(data.path, coversFolder));
-    if (await covers.exists()) await covers.delete(recursive: true);
-    for (final entry in archive.files) {
-      if (!entry.isFile || !entry.name.startsWith('$coversFolder/')) continue;
-      // Solo el nombre del archivo: un zip armado a mano no puede escribir
-      // fuera de la carpeta de carátulas.
-      final name = p.basename(entry.name);
-      if (name.isEmpty || name.startsWith('.')) continue;
-      await covers.create(recursive: true);
-      await File(p.join(covers.path, name)).writeAsBytes(entry.content as List<int>);
+    // Carpetas (fotos y fondos): lo que traiga la copia reemplaza lo de ahora. Las de más adentro
+    // primero (borrar "backgrounds" se llevaría "backgrounds/canciones" ya restaurada).
+    for (final folderName in backedUpFolders.reversed) {
+      final dir = Directory(p.join(data.path, folderName));
+      final entries = [
+        for (final entry in archive.files)
+          // Solo los archivos directos de esa carpeta, por su nombre: un zip armado a mano no
+          // puede escribir fuera de ella.
+          if (entry.isFile && p.posix.dirname(entry.name) == folderName) entry,
+      ];
+      final incoming = {for (final entry in entries) p.basename(entry.name)};
+      if (await dir.exists()) {
+        await for (final entity in dir.list()) {
+          if (entity is! File) continue;
+          // Los videos de fondo no van en la copia diaria: uno que la copia no trae se deja (si no,
+          // se perdería). Lo mismo un archivo enorme que nunca entra en una copia.
+          final name = p.basename(entity.path);
+          final keep = !incoming.contains(name) &&
+              (isBackgroundVideo(entity.path) || await entity.length() > maxFolderFileBytes);
+          if (!keep) await entity.delete();
+        }
+      }
+      for (final entry in entries) {
+        final name = p.basename(entry.name);
+        if (name.isEmpty || name.startsWith('.')) continue;
+        await dir.create(recursive: true);
+        await File(p.join(dir.path, name)).writeAsBytes(entry.content as List<int>);
+      }
     }
     // Una copia de una versión anterior trae los datos en su formato: se ponen al día
     // (con su copia interna antes, como al actualizar).

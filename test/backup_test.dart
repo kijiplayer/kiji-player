@@ -2,13 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/painting.dart' show Color;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/backup/data/backup_notifier.dart';
 import 'package:kiji_player/features/backup/data/backup_service.dart';
 import 'package:kiji_player/features/backup/domain/backup_manifest.dart';
 import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
+import 'package:kiji_player/features/local_library/data/group_covers.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
+import 'package:kiji_player/features/theater/data/theater_store.dart';
+import 'package:kiji_player/models/track.dart';
 import 'package:path/path.dart' as p;
 
 void _write(Directory dir, String name, Object json) {
@@ -45,6 +49,7 @@ void _fillData(Directory data) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('nombres y reglas', () {
     test('nombre con fecha, ida y vuelta; los otros archivos no cuentan', () {
       final when = DateTime(2026, 10, 16, 8, 30, 5);
@@ -151,10 +156,51 @@ void main() {
       await service(data).restore(evil, safetyFolder: folder);
       expect(File(p.join(root.path, 'malo.json')).existsSync(), isFalse);
       expect(File(p.join(root.path, 'fuera.json')).existsSync(), isFalse);
-      expect(File(p.join(data.path, 'covers', 'malo.json')).existsSync(), isTrue);
+      // Una ruta con ".." ni siquiera se guarda (solo los archivos directos de cada carpeta).
+      expect(File(p.join(data.path, 'covers', 'malo.json')).existsSync(), isFalse);
 
       final broken = File(p.join(root.path, 'roto.zip'))..writeAsStringSync('no es un zip');
       expect(() => service(data).preview(broken), throwsA(isA<BackupException>()));
+    });
+
+    test('la copia trae los fondos (el general y los de cada canción), las portadas elegidas y el teatro', () async {
+      _fillData(data);
+      File(p.join(data.path, 'backgrounds', 'fondo-1.png'))
+        ..parent.createSync(recursive: true)
+        ..writeAsBytesSync([1, 2, 3]);
+      File(p.join(data.path, 'backgrounds', 'canciones', 'cancion-x.png'))
+        ..parent.createSync(recursive: true)
+        ..writeAsBytesSync([4, 5]);
+      File(p.join(data.path, 'group_covers.json')).writeAsStringSync('{"album:x":"group-1.jpg"}');
+      File(p.join(data.path, 'theater.json')).writeAsStringSync('{"version":1}');
+      final copy = await service(data).create(folder);
+      // Se borra todo y se restaura.
+      Directory(p.join(data.path, 'backgrounds')).deleteSync(recursive: true);
+      File(p.join(data.path, 'group_covers.json')).deleteSync();
+      File(p.join(data.path, 'theater.json')).deleteSync();
+      await service(data).restore(copy, safetyFolder: folder);
+      expect(File(p.join(data.path, 'backgrounds', 'fondo-1.png')).readAsBytesSync(), [1, 2, 3]);
+      expect(File(p.join(data.path, 'backgrounds', 'canciones', 'cancion-x.png')).readAsBytesSync(), [4, 5]);
+      expect(File(p.join(data.path, 'group_covers.json')).existsSync(), isTrue);
+      expect(File(p.join(data.path, 'theater.json')).existsSync(), isTrue);
+    });
+
+    test('videos de fondo: no van en la copia diaria (sí al exportar) y restaurar no los borra', () async {
+      _fillData(data);
+      final video = File(p.join(data.path, 'backgrounds', 'fondo-video.mp4'))
+        ..parent.createSync(recursive: true)
+        ..writeAsBytesSync(List.filled(64, 7));
+      File(p.join(data.path, 'backgrounds', 'fondo-foto.png')).writeAsBytesSync([1]);
+      final daily = await service(data).create(folder, reason: 'diaria');
+      final names = ZipDecoder().decodeBytes(daily.readAsBytesSync()).files.map((f) => f.name).toList();
+      expect(names, contains('backgrounds/fondo-foto.png'));
+      expect(names, isNot(contains('backgrounds/fondo-video.mp4')));
+      final exported = await service(data).create(Directory(p.join(folder.path, 'exportar')), reason: 'exportar', includeVideos: true);
+      expect(ZipDecoder().decodeBytes(exported.readAsBytesSync()).files.map((f) => f.name), contains('backgrounds/fondo-video.mp4'));
+      // Restaurar la diaria (sin el video) deja el video donde estaba.
+      await service(data).restore(daily, safetyFolder: folder);
+      expect(video.existsSync(), isTrue);
+      expect(File(p.join(data.path, 'backgrounds', 'fondo-foto.png')).existsSync(), isTrue);
     });
 
     test('quedan las últimas 7 copias', () async {
@@ -178,6 +224,53 @@ void main() {
     tearDown(() async {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       root.deleteSync(recursive: true);
+    });
+
+    test('restaurar recarga el teatro y las portadas elegidas: lo de antes no pisa lo restaurado', () async {
+      final data = Directory(p.join(root.path, 'datos'))..createSync();
+      _fillData(data);
+      final folder = Directory(p.join(root.path, 'Kiji'));
+      File(p.join(data.path, 'theater.json')).writeAsStringSync(
+        '{"version":1,"songs":{"yt-v":{"title":"Glass Harbor","artist":"The Velvet Tides","tomatoes":2}}}',
+      );
+      File(p.join(data.path, 'group_covers.json')).writeAsStringSync('{"album:inventado":"elegida.jpg"}');
+      final c = ProviderContainer(overrides: [
+        settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => data)),
+        theaterProvider.overrideWith(() => TheaterNotifier(directory: () async => data)),
+        groupCoversProvider.overrideWith(() => GroupCoversNotifier(directory: () async => data)),
+        backupProvider.overrideWith(() => BackupNotifier(
+              dataDirectory: () async => data,
+              defaultFolder: () async => folder,
+              clock: () => DateTime(2026, 10, 16, 9),
+              platform: 'windows',
+            )),
+      ]);
+      addTearDown(c.dispose);
+      c.read(backupProvider);
+      await c.read(backupProvider.notifier).ready;
+      final copy = c.read(backupProvider).copies.single.file;
+
+      // Después de la copia: se borra todo del teatro y de las portadas, y queda en memoria.
+      File(p.join(data.path, 'theater.json')).deleteSync();
+      File(p.join(data.path, 'group_covers.json')).deleteSync();
+      c.invalidate(theaterProvider);
+      c.invalidate(groupCoversProvider);
+      await c.read(theaterProvider.notifier).loaded;
+      expect(c.read(theaterProvider).songs, isEmpty);
+
+      await c.read(backupProvider.notifier).restore(copy);
+      await c.read(theaterProvider.notifier).loaded;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(c.read(theaterProvider).songs['yt-v']?.tomatoes, 2, reason: 'se volvió a leer lo restaurado');
+      expect(c.read(groupCoversProvider)['album:inventado'], 'elegida.jpg');
+      // Un tomate después de restaurar suma a lo restaurado (no lo pisa con lo de antes).
+      c.read(theaterProvider.notifier).tomato(
+        const Track(id: 'yt-w', title: 'Slow Comet', artist: 'Aurelio Fen', coverColor: Color(0xFF3A6EA5), audioUrl: '', source: TrackSource.youtube),
+      );
+      await c.read(theaterProvider.notifier).saved;
+      final saved = File(p.join(data.path, 'theater.json')).readAsStringSync();
+      expect(saved, contains('yt-v'));
+      expect(saved, contains('yt-w'));
     });
 
     test('copia diaria automática: una por día, y nada si está apagada', () async {
@@ -226,6 +319,22 @@ void main() {
       await c.read(backupProvider.notifier).ready;
       expect(c.read(backupProvider).copies, hasLength(2));
     });
+  });
+
+  test('Copia de Android en la nube: solo los datos del usuario (los mismos de la copia de Kiji), sin cachés', () {
+    for (final xml in ['android/app/src/main/res/xml/data_extraction_rules.xml', 'android/app/src/main/res/xml/full_backup_content.xml']) {
+      final text = File(xml).readAsStringSync();
+      final cloud = xml.contains('data_extraction')
+          ? text.substring(text.indexOf('<cloud-backup>'), text.indexOf('</cloud-backup>'))
+          : text;
+      for (final name in backedUpFiles) {
+        expect(cloud, contains('path="$name"'), reason: '$name va en la copia de Kiji: también en la de Android ($xml)');
+      }
+      for (final big in ['artwork', 'translation', 'downloads', 'backgrounds', 'covers', 'secrets', 'yt_sync']) {
+        expect(cloud, isNot(contains('path="$big')), reason: '$big no va a la nube ($xml)');
+      }
+      expect(cloud, isNot(contains('<exclude')), reason: 'lista de lo que entra, no de lo que no ($xml)');
+    }
   });
 
   test('fechas en palabras', () {

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget mediano (4x2): portada, título, artista, la onda y los controles (🍅, anterior, play,
+     siguiente, ❤️), cada uno de al menos 48 dp. Las imágenes las dibuja KijiWidgets.kt. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/kiji_widget_bg"
+    android:clipToOutline="true">
+
+    <ImageView
+        android:id="@+id/widget_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="10dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/widget_cover"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/kiji_widget_cover"
+                android:scaleType="fitCenter" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_artist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textSize="13sp" />
+
+                <ImageView
+                    android:id="@+id/widget_wave"
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="6dp"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitXY" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/widget_tomato"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/kiji_widget_tomato"
+                android:gravity="center"
+                android:text="🍅"
+                android:textSize="20sp" />
+
+            <ImageView
+                android:id="@+id/widget_prev"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/kiji_widget_prev"
+                android:padding="12dp"
+                android:src="@drawable/kiji_widget_prev" />
+
+            <ImageView
+                android:id="@+id/widget_play"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:contentDescription="@string/kiji_widget_play" />
+
+            <ImageView
+                android:id="@+id/widget_next"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/kiji_widget_next"
+                android:padding="12dp"
+                android:src="@drawable/kiji_widget_next" />
+
+            <ImageView
+                android:id="@+id/widget_like"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/kiji_widget_like"
+                android:padding="13dp"
+                android:src="@drawable/kiji_widget_heart" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -25,11 +25,11 @@ final localTracksProvider = FutureProvider<List<Track>>((ref) async {
     if (!await source.hasAccess()) return const [];
     final settings = ref.watch(settingsProvider);
     return [
-      for (final track in await source.loadTracks())
+      for (final track in await source.loadTracks(exclusions: settings.localExclusions))
         if (!settings.hides(track.durationMs)) track,
     ];
   } catch (error) {
-    debugPrint('=== BIBLIOTECA: no se pudo leer para buscar: $error ===');
+    debugPrint('=== BIBLIOTECA: no se pudo leer para buscar: ${error.runtimeType} ===');
     return const [];
   }
 });

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,9 +29,46 @@ class TrackSelection extends ChangeNotifier {
 
   bool contains(String key) => _tracks.containsKey(key);
 
+  /// La última que se tocó: Shift+clic elige desde ahí.
+  String? _anchor;
+
   void toggle(String key, Track track) {
     if (_tracks.remove(key) == null) _tracks[key] = track;
+    _anchor = key;
     notifyListeners();
+  }
+
+  /// Shift+clic: elige todas las de [ordered] entre la última que se tocó y [key] (las dos
+  /// incluidas). Sin una anterior en la lista, elige solo [key].
+  void selectRange(String key, List<MapEntry<String, Track>> ordered) {
+    final to = ordered.indexWhere((e) => e.key == key);
+    if (to < 0) return;
+    final from = _anchor == null ? -1 : ordered.indexWhere((e) => e.key == _anchor);
+    if (from < 0) {
+      _tracks[key] = ordered[to].value;
+    } else {
+      for (var i = min(from, to); i <= max(from, to); i++) {
+        _tracks[ordered[i].key] = ordered[i].value;
+      }
+    }
+    _anchor = key;
+    notifyListeners();
+  }
+
+  /// Clic con teclas en la PC (o con teclado): **Ctrl** (⌘ en Mac) + clic marca o desmarca y
+  /// **Shift** + clic elige el tramo. Devuelve true si el toque fue para la selección (la fila
+  /// no tiene que hacer lo suyo, como reproducir).
+  bool tapWithKeys(String key, Track track, List<MapEntry<String, Track>> ordered) {
+    final keyboard = HardwareKeyboard.instance;
+    if (keyboard.isShiftPressed) {
+      selectRange(key, ordered);
+      return true;
+    }
+    if (keyboard.isControlPressed || keyboard.isMetaPressed) {
+      toggle(key, track);
+      return true;
+    }
+    return false;
   }
 
   /// "Seleccionar todas" (y, si ya estaban todas, ninguna).
@@ -43,6 +82,7 @@ class TrackSelection extends ChangeNotifier {
   }
 
   void clear() {
+    _anchor = null;
     if (_tracks.isEmpty) return;
     _tracks.clear();
     notifyListeners();

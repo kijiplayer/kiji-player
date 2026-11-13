@@ -19,15 +19,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:kiji_player/features/local_library/domain/local_exclusions.dart';
 import 'package:kiji_player/app.dart';
 import 'package:kiji_player/features/account/presentation/account_screens.dart';
 import 'package:kiji_player/features/backup/presentation/backup_screen.dart';
 import 'package:kiji_player/features/customize/data/track_overrides.dart';
 import 'package:kiji_player/features/downloads/presentation/downloads_screen.dart';
-import 'package:kiji_player/features/equalizer/presentation/equalizer_screen.dart';
+import 'package:kiji_player/features/downloads/presentation/download_button.dart';
+import 'package:kiji_player/features/local_library/domain/local_library_source.dart';
+import 'package:kiji_player/providers/local_library_provider.dart';
+import 'package:kiji_player/features/equalizer/presentation/sound_screen.dart';
 import 'package:kiji_player/features/history/listening_history.dart';
 import 'package:kiji_player/features/import/presentation/import_screen.dart';
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
+import 'package:kiji_player/features/lyrics/data/screen_mode_impl.dart';
+import 'package:kiji_player/features/lyrics/domain/screen_mode.dart';
+import 'package:kiji_player/features/lyrics/presentation/lyrics_fullscreen.dart';
 import 'package:kiji_player/features/lyrics/presentation/lyrics_screen.dart';
 import 'package:kiji_player/features/moments/presentation/moments_screen.dart';
 import 'package:kiji_player/features/playback_memory/domain/playback_snapshot.dart';
@@ -44,7 +51,7 @@ import 'package:kiji_player/features/sleep_timer/presentation/sleep_timer_sheet.
 import 'package:kiji_player/features/translation/presentation/lyrics_settings_screens.dart';
 import 'package:kiji_player/features/updates/whats_new_screen.dart';
 import 'package:kiji_player/l10n/l10n.dart';
-import 'package:kiji_player/features/style/presentation/style_chooser_screen.dart';
+import 'package:kiji_player/features/style/presentation/personalize_screen.dart';
 import 'package:kiji_player/features/welcome/presentation/welcome_screen.dart';
 import 'package:kiji_player/features/yt_music/presentation/extractor_health_screen.dart';
 import 'package:kiji_player/models/track.dart';
@@ -239,6 +246,7 @@ Future<List<Track>> _seed(
           accent: accent,
           style: style,
           styleChosen: true,
+          personalized: true,
           lastSeenVersion: kijiVersion,
         )
         .toJson(),
@@ -259,6 +267,29 @@ Future<void> _settle(WidgetTester tester, [int frames = 12]) async {
   for (var i = 0; i < frames; i++) {
     await tester.pump(const Duration(milliseconds: 100));
   }
+}
+
+/// Música del equipo inventada (las canciones sembradas).
+class _DemoSource implements LocalLibrarySource {
+  _DemoSource(this.tracks);
+  final List<Track> tracks;
+  @override
+  bool get usesFolders => true;
+  @override
+  Future<List<String>> folders() async => [_root.path];
+  @override
+  Future<bool> hasAccess() async => true;
+  @override
+  Future<bool> requestAccess() async => true;
+  @override
+  Future<void> removeFolder(String folder) async {}
+  @override
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async => tracks;
+}
+
+class _NoScreenMode implements ScreenMode {
+  @override
+  Future<void> setFullScreen(bool on) async {}
 }
 
 Future<void> _shot(WidgetTester tester, String name) async {
@@ -326,8 +357,8 @@ Future<void> _step(WidgetTester tester, String name, Future<void> Function() bod
 }
 
 /// Selección múltiple: mantener presionada la primera fila, captura, "todas", captura y cerrar.
-Future<void> _selection(WidgetTester tester, String name) async {
-  final rows = find.byType(ListTile);
+Future<void> _selection(WidgetTester tester, String name, {Finder? only}) async {
+  final rows = only ?? find.byType(ListTile);
   if (rows.evaluate().isEmpty) throw StateError('no hay filas para elegir');
   // En una ventana baja (teléfono girado) la primera fila queda debajo del mini-reproductor: se sube
   // la lista primero, como haría una persona.
@@ -371,9 +402,37 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
       await tester.pump(const Duration(milliseconds: 250));
     }
     await _shot(tester, '$tag-buscar-resultados');
+    // Selección múltiple en los resultados (solo en las canciones: las que tienen el botón de bajar).
+    if (online) {
+      await _step(
+        tester,
+        '$tag-buscar-seleccion',
+        () => _selection(
+          tester,
+          '$tag-buscar-seleccion',
+          only: find.ancestor(of: find.byType(DownloadButton), matching: find.byType(ListTile)),
+        ),
+        pops: 0,
+      );
+    }
   }
 
   await _tab(tester, Icons.library_music_rounded, '$tag-biblioteca');
+  // Biblioteca → Canciones, en lista y en cuadrícula (y de vuelta a la lista, la de fábrica).
+  await _step(tester, '$tag-biblioteca-canciones', () async {
+    final songsTab = find.byKey(const Key('library-tab-songs'));
+    if (songsTab.evaluate().isEmpty) return;
+    await tester.tap(songsTab.first, warnIfMissed: false);
+    await _settle(tester);
+    await _shot(tester, '$tag-biblioteca-canciones');
+    final toggle = find.byKey(const Key('library-view-toggle'));
+    if (toggle.evaluate().isEmpty) return;
+    await tester.tap(toggle.first, warnIfMissed: false);
+    await _settle(tester);
+    await _shot(tester, '$tag-biblioteca-cuadricula');
+    await tester.tap(find.byKey(const Key('library-view-toggle')).first, warnIfMissed: false);
+    await _settle(tester);
+  }, pops: 0);
 
   // Reproducir dos canciones inventadas (locales) y pasar por el reproductor.
   final player = container.read(playbackProvider.notifier);
@@ -407,6 +466,9 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
   await tester.runAsync(
     () => container.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: 'full')),
   );
+  // La letra a pantalla completa (solo la letra, con el fondo que sigue la música).
+  container.read(lyricsFullscreenProvider.notifier).state = true;
+  await _visit(tester, '$tag-letra-pantalla-completa', () => LyricsScreen.open(_ctx));
   await _visit(tester, '$tag-momentos', () => MomentsScreen.open(_ctx));
   await _visit(tester, '$tag-temporizador', () => showSleepTimerSheet(_ctx));
   await tester.runAsync(player.nextTrack);
@@ -428,7 +490,7 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
     await _shot(tester, '$tag-apariencia');
   });
   await _visit(tester, '$tag-descargas', () => DownloadsScreen.open(_ctx));
-  await _visit(tester, '$tag-ecualizador', () => EqualizerScreen.open(_ctx));
+  await _visit(tester, '$tag-sonido', () => SoundScreen.open(_ctx));
   await _visit(tester, '$tag-copias', () => BackupScreen.open(_ctx), scroll: true);
   await _visit(tester, '$tag-importar', () => ImportScreen.open(_ctx));
   await _visit(tester, '$tag-cuenta', () => AccountScreen.open(_ctx));
@@ -494,7 +556,7 @@ Future<void> _walk(WidgetTester tester, String tag, ProviderContainer container,
     tester,
     '$tag-estilo',
     () => Navigator.of(_ctx).push(MaterialPageRoute<void>(
-        settings: const RouteSettings(name: KijiRoutes.style), builder: (_) => const StyleChooserScreen())),
+        settings: const RouteSettings(name: KijiRoutes.style), builder: (_) => const PersonalizeScreen())),
     scroll: true,
   );
 }
@@ -535,7 +597,15 @@ void main() {
     };
     ErrorReporter.instance.reset();
 
-    final container = ProviderContainer();
+    // La pantalla completa de la letra no cambia la ventana de verdad (no tapa el escritorio).
+    // Con datos, la "música del equipo" son las canciones inventadas (la PC de prueba no tiene una
+    // carpeta elegida).
+    final container = ProviderContainer(
+      overrides: [
+        screenModeProvider.overrideWithValue(_NoScreenMode()),
+        if (tracks.isNotEmpty) localLibrarySourceProvider.overrideWithValue(_DemoSource(tracks)),
+      ],
+    );
     addTearDown(container.dispose);
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const KijiApp()));
     await _settle(tester, 30);
@@ -558,13 +628,15 @@ void main() {
         await tester.tap(start.last);
         await _settle(tester);
       }
-      // Después de la bienvenida, una sola vez: "¿Cómo quieres que se vea Kiji?".
-      await _shot(tester, '$tag-estilo');
-      final keep = find.textContaining(RegExp(r'^(Continuar con|Continue with) '));
-      if (keep.evaluate().isEmpty) {
-        _problems.add('$tag: no apareció la elección de estilo después de la bienvenida');
-      } else {
-        await tester.tap(keep.last);
+      // Después de la bienvenida, una sola vez: "Personaliza Kiji" (4 pasos).
+      for (var step = 1; step <= 4; step++) {
+        await _shot(tester, '$tag-personaliza-$step');
+        final next = find.byKey(const Key('personalize-next'));
+        if (next.evaluate().isEmpty) {
+          _problems.add('$tag: no apareció "Personaliza Kiji" después de la bienvenida (paso $step)');
+          break;
+        }
+        await tester.tap(next);
         await _settle(tester);
       }
       // Usuario nuevo sin nada: Inicio, Buscar y Biblioteca vacíos.

@@ -38,6 +38,21 @@ void main() {
       expect(s.active, isFalse);
       expect(changes, 5);
     });
+
+    test('Shift+clic elige el tramo desde la última tocada (hacia arriba o abajo)', () {
+      final s = TrackSelection();
+      final ordered = [for (final id in 'abcdef'.split('')) MapEntry(id, _t(id))];
+      s.selectRange('c', ordered); // sin una anterior: solo esa
+      expect(s.keys, {'c'});
+      s.selectRange('e', ordered);
+      expect(s.keys, {'c', 'd', 'e'});
+      s.toggle('b', _t('b'));
+      s.selectRange('a', ordered);
+      expect(s.keys, {'a', 'b', 'c', 'd', 'e'});
+      s.clear();
+      s.selectRange('f', ordered); // al limpiar se olvida desde dónde
+      expect(s.keys, {'f'});
+    });
   });
 
   test('Playlist: quitar varias y deshacer las deja en su lugar', () async {

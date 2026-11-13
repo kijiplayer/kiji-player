@@ -73,17 +73,17 @@ String _inline(String text) => text
 enum StartupScreen { welcome, style, whatsNew }
 
 /// Qué se muestra al abrir y en qué orden:
-/// - Instalación nueva: la bienvenida y, si falta, la elección de estilo (nunca "Qué hay de nuevo").
-/// - Después de actualizar: primero la elección de estilo (si nunca se eligió) y después, una sola
-///   vez por versión, "Qué hay de nuevo".
+/// - Instalación nueva: la bienvenida y "Personaliza Kiji" (nunca "Qué hay de nuevo").
+/// - Después de actualizar: "Personaliza Kiji" si todavía no se vio (una vez al llegar a la 0.8.0)
+///   y después, una sola vez por versión, "Qué hay de nuevo".
 /// - Si no cambió nada: ninguna.
 List<StartupScreen> startupScreens({
   required bool freshInstall,
-  required bool styleChosen,
+  required bool personalized,
   required String? lastSeenVersion,
 }) => [
   if (freshInstall) StartupScreen.welcome,
-  if (!styleChosen) StartupScreen.style,
+  if (!personalized) StartupScreen.style,
   if (shouldShowWhatsNew(lastSeenVersion: lastSeenVersion, freshInstall: freshInstall)) StartupScreen.whatsNew,
 ];
 

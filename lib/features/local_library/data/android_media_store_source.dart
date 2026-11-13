@@ -1,14 +1,22 @@
-import '../../../models/track.dart';
-import '../domain/local_library_source.dart';
-import '../domain/local_track_mapper.dart';
-import 'local_library_service.dart';
+import 'package:flutter/foundation.dart';
 
-/// Android: la biblioteca del sistema (MediaStore) mediante `on_audio_query`.
+import '../../../models/track.dart';
+import '../domain/local_exclusions.dart';
+import '../domain/local_library_source.dart';
+import 'local_library_service.dart';
+import 'local_scan_store.dart';
+import 'local_scanner.dart';
+
+/// Android: la lista sale de la biblioteca del sistema (MediaStore, por el canal propio `kiji/media`),
+/// con su fecha de agregado; los datos completos y la portada, de cada archivo (con caché: solo
+/// se leen los nuevos o cambiados). Si un archivo no se puede leer, queda lo del MediaStore.
 class AndroidMediaStoreSource implements LocalLibrarySource {
-  AndroidMediaStoreSource([LocalLibraryService? service])
-      : _service = service ?? LocalLibraryService();
+  AndroidMediaStoreSource([LocalLibraryService? service, LocalScanStore? store])
+    : _service = service ?? LocalLibraryService(),
+      _store = store ?? LocalScanStore();
 
   final LocalLibraryService _service;
+  final LocalScanStore _store;
 
   @override
   bool get usesFolders => false;
@@ -26,11 +34,41 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
   Future<void> removeFolder(String folder) async {}
 
   @override
-  Future<List<Track>> loadTracks() async {
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async {
     final songs = await _service.fetchSongs();
-    return songs
-        .where((song) => song.isMusic ?? true)
-        .map(localTrackFromSong)
-        .toList(growable: false);
+    final entries = <ScanEntry>[];
+    var skipped = 0;
+    for (final song in songs) {
+      // Notas de voz, audios de chats y grabaciones no son música (y no se registra su nombre).
+      if (song.isMusic == false || song.isRecording == true || exclusions.excludes(song.data)) {
+        skipped++;
+        continue;
+      }
+      // Formatos que Kiji reproduce (lo demás se saltea sin avisos).
+      final ext = song.fileExtension.toLowerCase();
+      if (!localAudioExtensions.contains('.$ext')) {
+        debugPrint('=== BIBLIOTECA: se saltea un formato que no se lee (.$ext) ===');
+        continue;
+      }
+      entries.add(
+        ScanEntry(
+          id: 'local-${song.id}',
+          path: song.data,
+          sizeBytes: song.size,
+          // El MediaStore da segundos.
+          modifiedMs: (song.dateModified ?? 0) * 1000,
+          addedAtMs: song.dateAdded == null ? null : song.dateAdded! * 1000,
+          title: song.title,
+          artist: song.artist,
+          album: song.album,
+          genre: song.genre,
+          track: song.track,
+          durationMs: song.duration,
+        ),
+      );
+    }
+    if (skipped > 0) debugPrint('=== BIBLIOTECA: $skipped audios que no son música quedan afuera ===');
+    final tracks = await _store.scan(entries: entries, force: force, exclusions: exclusions);
+    return [...tracks]..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
   }
 }

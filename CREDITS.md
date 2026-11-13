@@ -39,6 +39,7 @@ personas que los construyen y mantienen.
 | `android/.../extractor/InnerTubeXEngine.kt` | Echo Music 1.4.3 (GPL-3.0) | `utils/InnerTubeXResolver.kt` (motor A: exclusión por canción, precalentamiento, config remota) |
 | `android/.../extractor/PoTokenWebView.kt`, `PoTokenGenerator.kt`, `JavaScriptUtil.kt`, `PoTokenException.kt`, `assets/po_token.html` | Echo Music 1.4.3, que a su vez viene de NewPipe (GPL-3.0) | `utils/potoken/*` (PO token BotGuard en una WebView). Kiji corrigió la vinculación: el token de la URL va ligado al video |
 | `lib/features/stream_cache/data/chunked_source.dart` | Echo Music (idea, código propio) | `playback/ChunkedDataSource.kt` (rangos acotados y URL renovada) |
+| `packages/just_audio_media_kit/` (copia local con cambios) | [just_audio_media_kit](https://github.com/Pato05/just_audio_media_kit) 2.1.0 (Pato05, Unlicense) | `lib/mediakit_player.dart`, `lib/just_audio_media_kit.dart` (Kiji agrega velocidad, tono y efectos de sonido en una sola cadena de filtros de mpv) |
 
 ## Servicios que usa Kiji (solo cuando el usuario lo pide)
 
@@ -86,11 +87,17 @@ personas que los construyen y mantienen.
 | [window_manager](https://pub.dev/packages/window_manager) (LeanFlutter) | MIT | PC: cerrar la ventana en orden, tamaño mínimo y ocultarla en la bandeja. |
 | [tray_manager](https://pub.dev/packages/tray_manager) (LeanFlutter) | MIT | PC: ícono y menú de Kiji en la bandeja del sistema. |
 | [hotkey_manager](https://pub.dev/packages/hotkey_manager) (LeanFlutter) | MIT | PC: atajos de teclado globales (play/pausa, siguiente, anterior). |
+| [media_kit](https://github.com/media-kit/media-kit) y media_kit_video (Hitesh Kumar Saini) | MIT | PC: reproducción con mpv y el video del fondo propio. |
+| [libmpv](https://mpv.io) (compilación de [media-kit/libmpv-win32-video-build](https://github.com/media-kit/libmpv-win32-video-build)) | GPL-2.0 o posterior / LGPL | PC: el motor de audio y video (incluye FFmpeg). |
+| [ANGLE](https://chromium.googlesource.com/angle/angle) (`libGLESv2.dll`, `libEGL.dll`) | BSD-3-Clause | PC: dibuja el video del fondo (lo trae media_kit). |
+| [video_player](https://pub.dev/packages/video_player) (Flutter) | BSD-3-Clause | Teléfono: el video del fondo propio. |
+| [sensors_plus](https://pub.dev/packages/sensors_plus) (Flutter Community, plus_plugins) | BSD-3-Clause | Teléfono: sacudirlo para tirar un tomate (solo con el reproductor a la vista y la música sonando). |
 
 ## Cómo mantener este archivo
 
 Cada vez que se porte o adapte código de otro proyecto:
-1. Agregá o actualizá la fila correspondiente en este archivo.
+1. Agregá o actualizá la fila correspondiente en este archivo y en su versión en inglés,
+   `CREDITS.en.md` (la que muestra la app en inglés).
 2. Poné un encabezado en el archivo de Kiji que indique el proyecto, la licencia y el archivo original.
 
 ## Aviso

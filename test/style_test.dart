@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
-import 'package:kiji_player/features/style/presentation/style_chooser_screen.dart';
+import 'package:kiji_player/features/style/presentation/personalize_screen.dart';
+import 'package:kiji_player/features/style/presentation/style_parts.dart';
 import 'package:kiji_player/theme/kiji_tokens.dart';
 
 /// Contraste de WCAG 2 entre dos colores opacos.
@@ -41,11 +42,9 @@ void main() {
     Color over(Color bottom, Color top) => Color.alphaBlend(top, bottom);
     Color white(double opacity) => Colors.white.withValues(alpha: opacity);
 
-    // Peor caso del fondo del reproductor: portada blanca (oscurecida) y un punto claro del grano
-    // al máximo. (El brillo de la apertura va solo sobre la portada, que no tiene texto encima.)
+    // Peor caso del fondo del reproductor: la portada blanca (oscurecida).
     final cover = white(KijiMuseum.backdropBrightness * KijiMuseum.backdropOpacity);
-    final grain = white(KijiMuseum.grainOpacity);
-    final backdrop = over(over(p.background, cover), grain);
+    final backdrop = over(p.background, cover);
     final button = over(backdrop, p.glassFill);
     // Mini-reproductor, barra y hojas: sobre cualquier cosa (también una portada blanca).
     final pane = over(Colors.white, KijiMuseum.pane);
@@ -61,32 +60,6 @@ void main() {
     for (final MapEntry(key: name, value: (fg, bg)) in pairs.entries) {
       expect(contrast(fg, bg), greaterThanOrEqualTo(4.5), reason: name);
     }
-  });
-
-  test('Grafito: la luz que respira no le quita contraste al texto de arriba de la portada', () {
-    const p = KijiPalette.graphite;
-    // Desenfoque gaussiano del halo: cuánta luz llega a [d] px por fuera del borde (borde recto).
-    double erfc(double x) {
-      final t = 1 / (1 + 0.3275911 * x);
-      final y = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
-      return y * exp(-x * x);
-    }
-
-    const sigma = KijiMuseum.haloBlur * 0.57735 + 0.5;
-    // "REPRODUCIENDO DESDE" queda ~25 px arriba de la portada (de 320 px); el halo late hasta un 5 %
-    // más grande (8 px por lado) y está corrido hacia abajo.
-    const gap = 25.0, grow = 8.0;
-    const d = gap + KijiMuseum.haloShift - grow;
-    final light = KijiMuseum.haloOpacity * 0.5 * erfc(d / (sigma * sqrt2));
-    Color white(double o) => Colors.white.withValues(alpha: o);
-    final backdrop = Color.alphaBlend(
-      white(light),
-      Color.alphaBlend(
-        white(KijiMuseum.grainOpacity),
-        Color.alphaBlend(white(KijiMuseum.backdropBrightness * KijiMuseum.backdropOpacity), p.background),
-      ),
-    );
-    expect(contrast(p.muted, backdrop), greaterThanOrEqualTo(4.5));
   });
 
   test('la onda de Grafito y Papel es monocroma, con los grises pedidos', () {
@@ -118,7 +91,7 @@ void main() {
     expect(KijiStyle.parse(null), KijiStyle.nocturne);
   });
 
-  testWidgets('elegir un estilo lo guarda y deja anotado que ya se eligió', (tester) async {
+  testWidgets('Personaliza Kiji: 4 pasos con vista previa en vivo, "Saltar" y queda anotado', (tester) async {
     final dir = Directory.systemTemp.createTempSync('kiji_style_');
     addTearDown(() {
       try {
@@ -138,22 +111,45 @@ void main() {
 
     await tester.pumpWidget(UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: StyleChooserScreen()),
+      child: MaterialApp(
+        home: Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () => PersonalizeScreen.open(context, ref),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
     ));
-    await tester.pump();
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    expect(find.text('Paso 1 de 4'), findsOneWidget);
     expect(find.text('¿Cómo quieres que se vea Kiji?'), findsOneWidget);
-    expect(find.byType(StylePreview), findsNWidgets(3));
-    expect(find.text('Continuar con Nocturne'), findsOneWidget);
+    // La vista previa en vivo y una miniatura por estilo.
+    expect(find.byType(StylePreview), findsNWidgets(4));
 
     await tester.ensureVisible(find.text('Papel'));
-    await tester.pump();
     await tester.tap(find.text('Papel'));
-    await tester.pump();
-    await tester.tap(find.text('Continuar con Papel'));
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
     await tester.pump();
-    expect(container.read(settingsProvider).style, 'paper');
-    expect(container.read(settingsProvider).styleChosen, isTrue);
+    expect(container.read(settingsProvider).style, 'paper', reason: 'se aplica en el momento');
+
+    await tester.tap(find.byKey(const Key('personalize-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('Paso 2 de 4'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('personalize-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('Paso 3 de 4'), findsOneWidget);
+    await tester.tap(find.text('Newsreader'));
+    await tester.pump();
+    expect(container.read(settingsProvider).font, 'newsreader');
     expect(tester.takeException(), isNull, reason: 'sin desbordes a 360×560');
+
+    // "Saltar" cierra en cualquier paso y deja anotado que ya se vio.
+    await tester.tap(find.byKey(const Key('personalize-skip')));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pumpAndSettle();
+    expect(find.text('abrir'), findsOneWidget);
+    expect(container.read(settingsProvider).personalized, isTrue);
+    expect(container.read(settingsProvider).styleChosen, isTrue);
   });
 }

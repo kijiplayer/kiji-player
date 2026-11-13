@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
 
+import 'package:kiji_player/features/extractor/data/extractor_tester.dart';
 import 'package:kiji_player/features/extractor/data/path_health.dart';
 import 'package:kiji_player/features/yt_music/data/player_script.dart';
 import 'package:kiji_player/features/yt_music/data/po_token.dart';
@@ -28,8 +29,11 @@ void main() {
       expect(labels.any((l) => l.contains('CREATOR')), isFalse, reason: 'WEB_CREATOR exige iniciar sesión');
       // Las rotas según InnerTubeX quedan retiradas de la cadena automática.
       expect([for (final c in ytPlayerClients) if (c.isRetired) c.label],
-          ['ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS', 'MWEB']);
+          ['ANDROID_VR', 'TVHTML5', 'ANDROID_VR_1.43', 'IPADOS', 'IOS', 'WEB_EMBEDDED_PLAYER', 'MWEB']);
       expect(clientByLabel('WEB_EMBEDDED_PLAYER')!.embedded, isTrue);
+      expect(engineAForms, isNot(contains('WEB_EMBEDDED_PLAYER')), reason: 'retirada también del motor A');
+      expect(engineAPathShown('A/WEB_EMBEDDED_PLAYER'), isFalse, reason: 'un registro viejo no se muestra');
+      expect(engineAPathShown('A/VISIONOS_0_1__nopo'), isTrue);
     });
 
     test('solo las web y de TV mandan PO token; solo las cifradas piden el reproductor', () {
@@ -100,6 +104,43 @@ void main() {
       expect(token.contains('+') || token.contains('/'), isFalse);
       expect(youtubeBase64Decode(token), bytes);
       expect(youtubeBase64Decode('-_8.'), [251, 255]);
+    });
+  });
+
+  testWidgets('Salud en la PC: sin las formas HLS y sin contar registros viejos de formas que no se muestran', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(500, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final dir = Directory.systemTemp.createTempSync('kiji_salud_pc');
+    final health = PathHealth(directory: () async => dir.path)
+      ..recordSuccess('B/VISIONOS')
+      ..recordSuccess('B/TVHTML5_SIMPLY')
+      ..recordFormFailure('B/VISIONOS_HLS', 'En la PC todavía no se pueden reproducir listas HLS')
+      ..recordSuccess('B/ANDROID_VR'); // retirada: un registro viejo no suma
+    await tester.pumpWidget(ProviderScope(
+      child: MaterialApp(home: ExtractorHealthScreen(health: health, hlsPlays: false)),
+    ));
+    await tester.pump();
+    expect(find.text('Canciones normales: ✓ 2 formas funcionando'), findsOneWidget);
+    expect(find.text('VISIONOS_HLS'), findsNothing, reason: 'en la PC no se usa');
+    expect(find.text('VISIONOS'), findsOneWidget);
+    expect(find.text('WEB_EMBEDDED_PLAYER'), findsNothing, reason: 'retirada: va oculta en su lista');
+
+    // En el teléfono, la HLS sí está.
+    await tester.pumpWidget(ProviderScope(
+      child: MaterialApp(home: ExtractorHealthScreen(key: UniqueKey(), health: health, hlsPlays: true)),
+    ));
+    await tester.pump();
+    expect(find.text('VISIONOS_HLS'), findsOneWidget);
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windows puede tener el archivo abierto un instante; queda en la carpeta temporal.
+      }
     });
   });
 

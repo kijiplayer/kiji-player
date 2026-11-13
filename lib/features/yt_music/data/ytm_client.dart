@@ -23,6 +23,15 @@ import 'package:kiji_player/l10n/l10n.dart';
 
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
 /// a nuestro modelo de dominio [Track].
+/// Una página de resultados de búsqueda y la marca para pedir la siguiente
+/// (null cuando YouTube Music ya no tiene más).
+class YtSearchPage<T> {
+  const YtSearchPage(this.items, this.continuation);
+
+  final List<T> items;
+  final String? continuation;
+}
+
 class YtMusicSearchResult {
   const YtMusicSearchResult({
     required this.videoId,
@@ -73,8 +82,15 @@ class YtStream {
 /// NewPipe, etc.), no una API oficial ni documentada por Google. Puede
 /// requerir ajustes si YouTube cambia la forma de su respuesta.
 class YtMusicClient {
-  YtMusicClient({JsChallengeSolver? solver, PlayerScriptSource? playerScripts, PoTokenProvider? poTokens})
-    : _solver = solver ?? sharedSolver,
+  YtMusicClient({
+    JsChallengeSolver? solver,
+    PlayerScriptSource? playerScripts,
+    PoTokenProvider? poTokens,
+    @visibleForTesting Dio? playerDio,
+  }) : _playerDio =
+           playerDio ??
+           Dio(BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 15))),
+       _solver = solver ?? sharedSolver,
       _poTokens = poTokens ?? sharedPoTokens,
       _playerScripts = playerScripts ?? sharedPlayerScripts,
       _dio = Dio(
@@ -103,9 +119,7 @@ class YtMusicClient {
 
   /// Dio limpio para pedir el audio: sin headers heredados del cliente de
   /// búsqueda (cada "cliente" de YouTube manda los suyos propios).
-  final Dio _playerDio = Dio(
-    BaseOptions(connectTimeout: const Duration(seconds: 15), receiveTimeout: const Duration(seconds: 15)),
-  );
+  final Dio _playerDio;
 
   final Dio _dio;
 
@@ -127,48 +141,71 @@ class YtMusicClient {
   static const songsFilter = 'EgWKAQIIAWoKEAkQBRAKEAMQBA=='; // l10n-ignore
 
   /// Busca de forma anónima. Con [songsOnly], solo canciones (sin videos).
-  Future<List<YtMusicSearchResult>> search(String query, {bool songsOnly = false}) async {
-    if (query.trim().isEmpty) return const [];
+  Future<List<YtMusicSearchResult>> search(String query, {bool songsOnly = false}) async =>
+      (await searchSongsPage(query, songsOnly: songsOnly)).items;
 
-    debugPrint('=== YTM search: enviando query "$query" ===');
-
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/search',
-      queryParameters: {'key': _apiKey},
-      data: {..._context, 'query': query, if (songsOnly) 'params': songsFilter},
-    );
-
-    debugPrint('=== YTM search: status ${response.statusCode} ===');
-
-    final data = response.data;
-    if (data == null) {
-      debugPrint('=== YTM search: response.data es null ===');
-      return const [];
-    }
-
-    debugPrint('=== YTM search: claves top-level: ${data.keys.toList()} ===');
-
+  /// Una página de canciones. Con [continuation] (la marca de la página
+  /// anterior) trae la siguiente.
+  Future<YtSearchPage<YtMusicSearchResult>> searchSongsPage(
+    String query, {
+    bool songsOnly = true,
+    String? continuation,
+  }) async {
+    if (query.trim().isEmpty && continuation == null) return const YtSearchPage([], null);
+    final data = await _searchRaw(query, songsOnly ? songsFilter : null, continuation);
+    if (data == null) return const YtSearchPage([], null);
     final results = _parseResults(data);
-    debugPrint('=== YTM search: ${results.length} resultados parseados ===');
-
-    return results;
+    debugPrint('=== YTM search: ${results.length} resultados${continuation != null ? ' (página siguiente)' : ''} ===');
+    return YtSearchPage(results, parseSearchContinuation(data));
   }
 
   /// Filtros de la búsqueda de YouTube Music para Artistas y Álbumes (los
   /// mismos `params` que manda la web al tocar esos chips).
   static const artistsFilter = 'EgWKAQIgAWoKEAkQChAFEAMQBA=='; // l10n-ignore
   static const albumsFilter = 'EgWKAQIYAWoKEAkQChAFEAMQBA=='; // l10n-ignore
+  static const playlistsFilter = 'EgeKAQQoAEABahAQDhADEAUQCRAEEAoQFRAR'; // l10n-ignore (Listas de la comunidad)
 
-  /// Busca artistas o álbumes (anónimo).
-  Future<List<YtCollection>> searchCollections(String query, YtCollectionKind kind) async {
-    if (query.trim().isEmpty) return const [];
+  /// El resultado que mejor coincide (búsqueda sin filtro); null si YouTube no destaca ninguno.
+  Future<YtTopResult?> searchTop(String query) async {
+    if (query.trim().isEmpty) return null;
+    final data = await _searchRaw(query, null, null);
+    return data == null ? null : parseTopResult(data);
+  }
+
+  /// Busca artistas, álbumes o playlists (anónimo).
+  Future<List<YtCollection>> searchCollections(String query, YtCollectionKind kind) async =>
+      (await searchCollectionsPage(query, kind)).items;
+
+  /// Una página de artistas o álbumes; con [continuation], la siguiente.
+  Future<YtSearchPage<YtCollection>> searchCollectionsPage(
+    String query,
+    YtCollectionKind kind, {
+    String? continuation,
+  }) async {
+    if (query.trim().isEmpty && continuation == null) return const YtSearchPage([], null);
+    final data = await _searchRaw(query, _collectionFilter(kind), continuation);
+    if (data == null) return const YtSearchPage([], null);
+    return YtSearchPage(parseCollectionResults(data, kind), parseSearchContinuation(data));
+  }
+
+  static String _collectionFilter(YtCollectionKind kind) => switch (kind) {
+    YtCollectionKind.artist => artistsFilter,
+    YtCollectionKind.album => albumsFilter,
+    YtCollectionKind.playlist => playlistsFilter,
+  };
+
+  /// Pedido a `/search`. La página siguiente va con la marca en la URL
+  /// (`ctoken`/`continuation`, como la web) y sin la consulta.
+  Future<Map<String, dynamic>?> _searchRaw(String query, String? params, String? continuation) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/search',
-      queryParameters: {'key': _apiKey},
-      data: {..._context, 'query': query, 'params': kind == YtCollectionKind.artist ? artistsFilter : albumsFilter},
+      queryParameters: {
+        'key': _apiKey,
+        if (continuation != null) ...{'ctoken': continuation, 'continuation': continuation, 'type': 'next'},
+      },
+      data: continuation != null ? _context : {..._context, 'query': query, 'params': ?params},
     );
-    final data = response.data;
-    return data == null ? const [] : parseCollectionResults(data, kind);
+    return response.data;
   }
 
   Future<Map<String, dynamic>?> _browse(String browseId) async {
@@ -176,6 +213,26 @@ class YtMusicClient {
       '/browse',
       queryParameters: {'key': _apiKey},
       data: {..._context, 'browseId': browseId},
+    );
+    return response.data;
+  }
+
+  /// Una página de la biblioteca de la cuenta (solo lectura: "Me gusta", playlists). Solo con la
+  /// sesión que el usuario conectó; la sesión viaja únicamente a YouTube. Si YouTube la rechaza
+  /// (401), tira el error de siempre y quien llama sigue como invitado.
+  Future<Map<String, dynamic>?> browseWithAccount(String browseId, YtSession session) async {
+    final context = Map<String, dynamic>.from(_context['context'] as Map);
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/browse',
+      queryParameters: {'key': _apiKey, 'prettyPrint': false},
+      data: {
+        'context': {
+          ...context,
+          if (session.dataSyncId != null) 'user': {'onBehalfOfUser': session.dataSyncId},
+        },
+        'browseId': browseId,
+      },
+      options: Options(headers: session.authHeaders()),
     );
     return response.data;
   }
@@ -296,6 +353,7 @@ class YtMusicClient {
 
     try {
       walk(data['contents'], null);
+      walk(data['continuationContents'], null);
     } catch (error, stackTrace) {
       debugPrint('=== YTM parse: EXCEPCIÓN: $error ===');
       debugPrint('$stackTrace');
@@ -539,7 +597,7 @@ class YtMusicClient {
     }
     visitorData ??= await _getVisitorData();
     // Cuenta opcional: solo en las formas que la admiten (la de la web de YouTube Music).
-    final session = client.loginSupported ? YtSessionHolder.current : null;
+    final session = client.loginSupported ? YtSessionHolder.usable : null;
     if (session?.visitorData != null) visitorData = session!.visitorData;
     // Reproductor incrustado: su visitorData y sus encryptedHostFlags salen de la página embed.
     String? hostFlags;
@@ -616,6 +674,13 @@ class YtMusicClient {
         debugPrint('=== YTM stream: visitorData rechazado, pidiendo uno nuevo ===');
         _visitorData = null;
         return tryClient(videoId, client, lowQuality: lowQuality, retried: true);
+      }
+      // 401 con la cuenta opcional: YouTube ya no acepta esa sesión (venció o se cerró en otro
+      // lado). Se deja de mandar y se reintenta enseguida sin ella, como sin cuenta.
+      if (session != null && error is DioException && error.response?.statusCode == 401) {
+        debugPrint('=== YTM stream [${client.label}]: YouTube rechazó la sesión de la cuenta; sigue sin ella ===');
+        YtSessionHolder.rejected = true;
+        return tryClient(videoId, client, lowQuality: lowQuality, retried: retried);
       }
       return StreamAttempt(
         client.label,

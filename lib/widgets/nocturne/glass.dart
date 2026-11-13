@@ -149,7 +149,10 @@ class GlassIconButton extends StatelessWidget {
                       label!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                      // Grafito: etiquetas chicas y en gris.
+                      style: KijiLook.museum
+                          ? TextStyle(color: active ? color : KijiColors.muted, fontSize: 13, fontWeight: FontWeight.w500)
+                          : TextStyle(color: color, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -159,16 +162,26 @@ class GlassIconButton extends StatelessWidget {
 
     // Nombre explícito para lectores de pantalla (el Tooltip solo no alcanza).
     return Semantics(
+      // Su propio nodo: si no, el nombre y la acción se funden con lo de alrededor (en Inicio, el
+      // engranaje quedaba dentro del saludo y TalkBack no lo podía tocar aparte).
+      container: true,
       button: true,
       enabled: onPressed != null,
       label: label ?? tooltip,
+      // La acción va acá: con excludeSemantics, la del InkWell no llega y TalkBack no podría tocarlo.
+      onTap: onPressed,
       excludeSemantics: true,
       child: Tooltip(
         message: tooltip,
         child: PressScale(
           enabled: onPressed != null,
           pressed: 0.94,
-          child: Glass(
+          child: KijiLook.museum
+              ? Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(onTap: onPressed, customBorder: const StadiumBorder(), child: content),
+                )
+              : Glass(
             radius: KijiRadii.pill,
             onDark: foreground != null,
             // Sin desenfoque del fondo: sobre la aurora animada se recalculaba en cada cuadro

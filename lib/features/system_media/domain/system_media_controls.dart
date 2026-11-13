@@ -35,8 +35,9 @@ abstract interface class SystemMediaControls {
   /// Conecta los botones del sistema con el reproductor.
   void attach(MediaCommands commands);
 
-  /// Muestra [track] en la notificación / pantalla de bloqueo.
-  Future<void> showTrack(Track track, {Duration? duration});
+  /// Muestra [track] en la notificación / pantalla de bloqueo. [coverFile]: su portada guardada en
+  /// el dispositivo (si hay, se usa en vez de la de internet).
+  Future<void> showTrack(Track track, {Duration? duration, String? coverFile});
 
   void updatePlayback({
     required bool playing,

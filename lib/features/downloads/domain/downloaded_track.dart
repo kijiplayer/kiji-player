@@ -17,6 +17,7 @@ class DownloadedTrack {
     required this.downloadedAt,
     this.album,
     this.thumbnailFileName,
+    this.lyricsFileName,
     this.durationMs = 0,
   });
 
@@ -29,6 +30,9 @@ class DownloadedTrack {
   final DateTime downloadedAt;
   final String? album;
   final String? thumbnailFileName;
+
+  /// La letra guardada con la canción (`<videoId>.lrc`), para verla sin internet.
+  final String? lyricsFileName;
   final int durationMs;
 
   /// Se convierte en una pista **de YouTube** (no local): el reproductor
@@ -45,9 +49,10 @@ class DownloadedTrack {
         album: album,
         durationMs: durationMs,
         sizeBytes: sizeBytes,
+        addedAtMs: downloadedAt.millisecondsSinceEpoch,
       );
 
-  DownloadedTrack copyWith({String? artist}) => DownloadedTrack(
+  DownloadedTrack copyWith({String? artist, String? thumbnailFileName, String? lyricsFileName}) => DownloadedTrack(
         videoId: videoId,
         title: title,
         artist: artist ?? this.artist,
@@ -56,7 +61,8 @@ class DownloadedTrack {
         sizeBytes: sizeBytes,
         downloadedAt: downloadedAt,
         album: album,
-        thumbnailFileName: thumbnailFileName,
+        thumbnailFileName: thumbnailFileName ?? this.thumbnailFileName,
+        lyricsFileName: lyricsFileName ?? this.lyricsFileName,
         durationMs: durationMs,
       );
 
@@ -70,6 +76,7 @@ class DownloadedTrack {
         'downloadedAt': downloadedAt.millisecondsSinceEpoch,
         if (album != null) 'album': album,
         if (thumbnailFileName != null) 'thumbnailFileName': thumbnailFileName,
+        if (lyricsFileName != null) 'lyricsFileName': lyricsFileName,
         'durationMs': durationMs,
       };
 
@@ -83,6 +90,7 @@ class DownloadedTrack {
         downloadedAt: DateTime.fromMillisecondsSinceEpoch(json['downloadedAt'] as int),
         album: json['album'] as String?,
         thumbnailFileName: json['thumbnailFileName'] as String?,
+        lyricsFileName: json['lyricsFileName'] as String?,
         durationMs: json['durationMs'] as int? ?? 0,
       );
 }

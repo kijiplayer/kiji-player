@@ -155,7 +155,8 @@ class InnerTubeXEngine(context: Context) {
           // [onlyProfile]: para la Salud del Extractor, probar una forma sola (sin las demás).
           hints = ContentHints(playbackClientOverrideId = onlyProfile)
             .withStreamCapabilities(allowHls = true, allowSabr = false, allowBoundedRange = true),
-          excludedClients = excludedFor(videoId) + skip,
+          // WEB_EMBEDDED_PLAYER: YouTube responde "This video is unavailable" a todo (retirada).
+          excludedClients = excludedFor(videoId) + skip + RETIRED_PROFILES,
           audioQuality = if (quality == "low") AudioQuality.LOW else AudioQuality.AUTO,
           clientPlaybackNonce = generateClientPlaybackNonce(),
         ) ?: return mapOf("error" to "form", "reason" to "no_stream", "message" to "Ninguna forma de InnerTubeX dio audio")
@@ -208,6 +209,8 @@ class InnerTubeXEngine(context: Context) {
   }
 
   companion object {
+    /** Formas de InnerTubeX que nunca se usan (ver la Salud del Extractor). */
+    val RETIRED_PROFILES = setOf("WEB_EMBEDDED_PLAYER")
     private const val TAG = "KijiInnerTubeX"
     const val PLAYER_CONFIG_URL =
       "https://raw.githubusercontent.com/ZemerTeam/zemer-cipher/master/library/src/main/assets/player_configs.json"

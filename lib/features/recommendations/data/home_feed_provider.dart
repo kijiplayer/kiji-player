@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
+import '../../downloads/data/auto_downloads.dart' show connectivityChangesProvider;
 import '../../favorites/favorites.dart';
 import '../../history/listening_history.dart';
+import '../../theater/data/theater_store.dart';
 import '../../yt_music/data/ytm_browse_parser.dart';
 import '../../yt_music/data/ytm_client.dart';
 import '../../yt_music/domain/yt_track_mapper.dart';
@@ -25,38 +28,83 @@ final _seedKeyProvider = Provider<String>((ref) => ref.watch(homeSeedsProvider).
 /// Relacionadas ya pedidas en esta sesión (por id de la semilla).
 final _relatedCache = <String, List<Track>>{};
 
-/// Inicio con recomendaciones. Sin conexión, Inicio sigue con lo
-/// local (más escuchadas, descargadas, playlists).
+/// Pedidos en curso (el mismo id no se pide dos veces a la vez) y cuándo falló cada uno (no se
+/// reintenta enseguida).
+final _relatedInFlight = <String, Future<void>>{};
+final _relatedFailedAt = <String, DateTime>{};
+const relatedRetryAfter = Duration(minutes: 2);
+
+/// ¿Hay conexión? (se cambia en las pruebas).
+final homeOnlineCheckProvider = Provider<Future<bool> Function()>((ref) => () async {
+  try {
+    final result = await Connectivity().checkConnectivity();
+    return !result.every((r) => r == ConnectivityResult.none);
+  } catch (error) {
+    debugPrint('=== INICIO: no se pudo saber si hay conexión: ${error.runtimeType} ===');
+    return true;
+  }
+});
+
+/// Inicio con recomendaciones. Sin conexión, Inicio sigue con lo local (más escuchadas,
+/// descargadas, playlists), no pide nada a YouTube y, al volver la conexión, se completa solo.
 final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
   ref.watch(_seedKeyProvider);
+  // Una canción abucheada (3 tomates) sale de las recomendaciones al instante.
+  ref.watch(theaterProvider.select((t) => (t.booedOff.toList()..sort()).join('|')));
   final seeds = ref.read(homeSeedsProvider);
   if (seeds.all.isEmpty) return const HomeFeed();
   final client = ref.read(ytMusicClientProvider);
-  await Future.wait([
+  final now = DateTime.now();
+  final missing = [
     for (final seed in seeds.all)
-      if (!_relatedCache.containsKey(seed.id))
-        _fetchRelated(client, seed),
-  ]);
+      if (!_relatedCache.containsKey(seed.id) && !_failedRecently(seed.id, now)) seed,
+  ];
+  if (missing.isNotEmpty) {
+    if (await ref.read(homeOnlineCheckProvider)()) {
+      await Future.wait([for (final seed in missing) _relatedInFlight.putIfAbsent(seed.id, () => _fetchRelated(client, seed))]);
+    } else {
+      debugPrint('=== INICIO: sin conexión; las recomendaciones esperan a que vuelva ===');
+      // Cuando vuelve la conexión, Inicio se arma de nuevo (una sola vez).
+      StreamSubscription<List<ConnectivityResult>>? waiting;
+      waiting = ref.read(connectivityChangesProvider).listen((result) {
+        if (result.every((r) => r == ConnectivityResult.none)) return;
+        unawaited(waiting?.cancel());
+        ref.invalidateSelf();
+      }, onError: (Object error) => debugPrint('=== INICIO: no se puede seguir la conexión (${error.runtimeType}) ==='));
+      ref.onDispose(() => waiting?.cancel());
+    }
+  }
   return HomeFeedLogic.build(
     seeds: seeds,
     related: Map.of(_relatedCache),
     history: ref.read(listeningHistoryProvider),
     liked: ref.read(favoritesProvider).values.toList(),
+    booed: ref.read(theaterProvider).booedOff,
   );
 });
+
+bool _failedRecently(String id, DateTime now) {
+  final at = _relatedFailedAt[id];
+  return at != null && now.difference(at) < relatedRetryAfter;
+}
 
 Future<void> _fetchRelated(YtMusicClient client, Track seed) async {
   try {
     final results = await client.related(seed.youtubeVideoId!);
     _relatedCache[seed.id] = [for (final r in results) ytTrackFromResult(r, audioUrl: '')];
+    _relatedFailedAt.remove(seed.id);
   } catch (error) {
-    debugPrint('=== INICIO: sin relacionadas de ${seed.id}: $error ===');
+    _relatedFailedAt[seed.id] = DateTime.now();
+    debugPrint('=== INICIO: sin relacionadas de ${seed.id}: ${error.runtimeType} ===');
+  } finally {
+    _relatedInFlight.remove(seed.id)?.ignore();
   }
 }
 
 /// Volver a pedir las recomendaciones (deslizar hacia abajo en Inicio).
 void refreshHomeFeed(WidgetRef ref) {
   _relatedCache.clear();
+  _relatedFailedAt.clear();
   ref.invalidate(homeFeedProvider);
 }
 

@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/battery_optimization.dart';
-import 'features/style/presentation/style_chooser_screen.dart';
+import 'features/customize/data/track_overrides.dart';
+import 'features/style/presentation/personalize_screen.dart';
+import 'features/style/presentation/custom_background.dart' show hasCustomBackgroundProvider;
+import 'features/system_media/data/home_widgets.dart';
 import 'features/desktop/desktop_integration.dart';
 import 'features/desktop/desktop_window.dart';
 import 'features/downloads/data/auto_downloads.dart';
@@ -106,6 +109,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     ErrorReporter.instance.pending.removeListener(_offerReport);
+    _veil.dispose();
     super.dispose();
   }
 
@@ -117,7 +121,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     final settings = await ref.read(settingsProvider.notifier).loaded;
     final screens = startupScreens(
       freshInstall: fresh,
-      styleChosen: settings.styleChosen,
+      personalized: settings.personalized,
       lastSeenVersion: settings.lastSeenVersion,
     );
     Future<void> markSeen() async {
@@ -139,7 +143,7 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
             await WelcomeScreen.open(context, instant: true);
             await markSeen();
           case StartupScreen.style:
-            if (!ref.read(settingsProvider).styleChosen) await StyleChooserScreen.open(context, ref);
+            if (!ref.read(settingsProvider).personalized) await PersonalizeScreen.open(context, ref);
           case StartupScreen.whatsNew:
             await WhatsNewScreen.open(context);
         }
@@ -205,29 +209,54 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   /// Tema, acento y tipografía (Configuración → Apariencia). Los colores salen de una paleta
   /// global ([KijiColors.palette]): al cambiarla se redibuja todo, como con el idioma.
   void _applyAppearance() {
-    final (styleName, theme, accent, font, rich, calm) = ref.watch(
-      settingsProvider.select((s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion)),
+    final (styleName, theme, accent, font, rich, calm, custom) = ref.watch(
+      settingsProvider.select(
+        (s) => (s.style, s.theme, s.accent, s.font, s.highPerformance, s.reduceMotion, s.customAccentColor),
+      ),
     );
     final style = KijiStyle.parse(styleName);
-    final palette = KijiPalette.forStyle(style, theme: theme, accent: accent);
+    // Estilo por canción: mientras suena, su color de acento manda sobre el general.
+    final songAccent = ref.watch(currentTrackStyleProvider.select((s) => s?.accent));
+    final base = KijiPalette.forStyle(
+      style,
+      theme: theme,
+      accent: accent,
+      custom: songAccent != null ? Color(songAccent) : custom,
+    );
+    // Con un fondo propio, el gris secundario más claro: la foto se ve con menos capa encima.
+    final palette = ref.watch(hasCustomBackgroundProvider) ? base.withBackgroundPhoto() : base;
     final systemFont = font == 'system';
+    final family = KijiText.familyFor(font);
     if (style == KijiLook.style &&
         palette == KijiColors.palette &&
         systemFont == KijiText.useSystemFont &&
+        family == KijiText.chosenFamily &&
         rich == KijiEffects.rich &&
         calm == KijiEffects.calm) {
       return;
     }
+    final styleChanged = style != KijiLook.style || palette.isLight != KijiColors.palette.isLight;
     KijiLook.style = style;
     KijiColors.palette = palette;
     KijiText.useSystemFont = systemFont;
+    KijiText.chosenFamily = family;
     KijiEffects.rich = rich;
     KijiEffects.calm = calm;
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
     if (!_appearanceReady) return;
     debugPrint('=== APARIENCIA: estilo ${style.name}, tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
-    WidgetsBinding.instance.addPostFrameCallback((_) => _rebuildAll());
+    // Otro estilo: redibujar todo tarda (~0,7 s en el teléfono). Un velo del fondo nuevo tapa ese
+    // cuadro y se desvanece después: se ve un fundido en vez de una pantalla trabada a medias. Con
+    // "reducir animaciones", sin velo.
+    if (styleChanged && !calm) _veil.value = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _rebuildAll();
+      if (_veil.value) WidgetsBinding.instance.addPostFrameCallback((_) => _veil.value = false);
+    });
   }
+
+  /// El velo del cambio de estilo (ver [_applyAppearance]).
+  final _veil = ValueNotifier<bool>(false);
 
   bool _appearanceReady = false;
 
@@ -251,6 +280,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     ref.watch(playbackAutomationProvider);
     // Copia de seguridad diaria: se revisa al abrir Kiji.
     ref.watch(backupProvider);
+    // Widgets de Android (canción, controles y colores del estilo).
+    ref.watch(homeWidgetsProvider);
     return MaterialApp(
       title: 'Kiji Player', // l10n-ignore
       debugShowCheckedModeBanner: false,
@@ -274,8 +305,25 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: kijiUse24Hour),
           child: BackdropGroup(
-            child: PlaybackShortcuts(
-              child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+            child: Stack(
+              children: [
+                PlaybackShortcuts(
+                  child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+                ),
+                // El velo del cambio de estilo: aparece de golpe y se va en 250 ms.
+                ValueListenableBuilder<bool>(
+                  valueListenable: _veil,
+                  builder: (context, on, _) => IgnorePointer(
+                    child: AnimatedOpacity(
+                      key: const Key('style-veil'),
+                      opacity: on ? 1 : 0,
+                      duration: on ? Duration.zero : KijiMotion.normal,
+                      curve: Curves.easeOut,
+                      child: ColoredBox(color: KijiColors.background, child: const SizedBox.expand()),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );

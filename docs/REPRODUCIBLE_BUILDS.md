@@ -22,7 +22,8 @@ flutter build apk --release --flavor prod
 ```
 
 `tool/patch_plugins.dart` patches an old plugin (`on_audio_query_android` 1.1.0) that doesn't
-build with the current Gradle; the published APKs were built with the same patch. Tags up to
+build with the current Gradle; the published APKs were built with the same patch. From 0.8.0 on,
+Kiji no longer uses that plugin and the patch step isn't needed (the script stays for older tags). Tags up to
 v0.6.0 don't include that file yet: take it from `master` before running it:
 
 ```bash

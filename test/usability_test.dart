@@ -118,7 +118,7 @@ void main() {
     expect(find.byType(MiniPlayer), findsOneWidget);
   });
 
-  testWidgets('Transición suave: tocar la fila deja elegir la duración', (tester) async {
+  testWidgets('Transición suave: tocar la fila abre Sonido y ahí se elige de 0 a 12 s', (tester) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -138,9 +138,13 @@ void main() {
     // Se toca el título (antes solo respondía el "No" chiquito de la derecha).
     await tester.tap(find.text('Transición suave entre canciones'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('5 segundos'));
+    expect(find.text('MEZCLA ENTRE CANCIONES'), findsOneWidget);
+    // El control de la mezcla es el último de la pantalla; 7 s no estaba en la lista de antes.
+    final slider = find.byType(Slider).last;
+    await tester.ensureVisible(slider);
+    tester.widget<Slider>(slider).onChangeEnd!(7);
     await tester.pumpAndSettle();
-    expect(container.read(settingsProvider).crossfadeSeconds, 5);
-    expect(find.text('5 s'), findsOneWidget);
+    expect(container.read(settingsProvider).crossfadeSeconds, 7);
+    expect(find.text('7 s'), findsOneWidget);
   });
 }

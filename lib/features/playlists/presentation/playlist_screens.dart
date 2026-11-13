@@ -21,6 +21,12 @@ import '../../moments/data/moments_store.dart';
 import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
+import '../../account/data/account_store.dart';
+import '../../account/presentation/account_screens.dart' show YtConnectCard;
+import '../../account/data/yt_sync.dart';
+import '../../local_library/domain/local_groups.dart' show LocalGroup;
+import '../../local_library/presentation/local_group_screen.dart';
+import '../../settings/data/settings_store.dart';
 import '../../settings/domain/setting_search.dart';
 import '../domain/smart_lists.dart';
 import '../playlists_provider.dart';
@@ -134,9 +140,48 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
 
 String _count(int n) => tx.nCanciones(n);
 
-/// Pestaña Playlists de la Biblioteca: listas inteligentes y tus playlists.
+/// Pestaña Playlists de la Biblioteca: listas inteligentes y tus playlists (con [grid], tus
+/// playlists como tarjetas con su portada).
 class PlaylistsView extends ConsumerWidget {
-  const PlaylistsView({super.key});
+  const PlaylistsView({super.key, this.grid = false});
+
+  final bool grid;
+
+  Widget _card(BuildContext context, Playlist playlist, double width) => SizedBox(
+    width: width,
+    child: InkWell(
+      key: Key('playlist-card-${playlist.id}'),
+      borderRadius: BorderRadius.circular(KijiLook.cover(12) + 4),
+      onTap: () => PlaylistScreen.open(context, playlist.id),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PlaylistCover(playlist: playlist, size: width - 8, radius: KijiLook.cover(12)),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                if (playlist.pinned) ...[
+                  Icon(Icons.push_pin_rounded, size: 13, color: KijiColors.cyan, semanticLabel: tx.fijada),
+                  const SizedBox(width: 3),
+                ],
+                Expanded(
+                  child: Text(
+                    playlist.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: KijiText.title(size: 14),
+                  ),
+                ),
+              ],
+            ),
+            Text(_count(playlist.tracks.length), style: TextStyle(color: KijiColors.muted, fontSize: 12)),
+          ],
+        ),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -167,7 +212,25 @@ class PlaylistsView extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(tx.todaviaNoCreasteNingunaMantenPresionada, style: TextStyle(color: KijiColors.muted)),
           ),
-        for (final playlist in PlaylistOps.pinnedFirst(playlists))
+        if (grid && playlists.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: LayoutBuilder(
+              builder: (context, c) {
+                // Columnas de unos 180 px (dos, como mínimo).
+                final columns = max(2, (c.maxWidth / 180).floor());
+                final width = (c.maxWidth - 8 * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 10,
+                  children: [
+                    for (final playlist in PlaylistOps.pinnedFirst(playlists)) _card(context, playlist, width),
+                  ],
+                );
+              },
+            ),
+          ),
+        for (final playlist in grid ? const <Playlist>[] : PlaylistOps.pinnedFirst(playlists))
           ListTile(
             leading: PlaylistCover(playlist: playlist),
             title: Row(
@@ -193,6 +256,45 @@ class PlaylistsView extends ConsumerWidget {
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => MomentsScreen.open(context),
         ),
+        // Sin sesión: "Conecta tu YouTube Music (opcional)" (se puede cerrar para siempre).
+        const YtConnectCard(),
+        // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
+        ...() {
+          final sync = ref.watch(ytSyncProvider);
+          // Solo con la sesión iniciada: al cerrarla, la sección se va al momento.
+          if (sync.isEmpty || ref.watch(accountProvider) == null || !ref.watch(settingsProvider.select((s) => s.ytSync))) {
+            return const <Widget>[];
+          }
+          LocalGroup group(String key, String name, List<Track> tracks) =>
+              LocalGroup(key: key, name: name, tracks: tracks);
+          return <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+              child: Text(tx.deTuCuentaDeYoutube, style: KijiText.mono(size: 11)),
+            ),
+            if (sync.liked.isNotEmpty)
+              ListTile(
+                key: const Key('yt-sync-liked'),
+                leading: Icon(Icons.thumb_up_alt_outlined, color: KijiColors.cyan),
+                title: Text(tx.meGustaDeYoutube),
+                subtitle: Text(_count(sync.liked.length), style: TextStyle(color: KijiColors.muted)),
+                onTap: () => LocalGroupScreen.open(
+                  context,
+                  group('yt:liked', tx.meGustaDeYoutube, sync.liked),
+                  LocalGroupKind.playlist,
+                ),
+              ),
+            for (final pl in sync.playlists)
+              ListTile(
+                leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                title: Text(pl.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(_count(pl.tracks.length), style: TextStyle(color: KijiColors.muted)),
+                onTap: pl.tracks.isEmpty
+                    ? null
+                    : () => LocalGroupScreen.open(context, group('yt:${pl.id}', pl.name, pl.tracks), LocalGroupKind.playlist),
+              ),
+          ];
+        }(),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
           child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
@@ -426,9 +528,17 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                 style: const TextStyle(color: downloadWarningColor),
               )
             : TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-        onTap: _selection.active
-            ? () => _selection.toggle('$index', track)
-            : () => ref.read(playbackProvider.notifier).playQueue(playlist.tracks, startIndex: index),
+        onTap: () {
+          // Ctrl/Shift + clic en la PC: elegir sin reproducir.
+          if (_selection.tapWithKeys('$index', track, [
+            for (final (i, t) in playlist.tracks.indexed) MapEntry('$i', t),
+          ])) {
+            return;
+          }
+          _selection.active
+              ? _selection.toggle('$index', track)
+              : ref.read(playbackProvider.notifier).playQueue(playlist.tracks, startIndex: index);
+        },
         // Mantener presionada: empieza a elegir (con una sola, "Más" trae el menú de siempre).
         onLongPress: () => _selection.toggle('$index', track),
         trailing: Row(
@@ -636,8 +746,7 @@ class _DownloadFilterBar extends StatelessWidget {
                 color: KijiColors.cyan,
               ),
               Text(tx.deDescargadas(downloaded, total), style: KijiText.mono(size: 13, color: KijiColors.text)),
-              if (failed > 0)
-                Text(tx.conError(failed), style: KijiText.mono(size: 13, color: downloadWarningColor)),
+              if (failed > 0) Text(tx.conError(failed), style: KijiText.mono(size: 13, color: downloadWarningColor)),
             ],
           ),
           const SizedBox(height: 6),

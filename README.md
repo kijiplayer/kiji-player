@@ -18,11 +18,17 @@
 Kiji plays the music on your device and from YouTube Music, anonymously. Everything that is yours
 (the queue, playlists, history and downloads) stays on your device.
 
-- Downloads to listen offline, one song or whole playlists.
-- Synced lyrics, with translation done on the phone itself.
-- A home screen with recommendations calculated on your device.
-- Sleep timer, equalizer, crossfade between songs and backups.
-- Imports playlists from Echo Music, Metrolist, `.m3u` and other formats.
+- A player your way: three styles (Nocturne, Graphite and Paper), your color, your font, your own
+  background (photo, GIF or video) and even a style for each song.
+- Sound: equalizer with presets, bass, speed, pitch, effects and crossfade.
+- Synced lyrics and word-by-word karaoke, saved with downloads and translated on the phone itself.
+- A Library with your artists, albums and folders, and downloads to listen offline.
+- Import playlists from a link (Spotify, Apple Music, SoundCloud or YouTube) or from Echo Music,
+  Metrolist and `.m3u`. If you like, connect your YouTube Music (optional and read-only).
+- Theater reactions 🍅🌹: tomatoes until the curtain falls, roses until the standing ovation, and
+  «Your Theater».
+- Home screen widgets (in beta).
+- A home screen with recommendations calculated on your device, sleep timer and full backups.
 - In English and Spanish.
 
 ## Screenshots
@@ -35,6 +41,10 @@ Kiji plays the music on your device and from YouTube Music, anonymously. Everyth
 <p align="center">
   <img src="docs/capturas/biblioteca_en.png" width="180" alt="Library">
   <img src="docs/capturas/bienvenida_en.png" width="180" alt="Welcome">
+  <img src="docs/capturas/teatro_es.png" width="180" alt="Theater reactions: standing ovation (Spanish UI)">
+</p>
+<p align="center">
+  <img src="docs/capturas/widgets_es.png" width="420" alt="Widgets, in beta (Spanish UI)">
 </p>
 
 <p align="center"><sub>Songs, artists, covers and lyrics in the screenshots are made up.</sub></p>
@@ -48,7 +58,7 @@ on Android 7 or newer and on Windows 10/11.
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/kijiplayer/kiji-player"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a>
 </p>
 
-With Obtainium, Kiji updates on Android straight from those releases.
+With Obtainium, Kiji updates on Android straight from those releases. If it asks which APK to use, pick `Kiji-Player.apk` (works on every phone) or the one for your architecture (`arm64-v8a` on most phones).
 
 To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 

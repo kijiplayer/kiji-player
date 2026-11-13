@@ -16,14 +16,17 @@ void main() {
     KijiColors.palette = KijiPalette.nocturne;
   });
 
-  test('las novedades de la 0.7: lo de la PC solo en la PC', () {
+  test('las novedades de la 0.8: lo de la PC solo en la PC, y los widgets en beta', () {
     final phone = whatsNewItems(desktop: false);
     final pc = whatsNewItems(desktop: true);
-    expect(phone, hasLength(7));
-    expect(pc, hasLength(8));
+    expect(phone, hasLength(8));
+    expect(pc, hasLength(9));
     expect(pc.last.title, 'En la PC');
-    expect([for (final i in phone) i.title], contains('Tres estilos'));
-    expect([for (final i in phone) i.title], contains('Tus más escuchadas'));
+    final titles = [for (final i in phone) i.title];
+    expect(titles, contains('Reacciones de teatro 🍅🌹'));
+    expect(titles, contains('Widgets (beta)'));
+    // Linux todavía no: no se nombra.
+    expect([for (final i in pc) '${i.title} ${i.text}'].join(' ').toLowerCase(), isNot(contains('linux')));
   });
 
   for (final style in KijiStyle.values) {
@@ -62,7 +65,7 @@ void main() {
         await tester.pump(const Duration(seconds: 2));
         expect(tester.takeException(), isNull);
         expect(find.text('Qué hay de nuevo'), findsOneWidget);
-        expect(find.text('Tres estilos'), findsOneWidget);
+        expect(find.text('Reproductor nuevo, a tu manera'), findsOneWidget);
         await tester.tap(find.byKey(const Key('whats-new-start')));
         await tester.pump(const Duration(milliseconds: 500));
         await tester.pump(const Duration(seconds: 1));
@@ -84,6 +87,6 @@ void main() {
     // Sin un solo cuadro de animación, todas las tarjetas ya están del todo visibles.
     final opacities = tester.widgetList<Opacity>(find.byType(Opacity)).map((o) => o.opacity);
     expect(opacities.every((o) => o == 1), isTrue);
-    expect(find.text('Tres estilos'), findsOneWidget);
+    expect(find.text('Reproductor nuevo, a tu manera'), findsOneWidget);
   });
 }

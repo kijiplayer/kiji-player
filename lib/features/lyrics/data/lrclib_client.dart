@@ -12,8 +12,11 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// No se pudo consultar (sin conexión o el servicio falló). Distinto de
 /// "no hay letra": esto no se guarda en caché, se reintenta la próxima vez.
 class LyricsUnavailableException implements Exception {
-  const LyricsUnavailableException(this.reason);
+  const LyricsUnavailableException(this.reason, {this.refused = false});
   final String reason;
+
+  /// El servicio respondió pero no quiso (403, 429, 5xx): se saltea un rato. Sin conexión, no.
+  final bool refused;
 }
 
 /// Cliente de LRCLIB (https://lrclib.net): letras libres, sin cuenta. Solo se

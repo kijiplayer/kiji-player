@@ -7,35 +7,23 @@ import 'dart:io';
 
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 
 import '../domain/equalizer_model.dart';
 
-/// Las bandas reales del teléfono.
-class EqBands {
-  const EqBands({required this.centers, required this.minDb, required this.maxDb});
-  final List<double> centers;
-  final double minDb;
-  final double maxDb;
-}
+/// Android: el ecualizador del sistema (`AndroidEqualizer` de just_audio, con las bandas que dé
+/// el teléfono) y, por un canal propio, BassBoost y PresetReverb sobre la misma sesión de audio
+/// (`SoundEffects.kt`). Lo que el teléfono no tenga no se muestra.
+class AndroidSoundEngine extends SoundEngine {
+  AndroidSoundEngine(this.effect, {MethodChannel? channel}) : _channel = channel ?? const MethodChannel('kiji/sound');
 
-/// El ecualizador del sistema, detrás de una interfaz: en
-/// Android es el `AndroidEqualizer` de just_audio; en PC todavía no hay.
-abstract class EqualizerEngine {
-  bool get isSupported;
-
-  /// Se completa cuando el reproductor ya cargó algo (antes, Android no
-  /// informa las bandas). `null` si no hay ecualizador.
-  Future<EqBands?> bands();
-
-  Future<void> setEnabled(bool enabled);
-  Future<void> setGains(List<double> gains);
-}
-
-class AndroidEqualizerEngine implements EqualizerEngine {
-  AndroidEqualizerEngine(this.effect);
   final AndroidEqualizer effect;
+  final MethodChannel _channel;
+  int? _session;
+  SoundMix? _last;
 
   @override
   bool get isSupported => true;
@@ -51,27 +39,99 @@ class AndroidEqualizerEngine implements EqualizerEngine {
   }
 
   @override
-  Future<void> setEnabled(bool enabled) => effect.setEnabled(enabled);
+  Future<SoundCapabilities> capabilities() async {
+    try {
+      final found = await _channel.invokeMapMethod<String, bool>('capabilities') ?? const {};
+      return SoundCapabilities(bass: found['bass'] ?? false, reverb: found['reverb'] ?? false);
+    } catch (error) {
+      debugPrint('=== SONIDO: no se pudo saber qué efectos tiene el teléfono: $error ===');
+      return const SoundCapabilities();
+    }
+  }
 
   @override
-  Future<void> setGains(List<double> gains) async {
+  void setAudioSession(int? id) {
+    if (id == _session) return;
+    _session = id;
+    final last = _last;
+    if (last != null) unawaited(_applyNative(last));
+  }
+
+  @override
+  Future<void> apply(SoundMix mix) async {
+    _last = mix;
+    await effect.setEnabled(mix.enabled);
     final parameters = await effect.parameters;
-    for (var i = 0; i < parameters.bands.length && i < gains.length; i++) {
-      await parameters.bands[i].setGain(gains[i]);
+    for (var i = 0; i < parameters.bands.length && i < mix.gains.length; i++) {
+      await parameters.bands[i].setGain(mix.gains[i]);
+    }
+    await _applyNative(mix);
+  }
+
+  Future<void> _applyNative(SoundMix mix) async {
+    final session = _session;
+    if (session == null) return; // se aplica cuando el reproductor tenga sesión
+    try {
+      await _channel.invokeMethod<void>('apply', {
+        'session': session,
+        'enabled': mix.enabled,
+        'bass': mix.bass,
+        'reverb': mix.reverb.index,
+      });
+    } catch (error) {
+      debugPrint('=== SONIDO: no se pudieron aplicar bajos/reverb: $error ===');
     }
   }
 }
 
-class UnsupportedEqualizerEngine implements EqualizerEngine {
-  const UnsupportedEqualizerEngine();
+/// La cadena de filtros de mpv para [mix] (null: sin filtros, el audio sale tal cual). Una
+/// `equalizer` (pico de una octava) por banda que no esté en 0, y el refuerzo de bajos como una
+/// más, ancha, en 70 Hz. En la libavfilter de Windows no hay otros filtros de audio (ni reverb).
+String? mpvEffects(SoundMix mix, List<double> centers) {
+  if (!mix.enabled) return null;
+  String db(double value) => value.toStringAsFixed(1);
+  final filters = [
+    for (var i = 0; i < centers.length && i < mix.gains.length; i++)
+      if (mix.gains[i] != 0) 'equalizer=f=${centers[i].round()}:t=o:w=1:g=${db(mix.gains[i])}',
+    if (mix.bass > 0) 'equalizer=f=70:t=o:w=2:g=${db(mix.bass * maxBassDb)}',
+  ];
+  return filters.isEmpty ? null : filters.join(',');
+}
+
+
+/// PC (Windows y Linux): filtros de mpv por el plugin local just_audio_media_kit, en todos los
+/// reproductores (también el de la mezcla). 10 bandas y bajos; sin reverb.
+class MpvSoundEngine extends SoundEngine {
+  MpvSoundEngine({Future<void> Function(String? effects)? setEffects})
+    : _setEffects = setEffects ?? JustAudioMediaKit.setAudioEffects;
+
+  final Future<void> Function(String? effects) _setEffects;
+
+  static const _bands = EqBands(centers: tenBands, minDb: -12, maxDb: 12);
+
+  @override
+  bool get isSupported => true;
+
+  @override
+  Future<EqBands?> bands() async => _bands;
+
+  @override
+  Future<SoundCapabilities> capabilities() async => const SoundCapabilities(bass: true);
+
+  @override
+  Future<void> apply(SoundMix mix) => _setEffects(mpvEffects(mix, _bands.centers));
+}
+
+class UnsupportedSoundEngine extends SoundEngine {
+  UnsupportedSoundEngine();
   @override
   bool get isSupported => false;
   @override
   Future<EqBands?> bands() async => null;
   @override
-  Future<void> setEnabled(bool enabled) async {}
+  Future<SoundCapabilities> capabilities() async => const SoundCapabilities();
   @override
-  Future<void> setGains(List<double> gains) async {}
+  Future<void> apply(SoundMix mix) async {}
 }
 
 /// El efecto que se conecta al reproductor (solo Android). Uno solo por app:
@@ -80,9 +140,11 @@ final androidEqualizerProvider = Provider<AndroidEqualizer?>(
   (ref) => !kIsWeb && Platform.isAndroid ? AndroidEqualizer() : null,
 );
 
-final equalizerEngineProvider = Provider<EqualizerEngine>((ref) {
+final equalizerEngineProvider = Provider<SoundEngine>((ref) {
   final effect = ref.watch(androidEqualizerProvider);
-  return effect == null ? const UnsupportedEqualizerEngine() : AndroidEqualizerEngine(effect);
+  if (effect != null) return AndroidSoundEngine(effect);
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) return MpvSoundEngine();
+  return UnsupportedSoundEngine();
 });
 
 /// Qué salida de audio está activa, a partir de los dispositivos conectados.

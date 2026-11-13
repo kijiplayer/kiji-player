@@ -26,8 +26,10 @@ import '../features/extractor/data/ytdlp_engine.dart';
 import '../features/extractor/domain/extraction_failure.dart';
 import '../features/stream_cache/data/chunked_source.dart';
 import '../features/stream_cache/data/stream_cache.dart';
+import '../utils/app_visible.dart';
 import '../utils/duration_formatter.dart';
 import '../utils/startup_log.dart';
+import '../features/system_media/data/device_cover.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/ytm_client.dart';
 import '../features/yt_music/domain/subtitle_parser.dart';
@@ -163,6 +165,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// Se incrementa en cada carga: si el usuario elige otra canción mientras
   /// una carga anterior sigue en curso, la anterior se descarta.
   int _loadToken = 0;
+  StreamSubscription<int?>? _sessionSubscription;
+
+  /// Velocidad y tono de "Sonido" en el reproductor (y en la cola de la mezcla, si suena).
+  Future<void> _applyRate(({double speed, double pitch}) rate) async {
+    for (final player in [?_player, ?_tail]) {
+      try {
+        await player.setSpeed(rate.speed);
+        await player.setPitch(rate.pitch);
+      } catch (error) {
+        debugPrint('=== SONIDO: no se pudo cambiar velocidad/tono: $error ===');
+      }
+    }
+  }
   bool _wasPlaying = false;
 
   /// Notificación, pantalla de bloqueo y auriculares.
@@ -207,6 +222,21 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]),
     );
     ref.read(equalizerProvider);
+    // "Sonido": margen de seguridad cuando el ecualizador o los bajos suben mucho (no satura).
+    _headroom = ref.read(equalizerProvider).headroom;
+    ref.listen(equalizerProvider.select((s) => s.headroom), (_, gain) {
+      _headroom = gain;
+      unawaited(_applyVolume());
+      final tail = _tail;
+      if (tail != null && _crossfading) unawaited(tail.setVolume(state.volume * _fade * gain));
+    });
+    // "Sonido": velocidad y tono (con "Efectos" apagado, siempre lo normal), en vivo.
+    ref.listen(equalizerProvider.select((s) => s.settings.playbackRate), (_, rate) => unawaited(_applyRate(rate)));
+    // Android: los bajos y la reverb se enganchan a la sesión de audio del reproductor.
+    _sessionSubscription = _audioPlayer.androidAudioSessionIdStream.listen(
+      (id) => ref.read(equalizerProvider.notifier).audioSessionChanged(id),
+      onError: (Object error) => debugPrint('=== SONIDO: sin sesión de audio: $error ==='),
+    );
     ref.onDispose(_dispose);
 
     _controls = ref.read(systemMediaControlsProvider);
@@ -282,7 +312,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final track = state.track;
     if (Platform.isWindows && track != null && !_shownInSystem) {
       _shownInSystem = true;
-      await _controls.showTrack(track, duration: _player?.duration);
+      await _showInSystem(track, duration: _player?.duration);
       _pushSystemState();
     }
   }
@@ -350,11 +380,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
             state = state.copyWith(duration: duration);
             final track = state.track;
             if (_shownInSystem && track != null) {
-              unawaited(_controls.showTrack(track, duration: duration));
+              unawaited(_showInSystem(track, duration: duration));
             }
           }
         }),
       );
+  }
+
+  /// Muestra [track] en la notificación / pantalla de bloqueo con la portada guardada en el
+  /// dispositivo si la hay (descarga, música local, portada elegida): así se ve también sin
+  /// internet. La de internet queda solo para lo que suena por streaming.
+  Future<void> _showInSystem(Track track, {Duration? duration}) async {
+    final cover = await deviceCoverFor(ref, track);
+    await _controls.showTrack(track, duration: duration, coverFile: cover);
   }
 
   /// Informa al sistema (notificación, pantalla de bloqueo) qué está pasando.
@@ -365,7 +403,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (!_shownInSystem) {
       if (!player.playing) return;
       _shownInSystem = true;
-      unawaited(_controls.showTrack(track, duration: player.duration));
+      unawaited(_showInSystem(track, duration: player.duration));
     }
     final waiting = _outputWait != null;
     _controls.updatePlayback(
@@ -420,6 +458,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     Set<String> skipClients = const {},
   }) async {
     final token = ++_loadToken;
+    // Otra canción (no un reintento de la misma): la velocidad y el tono vuelven a lo normal,
+    // salvo que se haya elegido mantenerlos.
+    if (state.track?.id != track.id) unawaited(ref.read(equalizerProvider.notifier).trackChanged());
     _fadeInToken = _fadeInPending ? token : -1;
     _fadeInPending = false;
     _requestedNext.remove(track.id);
@@ -432,7 +473,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       position: initialPosition,
       duration: Duration(milliseconds: track.durationMs),
     );
-    if (_shownInSystem) unawaited(_controls.showTrack(track));
+    if (_shownInSystem) unawaited(_showInSystem(track));
 
     try {
       final loading = Stopwatch()..start();
@@ -466,6 +507,12 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('$stackTrace');
       state = state.copyWith(isInitialized: false);
       await _pausePlayer('error al cargar la canción'); // l10n-ignore
+      // Un archivo del equipo que no se puede reproducir (formato raro, dañado): se salta a la
+      // siguiente con un aviso simple; no es culpa de internet ni de YouTube.
+      if (track.source == TrackSource.local) {
+        _lastContentProblem = null;
+        return LoadResult.contentBlocked;
+      }
       return await _isOnline() ? LoadResult.unplayable : LoadResult.offline;
     }
   }
@@ -1008,8 +1055,31 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       shuffleEnabled: snapshot.shuffleEnabled,
     );
     debugPrint('=== MEMORIA: restaurada "${queue[index].title}", posición ${formatDuration(position)} ===');
-    await _loadTrack(queue[index], index, autoPlay: false, initialPosition: position);
+    // Arranque rápido: la canción y la posición se ven ya; el audio se prepara después, con Kiji ya
+    // a la vista y quieta (crear el reproductor y saltar a la posición tarda ~1,5 s). Si se toca
+    // play antes, play() la carga en ese momento.
+    final track = queue[index];
+    state = state.copyWith(
+      track: track,
+      currentIndex: index,
+      isInitialized: false,
+      position: position,
+      duration: Duration(milliseconds: track.durationMs),
+    );
+    unawaited(_preloadRestored(track, index));
   }
+
+  /// Prepara el audio de la canción restaurada (en pausa), si nadie la tocó mientras tanto.
+  Future<void> _preloadRestored(Track track, int index) async {
+    await whenAppVisible();
+    await Future<void>.delayed(restoredPreloadDelay);
+    if (state.track?.id != track.id || state.isInitialized || _player?.playing == true) return;
+    debugPrint('=== MEMORIA: se prepara el audio de la canción restaurada ===');
+    await _loadTrack(track, index, autoPlay: false, initialPosition: state.position);
+  }
+
+  /// Cuánto espera el audio de la cola restaurada después de que Kiji se ve.
+  static const restoredPreloadDelay = Duration(seconds: 2);
 
   Future<bool> _isAvailable(Track track) async {
     if (track.source != TrackSource.local) return true;
@@ -1031,6 +1101,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> _dispose() async {
     await _stopTail();
     _saveTimer?.cancel();
+    unawaited(_sessionSubscription?.cancel());
     _outputWait?.cancel();
     _lifecycleListener?.dispose();
     for (final subscription in _subscriptions) {
@@ -1153,6 +1224,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// volumen, que baja al final de la canción y sube al empezar la siguiente
   /// (solo si la anterior terminó sola).
   double _transition = 1;
+
+  /// Margen de seguridad de "Sonido" (1 = nada; menos si el ecualizador o los bajos suben mucho).
+  double _headroom = 1;
   bool _fadeInPending = false;
   int _fadeInToken = -1;
 
@@ -1212,6 +1286,9 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       }
       await tail.setAudioSource(source, initialPosition: _audioPlayer.position).timeout(const Duration(seconds: 8));
       await tail.setVolume(0);
+      final rate = ref.read(equalizerProvider).settings.playbackRate;
+      await tail.setSpeed(rate.speed);
+      await tail.setPitch(rate.pitch);
       if (state.track?.id != track.id) {
         await tail.dispose();
         return;
@@ -1231,7 +1308,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final tail = _tail;
     if (tail == null || _crossfading) return;
     _crossfading = true;
-    final volume = state.volume * _fade;
+    final volume = state.volume * _fade * _headroom;
     try {
       await tail.seek(_audioPlayer.position);
       await tail.setVolume(volume);
@@ -1316,7 +1393,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     unawaited(_applyVolume());
   }
 
-  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition);
+  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition * _headroom);
 
   Future<void> seekToProgress(double progress) async {
     final duration = state.duration;
@@ -1353,6 +1430,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> nextTrack() async {
     await _stopTail();
     await _advance();
+  }
+
+  /// Pasa a la siguiente sin cambiar play/pausa: sonando sigue sonando; en pausa queda en pausa
+  /// (un tomate nunca arranca la música). En la última de la cola, en pausa, no hace nada.
+  Future<void> skipKeepingPause() async {
+    if (state.isPlaying) return nextTrack();
+    final queue = state.queue;
+    final next = _queueSnapshot.nextRequestedIndex(_requestedNext) ?? state.currentIndex + 1;
+    if (next < 0 || next >= queue.length) return;
+    await _stopTail();
+    // Sin el Modo de Gracia (que seguiría con otra y la haría sonar): si no carga (sin conexión),
+    // queda elegida y en pausa, y al tocar play se reintenta como siempre.
+    await _loadTrack(queue[next], next, autoPlay: false);
   }
 
   /// Pasa a la siguiente canción (también desde la mezcla, sin cortar la cola).

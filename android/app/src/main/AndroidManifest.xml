@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Biblioteca local: Android 13+ usa READ_MEDIA_AUDIO; versiones
          previas usan READ_EXTERNAL_STORAGE (limitado con maxSdkVersion). -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -13,6 +14,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Abre el pedido del sistema "quitar la optimización de batería" (solo si la persona acepta). -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- WorkManager (la prueba diaria del extractor) pide "al encender el teléfono" para reprogramar
+         sus tareas. Kiji ya la vuelve a programar cada vez que se abre, así que no hace falta: nada
+         de Kiji se despierta al encender el teléfono. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
 
     <application
         android:label="${appName}"
@@ -61,6 +66,39 @@
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
+        </receiver>
+        <!-- Widgets de la pantalla de inicio: chico (controles) y grande (portada y controles). -->
+        <!-- ❤️ y 🍅 de los widgets (solo los manda el propio widget). -->
+        <receiver android:name=".KijiWidgetActions" android:exported="false" />
+        <receiver android:name=".KijiWidgetSmall" android:label="@string/kiji_widget_small" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_small_info" />
+        </receiver>
+        <receiver android:name=".KijiWidgetLarge" android:label="@string/kiji_widget_large" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_large_info" />
+        </receiver>
+        <receiver android:name=".KijiWidgetLyrics" android:label="@string/kiji_widget_lyrics" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_lyrics_info" />
+        </receiver>
+        <receiver android:name=".KijiWidgetTheater" android:label="@string/kiji_widget_theater" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_theater_info" />
+        </receiver>
+        <receiver android:name=".KijiWidgetBar" android:label="@string/kiji_widget_bar" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_bar_info" />
         </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

@@ -1,0 +1,344 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:media_kit/media_kit.dart' as mk;
+import 'package:media_kit_video/media_kit_video.dart';
+import 'package:video_player/video_player.dart';
+
+import '../../../l10n/l10n.dart';
+import '../../../providers/appearance_provider.dart';
+import '../../../theme/kiji_tokens.dart';
+import '../../customize/data/track_overrides.dart';
+import '../../settings/data/settings_store.dart';
+import '../../settings/domain/app_settings.dart';
+import '../data/background_store.dart';
+
+/// El fondo que se ve: el de la canción que suena (si tiene uno propio) o el general. La ruta es
+/// relativa a la carpeta de fondos.
+final effectiveBackgroundProvider = Provider<({String path, String kind})?>((ref) {
+  final song = ref.watch(currentTrackStyleProvider);
+  if (song?.backgroundFile != null) return (path: 'canciones/${song!.backgroundFile}', kind: song.backgroundKind ?? 'image');
+  final s = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
+  return s.file == null ? null : (path: s.file!, kind: s.kind);
+});
+
+/// El tono de una foto de fondo, para que la capa de
+/// legibilidad sea la justa: una foto oscura casi no necesita capa y se ve entera; una blanca
+/// necesita más. Se mide una vez por archivo, achicada a 16 × 16: el tono medio (la mediana de
+/// brillo), así la mayor parte de la foto queda con 4,5:1. null si no se pudo medir (o es un video).
+final backgroundToneProvider = FutureProvider.family<Color?, ({String path, bool light})>((ref, key) async {
+  try {
+    final bytes = await File(key.path).readAsBytes();
+    final codec = await instantiateImageCodec(bytes, targetWidth: 16, targetHeight: 16);
+    final frame = await codec.getNextFrame();
+    final data = await frame.image.toByteData();
+    frame.image.dispose();
+    codec.dispose();
+    if (data == null) return null;
+    final pixels = <Color>[
+      for (var i = 0; i + 3 < data.lengthInBytes; i += 4)
+        Color.fromARGB(255, data.getUint8(i), data.getUint8(i + 1), data.getUint8(i + 2)),
+    ]..sort((a, b) => a.computeLuminance().compareTo(b.computeLuminance()));
+    if (pixels.isEmpty) return null;
+    return pixels[((pixels.length - 1) * 0.5).round()];
+  } catch (error) {
+    debugPrint('=== FONDO: no se pudo medir el tono de la foto: ${error.runtimeType} ===');
+    return null;
+  }
+});
+
+/// Tono que se supone para un video (no se mide cada cuadro): uno medio, ni el peor caso (que lo
+/// taparía casi entero) ni ninguno.
+Color videoBackgroundTone(KijiPalette palette) =>
+    Color.lerp(palette.background, palette.isLight ? Colors.black : Colors.white, 0.45)!;
+
+/// Hay un fondo propio a la vista (las pantallas principales dejan ver lo de atrás).
+final hasCustomBackgroundProvider = Provider<bool>((ref) => ref.watch(effectiveBackgroundProvider) != null);
+
+/// El fondo propio, detrás de las pantallas principales: la foto, el GIF o el video, con el
+/// desenfoque y la opacidad elegidos, y encima una capa del color del estilo que deja el texto
+/// siempre legible ([backgroundScrim]). Sin fondo propio no dibuja nada.
+class CustomBackground extends ConsumerWidget {
+  const CustomBackground({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bg = ref.watch(effectiveBackgroundProvider);
+    final s = ref.watch(settingsProvider.select((s) => (blur: s.backgroundBlur, opacity: s.backgroundOpacity)));
+    final folder = ref.watch(backgroundFolderProvider).valueOrNull;
+    if (bg == null || folder == null) return const SizedBox.shrink();
+    final file = File(p.join(folder.path, bg.path));
+    final video = bg.kind == 'video' && BackgroundStore.videoSupported;
+    final palette = KijiColors.palette;
+    // Mientras se mide la foto (un instante) queda la capa del peor caso: nunca texto ilegible.
+    final tone = video
+        ? videoBackgroundTone(palette)
+        : ref.watch(backgroundToneProvider((path: file.path, light: palette.isLight))).valueOrNull;
+    final scrim = backgroundScrim(palette, s.opacity, tone: tone);
+    final media = video
+        ? (BackgroundStore.videoWithMediaKit ? _PcVideoBackground(file: file) : _VideoBackground(file: file))
+        : Image.file(
+            file,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            // Un archivo que ya no está: queda el fondo del estilo.
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          );
+    return IgnorePointer(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: KijiColors.background),
+          Opacity(
+            opacity: s.opacity.clamp(0.1, 1),
+            child: s.blur <= 0.5
+                ? media
+                : ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: s.blur, sigmaY: s.blur), child: media),
+          ),
+          // Capa oscura (o clara en Papel) que asegura que el texto se lea.
+          ColoredBox(key: const Key('background-scrim'), color: KijiColors.background.withValues(alpha: scrim)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Video de fondo: sin sonido y en bucle. Se queda quieto cuando Kiji no está a la vista, con el
+/// ahorro de batería o con "Reducir animaciones".
+class _VideoBackground extends ConsumerStatefulWidget {
+  const _VideoBackground({required this.file});
+
+  final File file;
+
+  @override
+  ConsumerState<_VideoBackground> createState() => _VideoBackgroundState();
+}
+
+class _VideoBackgroundState extends ConsumerState<_VideoBackground> with WidgetsBindingObserver {
+  VideoPlayerController? _controller;
+  bool _visible = true;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_open());
+  }
+
+  Future<void> _open() async {
+    // mixWithOthers: el video (mudo) no pide el foco de audio; si lo pidiera, Android pausaría la música.
+    final controller = VideoPlayerController.file(widget.file, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
+    try {
+      await controller.initialize();
+      await controller.setVolume(0);
+      await controller.setLooping(true);
+      _saving = await BackgroundStore.powerSaving();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() => _controller = controller);
+      _sync();
+    } catch (error) {
+      debugPrint('=== FONDO: no se pudo abrir el video: $error ===');
+      await controller.dispose();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _visible = state == AppLifecycleState.resumed;
+    if (_visible) {
+      unawaited(BackgroundStore.powerSaving().then((saving) {
+        _saving = saving;
+        _sync();
+      }));
+    } else {
+      _sync();
+    }
+  }
+
+  void _sync() {
+    final controller = _controller;
+    if (controller == null || !mounted) return;
+    final still = !_visible || _saving || reduceMotion(context, ref);
+    if (still && controller.value.isPlaying) {
+      unawaited(controller.pause());
+    } else if (!still && !controller.value.isPlaying) {
+      unawaited(controller.play());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_controller?.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller;
+    if (controller == null) return const SizedBox.shrink();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+    return FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: SizedBox(
+        width: controller.value.size.width,
+        height: controller.value.size.height,
+        child: VideoPlayer(controller),
+      ),
+    );
+  }
+}
+
+/// Video de fondo en la PC, con media_kit (la librería completa de mpv): sin sonido, en bucle, y
+/// quieto cuando Kiji no está a la vista o con "Reducir animaciones".
+class _PcVideoBackground extends ConsumerStatefulWidget {
+  const _PcVideoBackground({required this.file});
+
+  final File file;
+
+  @override
+  ConsumerState<_PcVideoBackground> createState() => _PcVideoBackgroundState();
+}
+
+class _PcVideoBackgroundState extends ConsumerState<_PcVideoBackground> with WidgetsBindingObserver {
+  final _player = mk.Player();
+  late final _controller = VideoController(_player);
+  bool _visible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_open());
+  }
+
+  Future<void> _open() async {
+    try {
+      await _player.setVolume(0);
+      await _player.setPlaylistMode(mk.PlaylistMode.single);
+      await _player.open(mk.Media(widget.file.path), play: false);
+      _sync();
+    } catch (error) {
+      debugPrint('=== FONDO: no se pudo abrir el video en la PC: $error ===');
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _visible = state == AppLifecycleState.resumed;
+    _sync();
+  }
+
+  void _sync() {
+    if (!mounted) return;
+    final still = !_visible || reduceMotion(context, ref);
+    if (still && _player.state.playing) {
+      unawaited(_player.pause());
+    } else if (!still && !_player.state.playing) {
+      unawaited(_player.play());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_player.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+    return Video(controller: _controller, fit: BoxFit.cover, controls: NoVideoControls, fill: Colors.transparent);
+  }
+}
+
+/// Elegir, ajustar o quitar el fondo propio (Apariencia y el asistente).
+class BackgroundOptions extends ConsumerWidget {
+  const BackgroundOptions({super.key});
+
+  Future<void> _choose(BuildContext context, WidgetRef ref, {required bool video}) async {
+    final store = ref.read(backgroundStoreProvider);
+    try {
+      final path = await store.pick(video: video);
+      if (path == null) return;
+      final name = await store.keep(path);
+      await ref
+          .read(settingsProvider.notifier)
+          .update((s) => s.copyWith(backgroundFile: name, backgroundKind: video ? 'video' : 'image'));
+      debugPrint('=== FONDO: fondo propio elegido (${video ? 'video' : 'imagen'}) ===');
+    } catch (error) {
+      debugPrint('=== FONDO: no se pudo usar el archivo: $error ===');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.fondoNoSePudo)));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(settingsProvider);
+    final has = s.backgroundFile != null;
+    final notifier = ref.read(settingsProvider.notifier);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              icon: const Icon(Icons.image_outlined),
+              label: Text(tx.elegirImagen),
+              onPressed: () => _choose(context, ref, video: false),
+            ),
+            if (BackgroundStore.videoSupported)
+              OutlinedButton.icon(
+                icon: const Icon(Icons.movie_outlined),
+                label: Text(tx.elegirVideo),
+                onPressed: () => _choose(context, ref, video: true),
+              ),
+            if (has)
+              TextButton.icon(
+                icon: const Icon(Icons.hide_image_outlined),
+                label: Text(tx.quitarFondo),
+                onPressed: () async {
+                  await notifier.update((s) => s.copyWith(clearBackground: true));
+                  await ref.read(backgroundStoreProvider).removeAll();
+                },
+              ),
+          ],
+        ),
+        if (has) ...[
+          const SizedBox(height: 12),
+          Text(tx.desenfoque, style: KijiText.mono(size: 11)),
+          Slider(
+            value: s.backgroundBlur,
+            max: AppSettings.maxBackgroundBlur,
+            onChanged: (v) => notifier.update((s) => s.copyWith(backgroundBlur: v)),
+          ),
+          Text(tx.opacidad, style: KijiText.mono(size: 11)),
+          Slider(
+            value: s.backgroundOpacity,
+            min: 0.1,
+            onChanged: (v) => notifier.update((s) => s.copyWith(backgroundOpacity: v)),
+          ),
+        ],
+        const SizedBox(height: 8),
+        Text(
+          BackgroundStore.videoSupported ? tx.fondoPrivadoNota : tx.fondoPrivadoNotaPc,
+          style: TextStyle(color: KijiColors.muted, fontSize: 12),
+        ),
+      ],
+    );
+  }
+}

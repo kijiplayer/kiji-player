@@ -507,38 +507,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get auricularesConCable => 'Wired headphones';
 
   @override
-  String get plano => 'Flat';
-
-  @override
-  String get masGraves => 'More bass';
-
-  @override
-  String get masAgudos => 'More treble';
-
-  @override
-  String get voces => 'Vocals';
-
-  @override
   String get electronica => 'Electronic';
 
   @override
-  String get acustica => 'Acoustic';
-
-  @override
-  String get clasica => 'Classical';
-
-  @override
-  String get nocheSuave => 'Night (soft)';
-
-  @override
   String get ecualizador2 => 'Equalizer';
-
-  @override
-  String get enLaPcTodaviaNoHay =>
-      'There\'s no equalizer on PC yet: for now it only works on Android. What you choose here is still saved.';
-
-  @override
-  String get apagadoElSonidoNoCambia => 'Off: the sound doesn\'t change.';
 
   @override
   String get unPerfilPorDispositivo => 'One profile per device';
@@ -556,9 +528,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bandas => 'BANDS';
-
-  @override
-  String get enLaPcNoHayBandas => 'There are no bands to adjust on PC yet.';
 
   @override
   String get sinAlternativa => 'no alternative';
@@ -1613,10 +1582,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get alAbrirKijiVuelveALa =>
       'When you open Kiji, it goes back to the song and the second where you left off, paused.';
-
-  @override
-  String get presetsBandasAManoYUn =>
-      'Presets, manual bands and one profile per device (speaker, headphones, Bluetooth).';
 
   @override
   String get apagado => 'Off';
@@ -3452,11 +3417,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String encendidoPerfil(Object? profile) {
-    return 'On: $profile';
-  }
-
-  @override
   String get cable => 'Wired';
 
   @override
@@ -3986,10 +3946,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tipografiaDescripcion =>
-      'The style\'s own (Space Grotesk in Nocturne, Inter in Graphite, Newsreader and Inter in Paper) or the system font';
+      'The style\'s own (Space Grotesk in Nocturne, Inter in Graphite, Newsreader and Inter in Paper), one of the fonts included in Kiji, or the system font';
 
   @override
-  String get tipografiaKiji => 'Kiji\'s own';
+  String get tipografiaKiji => 'The style\'s own';
 
   @override
   String get tipografiaSistema => 'System font';
@@ -4362,4 +4322,758 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get nuevoPcTexto =>
       'Kiji can stay in the system tray, has global shortcuts and responds to the media keys.';
+
+  @override
+  String get traduccionNoDisponibleAhora =>
+      'Couldn\'t translate right now. Try again in a moment.';
+
+  @override
+  String get sesionVencidaVuelveAConectar =>
+      'YouTube no longer accepts this session. Connect the account again.';
+
+  @override
+  String get resultadoPrincipal => 'Top result';
+
+  @override
+  String get verTodo => 'See all';
+
+  @override
+  String get playlist => 'Playlist';
+
+  @override
+  String get youtubeNoDisponibleIncrustado =>
+      'YouTube answers «This video is unavailable» to every video with this form, even ordinary ones.';
+
+  @override
+  String get eqNormal => 'Normal';
+
+  @override
+  String get eqBajos => 'Bass';
+
+  @override
+  String get eqVoz => 'Vocal';
+
+  @override
+  String get eqAcustico => 'Acoustic';
+
+  @override
+  String get eqNoche => 'Night';
+
+  @override
+  String get reverbApagado => 'Off';
+
+  @override
+  String get reverbSala => 'Room';
+
+  @override
+  String get reverbEstadio => 'Stadium';
+
+  @override
+  String get sonido => 'Sound';
+
+  @override
+  String get sonidoNota => 'Equalizer, bass, speed, pitch and crossfade.';
+
+  @override
+  String get efectos => 'Effects';
+
+  @override
+  String get efectosApagados => 'Off: music plays as it is.';
+
+  @override
+  String efectosEncendidos(String profile) {
+    return 'On: $profile';
+  }
+
+  @override
+  String ecualizadorBandas(int count) {
+    return 'Equalizer · $count bands';
+  }
+
+  @override
+  String get guardarComoPreset => 'Save as preset';
+
+  @override
+  String get nombreDelPreset => 'Preset name';
+
+  @override
+  String get renombrarPreset => 'Rename';
+
+  @override
+  String borrarPresetPregunta(String name) {
+    return 'Delete the “$name” preset?';
+  }
+
+  @override
+  String get borrarPresetNota =>
+      'What\'s playing now doesn\'t change: it stays as Custom.';
+
+  @override
+  String get presetsPropiosNota =>
+      'Long-press (or right-click) one of your presets to rename or delete it.';
+
+  @override
+  String get refuerzoDeBajos => 'Bass boost';
+
+  @override
+  String get velocidad => 'Speed';
+
+  @override
+  String get tono => 'Pitch';
+
+  @override
+  String get volverALoNormal => 'Back to normal';
+
+  @override
+  String get mantenerEntreCanciones => 'Keep between songs';
+
+  @override
+  String get mantenerEntreCancionesNota =>
+      'When off, speed and pitch go back to normal with every song.';
+
+  @override
+  String get reverb => 'Reverb';
+
+  @override
+  String get mezclaEntreCanciones => 'Crossfade';
+
+  @override
+  String semitonos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count semitones',
+      one: '1 semitone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enLaPcLasBandasSon => 'On PC, the equalizer has 10 bands.';
+
+  @override
+  String elTelefonoTieneBandas(int count) {
+    return 'Your phone has $count bands; presets adapt on their own.';
+  }
+
+  @override
+  String get pantallaCompleta => 'Full screen';
+
+  @override
+  String get salirDePantallaCompleta => 'Exit full screen';
+
+  @override
+  String get bajarLaLetraConLasDescargas => 'Download lyrics with songs';
+
+  @override
+  String get bajarLaLetraConLasDescargasNota =>
+      'Saved with the song so you can see it offline. Searched in the lyrics sources you have turned on; with “Download on Wi-Fi only” or data saver, it waits for Wi-Fi.';
+
+  @override
+  String get acentoPropio => 'Your color';
+
+  @override
+  String get acentoDelEstilo => 'The style\'s own';
+
+  @override
+  String get colorMatiz => 'Hue';
+
+  @override
+  String get colorLuz => 'Lightness';
+
+  @override
+  String get colorHex => 'Code (hex)';
+
+  @override
+  String get asiSeVera => 'How it will look';
+
+  @override
+  String get acentoAjustadoNota =>
+      'Kiji lightens or darkens it just enough so it\'s always readable.';
+
+  @override
+  String get fondoDescripcion =>
+      'An image, GIF or video of your own behind Kiji';
+
+  @override
+  String get fondoDescripcionPc => 'An image or GIF of your own behind Kiji';
+
+  @override
+  String get fondoNinguno => 'The style\'s own';
+
+  @override
+  String get fondoImagen => 'Image';
+
+  @override
+  String get fondoVideo => 'Video';
+
+  @override
+  String get elegirImagen => 'Choose an image or GIF';
+
+  @override
+  String get elegirVideo => 'Choose a video';
+
+  @override
+  String get quitarFondo => 'Remove background';
+
+  @override
+  String get desenfoque => 'Blur';
+
+  @override
+  String get opacidad => 'Opacity';
+
+  @override
+  String get fondoPrivadoNota =>
+      'It\'s copied inside Kiji and never leaves this device. Videos play muted and on a loop, and stay still when Kiji isn\'t visible or with battery saver on.';
+
+  @override
+  String get fondoPrivadoNotaPc =>
+      'It\'s copied inside Kiji and never leaves this device.';
+
+  @override
+  String get fondoNoSePudo => 'That file couldn\'t be used. Try another one.';
+
+  @override
+  String get saltar => 'Skip';
+
+  @override
+  String get atras => 'Back';
+
+  @override
+  String pasoDe(int n, int total) {
+    return 'Step $n of $total';
+  }
+
+  @override
+  String get personalizaKiji => 'Personalize Kiji';
+
+  @override
+  String get personalizaKijiDescripcion =>
+      'Style, color, font and background, with a live preview';
+
+  @override
+  String get modoCompacto => 'Compact mode';
+
+  @override
+  String get modoCompactoNota =>
+      'Everything in less space (great for a small window)';
+
+  @override
+  String get pantallaCompletaNota =>
+      'Big cover, and the bars hide on their own';
+
+  @override
+  String get estiloDeEstaCancion => 'This song\'s style';
+
+  @override
+  String get estiloDeEstaCancionNota =>
+      'Background, color and lyrics view just for this song';
+
+  @override
+  String get volverAlEstiloGeneral => 'Back to the general style';
+
+  @override
+  String get elGeneral => 'The general one';
+
+  @override
+  String get vistaDeLaLetra => 'Lyrics view';
+
+  @override
+  String get temas => 'Themes';
+
+  @override
+  String get temasDescripcion => 'Share your style as a .kiji file or use one';
+
+  @override
+  String get exportarTema => 'Export my style';
+
+  @override
+  String get importarTema => 'Import a theme';
+
+  @override
+  String get temaGuardado => 'Theme saved';
+
+  @override
+  String get temaAplicado => 'Theme applied';
+
+  @override
+  String get esoNoEsUnTemaDeKiji => 'That file isn\'t a Kiji theme.';
+
+  @override
+  String get temasNota =>
+      'A theme keeps the style, color, font, blur, opacity and background image (not videos). It is only data: nothing runs.';
+
+  @override
+  String get mostrarNombresDeLosBotones => 'Show button names';
+
+  @override
+  String get mostrarNombresDeLosBotonesNota =>
+      'Lyrics, Queue, Sound, Timer and Moment, with their name below. Off leaves only the icons (the name shows when you press and hold or hover).';
+
+  @override
+  String get verEnLista => 'List view';
+
+  @override
+  String get verEnCuadricula => 'Grid view';
+
+  @override
+  String get noHayCancionesConEsteFiltro => 'No songs match this filter.';
+
+  @override
+  String get duracion => 'Length';
+
+  @override
+  String get ordenRecientes => 'Recent';
+
+  @override
+  String get enEsteEquipo => 'On this device';
+
+  @override
+  String get ordenar => 'Sort';
+
+  @override
+  String descargasYCache(String downloads, String cache) {
+    return 'DOWNLOADS $downloads · CACHE $cache';
+  }
+
+  @override
+  String bajandoNDeM(int done, int total) {
+    return 'Downloading: $done of $total';
+  }
+
+  @override
+  String get conElAhorroDeDatosEsperanAlWifi =>
+      'With data saver on, they wait for WiFi.';
+
+  @override
+  String nNoSePudieron(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count couldn\'t be downloaded',
+      one: '1 couldn\'t be downloaded',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get volverAEscanear => 'Scan again';
+
+  @override
+  String nAlbumes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count albums',
+      one: '1 album',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String bibliotecaEscaneada(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Done: $count songs',
+      one: 'Done: 1 song',
+      zero: 'No music found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get elegirPortada => 'Choose cover';
+
+  @override
+  String get elegirOtraPortada => 'Choose another cover';
+
+  @override
+  String get quitarLaPortadaElegida => 'Remove the chosen cover';
+
+  @override
+  String get noSePudoLeerEseEnlace =>
+      'That playlist couldn\'t be read. Check that the link is public and that you\'re online.';
+
+  @override
+  String get eseEnlaceNoEsDeUnaPlaylist =>
+      'That link isn\'t a playlist Kiji can read (YouTube Music, Spotify, Apple Music or SoundCloud).';
+
+  @override
+  String get importarDesdeUnEnlace => 'IMPORT FROM A LINK';
+
+  @override
+  String get importarDesdeUnEnlaceNota =>
+      'Paste the public link to a YouTube Music, Spotify, Apple Music or SoundCloud playlist. Kiji only opens that link (no sign-in) and looks for each song on YouTube Music.';
+
+  @override
+  String get pegaElEnlaceDeLaPlaylist => 'Paste the playlist link';
+
+  @override
+  String get importarEnlace => 'Import link';
+
+  @override
+  String sinEncontrarElegirAMano(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count not found: choose them yourself',
+      one: '1 not found: choose it yourself',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get elegir => 'Choose';
+
+  @override
+  String get eligeLaCancion => 'Choose the song';
+
+  @override
+  String get exportarAUnArchivo => 'Export to a file';
+
+  @override
+  String get copiaExportada =>
+      'Backup saved. Open it from \"Restore from a file\" on another phone or on your PC.';
+
+  @override
+  String get sincronizarConYoutube => 'Sync with YouTube (read-only)';
+
+  @override
+  String get sincronizarConYoutubeNota =>
+      'Shows your YouTube Music likes and playlists in Kiji. Read-only: it never changes anything in your account. What it reads stays only on this device; turning it off deletes it.';
+
+  @override
+  String get todaviaNoSeLeyoLaCuenta => 'The account hasn\'t been read yet';
+
+  @override
+  String deTuCuentaMeGustaYPlaylists(int liked, int playlists) {
+    return 'From your account: $liked likes and $playlists playlists';
+  }
+
+  @override
+  String get leerAhora => 'Read now';
+
+  @override
+  String get deTuCuentaDeYoutube => 'FROM YOUR YOUTUBE ACCOUNT';
+
+  @override
+  String get meGustaDeYoutube => 'YouTube likes';
+
+  @override
+  String get tirarUnTomate => 'Throw a tomato';
+
+  @override
+  String get tirarUnaRosa => 'Throw a rose';
+
+  @override
+  String abucheadaNoVuelveARecomendarse(String title) {
+    return '“$title” was booed off: it won\'t be recommended again.';
+  }
+
+  @override
+  String get tuTeatro => 'Your Theater';
+
+  @override
+  String get tuTeatroVacio =>
+      'No show yet. Throw tomatoes 🍅 or roses 🌹 from the player (or shake your phone for a tomato).';
+
+  @override
+  String get compartirEstaTarjeta => 'Share this card';
+
+  @override
+  String get topTomateadas => 'Most Tomatoed';
+
+  @override
+  String get topAplaudidas => 'Most Applauded';
+
+  @override
+  String get nadaPorAhora => 'Nothing yet.';
+
+  @override
+  String get datosDelTeatro => 'Theater facts';
+
+  @override
+  String get tomatesEnTotal => 'tomatoes in total';
+
+  @override
+  String get rosasEnTotal => 'roses in total';
+
+  @override
+  String elMasAbucheado(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'the most booed artist ($count tomatoes)',
+      one: 'the most booed artist (1 tomato)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String peorDiaDeTomates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'the worst tomato day ($count)',
+      one: 'the worst tomato day (1)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reaccionesDeTeatro => 'Theater reactions';
+
+  @override
+  String get reaccionesDeTeatroNota =>
+      '🍅 and 🌹 in the player (and shake your phone for a tomato). With 3 tomatoes a song is skipped and never recommended again; a rose counts as a like. Everything stays on your device.';
+
+  @override
+  String get verTuTeatro => 'Your Theater 🎭';
+
+  @override
+  String perdonadaVuelveARecomendarse(String title) {
+    return '“$title” was forgiven: it can be recommended again.';
+  }
+
+  @override
+  String get carpetasExcluidas => 'Excluded folders';
+
+  @override
+  String get carpetasExcluidasDescripcion =>
+      'Voice notes and audio from WhatsApp, Telegram and recorders don\'t show up as music. You can remove or add folders.';
+
+  @override
+  String get carpetasExcluidasNota =>
+      'A name (for example \"WhatsApp\") leaves out any folder with that name and everything inside it. Files named like WhatsApp voice notes are never music.';
+
+  @override
+  String get agregarCarpetaPorNombre => 'Add by name';
+
+  @override
+  String get nombreDeLaCarpeta => 'Folder name';
+
+  @override
+  String get agregar => 'Add';
+
+  @override
+  String get volverALasDeFabrica => 'Restore defaults';
+
+  @override
+  String get ningunaCarpetaExcluida =>
+      'No excluded folders: all music on the device is read.';
+
+  @override
+  String copiaExportadaPesa(String size) {
+    return 'This backup is $size because it includes your backgrounds (videos too). Save it?';
+  }
+
+  @override
+  String get vibracionDelTeatro => 'Vibrate with reactions';
+
+  @override
+  String get vibracionDelTeatroNota =>
+      'A tap with each tomato and a long one with a standing ovation.';
+
+  @override
+  String tomateBuuu(int count) {
+    return 'x$count BOOO!';
+  }
+
+  @override
+  String tomateFuera(int count) {
+    return 'x$count OFF STAGE!';
+  }
+
+  @override
+  String get bravo => 'BRAVO!';
+
+  @override
+  String get teatroEnCartelera => 'Now showing';
+
+  @override
+  String get teatroEstrella => 'Star of the season';
+
+  @override
+  String get teatroMasAbucheadas => 'The season\'s most booed';
+
+  @override
+  String get teatroPremios => 'The audience awards';
+
+  @override
+  String get teatroPremioOdiadaMes => 'Most hated song of the month';
+
+  @override
+  String get teatroPremioOvacion => 'Standing ovation of the season';
+
+  @override
+  String get teatroPremioArtista => 'Most booed artist';
+
+  @override
+  String get teatroPremioNoche => 'The worst night';
+
+  @override
+  String get teatroPremioTelon => 'Booed off stage';
+
+  @override
+  String teatroFunciones(int tomatoes, int roses) {
+    return '$tomatoes tomatoes · $roses roses';
+  }
+
+  @override
+  String get teatroSinFuncion =>
+      'No show yet: throw a 🍅 or a 🌹 from the player.';
+
+  @override
+  String teatroCanciones(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs',
+      one: '1 song',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siguienteActo => 'Next act!';
+
+  @override
+  String get fuera => 'OFF STAGE!';
+
+  @override
+  String get conectaTuYoutubeMusic => 'Connect your YouTube Music (optional)';
+
+  @override
+  String get conectaTuYoutubeMusicNota =>
+      'Your likes and the playlists in your library, right in Kiji. Read-only and only on this device; Kiji works the same without an account.';
+
+  @override
+  String get iniciarSesionBoton => 'Sign in';
+
+  @override
+  String get cerrarSesionBoton => 'Sign out';
+
+  @override
+  String get noMostrarMas => 'Don\'t show again';
+
+  @override
+  String get prefieresIniciarSesion => 'Rather sign in to YouTube Music?';
+
+  @override
+  String get prefieresIniciarSesionNota =>
+      'Brings your likes and playlists without pasting links (optional).';
+
+  @override
+  String get seccionCuenta => 'Account';
+
+  @override
+  String get seccionCuentaDescripcion =>
+      'Optional YouTube Music: sign in and sync';
+
+  @override
+  String get cuentaYoutubeMusic => 'YouTube Music account';
+
+  @override
+  String get cuentaOpcionalNota =>
+      'Optional: your likes and playlists in Kiji. Kiji works the same without an account.';
+
+  @override
+  String get sesionSoloEnEsteDispositivo =>
+      'Stored encrypted, only on this device.';
+
+  @override
+  String get iniciaSesionParaSincronizar => 'Sign in to use it.';
+
+  @override
+  String ultimaSincronizacion(String when) {
+    return 'Last synced: $when';
+  }
+
+  @override
+  String get todaviaNoSeSincronizo => 'Not synced yet.';
+
+  @override
+  String get sincronizarAhora => 'Sync now';
+
+  @override
+  String get activarSincronizacionTitulo => 'Sync with YouTube Music?';
+
+  @override
+  String get activarSincronizacionNota =>
+      'Kiji can read your likes and the playlists in your library to show them here: read-only, at most every 12 hours and stored only on this device. You can change it anytime in Settings → Account.';
+
+  @override
+  String get activarSincronizacion => 'Turn on';
+
+  @override
+  String get conSesionActivaSincronizar =>
+      'You\'re signed in: turn on «Sync» in Settings → Account.';
+
+  @override
+  String get novedades08Subtitulo =>
+      'Kiji 0.8, the biggest one yet. Here\'s the good stuff:';
+
+  @override
+  String get novedades08ReproductorTitulo => 'A new player, your way';
+
+  @override
+  String get novedades08ReproductorTexto =>
+      'Play inside a ring with the wave, compact and full screen modes. Pick your color, font and style, even one per song.';
+
+  @override
+  String get novedades08FondoTitulo => 'Your background, your stage';
+
+  @override
+  String get novedades08FondoTexto =>
+      'Use a photo, a GIF or a video as background. Kiji tunes the veil so everything stays readable.';
+
+  @override
+  String get novedades08SonidoTitulo => 'Sound your way';
+
+  @override
+  String get novedades08SonidoTexto =>
+      'Equalizer with presets, bass, speed, pitch, effects and crossfade.';
+
+  @override
+  String get novedades08LetrasTitulo => 'Karaoke lyrics';
+
+  @override
+  String get novedades08LetrasTexto =>
+      'Word by word, full screen and saved with the song, so you can sing along offline.';
+
+  @override
+  String get novedades08BibliotecaTitulo => 'A new Library';
+
+  @override
+  String get novedades08BibliotecaTexto =>
+      'Artists, albums and folders with your covers, faster music from your phone and batch downloads.';
+
+  @override
+  String get novedades08ImportarTitulo => 'Bring your playlists';
+
+  @override
+  String get novedades08ImportarTexto =>
+      'Paste a Spotify, Apple Music, SoundCloud or YouTube playlist link, or connect your YouTube Music if you like (it\'s optional).';
+
+  @override
+  String get novedades08TeatroTitulo => 'Theater reactions 🍅🌹';
+
+  @override
+  String get novedades08TeatroTexto =>
+      'Throw tomatoes until the curtain falls or roses until the standing ovation. And in «Your Theater», the audience awards.';
+
+  @override
+  String get novedades08WidgetsTitulo => 'Widgets (beta)';
+
+  @override
+  String get novedades08WidgetsTexto =>
+      'Five for your home screen: Ring, Now playing, Lyrics, Theater and Bar. They\'re in beta: tell us how they work for you.';
+
+  @override
+  String get novedades08PcTitulo => 'On PC';
+
+  @override
+  String get novedades08PcTexto =>
+      'Background video, equalizer with effects and Ctrl/Shift + click to pick several songs.';
 }

@@ -28,8 +28,9 @@ import '../../downloads/domain/download_settings.dart';
 import '../../favorites/favorites.dart';
 import '../../downloads/presentation/downloads_screen.dart';
 import '../../equalizer/data/equalizer_notifier.dart';
-import '../../equalizer/presentation/equalizer_screen.dart';
+import '../../equalizer/presentation/sound_screen.dart';
 import '../../import/presentation/import_screen.dart';
+import '../../local_library/presentation/excluded_folders_screen.dart';
 import '../../lyrics/presentation/lyrics_menu_sheet.dart';
 import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
 import '../../reports/presentation/reports_screen.dart';
@@ -44,17 +45,23 @@ import '../domain/app_settings.dart';
 import '../domain/setting_search.dart';
 import 'credits_screen.dart';
 import '../../../l10n/l10n.dart';
-import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart';
 import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
-import '../../style/presentation/style_chooser_screen.dart';
+import '../../../widgets/nocturne/kiji_sheet.dart';
+import '../../style/data/background_store.dart';
+import '../../style/presentation/accent_picker.dart';
+import '../../style/presentation/custom_background.dart';
+import '../../style/presentation/personalize_screen.dart';
+import '../../style/presentation/theme_files.dart';
+import '../../style/presentation/style_parts.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
 /// descripción corta.
 enum SettingsSection {
   appearance(Icons.palette_outlined),
+  account(Icons.account_circle_outlined),
   player(Icons.play_circle_outline_rounded),
   lyrics(Icons.lyrics_outlined),
   storage(Icons.sd_storage_outlined),
@@ -66,6 +73,7 @@ enum SettingsSection {
   const SettingsSection(this.icon);
   String get label => switch (this) {
     SettingsSection.appearance => tx.apariencia,
+    SettingsSection.account => tx.seccionCuenta,
     SettingsSection.player => tx.reproductorYAudio,
     SettingsSection.lyrics => tx.letras2,
     SettingsSection.storage => tx.descargasYAlmacenamiento,
@@ -77,6 +85,7 @@ enum SettingsSection {
 
   String get description => switch (this) {
     SettingsSection.appearance => tx.seccionAparienciaDescripcion,
+    SettingsSection.account => tx.seccionCuentaDescripcion,
     SettingsSection.player => tx.seccionReproductorDescripcion,
     SettingsSection.lyrics => tx.seccionLetrasDescripcion,
     SettingsSection.storage => tx.seccionDescargasDescripcion,
@@ -281,19 +290,62 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.player,
-        title: tx.ecualizador2,
-        subtitle: tx.presetsBandasAManoYUn,
-        keywords: const ['eq', 'graves', 'agudos', 'bajos', 'sonido', 'auriculares', 'bluetooth'],
+        title: tx.mostrarNombresDeLosBotones,
+        subtitle: tx.mostrarNombresDeLosBotonesNota,
+        keywords: const ['nombres', 'etiquetas', 'labels', 'iconos', 'botones', 'buttons'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('setting-player-button-labels'),
+          title: Text(tx.mostrarNombresDeLosBotones),
+          subtitle: Text(tx.mostrarNombresDeLosBotonesNota),
+          value: ref.watch(settingsProvider.select((s) => s.playerButtonLabels)),
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(playerButtonLabels: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
+        title: tx.reaccionesDeTeatro,
+        subtitle: tx.reaccionesDeTeatroNota,
+        keywords: const ['tomate', 'tomato', 'rosa', 'rose', 'teatro', 'theater', 'abucheo', 'aplausos', 'sacudir'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('setting-theater'),
+          title: Text(tx.reaccionesDeTeatro),
+          subtitle: Text(tx.reaccionesDeTeatroNota),
+          value: ref.watch(settingsProvider.select((s) => s.theaterReactions)),
+          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(theaterReactions: value)),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
+        title: tx.vibracionDelTeatro,
+        subtitle: tx.vibracionDelTeatroNota,
+        keywords: const ['vibrar', 'vibrate', 'vibración', 'vibration', 'tomate', 'tomato', 'háptica', 'haptic'], // l10n-ignore
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('setting-theater-vibration'),
+          title: Text(tx.vibracionDelTeatro),
+          subtitle: Text(tx.vibracionDelTeatroNota),
+          value: ref.watch(settingsProvider.select((s) => s.theaterVibration)),
+          onChanged: ref.watch(settingsProvider.select((s) => s.theaterReactions))
+              ? (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(theaterVibration: value))
+              : null,
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.player,
+        title: tx.sonido,
+        subtitle: tx.sonidoNota,
+        // l10n-ignore
+        keywords: const ['eq', 'ecualizador', 'equalizer', 'graves', 'agudos', 'bajos', 'bass', 'auriculares', 'bluetooth', 'velocidad', 'speed', 'tono', 'pitch', 'reverb', 'efectos', 'effects', 'preset'],
         builder: (context, ref) => ListTile(
           leading: const Icon(Icons.equalizer_rounded),
-          title: Text(tx.ecualizador2),
+          title: Text(tx.sonido),
           subtitle: Text(
             ref.watch(equalizerProvider.select((e) => e.settings.enabled))
-                ? tx.encendidoPerfil(ref.watch(equalizerProvider.select((e) => e.activeProfile.label)))
-                : tx.apagado,
+                ? tx.efectosEncendidos(ref.watch(equalizerProvider.select((e) => e.activeProfile.label)))
+                : tx.efectosApagados,
           ),
           trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () => EqualizerScreen.open(context),
+          onTap: () => SoundScreen.open(context),
         ),
       ),
       SettingOption(
@@ -308,33 +360,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: Text(tx.transicionSuaveEntreCanciones),
             subtitle: Text(seconds == 0 ? tx.apagada : tx.sElFinalDeUnaCancion(seconds)),
             trailing: Text(seconds == 0 ? tx.no : '$seconds s', style: KijiText.mono(size: 13)),
-            // Toda la fila abre la lista (antes solo respondía el texto chico de la derecha).
-            onTap: () async {
-              final value = await showDialog<int>(
-                context: context,
-                builder: (context) => SimpleDialog(
-                  title: Text(tx.transicionSuave),
-                  children: [
-                    RadioGroup<int>(
-                      groupValue: seconds,
-                      onChanged: (value) => Navigator.pop(context, value),
-                      child: Column(
-                        children: [
-                          for (final option in AppSettings.crossfadeOptions)
-                            RadioListTile<int>(
-                              value: option,
-                              title: Text(option == 0 ? tx.apagada : tx.nSegundos(option)),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              if (value != null) {
-                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(crossfadeSeconds: value));
-              }
-            },
+            // Toda la fila abre Sonido: ahí se elige de 0 a 12 s con un control deslizante.
+            onTap: () => SoundScreen.open(context),
           );
         },
       ),
@@ -420,6 +447,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
       ],
       // Contenido
+      SettingOption(
+        section: SettingsSection.storage,
+        title: tx.carpetasExcluidas,
+        subtitle: tx.carpetasExcluidasDescripcion,
+        keywords: const ['whatsapp', 'telegram', 'notas de voz', 'grabadora', 'voice notes', 'recorder', 'ocultar'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-excluded-folders'),
+          leading: const Icon(Icons.folder_off_outlined),
+          title: Text(tx.carpetasExcluidas),
+          subtitle: Text(tx.carpetasExcluidasDescripcion),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => ExcludedFoldersScreen.open(context),
+        ),
+      ),
       SettingOption(
         section: SettingsSection.storage,
         title: tx.ocultarAudiosCortos,
@@ -575,6 +616,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.appearance,
+        title: tx.personalizaKiji,
+        subtitle: tx.personalizaKijiDescripcion,
+        keywords: const ['asistente', 'personalizar', 'desde cero', 'wizard', 'customize'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.auto_fix_high_rounded),
+          title: Text(tx.personalizaKiji),
+          subtitle: Text(tx.personalizaKijiDescripcion),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => PersonalizeScreen.open(context, ref),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
         title: tx.estilo,
         subtitle: tx.estiloDescripcion,
         keywords: const ['nocturne', 'grafito', 'graphite', 'papel', 'paper', 'look', 'aspecto', 'diseño'], // l10n-ignore
@@ -585,7 +639,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: Text(tx.estilo),
             subtitle: Text(styleName(style)),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => StyleChooserScreen.open(context, ref),
+            onTap: () => PersonalizeScreen.open(context, ref),
           );
         },
       ),
@@ -616,80 +670,99 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: tx.colorDeAcentoDescripcion,
         keywords: const ['degradado', 'violeta', 'naranja', 'verde', 'azul'],
         builder: (context, ref) {
-          final disabled = _onlyInNocturne(ref, Icons.palette_outlined, tx.colorDeAcento);
-          if (disabled != null) return disabled;
+          // En los tres estilos: los de Kiji (Nocturne), el del estilo o un color propio.
           final accent = ref.watch(settingsProvider.select((s) => s.accent));
-          String name(String a) => switch (a) {
-            'aurora' => tx.acentoAurora,
-            'ember' => tx.acentoEmber,
-            'mint' => tx.acentoMint,
-            'ocean' => tx.acentoOcean,
-            _ => tx.acentoNocturne,
-          };
+          final custom = ref.watch(settingsProvider.select((s) => s.customAccentColor));
           return ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: Text(tx.colorDeAcento),
-            subtitle: Text(name(accent)),
-            // Una muestra de cada acento: un toque y se aplica.
-            trailing: Wrap(
-              spacing: 6,
-              children: [
-                for (final a in AppSettings.accents)
-                  Tooltip(
-                    message: name(a),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () => ref.read(settingsProvider.notifier).update((s) => s.copyWith(accent: a)),
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(colors: [KijiPalette.accents[a]!.$1, KijiPalette.accents[a]!.$2]),
-                          border: Border.all(color: a == accent ? KijiColors.text : Colors.transparent, width: 2),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            subtitle: Text(
+              custom != null
+                  ? '${tx.acentoPropio} · ${colorHex(custom)}'
+                  : (KijiLook.nocturne ? accentName(accent) : tx.acentoDelEstilo),
             ),
-            onTap: () async {
-              final picked = await showDialog<String>(
-                context: context,
-                builder: (dialog) => SimpleDialog(
-                  title: Text(tx.colorDeAcento),
-                  children: [
-                    RadioGroup<String>(
-                      groupValue: accent,
-                      onChanged: (value) => Navigator.pop(dialog, value),
-                      child: Column(
-                        children: [
-                          for (final a in AppSettings.accents) RadioListTile<String>(value: a, title: Text(name(a))),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              if (picked != null) {
-                await ref.read(settingsProvider.notifier).update((s) => s.copyWith(accent: picked));
-              }
-            },
+            trailing: Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(shape: BoxShape.circle, gradient: KijiColors.accentGradient),
+            ),
+            onTap: () => showAccentPicker(context, ref),
           );
         },
       ),
       SettingOption(
         section: SettingsSection.appearance,
+        title: tx.fondo,
+        subtitle: BackgroundStore.videoSupported ? tx.fondoDescripcion : tx.fondoDescripcionPc,
+        keywords: const ['fondo', 'imagen', 'foto', 'gif', 'video', 'wallpaper', 'background', 'desenfoque'], // l10n-ignore
+        builder: (context, ref) {
+          final s = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
+          return ListTile(
+            leading: const Icon(Icons.wallpaper_rounded),
+            title: Text(tx.fondo),
+            subtitle: Text(s.file == null ? tx.fondoNinguno : (s.kind == 'video' ? tx.fondoVideo : tx.fondoImagen)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => showKijiSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              showDragHandle: true,
+              builder: (_) => Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tx.fondo, style: KijiText.title(size: 20)),
+                    const SizedBox(height: 14),
+                    const BackgroundOptions(),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.temas,
+        subtitle: tx.temasDescripcion,
+        keywords: const ['tema', 'kiji', 'compartir', 'exportar', 'importar', 'theme', 'share'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          leading: const Icon(Icons.style_outlined),
+          title: Text(tx.temas),
+          subtitle: Text(tx.temasDescripcion),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => showKijiSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            builder: (_) => Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tx.temas, style: KijiText.title(size: 20)),
+                  const SizedBox(height: 14),
+                  const ThemeFileOptions(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
         title: tx.tipografia,
         subtitle: tx.tipografiaDescripcion,
-        keywords: const ['letra', 'fuente', 'space grotesk', 'jetbrains'], // l10n-ignore
+        keywords: const ['letra', 'fuente', 'space grotesk', 'jetbrains', 'inter', 'newsreader', 'font'], // l10n-ignore
         builder: (context, ref) => choiceTile<String>(
           context,
           icon: Icons.font_download_outlined,
           title: tx.tipografia,
           value: ref.watch(settingsProvider.select((s) => s.font)),
           options: AppSettings.fonts,
-          label: (f) => f == 'system' ? tx.tipografiaSistema : tx.tipografiaKiji,
+          label: fontLabel,
           onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(font: value)),
         ),
       ),
@@ -759,6 +832,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: Text(tx.noUsaLosDatosMovilesPara),
           value: ref.watch(downloadsProvider).settings.wifiOnly,
           onChanged: ref.read(downloadsProvider.notifier).setWifiOnly,
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.storage,
+        title: tx.bajarLaLetraConLasDescargas,
+        subtitle: tx.bajarLaLetraConLasDescargasNota,
+        keywords: const ['letra', 'lyrics', 'sin conexion', 'offline', 'descargas'], // l10n-ignore
+        builder: (context, ref) => SwitchListTile(
+          title: Text(tx.bajarLaLetraConLasDescargas),
+          subtitle: Text(tx.bajarLaLetraConLasDescargasNota),
+          value: ref.watch(settingsProvider.select((s) => s.downloadLyrics)),
+          onChanged: (on) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(downloadLyrics: on)),
         ),
       ),
       SettingOption(
@@ -987,22 +1072,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => ExtractorHealthScreen.open(context),
         ),
       ),
-      // Cuenta de Google opcional.
+      // Cuenta de YouTube Music (opcional): su propia sección, clara.
       SettingOption(
-        section: SettingsSection.privacy,
-        title: tx.cuentaDeGoogleOpcional,
-        subtitle: tx.soloParaCancionesQueYoutubeEntrega,
-        keywords: ['cuenta', 'google', tx.iniciarSesion2, 'login', 'edad', tx.cerrarSesion],
-        builder: (context, ref) {
-          final session = ref.watch(accountProvider);
-          return ListTile(
-            leading: Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded),
-            title: Text(session == null ? tx.cuentaDeGoogleOpcional : tx.sesionIniciada2),
-            subtitle: Text(session == null ? tx.soloParaCancionesConCuenta : tx.tocaParaVerOCerrarLa),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => AccountScreen.open(context),
-          );
-        },
+        section: SettingsSection.account,
+        title: tx.cuentaYoutubeMusic,
+        subtitle: tx.cuentaOpcionalNota,
+        keywords: ['cuenta', 'account', 'google', 'youtube', 'login', tx.iniciarSesion2, tx.cerrarSesion, 'edad'], // l10n-ignore
+        builder: (context, ref) => const AccountStatusTile(),
+      ),
+      SettingOption(
+        section: SettingsSection.account,
+        title: tx.sincronizarConYoutube,
+        subtitle: tx.sincronizarConYoutubeNota,
+        keywords: const ['sincronizar', 'sync', 'me gusta', 'likes', 'playlists', 'youtube music'], // l10n-ignore
+        builder: (context, ref) => const SyncSwitchTile(),
+      ),
+      SettingOption(
+        section: SettingsSection.account,
+        title: tx.sincronizarAhora,
+        subtitle: tx.todaviaNoSeSincronizo,
+        keywords: const ['sincronizar ahora', 'sync now', 'última', 'last'], // l10n-ignore
+        builder: (context, ref) => const SyncNowTile(),
       ),
       // Registros e informes.
       SettingOption(

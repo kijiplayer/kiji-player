@@ -13,8 +13,12 @@ import '../../equalizer/data/equalizer_notifier.dart';
 import '../../favorites/favorites.dart';
 import '../../history/listening_history.dart';
 import '../../import/data/import_service.dart';
+import '../../customize/data/track_overrides.dart';
+import '../../local_library/data/group_covers.dart';
 import '../../playlists/playlists_provider.dart';
 import '../../settings/data/settings_store.dart';
+import '../../style/presentation/custom_background.dart' show backgroundToneProvider;
+import '../../theater/data/theater_store.dart';
 import '../domain/backup_manifest.dart';
 import 'backup_folder.dart';
 import 'backup_service.dart';
@@ -133,6 +137,17 @@ class BackupNotifier extends Notifier<BackupState> {
 
   Future<bool> backupNow() => _create('manual');
 
+  /// "Exportar a un archivo": la copia completa armada en una carpeta temporal, para guardarla
+  /// donde el usuario elija (otro teléfono, la PC, una nube). Devuelve (nombre, bytes).
+  Future<(String, List<int>)> exportBytes() async {
+    final temp = Directory(p.join((await getTemporaryDirectory()).path, 'kiji-exportar'));
+    if (await temp.exists()) await temp.delete(recursive: true);
+    final file = await _service.create(temp, reason: 'exportar', now: _clock(), includeVideos: true);
+    final bytes = await file.readAsBytes();
+    await temp.delete(recursive: true);
+    return (p.basename(file.path), bytes);
+  }
+
   Future<bool> _create(String reason) async {
     final folder = state.folder ?? await _folder();
     state = state.copyWith(busy: true, clearError: true);
@@ -180,7 +195,17 @@ class BackupNotifier extends Notifier<BackupState> {
         ..invalidate(listeningHistoryProvider)
         ..invalidate(equalizerProvider)
         ..invalidate(importsProvider)
-        ..invalidate(localLibrarySourceProvider);
+        ..invalidate(localLibrarySourceProvider)
+        // Lo nuevo de la copia (0.8): estilos y fotos por canción, portadas elegidas y teatro. Si
+        // quedaran en memoria, el próximo cambio pisaría lo restaurado con lo de antes.
+        ..invalidate(trackOverridesProvider)
+        ..invalidate(groupCoversProvider)
+        ..invalidate(theaterProvider)
+        ..invalidate(backgroundToneProvider);
+      // Las fotos restauradas pueden tener el mismo nombre que las de antes: que se vuelvan a leer.
+      PaintingBinding.instance.imageCache
+        ..clear()
+        ..clearLiveImages();
       await ref.read(settingsProvider.notifier).loaded;
       state = state.copyWith(busy: false);
       await _locate();

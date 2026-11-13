@@ -16,6 +16,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:kiji_player/utils/webview_host.dart';
 
 import '../../../utils/idle_closer.dart';
 
@@ -83,7 +84,8 @@ String poTokenToBase64(List<int> bytes) => base64Encode(bytes).replaceAll('+', '
 
 const _requestKey = 'O43z0dpjhgX20SCx4KAo';
 const _apiKey = 'AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw';
-const _userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+const _userAgent =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
 /// Página con el cliente de BotGuard (como `po_token.html` de Echo/NewPipe).
@@ -172,8 +174,7 @@ class WebViewPoTokens implements PoTokenProvider {
   }
 
   @override
-  bool get isSupported =>
-      !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
+  bool get isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows);
 
   @override
   Future<String?> tokenFor(String identifier) {
@@ -190,23 +191,35 @@ class WebViewPoTokens implements PoTokenProvider {
     final cached = _tokens[identifier];
     if (cached != null) return cached;
     try {
-      final controller = await (_starting ??= _start()).timeout(const Duration(seconds: 20));
+      // Alcanza para que WebViewHost renueve el entorno y reintente si la WebView no se crea.
+      final controller = await (_starting ??= _start()).timeout(
+        WebViewHost.createTimeout * WebViewHost.attempts + const Duration(seconds: 25),
+      );
       if (controller == null) {
         _starting = null;
         return null;
       }
-      final result = await controller.callAsyncJavaScript(
-        functionBody: 'return await kijiMint(id);',
-        arguments: {'id': identifier},
-      );
+      // Con tope: si la WebView quedó trabada, no se espera para siempre.
+      final result = await controller
+          .callAsyncJavaScript(functionBody: 'return await kijiMint(id);', arguments: {'id': identifier})
+          .timeout(const Duration(seconds: 20));
       final value = result?.value;
       if (result?.error != null || value is! String) throw StateError('${result?.error ?? value}');
       final token = poTokenToBase64([for (final b in value.split(',')) int.parse(b)]);
-      debugPrint('=== YTM potoken: token listo (${value.split(',').length} bytes, id ${identifier.length} caracteres) ===');
+      debugPrint(
+        '=== YTM potoken: token listo (${value.split(',').length} bytes, id ${identifier.length} caracteres) ===',
+      );
       return _tokens[identifier] = token;
     } catch (error) {
       debugPrint('=== YTM potoken: no se pudo generar: $error ===');
-      await _reset();
+      if (error is TimeoutException) {
+        // Trabada: se abandona sin cerrarla (cerrarla podría bloquear el hilo de la ventana).
+        _webView = null;
+        await _reset();
+        await WebViewHost.instance.renew('el PO token no respondía');
+      } else {
+        await _reset();
+      }
       return null;
     }
   }
@@ -216,7 +229,7 @@ class WebViewPoTokens implements PoTokenProvider {
     _expires = null;
     _starting = null;
     try {
-      await _webView?.dispose();
+      await _webView?.dispose().timeout(const Duration(seconds: 5));
     } catch (error) {
       debugPrint('=== YTM potoken: al cerrar la WebView: $error ===');
     }
@@ -224,35 +237,41 @@ class WebViewPoTokens implements PoTokenProvider {
   }
 
   Future<Response<String>> _post(String path, Object body) => _dio.post<String>(
-        'https://www.youtube.com/api/jnn/v1/$path',
-        data: jsonEncode(body),
-        options: Options(responseType: ResponseType.plain, headers: {
-          'User-Agent': _userAgent,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json+protobuf',
-          'x-goog-api-key': _apiKey,
-          'x-user-agent': 'grpc-web-javascript/0.1',
-        }),
-      );
+    'https://www.youtube.com/api/jnn/v1/$path',
+    data: jsonEncode(body),
+    options: Options(
+      responseType: ResponseType.plain,
+      headers: {
+        'User-Agent': _userAgent,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json+protobuf',
+        'x-goog-api-key': _apiKey,
+        'x-user-agent': 'grpc-web-javascript/0.1',
+      },
+    ),
+  );
 
   Future<InAppWebViewController?> _start() async {
     final watch = Stopwatch()..start();
     final loaded = Completer<InAppWebViewController>();
-    final webView = HeadlessInAppWebView(
-      initialData: InAppWebViewInitialData(data: _page, baseUrl: WebUri('https://www.youtube.com/')),
-      initialSettings: InAppWebViewSettings(javaScriptEnabled: true, userAgent: _userAgent),
-      onLoadStop: (controller, _) {
-        if (!loaded.isCompleted) loaded.complete(controller);
-      },
-      onConsoleMessage: (_, message) {
-        if (message.messageLevel == ConsoleMessageLevel.ERROR) {
-          debugPrint('=== YTM potoken: consola: ${message.message} ===');
-        }
-      },
+    final webView = await WebViewHost.instance.run(
+      'PO token',
+      (environment) => HeadlessInAppWebView(
+        webViewEnvironment: environment,
+        initialData: InAppWebViewInitialData(data: _page, baseUrl: WebUri('https://www.youtube.com/')),
+        initialSettings: InAppWebViewSettings(javaScriptEnabled: true, userAgent: _userAgent),
+        onLoadStop: (controller, _) {
+          if (!loaded.isCompleted) loaded.complete(controller);
+        },
+        onConsoleMessage: (_, message) {
+          if (message.messageLevel == ConsoleMessageLevel.ERROR) {
+            debugPrint('=== YTM potoken: consola: ${message.message} ===');
+          }
+        },
+      ),
     );
     _webView = webView;
-    await webView.run();
-    final controller = await loaded.future;
+    final controller = await loaded.future.timeout(const Duration(seconds: 20));
 
     final challenge = parseChallenge((await _post('Create', [_requestKey])).data!);
     if (challenge['interpreterJavascript'] == null) {

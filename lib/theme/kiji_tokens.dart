@@ -155,12 +155,95 @@ class KijiPalette {
     like: Color(0xFFB4462B),
   );
 
-  /// La paleta de [style]: Nocturne con el [theme] y el [accent] elegidos; Grafito y Papel son fijos.
-  static KijiPalette forStyle(KijiStyle style, {String theme = 'dark', String accent = 'nocturne'}) => switch (style) {
-    KijiStyle.graphite => graphite,
-    KijiStyle.paper => paper,
-    KijiStyle.nocturne => resolve(theme: theme, accent: accent),
-  };
+  /// La paleta de [style]: Nocturne con el [theme] y el [accent] elegidos; Grafito y Papel con sus
+  /// colores. Con un acento propio ([custom], en los tres estilos), ese color ajustado para que se lea.
+  static KijiPalette forStyle(
+    KijiStyle style, {
+    String theme = 'dark',
+    String accent = 'nocturne',
+    Color? custom,
+  }) {
+    final base = switch (style) {
+      KijiStyle.graphite => graphite,
+      KijiStyle.paper => paper,
+      KijiStyle.nocturne => resolve(theme: theme, accent: custom == null ? accent : 'nocturne'),
+    };
+    if (custom == null) return base;
+    // Nocturne: un degradado del color elegido a uno vecino (el tono girado). Grafito y Papel: un
+    // solo color, como su acento de siempre.
+    final second = style == KijiStyle.nocturne ? _neighbor(custom) : custom;
+    return base.withAccent(custom, second);
+  }
+
+  /// El tono de [color] girado 40° (el segundo color del degradado de Nocturne).
+  static Color _neighbor(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    return hsl.withHue((hsl.hue + 40) % 360).toColor();
+  }
+
+  /// Contraste WCAG entre dos colores opacos (1 a 21).
+  static double contrastOf(Color a, Color b) {
+    final la = a.computeLuminance(), lb = b.computeLuminance();
+    return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+  }
+
+  /// [color] aclarado (fondo oscuro) u oscurecido (fondo claro) de a poco hasta tener contraste de
+  /// 4,5:1 con todos los [behind]. Es lo que hace Kiji con un acento propio: lo muestra así, sin avisos.
+  static Color readableOn(Color color, List<Color> behind, {bool light = false}) {
+    var c = color.withValues(alpha: 1);
+    for (var i = 0; i < 60 && behind.any((b) => contrastOf(c, b) < 4.5); i++) {
+      c = Color.lerp(c, light ? Colors.black : Colors.white, 0.06)!;
+    }
+    return c;
+  }
+
+  /// Esta paleta con el acento [first]→[second] (ajustados para que se lean sobre el fondo y las
+  /// superficies) y el texto de encima que mejor se lee (claro u oscuro, también a 4,5:1).
+  KijiPalette withAccent(Color first, Color second) {
+    final behind = [background, surface, surfaceHigh];
+    final a = readableOn(first, behind, light: isLight);
+    final b = readableOn(second, behind, light: isLight);
+    // Encima del acento: el fondo (oscuro en los estilos oscuros, claro en Papel) si se lee; si no,
+    // el otro extremo.
+    final options = [background, if (isLight) Colors.white else Colors.black, text];
+    Color on = options.first;
+    for (final o in options) {
+      if (math.min(contrastOf(o, a), contrastOf(o, b)) > math.min(contrastOf(on, a), contrastOf(on, b))) on = o;
+    }
+    return KijiPalette(
+      brightness: brightness,
+      background: background,
+      violet: a,
+      cyan: b,
+      onAccent: on,
+      text: text,
+      muted: muted,
+      glassFill: glassFill,
+      glassBorder: glassBorder,
+      waveRest: waveRest,
+      surface: surface,
+      surfaceHigh: surfaceHigh,
+      like: like,
+    );
+  }
+
+  /// Con un fondo propio: el gris secundario más cerca del color del texto. Así se lee a 4,5:1 sobre
+  /// la foto con mucha menos capa encima, y la foto se ve.
+  KijiPalette withBackgroundPhoto() => KijiPalette(
+    brightness: brightness,
+    background: background,
+    violet: violet,
+    cyan: cyan,
+    onAccent: onAccent,
+    text: text,
+    muted: Color.lerp(muted, text, 0.55)!,
+    glassFill: glassFill,
+    glassBorder: glassBorder,
+    waveRest: waveRest,
+    surface: surface,
+    surfaceHigh: surfaceHigh,
+    like: like,
+  );
 
   /// Acentos (el primer color y el segundo del degradado). En el tema claro el segundo se
   /// oscurece un poco para que se lea sobre blanco.
@@ -269,6 +352,75 @@ abstract final class KijiColors {
   /// El "me gusta".
   static Color get like => palette.like ?? palette.violet;
 
+  /// Reacciones de teatro: el tomate (rojo en Nocturne, el rojo tinta en Papel, blanco y negro en
+  /// Grafito), su hojita y el brillo, según el estilo.
+  static Color get theaterTomato => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFD7262E),
+    KijiStyle.paper => const Color(0xFFB4462B),
+    KijiStyle.graphite => palette.text,
+  };
+  static Color get theaterLeaf => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFF2E9B3A),
+    KijiStyle.paper => const Color(0xFF4F6B3A),
+    KijiStyle.graphite => palette.muted,
+  };
+
+  /// El telón (terciopelo) y su sombra, el dorado de los flecos y el "¡BRAVO!", el reflector y el
+  /// confeti, según el estilo (Grafito en grises, Papel en tinta).
+  static Color get theaterCurtain => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFF8E1B2B),
+    KijiStyle.paper => const Color(0xFF9C2F22),
+    KijiStyle.graphite => const Color(0xFF2B2B2E),
+  };
+  static Color get theaterCurtainShadow => Color.lerp(theaterCurtain, const Color(0xFF000000), 0.55)!;
+  static Color get theaterGold => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFE8C26A),
+    KijiStyle.paper => const Color(0xFF8A6A2A),
+    KijiStyle.graphite => palette.text,
+  };
+  static Color get theaterSpot => switch (KijiLook.style) {
+    KijiStyle.paper => const Color(0xFFFFF4D6),
+    _ => const Color(0xFFFFF1C8),
+  };
+  static List<Color> get theaterConfetti => switch (KijiLook.style) {
+    KijiStyle.graphite => [palette.text, palette.muted, palette.waveRest, const Color(0xFF8C8C90)],
+    _ => [palette.violet, palette.cyan, like, theaterGold, theaterTomato],
+  };
+
+  /// El cartel de "Tu Teatro" (como uno de teatro antiguo): el papel y la tinta, según el estilo.
+  /// La tinta sobre el papel siempre con 4,5:1 o más (test/theater_test.dart).
+  static Color get theaterPosterPaper => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFF2A0D14),
+    KijiStyle.paper => const Color(0xFFF3E7CC),
+    KijiStyle.graphite => const Color(0xFF161618),
+  };
+  static Color get theaterPosterInk => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFF6E9CC),
+    KijiStyle.paper => const Color(0xFF2B211A),
+    KijiStyle.graphite => const Color(0xFFF2F2F2),
+  };
+
+  /// Lo destacado del cartel (títulos, puestos, adornos): dorado en Nocturne, rojo tinta en Papel.
+  static Color get theaterPosterAccent => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFE8C26A),
+    KijiStyle.paper => const Color(0xFF8E2A1E),
+    KijiStyle.graphite => const Color(0xFFFFFFFF),
+  };
+
+  /// Las rosas del teatro: siempre rosas (no el "me gusta", que con un acento propio puede ser gris),
+  /// blancas en Grafito.
+  static Color get theaterRose => switch (KijiLook.style) {
+    KijiStyle.nocturne => const Color(0xFFE8335F),
+    KijiStyle.paper => const Color(0xFFB02A47),
+    KijiStyle.graphite => palette.text,
+  };
+
+  /// Un brillo claro sobre [c] (el reflejo del tomate).
+  static Color shine(Color c) => Color.lerp(c, const Color(0xFFFFFFFF), 0.6)!.withValues(alpha: 0.35);
+
+  /// [c] más oscuro (el centro de la rosa).
+  static Color shade(Color c) => Color.lerp(c, const Color(0xFF000000), 0.25)!;
+
   static LinearGradient get accentGradient =>
       LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [violet, cyan]);
 
@@ -276,29 +428,29 @@ abstract final class KijiColors {
       LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [violet, cyan]);
 }
 
+/// Fondo propio (Apariencia → Fondo): la capa del color del estilo que va encima de la foto o el
+/// video para que el texto se lea (4,5:1 el texto y el gris secundario). Se usa la menor que
+/// alcance para [tone], el tono medio de la foto (ver
+/// `backgroundToneProvider`). Sin [tone] (un video, o mientras se mide) se supone el peor caso: una
+/// foto blanca (estilos oscuros) o negra (Papel).
+double backgroundScrim(KijiPalette palette, double opacity, {Color? tone}) {
+  final worst = tone ?? (palette.isLight ? Colors.black : Colors.white);
+  final behind = Color.lerp(palette.background, worst, opacity.clamp(0, 1))!;
+  for (var s = 0.0; s <= 1.0; s += 0.02) {
+    final result = Color.lerp(behind, palette.background, s)!;
+    if (KijiPalette.contrastOf(palette.muted, result) >= 4.5 && KijiPalette.contrastOf(palette.text, result) >= 4.5) {
+      return s;
+    }
+  }
+  return 1;
+}
+
 /// Medidas del "vidrio de museo" de Grafito. Son bajas a propósito: el texto secundario tiene que
 /// seguir con contraste de 4,5:1 aunque la portada sea blanca (lo comprueba `test/style_test.dart`).
 abstract final class KijiMuseum {
   /// Fondo del reproductor: la portada en blanco y negro, oscurecida a este brillo y con esta opacidad.
-  static const backdropBrightness = 0.85;
-  static const backdropOpacity = 0.14;
-
-  /// Grano de película (alto rendimiento): opacidad máxima de los puntos claros y de los oscuros
-  /// (los oscuros no le quitan contraste al texto claro, así que pueden ser más).
-  static const grainOpacity = 0.02;
-  static const grainDarkOpacity = 0.08;
-
-  /// El brillo que recorre el vidrio de la portada al abrir el reproductor (no hay texto encima).
-  static const sheenOpacity = 0.18;
-
-  /// Luz que respira detrás de la portada (alto rendimiento): opacidad máxima del halo blanco, su
-  /// desenfoque y cuánto se corre hacia abajo (lejos del texto chico de arriba de la portada).
-  static const haloOpacity = 0.22;
-  static const haloBlur = 48.0;
-  static const haloShift = 28.0;
-
-  /// Reflejo en el vidrio de la portada (sigue la inclinación del teléfono o el mouse).
-  static const reflectionOpacity = 0.12;
+  static const backdropBrightness = 0.72;
+  static const backdropOpacity = 0.12;
 
   /// Paneles sobre cualquier contenido (mini-reproductor, barra de navegación, hojas): vidrio
   /// ahumado que deja ver el 12 % de lo de atrás. Es lo máximo para que el texto gris (#9A9A9E) siga
@@ -318,6 +470,11 @@ abstract final class KijiSizes {
   /// Ancho desde el que se usa el diseño de PC (barra lateral y paneles).
   static const desktopBreakpoint = 1000.0;
   static const playerCover = 320.0;
+
+  /// Ancho máximo de la columna del reproductor (onda, título y controles) en una ventana ancha,
+  /// y el de la pantalla completa (la portada es más grande).
+  static const playerMaxWidth = 560.0;
+  static const playerFullWidth = 760.0;
   static const playButton = 84.0;
   static const glassBlur = 18.0;
   static const progressLine = 2.0;
@@ -391,7 +548,20 @@ abstract final class KijiText {
   /// fuente del teléfono o la PC (null = la de siempre del sistema).
   static bool useSystemFont = false;
 
-  static String? get titleFamily => useSystemFont ? null : titleFamilyOf(KijiLook.style);
+  /// Una de las fuentes incluidas, elegida en Apariencia → Tipografía (null = la del estilo). Va en
+  /// los títulos y el texto; los tiempos y números siguen con la del estilo.
+  static String? chosenFamily;
+
+  /// La familia de cada opción de "Tipografía" (null = la del estilo o la del sistema).
+  static String? familyFor(String font) => switch (font) {
+    'spacegrotesk' => 'SpaceGrotesk',
+    'inter' => inter,
+    'newsreader' => 'Newsreader',
+    'jetbrainsmono' => 'JetBrainsMono',
+    _ => null,
+  };
+
+  static String? get titleFamily => useSystemFont ? null : (chosenFamily ?? titleFamilyOf(KijiLook.style));
 
   /// Letra de los títulos de cada estilo (también para las miniaturas de la elección de estilo).
   static String titleFamilyOf(KijiStyle style) => switch (style) {
@@ -407,7 +577,18 @@ abstract final class KijiText {
   static String? get monoFamily => useSystemFont ? null : (KijiLook.nocturne ? 'JetBrainsMono' : inter);
 
   /// El resto del texto: el del sistema en Nocturne; Inter en Grafito y Papel.
-  static String? get bodyFamily => useSystemFont || KijiLook.nocturne ? null : inter;
+  static String? get bodyFamily =>
+      useSystemFont ? null : (chosenFamily ?? (KijiLook.nocturne ? null : inter));
+
+  /// Letra del cartel de "Tu Teatro": con serifa (Newsreader, incluida), como un cartel antiguo.
+  static TextStyle poster({double size = 28, FontWeight weight = FontWeight.w700, Color? color, double spacing = 0}) => TextStyle(
+    fontFamily: useSystemFont ? null : 'Newsreader',
+    fontSize: size,
+    fontWeight: weight,
+    height: 1.1,
+    letterSpacing: spacing,
+    color: color ?? KijiColors.theaterPosterInk,
+  );
 
   static TextStyle title({double size = 20, FontWeight weight = FontWeight.w700, Color? color}) => TextStyle(
     fontFamily: titleFamily,
@@ -417,6 +598,27 @@ abstract final class KijiText {
     color: color ?? KijiColors.text,
     height: 1.15,
   );
+
+  /// Título de una sección (Inicio, listas). Grafito: una etiqueta chica, espaciada y en gris (el
+  /// contenido es el protagonista); los demás, un título. Con [sectionText] para el texto.
+  static TextStyle section({double size = 18}) => KijiLook.museum
+      ? TextStyle(
+          fontFamily: bodyFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 2,
+          color: KijiColors.muted,
+          height: 1.4,
+        )
+      : title(size: size);
+
+  /// El texto de un título de sección (en Grafito, en mayúsculas).
+  static String sectionText(String text) => KijiLook.museum ? text.toUpperCase() : text;
+
+  /// Título grande y protagonista (saludo, canción que suena). Grafito: grande y fino.
+  static TextStyle display({double size = 30}) => KijiLook.museum
+      ? title(size: size + 6, weight: FontWeight.w300).copyWith(letterSpacing: -0.8, height: 1.08)
+      : title(size: size);
 
   static TextStyle mono({double size = 12, FontWeight weight = FontWeight.w500, Color? color}) => TextStyle(
     fontFamily: monoFamily,

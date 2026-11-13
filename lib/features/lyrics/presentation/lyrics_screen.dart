@@ -30,6 +30,10 @@ import '../lyrics_provider.dart';
 import '../../translation/presentation/translate_sheet.dart';
 import '../../translation/presentation/translated_lyrics.dart';
 import 'lyrics_menu_sheet.dart';
+import '../../../screens/player/player_screen.dart' show PlaybackControlsRow;
+import '../../customize/data/track_overrides.dart';
+import 'karaoke_line.dart';
+import 'lyrics_fullscreen.dart';
 import 'lyrics_side_panel.dart';
 import 'lyrics_views.dart';
 import 'lyrics_share.dart';
@@ -72,137 +76,160 @@ class LyricsScreen extends ConsumerWidget {
     }
     final request = _requestFor(ref, track);
     final lyrics = ref.watch(lyricsProvider(request));
-    final panel = ref.watch(settingsProvider.select((s) => s.lyricsPanel));
+    // Estilo por canción: su vista de la letra manda sobre la general.
+    final songPanel = ref.watch(currentTrackStyleProvider.select((s) => s?.lyricsPanel));
+    final String panel = songPanel ?? ref.watch(settingsProvider.select((s) => s.lyricsPanel));
+    // Pantalla completa: solo la letra, con un fondo que sigue la música y las barras que se
+    // esconden solas.
+    final full = ref.watch(lyricsFullscreenProvider);
 
     return AlwaysDark(
-      child: Scaffold(
-        backgroundColor: _dark.background,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            RepaintBoundary(child: LyricsBackdrop(track: track)),
-            SafeArea(
-              // Escaparate: la barra de arriba y los botones se esconden solos.
-              child: ChromeAutoHide(
-                enabled: panel == 'showcase',
-                child: LayoutBuilder(
-                  builder: (context, box) {
-                    // Dos columnas (la letra a la izquierda y, a la derecha, la canción, los controles
-                    // y los ajustes): en la PC y con el teléfono en horizontal, o siempre/nunca según
-                    // "Diseño".
-                    final wide = lyricsTwoColumns(
-                      ref.watch(settingsProvider.select((s) => s.lyricsLayout)),
-                      box.biggest,
-                    );
-                    final header = HideWhenIdle(
-                      child: _Header(
-                        track: track,
-                        request: request,
-                        lyrics: lyrics.valueOrNull,
-                        panel: panel,
-                        showTitle: !wide && panel != 'showcase',
-                      ),
-                    );
-                    // Una columna, Escaparate: la portada y la línea que suena ocupan la pantalla.
-                    if (!wide && panel == 'showcase') {
-                      return Column(
+      child: FullscreenGuard(
+        child: Scaffold(
+          backgroundColor: _dark.background,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              RepaintBoundary(
+                child: LyricsBackdrop(track: track, reactive: full),
+              ),
+              SafeArea(
+                // Escaparate: la barra de arriba y los botones se esconden solos.
+                child: ChromeAutoHide(
+                  enabled: panel == 'showcase' || full,
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      // Dos columnas (la letra a la izquierda y, a la derecha, la canción, los controles
+                      // y los ajustes): en la PC y con el teléfono en horizontal, o siempre/nunca según
+                      // "Diseño".
+                      final wide = lyricsTwoColumns(
+                        ref.watch(settingsProvider.select((s) => s.lyricsLayout)),
+                        box.biggest,
+                      );
+                      final header = HideWhenIdle(
+                        child: _Header(
+                          track: track,
+                          request: request,
+                          lyrics: lyrics.valueOrNull,
+                          panel: panel,
+                          showTitle: !wide && panel != 'showcase',
+                        ),
+                      );
+                      // Una columna, Escaparate: la portada y la línea que suena ocupan la pantalla.
+                      if (!wide && panel == 'showcase' && !full) {
+                        return Column(
+                          children: [
+                            header,
+                            Expanded(
+                              child: _ShowcaseWithLine(track: track, lyrics: lyrics.valueOrNull),
+                            ),
+                          ],
+                        );
+                      }
+                      final column = Column(
                         children: [
                           header,
                           Expanded(
-                            child: _ShowcaseWithLine(track: track, lyrics: lyrics.valueOrNull),
+                            child: lyrics.when(
+                              loading: () => const Center(child: CircularProgressIndicator()),
+                              error: (error, _) => _Message(
+                                icon: Icons.cloud_off_rounded,
+                                text: error is LyricsUnavailableException
+                                    ? tx.noSePudoBuscarLaLetraPorque(error.reason)
+                                    : tx.noSePudoBuscarLaLetra,
+                                actionLabel: tx.reintentar,
+                                onAction: () => ref.invalidate(lyricsProvider(request)),
+                              ),
+                              data: (value) {
+                                if (value.instrumental) {
+                                  return _Message(icon: Icons.piano_rounded, text: tx.instrumental);
+                                }
+                                if (value.isEmpty) {
+                                  return _Message(
+                                    icon: Icons.lyrics_outlined,
+                                    text: tx.noEncontramosLaLetraDeEsta,
+                                    actionLabel: tx.buscarAMano,
+                                    onAction: () => searchLyricsManually(context, ref, request),
+                                  );
+                                }
+                                Widget body(List<String?>? translations) => value.isSynced
+                                    ? SyncedLyricsView(
+                                        lines: value.synced,
+                                        track: track,
+                                        trackId: request.id,
+                                        translations: translations,
+                                        depth: wide || full,
+                                      )
+                                    : PlainLyricsView(text: value.plain!, track: track, translations: translations);
+                                final translating = ref.watch(lyricsTranslationOnProvider);
+                                return Column(
+                                  children: [
+                                    if (!wide) const _OffsetBar(),
+                                    Expanded(
+                                      child: translating
+                                          ? TranslatedLyrics(
+                                              // Otro motor (teléfono o IA): se vuelve a traducir.
+                                              key: ValueKey(ref.watch(settingsProvider.select((s) => s.useGemini))),
+                                              trackId: request.id,
+                                              lines: value.isSynced
+                                                  ? [for (final l in value.synced) l.text]
+                                                  : value.plain!.split('\n'),
+                                              builder: body,
+                                            )
+                                          : body(null),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
                           ),
                         ],
                       );
-                    }
-                    final column = Column(
-                      children: [
-                        header,
-                        Expanded(
-                          child: lyrics.when(
-                            loading: () => const Center(child: CircularProgressIndicator()),
-                            error: (error, _) => _Message(
-                              icon: Icons.cloud_off_rounded,
-                              text: error is LyricsUnavailableException
-                                  ? tx.noSePudoBuscarLaLetraPorque(error.reason)
-                                  : tx.noSePudoBuscarLaLetra,
-                              actionLabel: tx.reintentar,
-                              onAction: () => ref.invalidate(lyricsProvider(request)),
+                      if (full) {
+                        // Pantalla completa: la letra y, abajo, los controles (se esconden solos).
+                        return Column(
+                          children: [
+                            Expanded(child: column),
+                            const HideWhenIdle(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                child: FittedBox(fit: BoxFit.scaleDown, child: PlaybackControlsRow(compact: true)),
+                              ),
                             ),
-                            data: (value) {
-                              if (value.instrumental) {
-                                return _Message(icon: Icons.piano_rounded, text: tx.instrumental);
-                              }
-                              if (value.isEmpty) {
-                                return _Message(
-                                  icon: Icons.lyrics_outlined,
-                                  text: tx.noEncontramosLaLetraDeEsta,
-                                  actionLabel: tx.buscarAMano,
-                                  onAction: () => searchLyricsManually(context, ref, request),
-                                );
-                              }
-                              Widget body(List<String?>? translations) => value.isSynced
-                                  ? SyncedLyricsView(
-                                      lines: value.synced,
-                                      track: track,
-                                      trackId: request.id,
-                                      translations: translations,
-                                      depth: wide,
-                                    )
-                                  : PlainLyricsView(text: value.plain!, track: track, translations: translations);
-                              final translating = ref.watch(lyricsTranslationOnProvider);
-                              return Column(
-                                children: [
-                                  if (!wide) const _OffsetBar(),
-                                  Expanded(
-                                    child: translating
-                                        ? TranslatedLyrics(
-                                            // Otro motor (teléfono o IA): se vuelve a traducir.
-                                            key: ValueKey(ref.watch(settingsProvider.select((s) => s.useGemini))),
-                                            trackId: request.id,
-                                            lines: value.isSynced
-                                                ? [for (final l in value.synced) l.text]
-                                                : value.plain!.split('\n'),
-                                            builder: body,
-                                          )
-                                        : body(null),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                    if (!wide) {
-                      // Una columna, Simple: el reproductor limpio debajo de la letra.
-                      if (panel != 'simple') return column;
-                      return Column(
+                          ],
+                        );
+                      }
+                      if (!wide) {
+                        // Una columna, Simple: el reproductor limpio debajo de la letra.
+                        if (panel != 'simple') return column;
+                        return Column(
+                          children: [
+                            Expanded(child: column),
+                            LyricsSimplePanel(track: track, compact: true),
+                          ],
+                        );
+                      }
+                      final synced = lyrics.valueOrNull?.isSynced ?? false;
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(child: column),
-                          LyricsSimplePanel(track: track, compact: true),
+                          SizedBox(
+                            width: min(440, box.maxWidth * 0.36),
+                            child: switch (panel) {
+                              'simple' => LyricsSimplePanel(track: track),
+                              'showcase' => LyricsShowcase(track: track),
+                              _ => LyricsSidePanel(track: track, synced: synced),
+                            },
+                          ),
                         ],
                       );
-                    }
-                    final synced = lyrics.valueOrNull?.isSynced ?? false;
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(child: column),
-                        SizedBox(
-                          width: min(440, box.maxWidth * 0.36),
-                          child: switch (panel) {
-                            'simple' => LyricsSimplePanel(track: track),
-                            'showcase' => LyricsShowcase(track: track),
-                            _ => LyricsSidePanel(track: track, synced: synced),
-                          },
-                        ),
-                      ],
-                    );
-                  },
+                    },
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -334,6 +361,7 @@ class _Header extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final full = ref.watch(lyricsFullscreenProvider);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       child: Row(
@@ -367,13 +395,28 @@ class _Header extends ConsumerWidget {
                   ),
           ),
           GlassIconButton(
+            key: const Key('lyrics-fullscreen'),
             foreground: Colors.white,
-            icon: lyricsPanelIcon(panel),
-            tooltip: tx.cambiarVistaDeLaLetra(lyricsPanelLabel(nextLyricsPanel(panel))),
-            onPressed: () =>
-                ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: nextLyricsPanel(panel))),
+            icon: full ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+            tooltip: full ? tx.salirDePantallaCompleta : tx.pantallaCompleta,
+            onPressed: () => ref.read(lyricsFullscreenProvider.notifier).state = !full,
           ),
           const SizedBox(width: 8),
+          if (!full) ...[
+            GlassIconButton(
+              foreground: Colors.white,
+              icon: lyricsPanelIcon(panel),
+              tooltip: tx.cambiarVistaDeLaLetra(lyricsPanelLabel(nextLyricsPanel(panel))),
+              onPressed: () =>
+                  // Si esta canción tiene su vista, se cambia la suya; si no, la general.
+                  ref.read(currentTrackStyleProvider)?.lyricsPanel != null
+                  ? ref
+                        .read(trackOverridesProvider.notifier)
+                        .setStyle(track.id, (s) => s.copyWith(lyricsPanel: nextLyricsPanel(panel)))
+                  : ref.read(settingsProvider.notifier).update((s) => s.copyWith(lyricsPanel: nextLyricsPanel(panel))),
+            ),
+            const SizedBox(width: 8),
+          ],
           GlassIconButton(
             foreground: Colors.white,
             icon: Icons.more_horiz_rounded,
@@ -682,11 +725,25 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
                             weight: isCurrent ? FontWeight.w800 : FontWeight.w700,
                             color: Colors.white.withValues(alpha: isCurrent ? 1 : (isPast ? 0.3 : 0.48)),
                           ).copyWith(height: 1.2),
-                          child: Text(
-                            line.text.isEmpty ? '♪' : line.text,
-                            textAlign: centered ? TextAlign.center : TextAlign.start,
-                            semanticsLabel: isCurrent ? tx.ahoraLinea(line.text) : line.text,
-                          ),
+                          // La que suena se llena de color a medida que avanza (karaoke).
+                          child: isCurrent && line.text.isNotEmpty
+                              ? Semantics(
+                                  label: tx.ahoraLinea(line.text),
+                                  child: ExcludeSemantics(
+                                    child: KaraokeLine(
+                                      line: line,
+                                      next: index + 1 < widget.lines.length ? widget.lines[index + 1].time : null,
+                                      offset: offset,
+                                      textAlign: centered ? TextAlign.center : TextAlign.start,
+                                      calm: calm,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  line.text.isEmpty ? '♪' : line.text,
+                                  textAlign: centered ? TextAlign.center : TextAlign.start,
+                                  semanticsLabel: line.text,
+                                ),
                         ),
                         if (translation != null && translation.isNotEmpty)
                           Padding(
@@ -972,9 +1029,12 @@ class _Message extends StatelessWidget {
 /// decodificar la portada en 24 px y estirarla (barato: no usa filtros de desenfoque, que en el
 /// teléfono costaban ~10 ms por cuadro).
 class LyricsBackdrop extends ConsumerStatefulWidget {
-  const LyricsBackdrop({super.key, required this.track});
+  const LyricsBackdrop({super.key, required this.track, this.reactive = false});
 
   final Track track;
+
+  /// Pantalla completa: un resplandor que sigue el volumen de la música.
+  final bool reactive;
 
   @override
   ConsumerState<LyricsBackdrop> createState() => _LyricsBackdropState();
@@ -1025,6 +1085,7 @@ class _LyricsBackdropState extends ConsumerState<LyricsBackdrop> {
             ),
           ),
         ),
+        if (widget.reactive) ReactiveGlow(track: track, accent: accent),
       ],
     );
   }

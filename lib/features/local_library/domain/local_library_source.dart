@@ -1,9 +1,10 @@
 import '../../../models/track.dart';
+import 'local_exclusions.dart';
 
 /// De dónde sale la música guardada en el dispositivo.
 ///
 /// Es una interfaz: en Android se lee del MediaStore
-/// (`on_audio_query`, que no existe en PC); en Windows/Linux, de las carpetas
+/// (canal propio `kiji/media`, que no existe en PC); en Windows/Linux, de las carpetas
 /// que elige el usuario. Implementaciones en `data/`.
 abstract interface class LocalLibrarySource {
   /// true si la música sale de carpetas elegidas por el usuario (PC). La
@@ -24,6 +25,8 @@ abstract interface class LocalLibrarySource {
   /// Deja de leer [folder] (solo PC). No borra ningún archivo.
   Future<void> removeFolder(String folder);
 
-  /// Las canciones, ordenadas por título.
-  Future<List<Track>> loadTracks();
+  /// Las canciones, ordenadas por título. Lo ya leído sale de una caché (solo se leen los
+  /// archivos nuevos o cambiados); con [force] ("Volver a escanear") se vuelve a leer todo. Lo que
+  /// [exclusions] deja afuera (notas de voz, audios de chats, grabaciones) ni se lee.
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults});
 }

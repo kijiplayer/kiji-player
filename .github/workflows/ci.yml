@@ -1,4 +1,4 @@
-# Análisis, pruebas y compilación de Android y Windows en cada subida a master y en cada PR.
+# Análisis, pruebas y compilación de Android, Windows y Linux en cada subida a master y en cada PR.
 name: CI
 
 on:
@@ -51,8 +51,6 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Parche de plugins viejos
-        run: dart run tool/patch_plugins.dart
       - name: "NDK de Android (con reintentos: la descarga a veces llega dañada)"
         run: |
           ndk=$(grep -oP 'ndkVersion\s*=\s*"\K[^"]+' "$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt" || true)
@@ -85,3 +83,31 @@ jobs:
       - run: flutter pub get
       - name: Windows release
         run: flutter build windows --release
+
+  linux:
+    name: Compilar Linux
+    # flutter_inappwebview_linux (beta) necesita WebKit WPE 2.50–2.52: ninguna Ubuntu la trae, Debian 13 trae
+    # la 2.48 y Debian forky la 2.54 (cambió una constante). Hasta que el plugin se ponga al día, este
+    # trabajo puede fallar sin frenar el resto (ver REPORTE_SESION, Pendiente).
+    runs-on: ubuntu-latest
+    container: debian:forky
+    continue-on-error: true
+    timeout-minutes: 45
+    steps:
+      - name: Librerías del sistema (GTK, mpv, WebKit WPE 2.0, bandeja y atajos)
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git unzip xz-utils zip jq file build-essential             clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libepoxy-dev             libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libwayland-dev             libwpewebkit-2.0-dev libwpebackend-fdo-1.0-dev
+          git config --global --add safe.directory '*'
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Linux release
+        # flutter_inappwebview_linux pide opciones de un clang más nuevo: que no frenen la compilación.
+        env:
+          CXXFLAGS: -Wno-unknown-warning-option
+        run: flutter build linux --release

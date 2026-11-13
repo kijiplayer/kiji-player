@@ -2,30 +2,38 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/equalizer/data/equalizer_engine.dart';
 import 'package:kiji_player/features/equalizer/data/equalizer_notifier.dart';
 import 'package:kiji_player/features/equalizer/domain/equalizer_model.dart';
-import 'package:kiji_player/features/equalizer/presentation/equalizer_screen.dart';
 
-/// Ecualizador falso: anota lo que se le pide.
-class _FakeEngine implements EqualizerEngine {
-  static const centers = [60.0, 230.0, 910.0, 3600.0, 14000.0];
-  bool enabled = false;
-  List<double>? gains;
+/// Motor de sonido falso: anota lo último que se le pidió.
+class FakeSoundEngine extends SoundEngine {
+  FakeSoundEngine({this.centers = phoneBands, this.caps = const SoundCapabilities(bass: true, reverb: true)});
+
+  static const phoneBands = [60.0, 230.0, 910.0, 3600.0, 14000.0];
+  final List<double> centers;
+  final SoundCapabilities caps;
+  SoundMix? last;
+  int? session;
+
+  bool get enabled => last?.enabled ?? false;
+  List<double>? get gains => last?.gains;
 
   @override
   bool get isSupported => true;
   @override
-  Future<EqBands?> bands() async => const EqBands(centers: centers, minDb: -15, maxDb: 15);
+  Future<EqBands?> bands() async => EqBands(centers: centers, minDb: -15, maxDb: 15);
   @override
-  Future<void> setEnabled(bool value) async => enabled = value;
+  Future<SoundCapabilities> capabilities() async => caps;
   @override
-  Future<void> setGains(List<double> value) async => gains = value;
+  void setAudioSession(int? id) => session = id;
+  @override
+  Future<void> apply(SoundMix mix) async => last = mix;
 }
 
 class _FakeMonitor extends AudioOutputMonitor {
@@ -55,6 +63,9 @@ Future<void> _until(bool Function() done) async {
   }
 }
 
+List<double> _gains(String presetId, [List<double> centers = FakeSoundEngine.phoneBands]) =>
+    EqProfile(presetId: presetId).gainsFor(centers);
+
 void main() {
   group('curva y presets', () {
     test('gainAt interpola en escala logarítmica y se queda en los extremos', () {
@@ -68,46 +79,85 @@ void main() {
       expect(gainAt(const {}, 500), 0);
     });
 
-    test('un preset se adapta a las bandas del teléfono y respeta su rango', () {
+    test('los presets de fábrica: Normal, Bajos, Voz, Rock, Electrónica, Acústico y Noche', () {
+      expect(eqPresets.map((p) => p.label), ['Normal', 'Bajos', 'Voz', 'Rock', 'Electrónica', 'Acústico', 'Noche']);
+      for (final preset in eqPresets) {
+        expect(preset.points.keys, [for (final hz in tenBands) hz.round()], reason: preset.id);
+      }
+    });
+
+    test('un preset de 10 bandas se adapta a las 5 de un teléfono y respeta su rango', () {
       const profile = EqProfile(presetId: 'bass');
-      expect(profile.gainsFor([60, 230, 910, 3600, 14000]), [6, 4, 0, 0, 0]);
-      // Un teléfono con 10 bandas recibe la curva interpolada.
-      final ten = profile.gainsFor([31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]);
-      expect(ten.first, 6);
-      expect(ten[3], inInclusiveRange(0, 4));
-      expect(ten.last, 0);
+      expect(profile.gainsFor(tenBands), [6, 6, 5, 3, 1, 0, 0, 0, 0, 0], reason: 'en la PC, tal cual');
+      final phone = profile.gainsFor(FakeSoundEngine.phoneBands);
+      expect(phone.first, 6);
+      expect(phone[1], inInclusiveRange(3, 5));
+      expect(phone.last, 0);
       // Un rango chico (±3 dB) recorta.
       expect(profile.gainsFor([60], min: -3, max: 3), [3]);
     });
 
     test('mover una banda pasa a Personalizado sin tocar las demás', () {
-      const centers = [60.0, 230.0, 910.0, 3600.0, 14000.0];
-      final edited = const EqProfile(presetId: 'rock').withBand(centers, 2, 6);
+      final before = _gains('rock', tenBands);
+      final edited = const EqProfile(presetId: 'rock').withBand(tenBands, 2, 6);
       expect(edited.presetId, EqProfile.custom);
       expect(edited.label, 'Personalizado');
-      expect(edited.gainsFor(centers), [5, 3, 6, 3, 5]);
+      expect(edited.gainsFor(tenBands), [...before.take(2), 6, ...before.skip(3)]);
+    });
+
+    test('un perfil guardado con un preset que ya no existe queda Personalizado con la misma curva', () {
+      final old = EqProfile.fromJson({'preset': 'pop'});
+      expect(old.presetId, EqProfile.custom);
+      expect(old.gainsFor(FakeSoundEngine.phoneBands), [-1, 2, 4, 2, -1]);
     });
 
     test('los ajustes se guardan y se leen igual; un archivo raro vuelve a lo de fábrica', () {
-      final settings = const EqualizerSettings(enabled: true, perDevice: true).copyWith(byOutput: {
-        AudioOutputKind.headphones: const EqProfile(presetId: 'bass'),
-        AudioOutputKind.bluetooth: const EqProfile(presetId: EqProfile.custom, points: {60: 2, 14000: -1}),
-      });
+      const preset = EqUserPreset(id: 'a1', name: 'Mi preset', points: {60: 3, 14000: -2});
+      final settings = const EqualizerSettings(enabled: true, perDevice: true).copyWith(
+        byOutput: {
+          AudioOutputKind.headphones: const EqProfile(presetId: 'bass'),
+          AudioOutputKind.bluetooth: const EqProfile(presetId: EqProfile.custom, points: {60: 2, 14000: -1}),
+          AudioOutputKind.speaker: EqProfile(presetId: preset.profileId, points: preset.points, name: preset.name),
+        },
+        userPresets: [preset],
+        bass: 0.4,
+        reverb: ReverbMode.room,
+      );
       final back = EqualizerSettings.fromJson(settings.toJson());
       expect(back.enabled, isTrue);
       expect(back.perDevice, isTrue);
       expect(back.profileFor(AudioOutputKind.headphones).presetId, 'bass');
       expect(back.profileFor(AudioOutputKind.bluetooth).points, {60: 2, 14000: -1});
-      expect(back.profileFor(AudioOutputKind.speaker).presetId, 'flat');
+      expect(back.profileFor(AudioOutputKind.speaker).label, 'Mi preset');
+      expect(back.userPresets.single.points, {60: 3, 14000: -2});
+      expect(back.bass, 0.4);
+      expect(back.reverb, ReverbMode.room);
 
       final weird = EqualizerSettings.fromJson({
         'enabled': 'sí',
         'general': {'preset': 'no-existe'},
         'byOutput': {'bluetooth': 7},
+        'userPresets': [7, {'id': '', 'name': 'x'}],
+        'bass': 9,
+        'reverb': 'catedral',
       });
       expect(weird.enabled, isFalse);
       expect(weird.general.presetId, 'flat');
+      expect(weird.userPresets, isEmpty);
+      expect(weird.bass, 1);
+      expect(weird.reverb, ReverbMode.off);
       expect(const EqualizerSettings().enabled, isFalse, reason: 'apagado de fábrica');
+    });
+
+    test('velocidad y tono se guardan solo si se eligió mantenerlos entre canciones', () {
+      const passing = EqualizerSettings(enabled: true, speed: 1.5, semitones: 2);
+      final notKept = EqualizerSettings.fromJson(passing.toJson());
+      expect((notKept.speed, notKept.semitones), (1.0, 0));
+      final kept = EqualizerSettings.fromJson(passing.copyWith(keepSpeedPitch: true).toJson());
+      expect((kept.speed, kept.semitones), (1.5, 2));
+      // Con "Efectos" apagado, el reproductor va siempre normal.
+      expect(passing.copyWith(enabled: false).playbackRate, (speed: 1.0, pitch: 1.0));
+      expect(passing.playbackRate.pitch, closeTo(1.1225, 0.0001), reason: '2 semitonos');
     });
 
     test('la salida se deduce de los dispositivos conectados', () {
@@ -121,6 +171,62 @@ void main() {
     });
   });
 
+  group('margen de seguridad (para que no sature)', () {
+    test('sin subas o con subas chicas no se toca el volumen', () {
+      expect(headroomGain(centers: tenBands, gains: List.filled(10, 0)), 1);
+      expect(headroomGain(centers: tenBands, gains: [3, 2, 0, 0, 0, 0, 0, 0, 0, -6]), 1, reason: 'hasta 3 dB, nada');
+      expect(headroomGain(centers: tenBands, gains: List.filled(10, -5)), 1, reason: 'bajar nunca satura');
+    });
+
+    test('baja lo que pase de 3 dB en la banda que más sube, con los bajos sumados en las graves', () {
+      double db(double gain) => 20 * math.log(gain) / math.ln10;
+      // Preset Bajos (+6 en 31/62 Hz) y refuerzo al máximo (+10): 16 dB arriba → baja 13 dB.
+      final bass = headroomGain(centers: tenBands, gains: const EqProfile(presetId: 'bass').gainsFor(tenBands), bass: 1);
+      expect(db(bass), closeTo(-13, 0.01));
+      // Agudos +9 y bajos al máximo (+10 en las graves): manda la que más sube, 10 dB → baja 7.
+      expect(db(headroomGain(centers: tenBands, gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 9], bass: 1)), closeTo(-7, 0.01));
+      // Sin ecualizador (bandas todavía no leídas), solo los bajos.
+      expect(db(headroomGain(centers: const [], gains: const [], bass: 0.5)), closeTo(-2, 0.01));
+    });
+
+    test('el estado del ecualizador da el margen solo con "Efectos" encendido', () {
+      const bands = EqBands(centers: tenBands, minDb: -12, maxDb: 12);
+      const loud = EqualizerSettings(enabled: true, general: EqProfile(presetId: 'bass'), bass: 1);
+      const on = EqualizerState(settings: loud, bands: bands, capabilities: SoundCapabilities(bass: true));
+      expect(on.headroom, lessThan(0.3));
+      expect(EqualizerState(settings: loud.copyWith(enabled: false), bands: bands).headroom, 1);
+      const noBass = EqualizerState(settings: loud, bands: bands);
+      expect(noBass.headroom, greaterThan(on.headroom), reason: 'sin refuerzo de bajos en el dispositivo, no se cuenta');
+    });
+  });
+
+  group('PC (mpv)', () {
+    test('la cadena de filtros: una banda por ganancia distinta de 0 y los bajos aparte', () {
+      expect(mpvEffects(const SoundMix(enabled: false, gains: [3]), tenBands), isNull, reason: 'Efectos apagado');
+      expect(mpvEffects(SoundMix(enabled: true, gains: List.filled(10, 0)), tenBands), isNull,
+          reason: 'todo en 0: el audio sale tal cual, sin filtros');
+      final chain = mpvEffects(
+        const SoundMix(enabled: true, gains: [0, 4, 0, 0, 0, 0, 0, 0, 0, -2.5], bass: 0.5),
+        tenBands,
+      );
+      expect(
+        chain,
+        'equalizer=f=62:t=o:w=1:g=4.0,equalizer=f=16000:t=o:w=1:g=-2.5,equalizer=f=70:t=o:w=2:g=5.0',
+      );
+    });
+
+    test('el motor de la PC tiene 10 bandas y bajos, pero no reverb', () async {
+      String? applied = 'sin llamar';
+      final engine = MpvSoundEngine(setEffects: (effects) async => applied = effects);
+      expect((await engine.bands())!.centers, tenBands);
+      final caps = await engine.capabilities();
+      expect(caps.bass, isTrue);
+      expect(caps.reverb, isFalse);
+      await engine.apply(const SoundMix(enabled: true, gains: [1]));
+      expect(applied, 'equalizer=f=31:t=o:w=1:g=1.0');
+    });
+  });
+
   group('EqualizerNotifier', () {
     late Directory dir;
     setUp(() => dir = Directory.systemTemp.createTempSync('kiji_eq_'));
@@ -129,7 +235,7 @@ void main() {
       if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
 
-    ProviderContainer container(_FakeEngine engine, _FakeMonitor monitor) {
+    ProviderContainer container(FakeSoundEngine engine, _FakeMonitor monitor) {
       final c = ProviderContainer(overrides: [
         equalizerEngineProvider.overrideWithValue(engine),
         audioOutputMonitorProvider.overrideWithValue(monitor),
@@ -140,7 +246,7 @@ void main() {
     }
 
     test('apagado de fábrica: no cambia el sonido', () async {
-      final engine = _FakeEngine();
+      final engine = FakeSoundEngine();
       final c = container(engine, _FakeMonitor(AudioOutputKind.speaker));
       c.read(equalizerProvider);
       await _settle();
@@ -149,7 +255,7 @@ void main() {
     });
 
     test('perfil por dispositivo: cambia solo al conectar los auriculares y se recuerda', () async {
-      final engine = _FakeEngine();
+      final engine = FakeSoundEngine();
       final monitor = _FakeMonitor(AudioOutputKind.speaker);
       final c = container(engine, monitor);
       final eq = c.read(equalizerProvider.notifier);
@@ -159,75 +265,108 @@ void main() {
       await eq.setEnabled(true);
       await eq.selectPreset(AudioOutputKind.speaker, 'vocal');
       expect(engine.enabled, isTrue);
-      expect(engine.gains, [-2, -1, 3, 4, 1]);
+      expect(engine.gains, _gains('vocal'));
 
       // Al activar el perfil por dispositivo, cada salida arranca igual que
       // el general: el sonido no cambia de golpe.
       await eq.setPerDevice(true);
-      expect(engine.gains, [-2, -1, 3, 4, 1]);
+      expect(engine.gains, _gains('vocal'));
       await eq.selectPreset(AudioOutputKind.headphones, 'bass');
-      expect(engine.gains, [-2, -1, 3, 4, 1], reason: 'suena el parlante, no los auriculares');
+      expect(engine.gains, _gains('vocal'), reason: 'suena el parlante, no los auriculares');
 
       monitor.plug(AudioOutputKind.headphones);
       await _until(() => c.read(equalizerProvider).output == AudioOutputKind.headphones && engine.gains?.first == 6);
-      expect(c.read(equalizerProvider).output, AudioOutputKind.headphones);
-      expect(engine.gains, [6, 4, 0, 0, 0]);
+      expect(engine.gains, _gains('bass'));
 
       monitor.plug(AudioOutputKind.speaker);
-      await _until(() => engine.gains?.first == -2);
-      expect(engine.gains, [-2, -1, 3, 4, 1]);
+      await _until(() => engine.gains?.first == _gains('vocal').first);
+      expect(engine.gains, _gains('vocal'));
 
       // Otra sesión lee lo mismo del disco.
-      final engine2 = _FakeEngine();
+      final engine2 = FakeSoundEngine();
       final c2 = container(engine2, _FakeMonitor(AudioOutputKind.headphones));
       c2.read(equalizerProvider);
       await c2.read(equalizerProvider.notifier).loaded;
       await _until(() => engine2.gains?.first == 6);
       expect(c2.read(equalizerProvider).settings.perDevice, isTrue);
       expect(engine2.enabled, isTrue);
-      expect(engine2.gains, [6, 4, 0, 0, 0]);
+      expect(engine2.gains, _gains('bass'));
     });
 
-    test('mover una banda guarda un perfil personalizado', () async {
-      final engine = _FakeEngine();
+    test('mover una banda guarda un perfil personalizado y enciende los efectos', () async {
+      final engine = FakeSoundEngine();
       final c = container(engine, _FakeMonitor(AudioOutputKind.speaker));
       c.read(equalizerProvider);
       await _settle();
       await c.read(equalizerProvider.notifier).setBand(AudioOutputKind.speaker, 4, -4.5);
       final state = c.read(equalizerProvider);
       expect(state.activeProfile.presetId, EqProfile.custom);
+      expect(state.settings.enabled, isTrue, reason: 'si no, el cambio no se oiría');
       expect(engine.gains, [0, 0, 0, 0, -4.5]);
     });
-  });
 
-  testWidgets('la pantalla elige un preset y muestra las bandas', (tester) async {
-    Future<Directory> noDisk() async => throw const FileSystemException('sin disco en el test');
-    final engine = _FakeEngine();
-    tester.view.physicalSize = const Size(420, 1400);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
+    test('presets propios: guardar, renombrar y borrar sin que cambie lo que suena', () async {
+      final engine = FakeSoundEngine();
+      final c = container(engine, _FakeMonitor(AudioOutputKind.speaker));
+      final eq = c.read(equalizerProvider.notifier);
+      c.read(equalizerProvider);
+      await _settle();
+      await eq.setBand(AudioOutputKind.speaker, 0, 5);
+      await eq.saveUserPreset(AudioOutputKind.speaker, '  Para el auto ');
+      var state = c.read(equalizerProvider);
+      final preset = state.settings.userPresets.single;
+      expect(preset.name, 'Para el auto');
+      expect(state.activeProfile.label, 'Para el auto');
+      expect(engine.gains, [5, 0, 0, 0, 0]);
 
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        equalizerEngineProvider.overrideWithValue(engine),
-        audioOutputMonitorProvider.overrideWithValue(const FixedOutputMonitor()),
-        equalizerProvider.overrideWith(() => EqualizerNotifier(directory: noDisk)),
-      ],
-      child: const MaterialApp(home: EqualizerScreen()),
-    ));
-    await tester.pumpAndSettle();
+      await eq.selectPreset(AudioOutputKind.speaker, 'rock');
+      await eq.selectPreset(AudioOutputKind.speaker, preset.profileId);
+      expect(engine.gains, [5, 0, 0, 0, 0], reason: 'volver a elegirlo suena igual');
 
-    expect(find.text('Apagado: el sonido no cambia.'), findsOneWidget);
-    expect(find.text('14k'), findsOneWidget);
-    expect(find.byType(Slider), findsNWidgets(5));
+      await eq.renameUserPreset(preset.id, 'Auto');
+      state = c.read(equalizerProvider);
+      expect(state.settings.userPresets.single.name, 'Auto');
+      expect(state.activeProfile.label, 'Auto', reason: 'el perfil que lo usa se renombra también');
 
-    await tester.tap(find.byType(Switch).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Rock'));
-    await tester.pumpAndSettle();
-    expect(find.text('Encendido: Rock'), findsOneWidget);
-    expect(engine.enabled, isTrue);
-    expect(engine.gains, [5, 3, -1, 3, 5]);
-    expect(find.text('+5.0'), findsNWidgets(2));
+      await eq.deleteUserPreset(preset.id);
+      state = c.read(equalizerProvider);
+      expect(state.settings.userPresets, isEmpty);
+      expect(state.activeProfile.presetId, EqProfile.custom);
+      expect(engine.gains, [5, 0, 0, 0, 0], reason: 'lo que suena no cambia');
+    });
+
+    test('bajos y reverb llegan al motor solo donde existen', () async {
+      final engine = FakeSoundEngine(caps: const SoundCapabilities(bass: true));
+      final c = container(engine, _FakeMonitor(AudioOutputKind.speaker));
+      final eq = c.read(equalizerProvider.notifier);
+      c.read(equalizerProvider);
+      await _settle();
+      await eq.setBass(0.6);
+      await eq.setReverb(ReverbMode.stadium);
+      expect(engine.last?.bass, 0.6);
+      expect(engine.last?.reverb, ReverbMode.off, reason: 'este dispositivo no tiene reverb');
+      expect(c.read(equalizerProvider).settings.reverb, ReverbMode.stadium, reason: 'queda elegida igual');
+      eq.audioSessionChanged(42);
+      expect(engine.session, 42);
+    });
+
+    test('velocidad y tono vuelven a lo normal con otra canción, salvo que se mantengan', () async {
+      final c = container(FakeSoundEngine(), _FakeMonitor(AudioOutputKind.speaker));
+      final eq = c.read(equalizerProvider.notifier);
+      c.read(equalizerProvider);
+      await _settle();
+      await eq.setSpeed(1.25);
+      await eq.setSemitones(-3);
+      expect(c.read(equalizerProvider).settings.playbackRate.speed, 1.25);
+      await eq.trackChanged();
+      expect(c.read(equalizerProvider).settings.speedPitchNormal, isTrue);
+
+      await eq.setKeepSpeedPitch(true);
+      await eq.setSpeed(0.75);
+      await eq.trackChanged();
+      expect(c.read(equalizerProvider).settings.speed, 0.75);
+      await eq.resetSpeedPitch();
+      expect(c.read(equalizerProvider).settings.speedPitchNormal, isTrue);
+    });
   });
 }

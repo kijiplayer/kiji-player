@@ -1,0 +1,7 @@
+• New player: wave ring, compact and full screen modes.
+• Personalize Kiji: color, font, your own background, per-song style and .kiji themes.
+• Library and local music: artists, albums, folders and batch downloads.
+• Sound and lyrics: equalizer, speed, pitch, crossfade and word-by-word karaoke.
+• Import by link or connect your YouTube Music (optional); full backup.
+• Theater: 🍅 and 🌹 with curtain, ovation and «Your Theater».
+• 5 widgets in beta: Ring, Now playing, Lyrics, Theater and Bar.

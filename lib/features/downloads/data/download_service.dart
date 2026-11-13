@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import '../../extractor/data/engines.dart';
 import '../../extractor/data/stream_resolver.dart';
 import '../../extractor/domain/resolved_stream.dart';
+import '../../system_media/data/cover_art.dart';
 import '../../yt_music/data/ytm_client.dart';
 import '../domain/download_failure.dart';
 import 'downloads_repository.dart';
@@ -215,11 +216,15 @@ class DownloadService {
 
   /// Guarda la portada junto al audio, para mostrarla sin conexión.
   /// Si falla no pasa nada: la descarga vale igual.
+  static const hqThumbnailSuffix = '.hq.jpg';
+
   Future<String?> downloadThumbnail(String videoId, String? url) async {
     if (url == null) return null;
     try {
-      final fileName = '$videoId.jpg';
-      await _dio.download(url, await _repository.pathFor(fileName));
+      // ".hq": guardada en alta calidad (las de antes de la 0.8.0 eran las chicas de la búsqueda).
+      final fileName = '$videoId$hqThumbnailSuffix';
+      // En alta calidad: es la que se ve sin internet, también en el reproductor.
+      await _dio.download(fullThumbnailUrl(url), await _repository.pathFor(fileName));
       return fileName;
     } catch (error) {
       debugPrint('=== DESCARGAS: no se pudo bajar la portada de $videoId: $error ===');

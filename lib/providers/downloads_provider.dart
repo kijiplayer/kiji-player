@@ -5,6 +5,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/downloads/data/cover_upgrade.dart';
+import '../features/lyrics/domain/lyrics.dart';
+import '../features/lyrics/lyrics_provider.dart';
+import '../features/settings/data/settings_store.dart';
 import '../features/downloads/data/download_service.dart';
 import '../features/downloads/data/downloads_repository.dart';
 import '../features/downloads/data/storage_info_impl.dart';
@@ -201,13 +205,115 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
         loaded: true,
         directoryPath: directory.path,
       );
+      // Sin apuro: que primero arranque lo demás (la canción restaurada, el inicio).
+      _coverTimer = Timer(coverUpgradeDelay, () => unawaited(_upgradeCovers()));
+      ref.onDispose(() => _coverTimer?.cancel());
     } catch (error) {
       debugPrint('=== DESCARGAS: no se pudo leer el índice: $error ===');
       state = state.copyWith(loaded: true);
     }
   }
 
-  Future<bool> _onWifiOrEthernet() async {
+  /// Cuánto se espera después de abrir Kiji para mejorar las portadas viejas.
+  static Duration coverUpgradeDelay = const Duration(seconds: 45);
+  Timer? _coverTimer;
+
+  /// Busca la letra de [entry] (caché, archivo o las fuentes prendidas, con la verificación de
+  /// siempre) y la guarda junto a la canción para verla sin internet. Sin letra o sin internet, no
+  /// guarda nada (se vuelve a probar la próxima vez que se abra Kiji).
+  Future<bool> _saveLyrics(DownloadedTrack entry) async {
+    final settings = ref.read(settingsProvider);
+    if (!settings.downloadLyrics || entry.lyricsFileName != null) return false;
+    // Con "solo con WiFi" o el ahorro de datos, sin WiFi se espera: se retoma al volver el WiFi.
+    if (!await _lyricsNetworkOk()) {
+      _waitForWifiForLyrics();
+      return false;
+    }
+    try {
+      final lyrics = await ref
+          .read(lyricsRepositoryProvider)
+          .get(lyricsRequestFor(entry.toTrack()), disabled: settings.disabledLyricsSources);
+      if (lyrics.isEmpty) return false;
+      final updated = await _repository.saveLyrics(entry.videoId, lyricsToLrc(lyrics));
+      if (updated != null && state.completed.containsKey(entry.videoId)) {
+        state = state.copyWith(completed: {...state.completed, entry.videoId: updated});
+      }
+      debugPrint('=== DESCARGAS: letra guardada con "${entry.title}" ===');
+      return true;
+    } catch (error) {
+      debugPrint('=== DESCARGAS: sin letra para guardar con "${entry.title}": $error ===');
+      return false;
+    }
+  }
+
+  /// Portadas chicas de descargas viejas → alta calidad, en segundo plano (ver [CoverUpgrade]).
+  /// Después, la letra de las que todavía no la tienen.
+  /// Con "solo con WiFi" o el ahorro de datos, solo con WiFi (o cable): si no, nada por datos
+  /// móviles (se retoma la próxima vez que se abra Kiji).
+  Future<void> _upgradeCovers() async {
+    if (!await _lyricsNetworkOk()) {
+      debugPrint('=== DESCARGAS: portadas viejas, se esperan al WiFi (ahorro de datos o solo WiFi) ===');
+      return;
+    }
+    final client = YtMusicClient();
+    await CoverUpgrade(
+      coverUrlFor: (videoId) async => (await client.videoDetails(videoId))?.thumbnailUrl,
+      download: _service.downloadThumbnail,
+      replace: (videoId, fileName) async {
+        final updated = await _repository.replaceThumbnail(videoId, fileName);
+        if (updated != null && state.completed.containsKey(videoId)) {
+          state = state.copyWith(completed: {...state.completed, videoId: updated});
+        }
+      },
+    ).run(state.completed.values.toList());
+    await _lyricsForOldDownloads();
+  }
+
+  /// Letras y portadas se bajan solo si no hay que cuidar los datos: con "solo con WiFi" o el
+  /// ahorro de datos, únicamente con WiFi (o cable).
+  Future<bool> _lyricsNetworkOk() async {
+    final s = state.settings;
+    if (!(s.wifiOnly || ref.read(settingsProvider).dataSaver)) return true;
+    return canFetchExtras(wifiOnly: s.wifiOnly, dataSaver: ref.read(settingsProvider).dataSaver, onWifi: await onWifiOrEthernet());
+  }
+
+  StreamSubscription<List<ConnectivityResult>>? _wifiForLyrics;
+
+  /// Espera al WiFi para bajar las letras que quedaron pendientes (una sola espera a la vez).
+  void _waitForWifiForLyrics() {
+    if (_wifiForLyrics != null) return;
+    debugPrint('=== DESCARGAS: letras pendientes hasta que haya WiFi ===');
+    try {
+      _wifiForLyrics = Connectivity().onConnectivityChanged.listen((result) {
+        if (!result.contains(ConnectivityResult.wifi) && !result.contains(ConnectivityResult.ethernet)) return;
+        unawaited(_wifiForLyrics?.cancel());
+        _wifiForLyrics = null;
+        unawaited(_lyricsForOldDownloads());
+      });
+      ref.onDispose(() => _wifiForLyrics?.cancel());
+    } catch (error) {
+      debugPrint('=== DESCARGAS: no se puede seguir la conexión: $error ===');
+    }
+  }
+
+  /// Descargas sin letra guardada: se busca de a una, sin apuro. Si fallan 3 seguidas (sin
+  /// internet), sigue la próxima vez.
+  Future<void> _lyricsForOldDownloads() async {
+    if (!ref.read(settingsProvider).downloadLyrics) return;
+    if (!await _lyricsNetworkOk()) return _waitForWifiForLyrics();
+    final pending = [for (final d in state.completed.values) if (d.lyricsFileName == null) d];
+    if (pending.isEmpty) return;
+    debugPrint('=== DESCARGAS: ${pending.length} sin letra guardada; se busca en segundo plano ===');
+    var failures = 0;
+    for (final entry in pending) {
+      if (failures >= 3) break;
+      failures = await _saveLyrics(entry) ? 0 : failures + 1;
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
+  }
+
+  /// ¿Hay WiFi o cable? (sin datos para decidir, sí: no se bloquea).
+  Future<bool> onWifiOrEthernet() async {
     try {
       final result = await Connectivity().checkConnectivity();
       return result.contains(ConnectivityResult.wifi) || result.contains(ConnectivityResult.ethernet);
@@ -225,7 +331,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
     if (videoId == null) {
       return DownloadCheck(blockedReason: tx.soloSePuedenDescargarCancionesDe);
     }
-    if (state.settings.wifiOnly && !await _onWifiOrEthernet()) {
+    if (state.settings.wifiOnly && !await onWifiOrEthernet()) {
       return DownloadCheck(blockedReason: tx.estasSinWifiYElegisteDescargar, waitingForWifi: true);
     }
 
@@ -380,6 +486,8 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       );
       await _repository.add(entry);
       debugPrint('=== DESCARGAS: "${track.title}" lista (${result.$2} bytes) ===');
+      // La letra, en segundo plano: no demora la descarga.
+      unawaited(_saveLyrics(entry));
       state = state.copyWith(
         completed: {...state.completed, videoId: entry},
         active: Map.of(state.active)..remove(videoId),
@@ -555,3 +663,8 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
 }
 
 final downloadsProvider = NotifierProvider<DownloadsNotifier, DownloadsState>(DownloadsNotifier.new);
+
+/// Letras y portadas en segundo plano: con "solo con WiFi" o el ahorro de datos, solo con WiFi (o
+/// cable); si no, siempre.
+bool canFetchExtras({required bool wifiOnly, required bool dataSaver, required bool onWifi}) =>
+    !(wifiOnly || dataSaver) || onWifi;

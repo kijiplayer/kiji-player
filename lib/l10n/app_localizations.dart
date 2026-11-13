@@ -947,71 +947,17 @@ abstract class AppLocalizations {
   /// **'Auriculares con cable'**
   String get auricularesConCable;
 
-  /// No description provided for @plano.
-  ///
-  /// In es, this message translates to:
-  /// **'Plano'**
-  String get plano;
-
-  /// No description provided for @masGraves.
-  ///
-  /// In es, this message translates to:
-  /// **'Más graves'**
-  String get masGraves;
-
-  /// No description provided for @masAgudos.
-  ///
-  /// In es, this message translates to:
-  /// **'Más agudos'**
-  String get masAgudos;
-
-  /// No description provided for @voces.
-  ///
-  /// In es, this message translates to:
-  /// **'Voces'**
-  String get voces;
-
   /// No description provided for @electronica.
   ///
   /// In es, this message translates to:
   /// **'Electrónica'**
   String get electronica;
 
-  /// No description provided for @acustica.
-  ///
-  /// In es, this message translates to:
-  /// **'Acústica'**
-  String get acustica;
-
-  /// No description provided for @clasica.
-  ///
-  /// In es, this message translates to:
-  /// **'Clásica'**
-  String get clasica;
-
-  /// No description provided for @nocheSuave.
-  ///
-  /// In es, this message translates to:
-  /// **'Noche (suave)'**
-  String get nocheSuave;
-
   /// No description provided for @ecualizador2.
   ///
   /// In es, this message translates to:
   /// **'Ecualizador'**
   String get ecualizador2;
-
-  /// No description provided for @enLaPcTodaviaNoHay.
-  ///
-  /// In es, this message translates to:
-  /// **'En la PC todavía no hay ecualizador: por ahora funciona solo en Android. Lo que elijas aquí se guarda igual.'**
-  String get enLaPcTodaviaNoHay;
-
-  /// No description provided for @apagadoElSonidoNoCambia.
-  ///
-  /// In es, this message translates to:
-  /// **'Apagado: el sonido no cambia.'**
-  String get apagadoElSonidoNoCambia;
 
   /// No description provided for @unPerfilPorDispositivo.
   ///
@@ -1042,12 +988,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'BANDAS'**
   String get bandas;
-
-  /// No description provided for @enLaPcNoHayBandas.
-  ///
-  /// In es, this message translates to:
-  /// **'En la PC no hay bandas para ajustar todavía.'**
-  String get enLaPcNoHayBandas;
 
   /// No description provided for @sinAlternativa.
   ///
@@ -1859,7 +1799,7 @@ abstract class AppLocalizations {
   /// **'Formato'**
   String get formato;
 
-  /// No description provided for @fondo.
+  /// Apariencia: fondo propio de la app.
   ///
   /// In es, this message translates to:
   /// **'Fondo'**
@@ -2818,12 +2758,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Al abrir Kiji, vuelve a la canción y al segundo donde quedó, en pausa.'**
   String get alAbrirKijiVuelveALa;
-
-  /// No description provided for @presetsBandasAManoYUn.
-  ///
-  /// In es, this message translates to:
-  /// **'Presets, bandas a mano y un perfil por dispositivo (parlante, auriculares, Bluetooth).'**
-  String get presetsBandasAManoYUn;
 
   /// No description provided for @apagado.
   ///
@@ -5699,12 +5633,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Se borra 1 canción del dispositivo. No se quita de tu cola: vuelve a sonar desde internet.} other{Se borran {count} canciones del dispositivo. No se quitan de tu cola: vuelven a sonar desde internet.}}'**
   String seBorranNDelDispositivo(num count);
 
-  /// No description provided for @encendidoPerfil.
-  ///
-  /// In es, this message translates to:
-  /// **'Encendido: {profile}'**
-  String encendidoPerfil(Object? profile);
-
   /// No description provided for @cable.
   ///
   /// In es, this message translates to:
@@ -6440,13 +6368,13 @@ abstract class AppLocalizations {
   /// No description provided for @tipografiaDescripcion.
   ///
   /// In es, this message translates to:
-  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel) o la del sistema'**
+  /// **'La del estilo (Space Grotesk en Nocturne, Inter en Grafito, Newsreader e Inter en Papel), una de las incluidas en Kiji o la del sistema'**
   String get tipografiaDescripcion;
 
   /// No description provided for @tipografiaKiji.
   ///
   /// In es, this message translates to:
-  /// **'La de Kiji'**
+  /// **'La del estilo'**
   String get tipografiaKiji;
 
   /// No description provided for @tipografiaSistema.
@@ -7072,6 +7000,1230 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Kiji puede quedar en la bandeja del sistema, tiene atajos globales y responde a las teclas multimedia.'**
   String get nuevoPcTexto;
+
+  /// Traducción de la letra: falló algo que no depende de la persona (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora no se pudo traducir. Vuelve a intentarlo en un momento.'**
+  String get traduccionNoDisponibleAhora;
+
+  /// Configuración → Cuenta: YouTube respondió 401 a la sesión guardada.
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube ya no acepta esta sesión. Vuelve a conectar la cuenta.'**
+  String get sesionVencidaVuelveAConectar;
+
+  /// Búsqueda, pestaña Todo: el resultado que mejor coincide.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado principal'**
+  String get resultadoPrincipal;
+
+  /// Búsqueda, pestaña Todo: abre la pestaña de esa sección.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver todo'**
+  String get verTodo;
+
+  /// Tipo de resultado de búsqueda: una playlist de YouTube Music.
+  ///
+  /// In es, this message translates to:
+  /// **'Playlist'**
+  String get playlist;
+
+  /// Salud del Extractor: por qué se retiró WEB_EMBEDDED_PLAYER.
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube responde «Este vídeo no está disponible» a todos los videos con esta forma, incluso a los comunes.'**
+  String get youtubeNoDisponibleIncrustado;
+
+  /// Preset del ecualizador: sin cambios.
+  ///
+  /// In es, this message translates to:
+  /// **'Normal'**
+  String get eqNormal;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajos'**
+  String get eqBajos;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Voz'**
+  String get eqVoz;
+
+  /// Preset del ecualizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Acústico'**
+  String get eqAcustico;
+
+  /// Preset del ecualizador: suave, para escuchar bajito.
+  ///
+  /// In es, this message translates to:
+  /// **'Noche'**
+  String get eqNoche;
+
+  /// Reverb: sin reverb.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagado'**
+  String get reverbApagado;
+
+  /// Reverb: como en una sala.
+  ///
+  /// In es, this message translates to:
+  /// **'Sala'**
+  String get reverbSala;
+
+  /// Reverb: como en un estadio.
+  ///
+  /// In es, this message translates to:
+  /// **'Estadio'**
+  String get reverbEstadio;
+
+  /// Pantalla Sonido (ecualizador y efectos).
+  ///
+  /// In es, this message translates to:
+  /// **'Sonido'**
+  String get sonido;
+
+  /// Configuración: subtítulo de Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador, bajos, velocidad, tono y mezcla entre canciones.'**
+  String get sonidoNota;
+
+  /// Sonido: el interruptor que enciende o apaga todos los efectos.
+  ///
+  /// In es, this message translates to:
+  /// **'Efectos'**
+  String get efectos;
+
+  /// Sonido: con los efectos apagados.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagados: la música suena tal cual.'**
+  String get efectosApagados;
+
+  /// Sonido: con los efectos encendidos.
+  ///
+  /// In es, this message translates to:
+  /// **'Encendidos: {profile}'**
+  String efectosEncendidos(String profile);
+
+  /// Sonido: título de las bandas.
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador · {count} bandas'**
+  String ecualizadorBandas(int count);
+
+  /// Sonido: guarda la curva actual.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar como preset'**
+  String get guardarComoPreset;
+
+  /// Sonido: campo del nombre.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del preset'**
+  String get nombreDelPreset;
+
+  /// Sonido: menú de un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Renombrar'**
+  String get renombrarPreset;
+
+  /// Sonido: confirmación al borrar un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Borrar el preset «{name}»?'**
+  String borrarPresetPregunta(String name);
+
+  /// Sonido: al borrar un preset propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que suena ahora no cambia: queda como Personalizado.'**
+  String get borrarPresetNota;
+
+  /// Sonido: ayuda bajo los presets.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantén presionado (o clic derecho) un preset propio para renombrarlo o borrarlo.'**
+  String get presetsPropiosNota;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Refuerzo de bajos'**
+  String get refuerzoDeBajos;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Velocidad'**
+  String get velocidad;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Tono'**
+  String get tono;
+
+  /// Sonido: velocidad 1x y tono 0.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a lo normal'**
+  String get volverALoNormal;
+
+  /// Sonido: velocidad y tono.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantener entre canciones'**
+  String get mantenerEntreCanciones;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Apagado, la velocidad y el tono vuelven a lo normal con cada canción.'**
+  String get mantenerEntreCancionesNota;
+
+  /// Sonido.
+  ///
+  /// In es, this message translates to:
+  /// **'Reverb'**
+  String get reverb;
+
+  /// Sonido: transición suave entre canciones.
+  ///
+  /// In es, this message translates to:
+  /// **'Mezcla entre canciones'**
+  String get mezclaEntreCanciones;
+
+  /// Sonido: tono.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 semitono} other{{count} semitonos}}'**
+  String semitonos(int count);
+
+  /// Sonido (PC).
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC, el ecualizador tiene 10 bandas.'**
+  String get enLaPcLasBandasSon;
+
+  /// Sonido (Android).
+  ///
+  /// In es, this message translates to:
+  /// **'Tu teléfono tiene {count} bandas; los presets se adaptan solos.'**
+  String elTelefonoTieneBandas(int count);
+
+  /// Letra: botón para verla a pantalla completa.
+  ///
+  /// In es, this message translates to:
+  /// **'Pantalla completa'**
+  String get pantallaCompleta;
+
+  /// Letra: botón para volver a la vista normal (también con Esc en la PC).
+  ///
+  /// In es, this message translates to:
+  /// **'Salir de pantalla completa'**
+  String get salirDePantallaCompleta;
+
+  /// Configuración → Almacenamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajar la letra con las descargas'**
+  String get bajarLaLetraConLasDescargas;
+
+  /// Configuración → Almacenamiento: qué hace y a quién se pregunta.
+  ///
+  /// In es, this message translates to:
+  /// **'Se guarda junto a la canción para verla sin internet. Se busca en las fuentes de letras que tengas prendidas; con «Descargar solo con WiFi» o el ahorro de datos, espera al WiFi.'**
+  String get bajarLaLetraConLasDescargasNota;
+
+  /// Color de acento elegido por el usuario.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu color'**
+  String get acentoPropio;
+
+  /// Color de acento: el propio de Grafito o Papel.
+  ///
+  /// In es, this message translates to:
+  /// **'El del estilo'**
+  String get acentoDelEstilo;
+
+  /// Selector de color: el tono (la rueda de colores).
+  ///
+  /// In es, this message translates to:
+  /// **'Tono'**
+  String get colorMatiz;
+
+  /// Selector de color: más claro o más oscuro.
+  ///
+  /// In es, this message translates to:
+  /// **'Luz'**
+  String get colorLuz;
+
+  /// Selector de color: el color en código, como #7C5CFF.
+  ///
+  /// In es, this message translates to:
+  /// **'Código (hex)'**
+  String get colorHex;
+
+  /// Selector de color: muestra del color ya ajustado.
+  ///
+  /// In es, this message translates to:
+  /// **'Así se verá'**
+  String get asiSeVera;
+
+  /// Selector de color: por qué el color puede verse un poco distinto.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji lo aclara u oscurece lo justo para que siempre se lea.'**
+  String get acentoAjustadoNota;
+
+  /// Apariencia: qué es el fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen, un GIF o un video tuyo detrás de Kiji'**
+  String get fondoDescripcion;
+
+  /// Apariencia (PC, sin video): qué es el fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen o un GIF tuyo detrás de Kiji'**
+  String get fondoDescripcionPc;
+
+  /// Apariencia: sin fondo propio.
+  ///
+  /// In es, this message translates to:
+  /// **'El del estilo'**
+  String get fondoNinguno;
+
+  /// Fondo propio: es una imagen o un GIF.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen'**
+  String get fondoImagen;
+
+  /// Fondo propio: es un video.
+  ///
+  /// In es, this message translates to:
+  /// **'Video'**
+  String get fondoVideo;
+
+  /// Fondo propio: botón.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir una imagen o un GIF'**
+  String get elegirImagen;
+
+  /// Fondo propio: botón.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir un video'**
+  String get elegirVideo;
+
+  /// Fondo propio: botón para volver al del estilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar fondo'**
+  String get quitarFondo;
+
+  /// Fondo propio: deslizador.
+  ///
+  /// In es, this message translates to:
+  /// **'Desenfoque'**
+  String get desenfoque;
+
+  /// Fondo propio: deslizador (cuánto se ve).
+  ///
+  /// In es, this message translates to:
+  /// **'Opacidad'**
+  String get opacidad;
+
+  /// Fondo propio: privacidad y comportamiento.
+  ///
+  /// In es, this message translates to:
+  /// **'Se copia dentro de Kiji y nunca sale de este dispositivo. El video va sin sonido y en bucle, y se queda quieto cuando Kiji no está a la vista o con el ahorro de batería.'**
+  String get fondoPrivadoNota;
+
+  /// Fondo propio (PC): privacidad.
+  ///
+  /// In es, this message translates to:
+  /// **'Se copia dentro de Kiji y nunca sale de este dispositivo.'**
+  String get fondoPrivadoNotaPc;
+
+  /// Fondo propio: el archivo no se pudo copiar o leer (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo usar ese archivo. Prueba con otro.'**
+  String get fondoNoSePudo;
+
+  /// Personaliza Kiji: cerrar el asistente.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar'**
+  String get saltar;
+
+  /// Personaliza Kiji: volver al paso anterior.
+  ///
+  /// In es, this message translates to:
+  /// **'Atrás'**
+  String get atras;
+
+  /// Personaliza Kiji: en qué paso va.
+  ///
+  /// In es, this message translates to:
+  /// **'Paso {n} de {total}'**
+  String pasoDe(int n, int total);
+
+  /// Configuración → Apariencia: abre el asistente.
+  ///
+  /// In es, this message translates to:
+  /// **'Personaliza Kiji'**
+  String get personalizaKiji;
+
+  /// Configuración → Apariencia.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo, color, fuente y fondo, con la vista previa en vivo'**
+  String get personalizaKijiDescripcion;
+
+  /// Reproductor: todo en menos espacio.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo compacto'**
+  String get modoCompacto;
+
+  /// Reproductor: qué hace el modo compacto.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo en menos espacio (ideal para una ventana chica)'**
+  String get modoCompactoNota;
+
+  /// Reproductor: qué hace la pantalla completa.
+  ///
+  /// In es, this message translates to:
+  /// **'Portada grande y las barras se esconden solas'**
+  String get pantallaCompletaNota;
+
+  /// ⋯ del reproductor: fondo, color y vista de la letra solo para esta canción.
+  ///
+  /// In es, this message translates to:
+  /// **'Estilo de esta canción'**
+  String get estiloDeEstaCancion;
+
+  /// ⋯ del reproductor.
+  ///
+  /// In es, this message translates to:
+  /// **'Fondo, color y vista de la letra solo para esta canción'**
+  String get estiloDeEstaCancionNota;
+
+  /// Estilo de esta canción: quita lo propio de la canción.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver al estilo general'**
+  String get volverAlEstiloGeneral;
+
+  /// Estilo de esta canción: usar el del estilo general.
+  ///
+  /// In es, this message translates to:
+  /// **'El general'**
+  String get elGeneral;
+
+  /// Estilo de esta canción: Completo, Simple o Escaparate.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista de la letra'**
+  String get vistaDeLaLetra;
+
+  /// Apariencia: exportar e importar temas .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Temas'**
+  String get temas;
+
+  /// Apariencia.
+  ///
+  /// In es, this message translates to:
+  /// **'Comparte tu estilo como archivo .kiji o usa uno'**
+  String get temasDescripcion;
+
+  /// Temas: guardar el estilo actual como .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar mi estilo'**
+  String get exportarTema;
+
+  /// Temas: abrir un archivo .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar un tema'**
+  String get importarTema;
+
+  /// Temas: se exportó.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema guardado'**
+  String get temaGuardado;
+
+  /// Temas: se importó y se aplicó.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema aplicado'**
+  String get temaAplicado;
+
+  /// Temas: el archivo no es válido (sin detalle técnico).
+  ///
+  /// In es, this message translates to:
+  /// **'Ese archivo no es un tema de Kiji.'**
+  String get esoNoEsUnTemaDeKiji;
+
+  /// Temas: qué lleva un .kiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Un tema guarda el estilo, el color, la fuente, el desenfoque, la opacidad y la imagen de fondo (los videos no). Es solo datos: nada se ejecuta.'**
+  String get temasNota;
+
+  /// Configuración → Reproductor: nombres bajo los íconos de la fila de abajo.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar nombres de los botones'**
+  String get mostrarNombresDeLosBotones;
+
+  /// Configuración: explicación de mostrar nombres de los botones.
+  ///
+  /// In es, this message translates to:
+  /// **'Letra, Cola, Sonido, Temporizador y Momento, con su nombre debajo. Apagado quedan solo los íconos (el nombre aparece al mantenerlos presionados o al pasar el mouse).'**
+  String get mostrarNombresDeLosBotonesNota;
+
+  /// Biblioteca: pasar a la vista de lista.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver en lista'**
+  String get verEnLista;
+
+  /// Biblioteca: pasar a la vista de cuadrícula.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver en cuadrícula'**
+  String get verEnCuadricula;
+
+  /// Biblioteca: el filtro elegido no deja ninguna.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay canciones con este filtro.'**
+  String get noHayCancionesConEsteFiltro;
+
+  /// Biblioteca: ordenar por duración.
+  ///
+  /// In es, this message translates to:
+  /// **'Duración'**
+  String get duracion;
+
+  /// Biblioteca: el orden de siempre (lo más nuevo primero).
+  ///
+  /// In es, this message translates to:
+  /// **'Recientes'**
+  String get ordenRecientes;
+
+  /// Biblioteca: filtro de la música local (del teléfono o la PC).
+  ///
+  /// In es, this message translates to:
+  /// **'En el equipo'**
+  String get enEsteEquipo;
+
+  /// Biblioteca: botón del orden.
+  ///
+  /// In es, this message translates to:
+  /// **'Ordenar'**
+  String get ordenar;
+
+  /// Biblioteca: lo que ocupa cada parte, bajo la barra de espacio.
+  ///
+  /// In es, this message translates to:
+  /// **'DESCARGAS {downloads} · CACHÉ {cache}'**
+  String descargasYCache(String downloads, String cache);
+
+  /// Descarga de varias: cuántas van de la tanda.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajando: {done} de {total}'**
+  String bajandoNDeM(int done, int total);
+
+  /// Descarga de varias: frenadas por el ahorro de datos con datos móviles.
+  ///
+  /// In es, this message translates to:
+  /// **'Con el ahorro de datos, esperan al WiFi.'**
+  String get conElAhorroDeDatosEsperanAlWifi;
+
+  /// Descarga de varias: cuántas fallaron (se ven en Descargadas).
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 no se pudo bajar} other{{count} no se pudieron bajar}}'**
+  String nNoSePudieron(int count);
+
+  /// Biblioteca: vuelve a leer todos los archivos de música del equipo.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a escanear'**
+  String get volverAEscanear;
+
+  /// Biblioteca: cuántos álbumes tiene un artista.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 álbum} other{{count} álbumes}}'**
+  String nAlbumes(int count);
+
+  /// Biblioteca: terminó de volver a escanear.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{No se encontró música} =1{Listo: 1 canción} other{Listo: {count} canciones}}'**
+  String bibliotecaEscaneada(int count);
+
+  /// Álbum o carpeta: elegir la portada con el selector de fotos del sistema.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir portada'**
+  String get elegirPortada;
+
+  /// Álbum o carpeta: cambiar la portada elegida.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir otra portada'**
+  String get elegirOtraPortada;
+
+  /// Álbum o carpeta: vuelve la del archivo o la generada.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar la portada elegida'**
+  String get quitarLaPortadaElegida;
+
+  /// Importar por enlace: la página no se pudo leer (sin detalles técnicos).
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo leer esa playlist. Revisa que el enlace sea público y que tengas conexión.'**
+  String get noSePudoLeerEseEnlace;
+
+  /// Importar por enlace: enlace no reconocido.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese enlace no es de una playlist que Kiji sepa leer (YouTube Music, Spotify, Apple Music o SoundCloud).'**
+  String get eseEnlaceNoEsDeUnaPlaylist;
+
+  /// Importar: título de la sección del enlace.
+  ///
+  /// In es, this message translates to:
+  /// **'IMPORTAR DESDE UN ENLACE'**
+  String get importarDesdeUnEnlace;
+
+  /// Importar: qué hace el enlace (privacidad).
+  ///
+  /// In es, this message translates to:
+  /// **'Pega el enlace público de una playlist de YouTube Music, Spotify, Apple Music o SoundCloud. Kiji solo abre ese enlace (sin iniciar sesión) y busca cada canción en YouTube Music.'**
+  String get importarDesdeUnEnlaceNota;
+
+  /// Importar: pista del campo del enlace.
+  ///
+  /// In es, this message translates to:
+  /// **'Pega el enlace de la playlist'**
+  String get pegaElEnlaceDeLaPlaylist;
+
+  /// Importar: botón del enlace.
+  ///
+  /// In es, this message translates to:
+  /// **'Importar enlace'**
+  String get importarEnlace;
+
+  /// Importar: canciones no encontradas para elegir a mano.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 sin encontrar: elígela a mano} other{{count} sin encontrar: elígelas a mano}}'**
+  String sinEncontrarElegirAMano(int count);
+
+  /// Botón: elegir algo de una lista.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir'**
+  String get elegir;
+
+  /// Importar: hoja para elegir una canción a mano.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la canción'**
+  String get eligeLaCancion;
+
+  /// Copia de seguridad: guardar la copia completa donde el usuario elija.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar a un archivo'**
+  String get exportarAUnArchivo;
+
+  /// Copia de seguridad: se exportó a un archivo.
+  ///
+  /// In es, this message translates to:
+  /// **'Copia guardada. Ábrela desde \"Restaurar desde un archivo\" en otro teléfono o en la PC.'**
+  String get copiaExportada;
+
+  /// Cuenta: interruptor de la sincronización.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar con YouTube (solo lectura)'**
+  String get sincronizarConYoutube;
+
+  /// Cuenta: qué hace la sincronización (privacidad).
+  ///
+  /// In es, this message translates to:
+  /// **'Muestra en Kiji tus \"Me gusta\" y tus playlists de YouTube Music. Solo lee: nunca cambia nada en tu cuenta. Lo leído queda solo en este dispositivo; al apagarlo se borra.'**
+  String get sincronizarConYoutubeNota;
+
+  /// Cuenta: sincronización sin leer.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no se leyó la cuenta'**
+  String get todaviaNoSeLeyoLaCuenta;
+
+  /// Cuenta: lo que se leyó.
+  ///
+  /// In es, this message translates to:
+  /// **'De tu cuenta: {liked} me gusta y {playlists} playlists'**
+  String deTuCuentaMeGustaYPlaylists(int liked, int playlists);
+
+  /// Cuenta: volver a leer la cuenta.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer ahora'**
+  String get leerAhora;
+
+  /// Biblioteca: playlists leídas de la cuenta (solo lectura).
+  ///
+  /// In es, this message translates to:
+  /// **'DE TU CUENTA DE YOUTUBE'**
+  String get deTuCuentaDeYoutube;
+
+  /// Biblioteca: los me gusta leídos de la cuenta.
+  ///
+  /// In es, this message translates to:
+  /// **'Me gusta de YouTube'**
+  String get meGustaDeYoutube;
+
+  /// Reproductor: reacción de teatro (abucheo).
+  ///
+  /// In es, this message translates to:
+  /// **'Tirar un tomate'**
+  String get tirarUnTomate;
+
+  /// Reproductor: reacción de teatro (aplausos, cuenta como me gusta).
+  ///
+  /// In es, this message translates to:
+  /// **'Tirar una rosa'**
+  String get tirarUnaRosa;
+
+  /// Teatro: tercer tomate a la misma canción.
+  ///
+  /// In es, this message translates to:
+  /// **'«{title}» se fue abucheada: no vuelve a recomendarse.'**
+  String abucheadaNoVuelveARecomendarse(String title);
+
+  /// Pantalla de estadísticas de las reacciones de teatro.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu Teatro'**
+  String get tuTeatro;
+
+  /// Tu Teatro: sin reacciones todavía.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hubo función. Tira tomates 🍅 o rosas 🌹 desde el reproductor (o sacude el teléfono para un tomate).'**
+  String get tuTeatroVacio;
+
+  /// Tu Teatro: compartir la tarjeta como imagen.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir esta tarjeta'**
+  String get compartirEstaTarjeta;
+
+  /// Tu Teatro: las canciones con más tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'Top Tomateadas'**
+  String get topTomateadas;
+
+  /// Tu Teatro: las canciones con más rosas.
+  ///
+  /// In es, this message translates to:
+  /// **'Top Aplaudidas'**
+  String get topAplaudidas;
+
+  /// Tu Teatro: tarjeta vacía.
+  ///
+  /// In es, this message translates to:
+  /// **'Nada por ahora.'**
+  String get nadaPorAhora;
+
+  /// Tu Teatro: tarjeta de datos graciosos.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos del teatro'**
+  String get datosDelTeatro;
+
+  /// Tu Teatro: total de tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'tomates en total'**
+  String get tomatesEnTotal;
+
+  /// Tu Teatro: total de rosas.
+  ///
+  /// In es, this message translates to:
+  /// **'rosas en total'**
+  String get rosasEnTotal;
+
+  /// Tu Teatro: artista con más tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{el artista más abucheado (1 tomate)} other{el artista más abucheado ({count} tomates)}}'**
+  String elMasAbucheado(int count);
+
+  /// Tu Teatro: día con más tomates.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{el peor día de tomates (1)} other{el peor día de tomates ({count})}}'**
+  String peorDiaDeTomates(int count);
+
+  /// Configuración: interruptor de tomates y rosas.
+  ///
+  /// In es, this message translates to:
+  /// **'Reacciones de teatro'**
+  String get reaccionesDeTeatro;
+
+  /// Configuración: qué hacen las reacciones de teatro.
+  ///
+  /// In es, this message translates to:
+  /// **'🍅 y 🌹 en el reproductor (y sacudir el teléfono para un tomate). Con 3 tomates una canción se va y no vuelve a recomendarse; una rosa cuenta como \"me gusta\". Todo queda solo en tu dispositivo.'**
+  String get reaccionesDeTeatroNota;
+
+  /// Inicio: entrada a Tu Teatro.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu Teatro 🎭'**
+  String get verTuTeatro;
+
+  /// Tu Teatro: se perdonó una canción abucheada.
+  ///
+  /// In es, this message translates to:
+  /// **'«{title}» fue perdonada: vuelve a recomendarse.'**
+  String perdonadaVuelveARecomendarse(String title);
+
+  /// Ajuste: carpetas que no se leen como música
+  ///
+  /// In es, this message translates to:
+  /// **'Carpetas excluidas'**
+  String get carpetasExcluidas;
+
+  /// Descripción del ajuste Carpetas excluidas
+  ///
+  /// In es, this message translates to:
+  /// **'Las notas de voz y los audios de WhatsApp, Telegram y las grabadoras no aparecen como música. Puedes quitar o agregar carpetas.'**
+  String get carpetasExcluidasDescripcion;
+
+  /// Explicación debajo de la lista de carpetas excluidas
+  ///
+  /// In es, this message translates to:
+  /// **'Un nombre (por ejemplo «WhatsApp») deja afuera cualquier carpeta que se llame así, con todo lo que tenga adentro. Los archivos con nombre de nota de voz de WhatsApp nunca son música.'**
+  String get carpetasExcluidasNota;
+
+  /// Botón: agregar una carpeta excluida escribiendo su nombre
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar por nombre'**
+  String get agregarCarpetaPorNombre;
+
+  /// Campo de texto para el nombre de una carpeta excluida
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la carpeta'**
+  String get nombreDeLaCarpeta;
+
+  /// Botón: confirmar agregar
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar'**
+  String get agregar;
+
+  /// Botón: volver a la lista de carpetas excluidas de fábrica
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a las de fábrica'**
+  String get volverALasDeFabrica;
+
+  /// Lista vacía de carpetas excluidas
+  ///
+  /// In es, this message translates to:
+  /// **'Ninguna carpeta excluida: se lee toda la música del dispositivo.'**
+  String get ningunaCarpetaExcluida;
+
+  /// Aviso antes de exportar una copia grande
+  ///
+  /// In es, this message translates to:
+  /// **'Esta copia pesa {size} porque incluye tus fondos (también los videos). ¿Guardarla?'**
+  String copiaExportadaPesa(String size);
+
+  /// Ajuste: vibración del teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Vibrar con las reacciones'**
+  String get vibracionDelTeatro;
+
+  /// Descripción del ajuste de vibración del teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Un golpe con cada tomate y uno largo con la ovación.'**
+  String get vibracionDelTeatroNota;
+
+  /// Contador sobre la portada con el segundo tomate seguido
+  ///
+  /// In es, this message translates to:
+  /// **'x{count} ¡BUUU!'**
+  String tomateBuuu(int count);
+
+  /// Contador sobre la portada con el tercer tomate seguido (la canción se va)
+  ///
+  /// In es, this message translates to:
+  /// **'x{count} ¡FUERA!'**
+  String tomateFuera(int count);
+
+  /// Grito de la ovación de pie (5 rosas o más)
+  ///
+  /// In es, this message translates to:
+  /// **'¡BRAVO!'**
+  String get bravo;
+
+  /// Cartel de Tu Teatro: la canción estrella
+  ///
+  /// In es, this message translates to:
+  /// **'En cartelera'**
+  String get teatroEnCartelera;
+
+  /// Subtítulo: la canción con más rosas
+  ///
+  /// In es, this message translates to:
+  /// **'La estrella de la temporada'**
+  String get teatroEstrella;
+
+  /// Cartel de Tu Teatro: el top de tomates
+  ///
+  /// In es, this message translates to:
+  /// **'Las más abucheadas de la temporada'**
+  String get teatroMasAbucheadas;
+
+  /// Cartel de Tu Teatro: premios graciosos
+  ///
+  /// In es, this message translates to:
+  /// **'Los premios del público'**
+  String get teatroPremios;
+
+  /// Premio gracioso: la canción con más tomates este mes
+  ///
+  /// In es, this message translates to:
+  /// **'Canción más odiada del mes'**
+  String get teatroPremioOdiadaMes;
+
+  /// Premio: la canción con más rosas
+  ///
+  /// In es, this message translates to:
+  /// **'Ovación de la temporada'**
+  String get teatroPremioOvacion;
+
+  /// Premio gracioso: artista con más tomates
+  ///
+  /// In es, this message translates to:
+  /// **'Artista más abucheado'**
+  String get teatroPremioArtista;
+
+  /// Premio gracioso: el día con más tomates
+  ///
+  /// In es, this message translates to:
+  /// **'La peor función'**
+  String get teatroPremioNoche;
+
+  /// Premio gracioso: cuántas canciones se abuchearon (3 tomates)
+  ///
+  /// In es, this message translates to:
+  /// **'Salieron de escena'**
+  String get teatroPremioTelon;
+
+  /// Pie del cartel: totales
+  ///
+  /// In es, this message translates to:
+  /// **'{tomatoes} tomates · {roses} rosas'**
+  String teatroFunciones(int tomatoes, int roses);
+
+  /// Cartel vacío de Tu Teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hubo función: tira un 🍅 o una 🌹 desde el reproductor.'**
+  String get teatroSinFuncion;
+
+  /// Cantidad de canciones en un premio
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 canción} other{{count} canciones}}'**
+  String teatroCanciones(int count);
+
+  /// Cartel cuando el telón se abre con la canción siguiente (después de 3 tomates)
+  ///
+  /// In es, this message translates to:
+  /// **'¡Siguiente acto!'**
+  String get siguienteActo;
+
+  /// Cartel cuando una canción ya abucheada recibe otro tomate y se va
+  ///
+  /// In es, this message translates to:
+  /// **'¡FUERA!'**
+  String get fuera;
+
+  /// Tarjeta de la Biblioteca sin sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Conecta tu YouTube Music (opcional)'**
+  String get conectaTuYoutubeMusic;
+
+  /// Qué trae iniciar sesión (tarjeta de la Biblioteca)
+  ///
+  /// In es, this message translates to:
+  /// **'Tus Me gusta y las playlists de tu biblioteca, para verlos en Kiji. Solo lectura y solo en este dispositivo; Kiji funciona igual sin cuenta.'**
+  String get conectaTuYoutubeMusicNota;
+
+  /// Botón para iniciar sesión en YouTube Music
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión'**
+  String get iniciarSesionBoton;
+
+  /// Botón para cerrar sesión (y borrarla del dispositivo)
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar sesión'**
+  String get cerrarSesionBoton;
+
+  /// Cerrar la tarjeta para siempre
+  ///
+  /// In es, this message translates to:
+  /// **'No mostrar más'**
+  String get noMostrarMas;
+
+  /// Opción en Importar por enlace
+  ///
+  /// In es, this message translates to:
+  /// **'¿Prefieres iniciar sesión en YouTube Music?'**
+  String get prefieresIniciarSesion;
+
+  /// Explicación de la opción de iniciar sesión en Importar
+  ///
+  /// In es, this message translates to:
+  /// **'Trae tus Me gusta y tus playlists sin pegar enlaces (opcional).'**
+  String get prefieresIniciarSesionNota;
+
+  /// Sección de Configuración: la cuenta de YouTube Music opcional
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta'**
+  String get seccionCuenta;
+
+  /// Descripción de la sección Cuenta
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube Music opcional: iniciar sesión y sincronizar'**
+  String get seccionCuentaDescripcion;
+
+  /// Ajuste: estado de la cuenta
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta de YouTube Music'**
+  String get cuentaYoutubeMusic;
+
+  /// Descripción sin sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional: tus Me gusta y playlists en Kiji. Kiji funciona igual sin cuenta.'**
+  String get cuentaOpcionalNota;
+
+  /// Descripción con la sesión iniciada
+  ///
+  /// In es, this message translates to:
+  /// **'Guardada cifrada, solo en este dispositivo.'**
+  String get sesionSoloEnEsteDispositivo;
+
+  /// El interruptor de sincronizar sin sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Inicia sesión para usarla.'**
+  String get iniciaSesionParaSincronizar;
+
+  /// Cuándo se sincronizó por última vez
+  ///
+  /// In es, this message translates to:
+  /// **'Última sincronización: {when}'**
+  String ultimaSincronizacion(String when);
+
+  /// Sin sincronizar todavía
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no se sincronizó.'**
+  String get todaviaNoSeSincronizo;
+
+  /// Botón para sincronizar ya
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar ahora'**
+  String get sincronizarAhora;
+
+  /// Pregunta una vez después de iniciar sesión
+  ///
+  /// In es, this message translates to:
+  /// **'¿Sincronizar con YouTube Music?'**
+  String get activarSincronizacionTitulo;
+
+  /// Explicación de la pregunta de sincronizar
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá: solo lectura, como mucho cada 12 horas y guardado solo en este dispositivo. Lo puedes cambiar cuando quieras en Configuración → Cuenta.'**
+  String get activarSincronizacionNota;
+
+  /// Botón: activar la sincronización
+  ///
+  /// In es, this message translates to:
+  /// **'Activar'**
+  String get activarSincronizacion;
+
+  /// En Importar, con la sesión iniciada
+  ///
+  /// In es, this message translates to:
+  /// **'Ya tienes la sesión: activa «Sincronizar» en Configuración → Cuenta.'**
+  String get conSesionActivaSincronizar;
+
+  /// Subtítulo de Qué hay de nuevo (0.8.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji 0.8, la más grande hasta ahora. Esto es lo mejor:'**
+  String get novedades08Subtitulo;
+
+  /// Novedad 0.8: reproductor y estilos
+  ///
+  /// In es, this message translates to:
+  /// **'Reproductor nuevo, a tu manera'**
+  String get novedades08ReproductorTitulo;
+
+  /// Novedad 0.8: reproductor y estilos
+  ///
+  /// In es, this message translates to:
+  /// **'El play en un anillo con la onda, modo compacto y pantalla completa. Elige color, letra y estilo, y hasta un estilo para cada canción.'**
+  String get novedades08ReproductorTexto;
+
+  /// Novedad 0.8: fondo propio
+  ///
+  /// In es, this message translates to:
+  /// **'Tu fondo, tu escenario'**
+  String get novedades08FondoTitulo;
+
+  /// Novedad 0.8: fondo propio
+  ///
+  /// In es, this message translates to:
+  /// **'Pon una foto, un GIF o un video de fondo. Kiji ajusta el velo para que todo se siga leyendo.'**
+  String get novedades08FondoTexto;
+
+  /// Novedad 0.8: sonido
+  ///
+  /// In es, this message translates to:
+  /// **'Sonido a tu gusto'**
+  String get novedades08SonidoTitulo;
+
+  /// Novedad 0.8: sonido
+  ///
+  /// In es, this message translates to:
+  /// **'Ecualizador con presets, bajos, velocidad, tono, efectos y mezcla entre canciones.'**
+  String get novedades08SonidoTexto;
+
+  /// Novedad 0.8: letras
+  ///
+  /// In es, this message translates to:
+  /// **'Letras karaoke'**
+  String get novedades08LetrasTitulo;
+
+  /// Novedad 0.8: letras
+  ///
+  /// In es, this message translates to:
+  /// **'Palabra por palabra, en pantalla completa y guardadas con la canción para cantarlas sin internet.'**
+  String get novedades08LetrasTexto;
+
+  /// Novedad 0.8: biblioteca y música local
+  ///
+  /// In es, this message translates to:
+  /// **'Biblioteca nueva'**
+  String get novedades08BibliotecaTitulo;
+
+  /// Novedad 0.8: biblioteca y música local
+  ///
+  /// In es, this message translates to:
+  /// **'Artistas, álbumes y carpetas con tus portadas, tu música del teléfono más rápida y descarga de varias de una vez.'**
+  String get novedades08BibliotecaTexto;
+
+  /// Novedad 0.8: importar y sincronizar
+  ///
+  /// In es, this message translates to:
+  /// **'Trae tus playlists'**
+  String get novedades08ImportarTitulo;
+
+  /// Novedad 0.8: importar y sincronizar
+  ///
+  /// In es, this message translates to:
+  /// **'Pega el enlace de una playlist de Spotify, Apple Music, SoundCloud o YouTube, o conecta tu YouTube Music si quieres (es opcional).'**
+  String get novedades08ImportarTexto;
+
+  /// Novedad 0.8: teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Reacciones de teatro 🍅🌹'**
+  String get novedades08TeatroTitulo;
+
+  /// Novedad 0.8: teatro
+  ///
+  /// In es, this message translates to:
+  /// **'Tira tomates hasta que caiga el telón o rosas hasta la ovación de pie. Y en «Tu Teatro», los premios del público.'**
+  String get novedades08TeatroTexto;
+
+  /// Novedad 0.8: widgets, en beta
+  ///
+  /// In es, this message translates to:
+  /// **'Widgets (beta)'**
+  String get novedades08WidgetsTitulo;
+
+  /// Novedad 0.8: widgets, en beta
+  ///
+  /// In es, this message translates to:
+  /// **'Cinco para la pantalla de inicio: Anillo, Ahora suena, Letra, Teatro y Barra. Están en beta: cuéntanos qué tal.'**
+  String get novedades08WidgetsTexto;
+
+  /// Novedad 0.8 solo para la PC
+  ///
+  /// In es, this message translates to:
+  /// **'En la PC'**
+  String get novedades08PcTitulo;
+
+  /// Novedad 0.8 solo para la PC
+  ///
+  /// In es, this message translates to:
+  /// **'Video de fondo, ecualizador con efectos y Ctrl/Shift + clic para elegir varias canciones.'**
+  String get novedades08PcTexto;
 }
 
 class _AppLocalizationsDelegate

@@ -15,16 +15,17 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// Una novedad: ícono, título y una línea.
 typedef WhatsNewItem = ({IconData icon, String title, String text});
 
-/// Lo nuevo de la 0.7, en tarjetas cortas. Lo de la PC va al final y solo en la PC.
+/// Lo nuevo de la 0.8, en tarjetas cortas. Lo de la PC va al final y solo en la PC.
 List<WhatsNewItem> whatsNewItems({required bool desktop}) => [
-  (icon: Icons.palette_outlined, title: tx.nuevoEstilosTitulo, text: tx.nuevoEstilosTexto),
-  (icon: Icons.graphic_eq_rounded, title: tx.nuevoOndaTitulo, text: tx.nuevoOndaTexto),
-  (icon: Icons.lyrics_outlined, title: tx.nuevoLetrasTitulo, text: tx.nuevoLetrasTexto),
-  (icon: Icons.bluetooth_audio_rounded, title: tx.nuevoBluetoothTitulo, text: tx.nuevoBluetoothTexto),
-  (icon: Icons.shuffle_rounded, title: tx.nuevoAleatorioTitulo, text: tx.nuevoAleatorioTexto),
-  (icon: Icons.manage_search_rounded, title: tx.nuevoBuscarPlaylistTitulo, text: tx.nuevoBuscarPlaylistTexto),
-  (icon: Icons.emoji_events_outlined, title: tx.nuevoMasEscuchadasTitulo, text: tx.nuevoMasEscuchadasTexto),
-  if (desktop) (icon: Icons.desktop_windows_outlined, title: tx.nuevoPcTitulo, text: tx.nuevoPcTexto),
+  (icon: Icons.palette_outlined, title: tx.novedades08ReproductorTitulo, text: tx.novedades08ReproductorTexto),
+  (icon: Icons.wallpaper_rounded, title: tx.novedades08FondoTitulo, text: tx.novedades08FondoTexto),
+  (icon: Icons.equalizer_rounded, title: tx.novedades08SonidoTitulo, text: tx.novedades08SonidoTexto),
+  (icon: Icons.lyrics_outlined, title: tx.novedades08LetrasTitulo, text: tx.novedades08LetrasTexto),
+  (icon: Icons.library_music_outlined, title: tx.novedades08BibliotecaTitulo, text: tx.novedades08BibliotecaTexto),
+  (icon: Icons.playlist_add_rounded, title: tx.novedades08ImportarTitulo, text: tx.novedades08ImportarTexto),
+  (icon: Icons.theater_comedy_outlined, title: tx.novedades08TeatroTitulo, text: tx.novedades08TeatroTexto),
+  (icon: Icons.widgets_outlined, title: tx.novedades08WidgetsTitulo, text: tx.novedades08WidgetsTexto),
+  if (desktop) (icon: Icons.desktop_windows_outlined, title: tx.novedades08PcTitulo, text: tx.novedades08PcTexto),
 ];
 
 /// "Qué hay de nuevo": una sola vez después de actualizar (nunca en una instalación nueva, que
@@ -92,7 +93,7 @@ class WhatsNewScreen extends ConsumerWidget {
                               index: 0,
                               calm: calm,
                               child: Text(
-                                tx.queHayDeNuevoSubtitulo,
+                                tx.novedades08Subtitulo,
                                 style: TextStyle(color: KijiColors.muted, fontSize: 16),
                               ),
                             ),

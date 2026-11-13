@@ -1,5 +1,55 @@
 # Novedades de Kiji Player
 
+## 0.8.0 — sin publicar
+
+**Reproductor nuevo**
+- El play dentro de un anillo con el progreso y la onda de la canción; nombres bajo los botones.
+- Modo compacto y pantalla completa. Al cambiar de estilo, un fundido suave en vez de un salto.
+
+**Personaliza Kiji**
+- Asistente "Personaliza Kiji" desde cero: estilo, color de acento libre (siempre legible), fuente y
+  fondo propio (imagen, GIF o video, también en la PC) con desenfoque y opacidad. El fondo ahora se
+  ve de verdad: el velo toma el tono de tu imagen.
+- Estilo por canción y temas `.kiji` para exportar y compartir. Grafito, más sobrio.
+
+**Biblioteca y música local**
+- Pestañas con cantidad, orden, filtros y vista en cuadrícula que se recuerdan.
+- Artistas, álbumes y carpetas con las portadas y los datos de tus archivos; "Elegir portada" para
+  un álbum o una carpeta (en Android, con el selector de fotos: sin pedir permiso).
+- Selección múltiple (también con Ctrl/Shift + clic en la PC) y descarga de varias con su avance.
+- En Android, Kiji lee tu música con su propio código (sin el paquete viejo que ya no se mantenía).
+
+**Sonido y letras**
+- Ecualizador también en la PC, presets, bajos, velocidad, tono y mezcla entre canciones.
+- Karaoke palabra por palabra (Kiji prefiere las fuentes con tiempos por palabra), pantalla
+  completa y letras guardadas junto a las descargas.
+
+**Conexiones**
+- Importar playlists con un enlace público de Spotify, Apple Music, SoundCloud o YouTube; las que
+  no se encuentran se eligen a mano.
+- Copia de seguridad completa (con portadas y fondos) para exportar a un archivo, con vista previa
+  antes de restaurar.
+- Cuenta de YouTube Music opcional, fácil de encontrar (Configuración → Cuenta, una tarjeta en la
+  Biblioteca que se puede cerrar y la opción en Importar): con la sesión, tus Me gusta y playlists en
+  Kiji. La sincronización está apagada de fábrica, es solo lectura y Kiji pregunta una sola vez si
+  activarla. Cerrar sesión borra todo lo leído de la cuenta.
+
+**Reacciones de teatro**
+- 🍅 y 🌹 en el reproductor (o sacudiendo el teléfono mientras suena). Tomates de varias formas que
+  dejan una mancha que escurre; con el tercero seguido ("x3 ¡FUERA!") cae un telón rojo y la canción
+  sale de escena (en pausa, queda en pausa). Las rosas traen reflector, pétalos y aplausos que
+  crecen; con 5, ovación de pie con "¡BRAVO!", confeti y reverencia. Sonidos originales, vibración
+  que se puede apagar y una versión simple con "reducir animaciones".
+- "Tu Teatro", como un cartel de teatro antiguo: En cartelera, las más abucheadas, las más
+  aplaudidas y los premios del público. Todo queda en tu teléfono.
+
+**Plataformas**
+- Cinco widgets de Android (en beta) en los tres estilos: Anillo (2x2), Ahora suena (4x2, o 4x4 con la letra),
+  Letra (4x2), Teatro (2x2) y Barra (4x1). Con la portada guardada en el teléfono (también sin
+  internet) y livianos: se actualizan solo al cambiar de canción o de estado.
+- Arranque más rápido, el permiso de notificaciones se pide cuando Kiji ya está a la vista y sin
+  conexión no se repiten pedidos inútiles.
+
 ## 0.7.0 — 28 de octubre de 2026
 
 **Tres estilos**

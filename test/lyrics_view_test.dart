@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
+import 'package:kiji_player/features/lyrics/presentation/karaoke_line.dart';
 import 'package:kiji_player/features/lyrics/presentation/lyrics_screen.dart';
 import 'package:kiji_player/models/track.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
@@ -57,8 +58,12 @@ void main() {
     playback.at(const Duration(seconds: 6)); // la línea 3
     await tester.pump();
     await tester.pumpAndSettle();
+    // La que suena es el karaoke (un dibujo, con su etiqueta "Ahora:"); las demás, texto.
+    Finder line(String text) => find.text(text).evaluate().isNotEmpty
+        ? find.text(text)
+        : find.byWidgetPredicate((w) => w is KaraokeLine && w.line.text == text);
     double opacityOf(String text) => tester
-        .widget<AnimatedOpacity>(find.ancestor(of: find.text(text), matching: find.byType(AnimatedOpacity)))
+        .widget<AnimatedOpacity>(find.ancestor(of: line(text), matching: find.byType(AnimatedOpacity)))
         .opacity;
     expect(opacityOf('Línea de prueba 3'), 1);
     expect(opacityOf('Línea de prueba 4'), lessThan(1));

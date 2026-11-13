@@ -53,7 +53,7 @@ Future<Lyrics?> _guard(LyricsSource source, Future<Lyrics?> Function() run) asyn
     final status = error.response?.statusCode;
     if (status == 404) return null;
     debugPrint('=== LETRAS: ${source.label} no respondió: ${error.type} $status ===');
-    throw LyricsUnavailableException(tx.noRespondio(source.label));
+    throw LyricsUnavailableException(tx.noRespondio(source.label), refused: status != null);
   } on LyricsUnavailableException {
     rethrow;
   } catch (error) {
@@ -144,17 +144,38 @@ class YouLyPlusFetcher implements LyricsFetcher {
     final data = response.data;
     if (response.statusCode != 200 || data == null) return null;
     return lyricsFromText(data['syncedLyrics'] as String?, source) ??
-        lyricsFromText(_itemsToLrc(data['lyrics']), source) ??
+        itemsToLyrics(data['lyrics'], source) ??
         lyricsFromText(data['plainLyrics'] as String?, source);
   }
 
-  static String? _itemsToLrc(Object? items) {
+  /// Las líneas de YouLyPlus: `time` (ms) y el texto, o `syllabus` (sílabas con `time` y
+  /// `duration`): ahí van los tiempos sílaba por sílaba, tal como vienen.
+  @visibleForTesting
+  static Lyrics? itemsToLyrics(Object? items, LyricsSource source) {
     if (items is! List || items.isEmpty) return null;
-    return [
-      for (final item in items.whereType<Map>())
-        '${lrcTime((item['time'] as num?)?.toInt() ?? 0)}'
-            '${item['syllabus'] is List && (item['syllabus'] as List).isNotEmpty ? (item['syllabus'] as List).whereType<Map>().where((s) => s['isBackground'] != true).map((s) => '${s['text'] ?? ''}').join() : item['text'] ?? ''}',
-    ].join('\n');
+    final lines = <LyricLine>[];
+    for (final item in items.whereType<Map>()) {
+      final time = Duration(milliseconds: (item['time'] as num?)?.toInt() ?? 0);
+      final syllables = [
+        for (final s in (item['syllabus'] as List? ?? const []).whereType<Map>())
+          if (s['isBackground'] != true && '${s['text'] ?? ''}'.isNotEmpty) s,
+      ];
+      final words = [
+        for (final s in syllables)
+          LyricWord(
+            Duration(milliseconds: (s['time'] as num?)?.toInt() ?? 0),
+            '${s['text']}',
+            s['duration'] is num
+                ? Duration(milliseconds: ((s['time'] as num?)?.toInt() ?? 0) + (s['duration'] as num).toInt())
+                : null,
+          ),
+      ];
+      final text = syllables.isNotEmpty ? words.map((w) => w.text).join() : '${item['text'] ?? ''}';
+      lines.add(LyricLine(time, text.replaceAll(RegExp(r'\s+'), ' ').trim(), words: sanitizeWords(words, time)));
+    }
+    if (lines.every((l) => l.text.isEmpty)) return null;
+    lines.sort((a, b) => a.time.compareTo(b.time));
+    return Lyrics(synced: lines, source: source);
   }
 }
 

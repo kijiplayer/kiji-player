@@ -1,3 +1,5 @@
+import 'package:kiji_player/l10n/l10n.dart';
+import 'package:flutter/widgets.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -27,6 +29,20 @@ void main() {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     final version = RegExp(r'^version:\s*([^+\s]+)', multiLine: true).firstMatch(pubspec)!.group(1);
     expect(kijiVersion, version);
+  });
+
+  test('Con la release v0.8.0 publicada, la 0.8.0 es la última (y «Acerca de» dice 0.8.0)', () {
+    expect(kijiVersion, '0.8.0');
+    final release = Release.fromJson({
+      'tag_name': 'v0.8.0',
+      'name': 'Kiji Player 0.8.0',
+      'draft': false,
+      'prerelease': false,
+      'html_url': 'https://github.com/kijiplayer/kiji-player/releases/tag/v0.8.0',
+    })!;
+    expect(release.version, '0.8.0');
+    expect(compareVersions(release.version, kijiVersion), 0, reason: 'no hay una más nueva: «tienes la última»');
+    expect(compareVersions('0.7.0', kijiVersion), lessThan(0));
   });
 
   test('Comparar versiones', () {
@@ -136,5 +152,14 @@ void main() {
       await c.read(updateProvider.notifier).checkNow();
       expect(c.read(updateProvider).message, 'Todavía no hay versiones publicadas.');
     });
+  });
+
+  test('El aviso de la última consulta sigue al idioma (no queda en el de cuando se consultó)', () {
+    addTearDown(() => setKijiLocale(const Locale('es')));
+    const state = UpdateState(note: UpdateNote.upToDate, noteVersion: '9.9.9');
+    setKijiLocale(const Locale('es'));
+    expect(state.message, 'Tienes la última versión (9.9.9).');
+    setKijiLocale(const Locale('en'));
+    expect(state.message, 'You have the latest version (9.9.9).');
   });
 }

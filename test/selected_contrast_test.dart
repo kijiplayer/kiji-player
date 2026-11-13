@@ -13,6 +13,18 @@ final _looks = <String, (KijiStyle, KijiPalette)>{
       'nocturne $theme $accent': (KijiStyle.nocturne, KijiPalette.resolve(theme: theme, accent: accent)),
   'grafito': (KijiStyle.graphite, KijiPalette.graphite),
   'papel': (KijiStyle.paper, KijiPalette.paper),
+  // Acentos propios difíciles, en los tres estilos (Kiji los ajusta solo para que se lean).
+  for (final style in KijiStyle.values)
+    for (final (name, color) in const [
+      ('amarillo', Color(0xFFFFEB3B)),
+      ('rojo', Color(0xFFE53935)),
+      ('marino', Color(0xFF0B1A3A)),
+      ('blanco', Color(0xFFFFFFFF)),
+      ('negro', Color(0xFF000000)),
+      ('gris', Color(0xFF808080)),
+      ('marrón', Color(0xFF6D4C41)),
+    ])
+      '${style.name} propio $name': (style, KijiPalette.forStyle(style, custom: color)),
 };
 
 void _use(KijiStyle style, KijiPalette palette) {

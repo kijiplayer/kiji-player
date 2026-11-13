@@ -50,10 +50,13 @@ Future<void> applyHighRefreshRate(bool on) async {
   if (kIsWeb || !Platform.isAndroid) return;
   try {
     final hz = await _channel.invokeMethod<double>('setHighRefreshRate', on);
+    // Sin la frecuencia real (todavía no se detectó) no se anota ninguna cifra.
     debugPrint(
-      on
-          ? '=== RENDIMIENTO: pantalla a ${hz?.round() ?? '?'} Hz (alto rendimiento) ==='
-          : '=== RENDIMIENTO: alto rendimiento apagado; la frecuencia la elige el sistema ===',
+      !on
+          ? '=== RENDIMIENTO: alto rendimiento apagado; la frecuencia la elige el sistema ==='
+          : hz != null && hz > 0
+          ? '=== RENDIMIENTO: pantalla a ${hz.round()} Hz (alto rendimiento) ==='
+          : '=== RENDIMIENTO: alto rendimiento pedido; el sistema elige la frecuencia más alta ===',
     );
   } catch (error) {
     debugPrint('=== RENDIMIENTO: no se pudo cambiar la frecuencia de la pantalla: $error ===');

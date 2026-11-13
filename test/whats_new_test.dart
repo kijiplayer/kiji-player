@@ -94,22 +94,22 @@ void main() {
     });
   });
 
-  test('orden al abrir: bienvenida y estilos al instalar; estilos y después "Qué hay de nuevo" al actualizar', () {
-    // Instalación nueva: la bienvenida, después los estilos; nunca "Qué hay de nuevo".
-    expect(startupScreens(freshInstall: true, styleChosen: false, lastSeenVersion: null), [
+  test('orden al abrir: bienvenida y "Personaliza Kiji" al instalar; el asistente y "Qué hay de nuevo" al actualizar', () {
+    // Instalación nueva: la bienvenida, después el asistente; nunca "Qué hay de nuevo".
+    expect(startupScreens(freshInstall: true, personalized: false, lastSeenVersion: null), [
       StartupScreen.welcome,
       StartupScreen.style,
     ]);
-    // Actualización desde una versión sin estilos: primero estilos, después lo nuevo.
-    expect(startupScreens(freshInstall: false, styleChosen: false, lastSeenVersion: '0.6.0-viejo'), [
+    // Al actualizar a la 0.8.0 (aunque ya hubiera elegido estilo en la 0.7): el asistente una vez y lo nuevo.
+    expect(startupScreens(freshInstall: false, personalized: false, lastSeenVersion: '0.7.0'), [
       StartupScreen.style,
       StartupScreen.whatsNew,
     ]);
-    // Actualización con el estilo ya elegido: solo lo nuevo.
-    expect(startupScreens(freshInstall: false, styleChosen: true, lastSeenVersion: '0.6.0-viejo'), [
+    // Ya lo vio: solo lo nuevo.
+    expect(startupScreens(freshInstall: false, personalized: true, lastSeenVersion: '0.7.0'), [
       StartupScreen.whatsNew,
     ]);
     // Ya vio esta versión: nada (ni una segunda vez "Qué hay de nuevo").
-    expect(startupScreens(freshInstall: false, styleChosen: true, lastSeenVersion: kijiVersion), isEmpty);
+    expect(startupScreens(freshInstall: false, personalized: true, lastSeenVersion: kijiVersion), isEmpty);
   });
 }
