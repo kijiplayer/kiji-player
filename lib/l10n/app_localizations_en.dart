@@ -5009,4 +5009,71 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get conSesionActivaSincronizar =>
       'You\'re signed in: turn on «Sync» in Settings → Account.';
+
+  @override
+  String get novedades08Subtitulo =>
+      'Kiji 0.8, the biggest one yet. Here\'s the good stuff:';
+
+  @override
+  String get novedades08ReproductorTitulo => 'A new player, your way';
+
+  @override
+  String get novedades08ReproductorTexto =>
+      'Play inside a ring with the wave, compact and full screen modes. Pick your color, font and style, even one per song.';
+
+  @override
+  String get novedades08FondoTitulo => 'Your background, your stage';
+
+  @override
+  String get novedades08FondoTexto =>
+      'Use a photo, a GIF or a video as background. Kiji tunes the veil so everything stays readable.';
+
+  @override
+  String get novedades08SonidoTitulo => 'Sound your way';
+
+  @override
+  String get novedades08SonidoTexto =>
+      'Equalizer with presets, bass, speed, pitch, effects and crossfade.';
+
+  @override
+  String get novedades08LetrasTitulo => 'Karaoke lyrics';
+
+  @override
+  String get novedades08LetrasTexto =>
+      'Word by word, full screen and saved with the song, so you can sing along offline.';
+
+  @override
+  String get novedades08BibliotecaTitulo => 'A new Library';
+
+  @override
+  String get novedades08BibliotecaTexto =>
+      'Artists, albums and folders with your covers, faster music from your phone and batch downloads.';
+
+  @override
+  String get novedades08ImportarTitulo => 'Bring your playlists';
+
+  @override
+  String get novedades08ImportarTexto =>
+      'Paste a Spotify, Apple Music, SoundCloud or YouTube playlist link, or connect your YouTube Music if you like (it\'s optional).';
+
+  @override
+  String get novedades08TeatroTitulo => 'Theater reactions 🍅🌹';
+
+  @override
+  String get novedades08TeatroTexto =>
+      'Throw tomatoes until the curtain falls or roses until the standing ovation. And in «Your Theater», the audience awards.';
+
+  @override
+  String get novedades08WidgetsTitulo => 'Widgets (beta)';
+
+  @override
+  String get novedades08WidgetsTexto =>
+      'Five for your home screen: Ring, Now playing, Lyrics, Theater and Bar. They\'re in beta: tell us how they work for you.';
+
+  @override
+  String get novedades08PcTitulo => 'On PC';
+
+  @override
+  String get novedades08PcTexto =>
+      'Background video, equalizer with effects and Ctrl/Shift + click to pick several songs.';
 }

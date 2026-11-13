@@ -5020,4 +5020,71 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get conSesionActivaSincronizar =>
       'Ya tienes la sesión: activa «Sincronizar» en Configuración → Cuenta.';
+
+  @override
+  String get novedades08Subtitulo =>
+      'Kiji 0.8, la más grande hasta ahora. Esto es lo mejor:';
+
+  @override
+  String get novedades08ReproductorTitulo => 'Reproductor nuevo, a tu manera';
+
+  @override
+  String get novedades08ReproductorTexto =>
+      'El play en un anillo con la onda, modo compacto y pantalla completa. Elige color, letra y estilo, y hasta un estilo para cada canción.';
+
+  @override
+  String get novedades08FondoTitulo => 'Tu fondo, tu escenario';
+
+  @override
+  String get novedades08FondoTexto =>
+      'Pon una foto, un GIF o un video de fondo. Kiji ajusta el velo para que todo se siga leyendo.';
+
+  @override
+  String get novedades08SonidoTitulo => 'Sonido a tu gusto';
+
+  @override
+  String get novedades08SonidoTexto =>
+      'Ecualizador con presets, bajos, velocidad, tono, efectos y mezcla entre canciones.';
+
+  @override
+  String get novedades08LetrasTitulo => 'Letras karaoke';
+
+  @override
+  String get novedades08LetrasTexto =>
+      'Palabra por palabra, en pantalla completa y guardadas con la canción para cantarlas sin internet.';
+
+  @override
+  String get novedades08BibliotecaTitulo => 'Biblioteca nueva';
+
+  @override
+  String get novedades08BibliotecaTexto =>
+      'Artistas, álbumes y carpetas con tus portadas, tu música del teléfono más rápida y descarga de varias de una vez.';
+
+  @override
+  String get novedades08ImportarTitulo => 'Trae tus playlists';
+
+  @override
+  String get novedades08ImportarTexto =>
+      'Pega el enlace de una playlist de Spotify, Apple Music, SoundCloud o YouTube, o conecta tu YouTube Music si quieres (es opcional).';
+
+  @override
+  String get novedades08TeatroTitulo => 'Reacciones de teatro 🍅🌹';
+
+  @override
+  String get novedades08TeatroTexto =>
+      'Tira tomates hasta que caiga el telón o rosas hasta la ovación de pie. Y en «Tu Teatro», los premios del público.';
+
+  @override
+  String get novedades08WidgetsTitulo => 'Widgets (beta)';
+
+  @override
+  String get novedades08WidgetsTexto =>
+      'Cinco para la pantalla de inicio: Anillo, Ahora suena, Letra, Teatro y Barra. Están en beta: cuéntanos qué tal.';
+
+  @override
+  String get novedades08PcTitulo => 'En la PC';
+
+  @override
+  String get novedades08PcTexto =>
+      'Video de fondo, ecualizador con efectos y Ctrl/Shift + clic para elegir varias canciones.';
 }
