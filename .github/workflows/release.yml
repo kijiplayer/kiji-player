@@ -11,15 +11,25 @@
 # "Run workflow" (a mano) es una prueba: compila todo y deja los archivos y las notas como
 # artefactos, pero NO publica nada. Si los Secrets no están cargados, firma con la clave de
 # depuración.
+#
+# También se puede llamar desde otro workflow (workflow_call) con la etiqueta ya creada, por ejemplo
+# la publicación programada (publicar-0.8.0.yml): una etiqueta creada con GITHUB_TOKEN no dispara
+# otros workflows, así que se llama directo, con `secrets: inherit`.
 name: Release
 
 on:
   push:
     tags: ['v[0-9]+.[0-9]+.[0-9]+']
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      tag:
+        description: Etiqueta de la versión a publicar (vX.Y.Z), ya creada.
+        required: true
+        type: string
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -27,6 +37,8 @@ permissions:
 
 env:
   FLUTTER_VERSION: '3.47.0'
+  # La etiqueta que se publica: la del push o la que llega por workflow_call (vacía = prueba a mano).
+  RELEASE_TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
 
 jobs:
   android:
@@ -35,6 +47,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -59,11 +73,11 @@ jobs:
           exit 1
 
       - name: La etiqueta coincide con pubspec.yaml
-        if: github.ref_type == 'tag'
+        if: env.RELEASE_TAG != ''
         run: |
           version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::La etiqueta $GITHUB_REF_NAME no coincide con la versión de pubspec.yaml ($version)."
+          if [ "v$version" != "$RELEASE_TAG" ]; then
+            echo "::error::La etiqueta $RELEASE_TAG no coincide con la versión de pubspec.yaml ($version)."
             exit 1
           fi
 
@@ -75,7 +89,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KIJI_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            if [ "$GITHUB_REF_TYPE" = tag ]; then
+            if [ -n "$RELEASE_TAG" ]; then
               echo "::error::Faltan los Secrets de la clave de firma (ver CONTRIBUTING.md → Releases)."
               exit 1
             fi
@@ -112,6 +126,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -158,6 +174,8 @@ jobs:
           apt-get install -y --no-install-recommends ca-certificates curl git unzip xz-utils zip jq file build-essential             clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libepoxy-dev             libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libwayland-dev             libwpewebkit-2.0-dev libwpebackend-fdo-1.0-dev
           git config --global --add safe.directory '*'
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -192,6 +210,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -246,12 +266,12 @@ jobs:
           path: notas.md
           retention-days: 7
       - name: Crear la release (solo con una etiqueta)
-        if: github.ref_type == 'tag'
+        if: env.RELEASE_TAG != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" dist/* \
+          version="${RELEASE_TAG#v}"
+          gh release create "$RELEASE_TAG" dist/* \
             --title "Kiji Player $version" \
             --notes-file notas.md \
             --verify-tag \
