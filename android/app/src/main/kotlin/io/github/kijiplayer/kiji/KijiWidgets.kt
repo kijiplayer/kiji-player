@@ -284,7 +284,8 @@ object KijiWidgets {
         val v = RemoteViews(context.packageName, R.layout.kiji_widget_theater)
         val d = context.resources.displayMetrics.density
         v.setImageViewBitmap(R.id.widget_bg, curtain(s, px(context, wDp.toFloat()), px(context, hDp.toFloat()), 24f * d))
-        val label = if (s.graphite) s.text else s.gold
+        // Sobre el telón: dorado en Nocturne; crema en Papel y Grafito (el dorado de Papel no se lee sobre rojo).
+        val label = if (s.graphite || s.paper) Color.argb(240, 255, 246, 228) else s.gold
         v.setTextColor(R.id.widget_theater_title, label)
         v.setTextViewText(R.id.widget_tomato_count, "${s.tomatoesToday}")
         v.setTextViewText(R.id.widget_rose_count, "${s.rosesToday}")
@@ -413,7 +414,7 @@ object KijiWidgets {
         })
         val valance = h * 0.13f
         c.drawRect(0f, 0f, w, valance, Paint().apply { color = shadow })
-        val gold = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = if (s.graphite) s.text else s.gold }
+        val gold = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = if (s.graphite || s.paper) Color.argb(230, 255, 246, 228) else s.gold }
         val step = w / 14
         for (k in 0 until 14) c.drawCircle(step * (k + 0.5f), valance, step * 0.24f, gold)
         c.drawRect(0f, valance - 2, w, valance, gold)
