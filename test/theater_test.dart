@@ -264,7 +264,8 @@ void main() {
       await tester.tap(find.byKey(const Key('theater-tomato')));
       await tester.pump(const Duration(milliseconds: 100));
     }
-    await tester.pump(const Duration(seconds: 1));
+    // El telón se cierra y se lee "¡FUERA!" antes de que se vaya.
+    await tester.pump(const Duration(milliseconds: 1600));
     expect(playback.calls, ['saltar sin sonar']);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 5));

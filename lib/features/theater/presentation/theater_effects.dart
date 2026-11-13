@@ -118,8 +118,8 @@ Future<void> throwTomato(BuildContext context, WidgetRef ref, Track track) async
   }
   if (booedOff) {
     final messenger = ScaffoldMessenger.maybeOf(context);
-    // Se espera a que el telón termine de cerrarse.
-    await Future<void>.delayed(const Duration(milliseconds: 900));
+    // Se espera a que el telón termine de cerrarse y se lea "¡FUERA!".
+    await Future<void>.delayed(const Duration(milliseconds: 1400));
     // Si todavía es la misma, se va del escenario (en pausa queda en pausa: un tomate nunca
     // arranca la música).
     if (ref.read(playbackProvider).track?.id == track.id) await ref.read(playbackProvider.notifier).skipKeepingPause();

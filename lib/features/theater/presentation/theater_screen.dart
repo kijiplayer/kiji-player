@@ -153,10 +153,22 @@ class _Poster extends StatelessWidget {
           child: Column(
             children: [
               const _Bulbs(),
+              // Centrado en el cartel; si no entra (letra grande), se desplaza.
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+                child: LayoutBuilder(
+                  builder: (context, box) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: box.maxHeight),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: children,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const _Bulbs(),

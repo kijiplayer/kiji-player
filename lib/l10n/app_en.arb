@@ -1330,5 +1330,6 @@
   "teatroPremioTelon": "Booed off stage",
   "teatroFunciones": "{tomatoes} tomatoes · {roses} roses",
   "teatroSinFuncion": "No show yet: throw a 🍅 or a 🌹 from the player.",
-  "teatroCanciones": "{count, plural, =1{1 song} other{{count} songs}}"
+  "teatroCanciones": "{count, plural, =1{1 song} other{{count} songs}}",
+  "siguienteActo": "Next act!"
 }

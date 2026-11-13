@@ -2907,5 +2907,7 @@
   "teatroSinFuncion": "Todavía no hubo función: tira un 🍅 o una 🌹 desde el reproductor.",
   "@teatroSinFuncion": {"description": "Cartel vacío de Tu Teatro"},
   "teatroCanciones": "{count, plural, =1{1 canción} other{{count} canciones}}",
-  "@teatroCanciones": {"description": "Cantidad de canciones en un premio", "placeholders": {"count": {"type": "int"}}}
+  "@teatroCanciones": {"description": "Cantidad de canciones en un premio", "placeholders": {"count": {"type": "int"}}},
+  "siguienteActo": "¡Siguiente acto!",
+  "@siguienteActo": {"description": "Cartel cuando el telón se abre con la canción siguiente (después de 3 tomates)"}
 }

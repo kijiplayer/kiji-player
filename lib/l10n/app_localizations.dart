@@ -7978,6 +7978,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, =1{1 canción} other{{count} canciones}}'**
   String teatroCanciones(int count);
+
+  /// Cartel cuando el telón se abre con la canción siguiente (después de 3 tomates)
+  ///
+  /// In es, this message translates to:
+  /// **'¡Siguiente acto!'**
+  String get siguienteActo;
 }
 
 class _AppLocalizationsDelegate

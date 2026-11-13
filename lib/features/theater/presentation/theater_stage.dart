@@ -61,6 +61,15 @@ class _Petal {
   final bool rose;
 }
 
+/// Gotitas que saltan cuando el tomate se estrella.
+class _Drop {
+  _Drop(this.at, this.v, this.born, this.size);
+  final Offset at;
+  final Offset v;
+  final Duration born;
+  final double size;
+}
+
 class _Confetti {
   _Confetti(this.v, this.born, this.color, this.spin);
   final Offset v;
@@ -86,6 +95,9 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
   final _stains = <_Stain>[];
   final _petals = <_Petal>[];
   final _confetti = <_Confetti>[];
+  final _drops = <_Drop>[];
+  Duration? _crowdAt;
+  int _crowdSeed = 0;
   _Label? _label;
   Duration? _hitAt;
   Duration? _bowAt;
@@ -103,6 +115,14 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
 
   bool get _simple => reduceMotion(context, ref);
 
+  /// Mientras el telón se mueve la tela se mece (y se calma al terminar).
+  double get _curtainSway {
+    final from = _curtainFrom;
+    if (from == null) return 0;
+    final t = (_now - from).inMilliseconds / 1000;
+    return sin(t * 7).abs() * exp(-t * 1.5) * 0.9 + 0.1;
+  }
+
   void _tick(Duration elapsed) {
     _now = elapsed;
     _flyers.removeWhere((f) {
@@ -110,11 +130,17 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
       if (f.kind == TheaterKind.tomato) {
         _stains.add(_Stain(f.target, _now, _random.nextInt(1 << 20), 0.8 + _random.nextDouble() * 0.5));
         _hitAt = _now;
+        for (var k = 0; k < 10; k++) {
+          final a = _random.nextDouble() * 2 * pi;
+          final speed = 0.35 + _random.nextDouble() * 0.5;
+          _drops.add(_Drop(f.target, Offset(cos(a), sin(a) - 0.6) * speed, _now, 0.6 + _random.nextDouble() * 0.8));
+        }
       }
       return true;
     });
     _petals.removeWhere((p) => _now - p.born > const Duration(milliseconds: 2600));
     _confetti.removeWhere((c) => _now - c.born > const Duration(milliseconds: 2400));
+    _drops.removeWhere((d) => _now - d.born > const Duration(milliseconds: 650));
     if (_label != null && _now - _label!.born > const Duration(milliseconds: 1500)) _label = null;
     // Telón.
     final from = _curtainFrom;
@@ -127,6 +153,8 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
     final busy = _flyers.isNotEmpty ||
         _petals.isNotEmpty ||
         _confetti.isNotEmpty ||
+        _drops.isNotEmpty ||
+        _recent(_crowdAt, 2600) ||
         _label != null ||
         _curtainFrom != null ||
         _recent(_hitAt, 700) ||
@@ -151,7 +179,7 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
       _stains[i] = _Stain(s.at, back(s.born) - const Duration(seconds: 10), s.seed, s.size);
     }
     // Lo que ya terminó no se vuelve a animar con el reloj nuevo.
-    _hitAt = _bowAt = _spotAt = null;
+    _hitAt = _bowAt = _spotAt = _crowdAt = null;
     _ticker.start();
   }
 
@@ -179,6 +207,20 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
     } else {
       _spotAt = _now;
       if (!simple) {
+        // Una rosa vuela en arco hasta la portada antes de que caigan los pétalos.
+        _flyers.add(_Flyer(
+          TheaterKind.rose,
+          Offset(0.5 + (_random.nextDouble() - 0.5) * 0.8, 1.4),
+          Offset(0.3 + _random.nextDouble() * 0.4, 0.55 + _random.nextDouble() * 0.25),
+          _now,
+          (_random.nextDouble() - 0.5) * 6,
+          0,
+        ));
+      }
+      if (!burst.ovation && burst.count >= 2) {
+        _label = _Label('x${burst.count} 🌹', _now + const Duration(milliseconds: 300), KijiColors.theaterGold); // l10n-ignore
+      }
+      if (!simple) {
         final count = (10 + 4 * burst.count).clamp(10, 28);
         for (var i = 0; i < count; i++) {
           _petals.add(_Petal(
@@ -195,6 +237,10 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
       if (burst.ovation) {
         _label = _Label(tx.bravo, _now, KijiColors.theaterGold);
         _bowAt = _now;
+        if (!simple) {
+          _crowdAt = _now;
+          _crowdSeed = _random.nextInt(1 << 20);
+        }
         if (!simple) {
           final colors = KijiColors.theaterConfetti;
           for (var i = 0; i < 46; i++) {
@@ -233,9 +279,17 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
     super.didUpdateWidget(old);
     if (old.trackId != widget.trackId) {
       _stains.clear();
-      _label = null;
-      // La siguiente canción sale a escena: se abre el telón.
-      if (_curtain > 0 || _curtainClosing) _openCurtain();
+      if (_curtain > 0 || _curtainClosing) {
+        // La siguiente canción sale a escena: el telón se abre cuando su portada ya entró (si no,
+        // se vería corrido mientras la portada nueva se desliza). El "¡FUERA!" queda hasta entonces.
+        _curtainFallback?.cancel();
+        _curtainFallback = Timer(const Duration(milliseconds: 380), () {
+          _label = mounted ? _Label(tx.siguienteActo, _now, KijiColors.theaterGold) : null;
+          _openCurtain();
+        });
+      } else {
+        _label = null;
+      }
     }
   }
 
@@ -307,7 +361,7 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
                       borderRadius: BorderRadius.circular(widget.radius),
                       child: simple
                           ? Opacity(opacity: _curtain, child: CustomPaint(painter: _CurtainPainter(closed: 1)))
-                          : CustomPaint(painter: _CurtainPainter(closed: _curtain)),
+                          : CustomPaint(painter: _CurtainPainter(closed: _curtain, sway: _curtainSway)),
                     ),
                   ),
                 ),
@@ -315,7 +369,16 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
           ),
         ),
         // Lo que vuela (tomates, pétalos, confeti) puede salirse de la portada.
-        if (_flyers.isNotEmpty || _petals.isNotEmpty || _confetti.isNotEmpty)
+        if (_crowdAt != null && _recent(_crowdAt, 2600))
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(widget.radius),
+                child: CustomPaint(painter: _CrowdPainter(t: (_now - _crowdAt!).inMilliseconds / 1000, seed: _crowdSeed)),
+              ),
+            ),
+          ),
+        if (_flyers.isNotEmpty || _petals.isNotEmpty || _confetti.isNotEmpty || _drops.isNotEmpty)
           Positioned.fill(
             child: IgnorePointer(
               child: CustomPaint(
@@ -323,6 +386,7 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
                   flyers: List.of(_flyers),
                   petals: List.of(_petals),
                   confetti: List.of(_confetti),
+                  drops: List.of(_drops),
                   now: _now,
                   tomato: KijiColors.theaterTomato,
                   leaf: KijiColors.theaterLeaf,
@@ -463,9 +527,13 @@ class _CoverPainter extends CustomPainter {
 /// El telón de terciopelo: dos paños con pliegues que se cierran desde los costados, con una
 /// cenefa arriba y flecos dorados.
 class _CurtainPainter extends CustomPainter {
-  _CurtainPainter({required this.closed});
+  _CurtainPainter({required this.closed, this.sway = 0});
 
+  /// De 0 (abierto) a 1 (cerrado).
   final double closed;
+
+  /// Cuánto se mece la tela (0 quieta; mientras se mueve, sube y baja).
+  final double sway;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -473,38 +541,133 @@ class _CurtainPainter extends CustomPainter {
     final shadow = KijiColors.theaterCurtainShadow;
     final gold = KijiColors.theaterGold;
     final half = size.width / 2 * closed;
+    // Sombra que los paños proyectan sobre la portada (del lado abierto).
+    if (closed > 0 && closed < 1) {
+      for (final left in [true, false]) {
+        final x = left ? half : size.width - half;
+        final shade = Rect.fromLTWH(left ? x : x - 26, 0, 26, size.height);
+        canvas.drawRect(
+          shade,
+          Paint()
+            ..shader = LinearGradient(
+              begin: left ? Alignment.centerLeft : Alignment.centerRight,
+              end: left ? Alignment.centerRight : Alignment.centerLeft,
+              colors: [shadow.withValues(alpha: 0.55), shadow.withValues(alpha: 0)],
+            ).createShader(shade),
+        );
+      }
+    }
     for (final left in [true, false]) {
-      final rect = left ? Rect.fromLTWH(0, 0, half + 1, size.height) : Rect.fromLTWH(size.width - half - 1, 0, half + 1, size.height);
-      if (rect.width <= 0) continue;
-      // Pliegues: franjas claras y oscuras.
+      final w = half + 1;
+      if (w <= 1) continue;
+      final x0 = left ? 0.0 : size.width - w;
+      // El borde de abajo ondea (la tela se mece) y el de adentro se curva un poco.
+      final path = Path()..moveTo(x0, 0);
+      path.lineTo(x0 + w, 0);
+      const steps = 12;
+      for (var s = 0; s <= steps; s++) {
+        final f = s / steps;
+        final x = left ? x0 + w - f * w : x0 + f * w;
+        final wave = sin(f * pi * 3 + sway * 6) * 5 * sway;
+        if (s == 0) {
+          path.lineTo(x + (left ? -4 * sway : 4 * sway), size.height + wave);
+        } else {
+          path.lineTo(x, size.height + wave);
+        }
+      }
+      path
+        ..lineTo(x0, size.height)
+        ..close();
+      final rect = Rect.fromLTWH(x0, 0, w, size.height);
       final folds = <Color>[];
       final stops = <double>[];
       const n = 7;
-      for (var i = 0; i <= n; i++) {
-        folds.add(i.isEven ? velvet : shadow);
-        stops.add(i / n);
+      for (var k = 0; k <= n; k++) {
+        folds.add(k.isEven ? velvet : shadow);
+        stops.add(k / n);
       }
+      canvas.drawPath(path, Paint()..shader = LinearGradient(colors: folds, stops: stops).createShader(rect));
+      // Brillo del terciopelo arriba y el borde que se junta al medio, más oscuro.
       canvas.drawRect(
-        rect,
-        Paint()..shader = LinearGradient(colors: folds, stops: stops).createShader(rect),
+        Rect.fromLTWH(x0, 0, w, size.height * 0.35),
+        Paint()
+          ..shader = const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0x22FFFFFF), Color(0x00FFFFFF)],
+          ).createShader(Rect.fromLTWH(x0, 0, w, size.height * 0.35)),
       );
-      // Borde que se junta al medio, más oscuro.
-      final edge = left ? Rect.fromLTWH(rect.right - 6, 0, 6, size.height) : Rect.fromLTWH(rect.left, 0, 6, size.height);
+      final edge = left ? Rect.fromLTWH(x0 + w - 6, 0, 6, size.height) : Rect.fromLTWH(x0, 0, 6, size.height);
       canvas.drawRect(edge, Paint()..color = shadow.withValues(alpha: 0.7));
     }
-    // Cenefa con flecos (siempre arriba mientras el telón está a la vista).
-    final valance = Rect.fromLTWH(0, 0, size.width, size.height * 0.1);
+    // Cenefa con flecos: baja con el telón y sube cuando ya se abrió (nunca aparece de golpe).
+    final drop = Curves.easeOutCubic.transform((closed * 1.8).clamp(0.0, 1.0));
+    if (drop <= 0) return;
+    final height = size.height * 0.1;
+    final top = -height * 1.4 * (1 - drop);
+    final valance = Rect.fromLTWH(0, top, size.width, height);
     canvas.drawRect(valance, Paint()..color = shadow);
     final fringe = Paint()..color = gold;
     final step = size.width / 18;
-    for (var i = 0; i < 18; i++) {
-      canvas.drawCircle(Offset(step * (i + 0.5), valance.bottom), step * 0.28, fringe);
+    for (var k = 0; k < 18; k++) {
+      // Los flecos se balancean un poco.
+      final dx = sin(k * 0.9 + sway * 5) * 2 * sway;
+      canvas.drawCircle(Offset(step * (k + 0.5) + dx, valance.bottom + 1), step * 0.28, fringe);
     }
     canvas.drawRect(Rect.fromLTWH(0, valance.bottom - 2, size.width, 2), fringe);
   }
 
   @override
-  bool shouldRepaint(_CurtainPainter old) => old.closed != closed;
+  bool shouldRepaint(_CurtainPainter old) => old.closed != closed || old.sway != sway;
+}
+
+/// El público de la ovación: una fila de siluetas que salta abajo de la portada.
+class _CrowdPainter extends CustomPainter {
+  _CrowdPainter({required this.t, required this.seed});
+
+  /// Segundos desde que empezó la ovación.
+  final double t;
+  final int seed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = Random(seed);
+    final rise = Curves.easeOutBack.transform((t / 0.4).clamp(0.0, 1.0)) * (t > 2.0 ? (1 - (t - 2.0) / 0.5).clamp(0.0, 1.0) : 1);
+    if (rise <= 0) return;
+    final color = KijiColors.theaterCurtainShadow.withValues(alpha: 0.92);
+    final paint = Paint()..color = color;
+    const people = 9;
+    final w = size.width / people;
+    for (var k = 0; k < people; k++) {
+      final phase = r.nextDouble() * pi * 2;
+      final jump = max(0.0, sin(t * 9 + phase)) * w * 0.25;
+      final head = w * (0.22 + r.nextDouble() * 0.06);
+      final cx = w * (k + 0.5) + (r.nextDouble() - 0.5) * w * 0.3;
+      final base = size.height + w * 0.25 - rise * w * 0.95 - jump;
+      // Hombros y cabeza; algunos con los brazos arriba.
+      canvas.drawRRect(
+        RRect.fromRectAndCorners(
+          Rect.fromCenter(center: Offset(cx, base + w * 0.55), width: w * 0.9, height: w * 0.8),
+          topLeft: Radius.circular(w * 0.4),
+          topRight: Radius.circular(w * 0.4),
+        ),
+        paint,
+      );
+      canvas.drawCircle(Offset(cx, base), head, paint);
+      if (k.isEven) {
+        final arm = Paint()
+          ..color = color
+          ..strokeWidth = w * 0.12
+          ..strokeCap = StrokeCap.round;
+        final wave = sin(t * 12 + phase) * w * 0.08;
+        canvas.drawLine(Offset(cx - w * 0.3, base + w * 0.3), Offset(cx - w * 0.42 + wave, base - w * 0.45), arm);
+        canvas.drawLine(Offset(cx + w * 0.3, base + w * 0.3), Offset(cx + w * 0.42 - wave, base - w * 0.45), arm);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CrowdPainter old) => true;
 }
 
 /// Lo que vuela: tomates (4 formas), pétalos o rosas que caen, y el confeti.
@@ -513,6 +676,7 @@ class _AirPainter extends CustomPainter {
     required this.flyers,
     required this.petals,
     required this.confetti,
+    required this.drops,
     required this.now,
     required this.tomato,
     required this.leaf,
@@ -522,6 +686,7 @@ class _AirPainter extends CustomPainter {
   final List<_Flyer> flyers;
   final List<_Petal> petals;
   final List<_Confetti> confetti;
+  final List<_Drop> drops;
   final Duration now;
   final Color tomato;
   final Color leaf;
@@ -542,8 +707,30 @@ class _AirPainter extends CustomPainter {
       canvas.save();
       canvas.translate(pos.dx, pos.dy);
       canvas.rotate(f.spin * k);
-      _tomato(canvas, r, f.shape);
+      if (f.kind == TheaterKind.tomato) {
+        _tomato(canvas, r, f.shape);
+      } else {
+        // La rosa que vuela: cinco pétalos, el centro y el tallo.
+        final petal = Paint()..color = rose;
+        final rr = r * 0.75;
+        canvas.drawLine(Offset(0, rr * 0.4), Offset(0, rr * 2.4), Paint()
+          ..color = leaf
+          ..strokeWidth = rr * 0.22
+          ..strokeCap = StrokeCap.round);
+        for (var i = 0; i < 5; i++) {
+          final a = i * 2 * pi / 5;
+          canvas.drawCircle(Offset(cos(a), sin(a)) * rr * 0.6, rr * 0.6, petal);
+        }
+        canvas.drawCircle(Offset.zero, rr * 0.45, Paint()..color = KijiColors.shade(rose));
+      }
       canvas.restore();
+    }
+
+    for (final d in drops) {
+      final t = (now - d.born).inMilliseconds / 1000;
+      final pos = Offset(d.at.dx + d.v.dx * t, d.at.dy + d.v.dy * t + 1.4 * t * t);
+      final alpha = (1 - t / 0.65).clamp(0.0, 1.0);
+      canvas.drawCircle(Offset(pos.dx * size.width, pos.dy * size.height), unit * 0.012 * d.size, Paint()..color = tomato.withValues(alpha: alpha));
     }
 
     for (final p in petals) {
