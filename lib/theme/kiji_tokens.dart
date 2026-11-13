@@ -352,40 +352,29 @@ abstract final class KijiColors {
   /// El "me gusta".
   static Color get like => palette.like ?? palette.violet;
 
-  /// Reacciones de teatro: el tomate (rojo en Nocturne, el rojo tinta en Papel, blanco y negro en
-  /// Grafito), su hojita y el brillo, según el estilo.
-  static Color get theaterTomato => switch (KijiLook.style) {
-    KijiStyle.nocturne => const Color(0xFFD7262E),
-    KijiStyle.paper => const Color(0xFFB4462B),
-    KijiStyle.graphite => palette.text,
-  };
-  static Color get theaterLeaf => switch (KijiLook.style) {
-    KijiStyle.nocturne => const Color(0xFF2E9B3A),
-    KijiStyle.paper => const Color(0xFF4F6B3A),
-    KijiStyle.graphite => palette.muted,
-  };
+  /// Reacciones de teatro: el teatro es siempre a color, en los tres estilos (un tomate blanco
+  /// parece un huevo). El estilo solo cambia detalles: el brillo ([shine]), la sombra ([shade]) y
+  /// el reflector.
+  static const theaterTomato = Color(0xFFD7262E);
+  static const theaterLeaf = Color(0xFF2E9B3A);
 
-  /// El telón (terciopelo) y su sombra, el dorado de los flecos y el "¡BRAVO!", el reflector y el
-  /// confeti, según el estilo (Grafito en grises, Papel en tinta).
-  static Color get theaterCurtain => switch (KijiLook.style) {
-    KijiStyle.nocturne => const Color(0xFF8E1B2B),
-    KijiStyle.paper => const Color(0xFF9C2F22),
-    KijiStyle.graphite => const Color(0xFF2B2B2E),
-  };
+  /// El telón (terciopelo rojo de teatro) y su sombra, el dorado de la cenefa y del "¡BRAVO!", el
+  /// reflector y el confeti de colores: iguales en los tres estilos.
+  static const theaterCurtain = Color(0xFF8E1B2B);
   static Color get theaterCurtainShadow => Color.lerp(theaterCurtain, const Color(0xFF000000), 0.55)!;
-  static Color get theaterGold => switch (KijiLook.style) {
-    KijiStyle.nocturne => const Color(0xFFE8C26A),
-    KijiStyle.paper => const Color(0xFF8A6A2A),
-    KijiStyle.graphite => palette.text,
-  };
+  static const theaterGold = Color(0xFFE8C26A);
   static Color get theaterSpot => switch (KijiLook.style) {
     KijiStyle.paper => const Color(0xFFFFF4D6),
     _ => const Color(0xFFFFF1C8),
   };
-  static List<Color> get theaterConfetti => switch (KijiLook.style) {
-    KijiStyle.graphite => [palette.text, palette.muted, palette.waveRest, const Color(0xFF8C8C90)],
-    _ => [palette.violet, palette.cyan, like, theaterGold, theaterTomato],
-  };
+  static const theaterConfetti = [
+    Color(0xFFD7262E),
+    Color(0xFFE8C26A),
+    Color(0xFFE8335F),
+    Color(0xFF3D7BFF),
+    Color(0xFF2EB872),
+    Color(0xFF9B5CFF),
+  ];
 
   /// El cartel de "Tu Teatro" (como uno de teatro antiguo): el papel y la tinta, según el estilo.
   /// La tinta sobre el papel siempre con 4,5:1 o más (test/theater_test.dart).
@@ -407,13 +396,9 @@ abstract final class KijiColors {
     KijiStyle.graphite => const Color(0xFFFFFFFF),
   };
 
-  /// Las rosas del teatro: siempre rosas (no el "me gusta", que con un acento propio puede ser gris),
-  /// blancas en Grafito.
-  static Color get theaterRose => switch (KijiLook.style) {
-    KijiStyle.nocturne => const Color(0xFFE8335F),
-    KijiStyle.paper => const Color(0xFFB02A47),
-    KijiStyle.graphite => palette.text,
-  };
+  /// Las rosas del teatro: siempre rojo rosado, en los tres estilos (no el "me gusta", que con un
+  /// acento propio o en Grafito puede ser gris o blanco).
+  static const theaterRose = Color(0xFFE8335F);
 
   /// Un brillo claro sobre [c] (el reflejo del tomate).
   static Color shine(Color c) => Color.lerp(c, const Color(0xFFFFFFFF), 0.6)!.withValues(alpha: 0.35);
