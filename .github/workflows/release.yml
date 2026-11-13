@@ -11,15 +11,25 @@
 # "Run workflow" (a mano) es una prueba: compila todo y deja los archivos y las notas como
 # artefactos, pero NO publica nada. Si los Secrets no están cargados, firma con la clave de
 # depuración.
+#
+# También se puede llamar desde otro workflow (workflow_call) con la etiqueta ya creada, por ejemplo
+# la publicación programada (publicar-0.8.0.yml): una etiqueta creada con GITHUB_TOKEN no dispara
+# otros workflows, así que se llama directo, con `secrets: inherit`.
 name: Release
 
 on:
   push:
     tags: ['v[0-9]+.[0-9]+.[0-9]+']
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      tag:
+        description: Etiqueta de la versión a publicar (vX.Y.Z), ya creada.
+        required: true
+        type: string
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -27,6 +37,8 @@ permissions:
 
 env:
   FLUTTER_VERSION: '3.47.0'
+  # La etiqueta que se publica: la del push o la que llega por workflow_call (vacía = prueba a mano).
+  RELEASE_TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
 
 jobs:
   android:
@@ -35,6 +47,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -45,8 +59,6 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Parche de plugins viejos
-        run: dart run tool/patch_plugins.dart
       - name: "NDK de Android (con reintentos: la descarga a veces llega dañada)"
         run: |
           ndk=$(grep -oP 'ndkVersion\s*=\s*"\K[^"]+' "$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt" || true)
@@ -61,11 +73,11 @@ jobs:
           exit 1
 
       - name: La etiqueta coincide con pubspec.yaml
-        if: github.ref_type == 'tag'
+        if: env.RELEASE_TAG != ''
         run: |
           version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::La etiqueta $GITHUB_REF_NAME no coincide con la versión de pubspec.yaml ($version)."
+          if [ "v$version" != "$RELEASE_TAG" ]; then
+            echo "::error::La etiqueta $RELEASE_TAG no coincide con la versión de pubspec.yaml ($version)."
             exit 1
           fi
 
@@ -77,7 +89,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KIJI_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            if [ "$GITHUB_REF_TYPE" = tag ]; then
+            if [ -n "$RELEASE_TAG" ]; then
               echo "::error::Faltan los Secrets de la clave de firma (ver CONTRIBUTING.md → Releases)."
               exit 1
             fi
@@ -114,6 +126,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -144,15 +158,60 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  linux:
+    name: Linux (.tar.gz)
+    # flutter_inappwebview_linux (beta) necesita WebKit WPE 2.50–2.52: ninguna Ubuntu la trae, Debian 13 trae
+    # la 2.48 y Debian forky la 2.54 (cambió una constante). Hasta que el plugin se ponga al día, este
+    # trabajo puede fallar sin frenar el resto (ver REPORTE_SESION, Pendiente).
+    runs-on: ubuntu-latest
+    container: debian:forky
+    continue-on-error: true
+    timeout-minutes: 45
+    steps:
+      - name: Librerías del sistema (GTK, mpv, WebKit WPE 2.0, bandeja y atajos)
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git unzip xz-utils zip jq file build-essential             clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libmpv-dev libepoxy-dev             libayatana-appindicator3-dev libkeybinder-3.0-dev libsecret-1-dev libwayland-dev             libwpewebkit-2.0-dev libwpebackend-fdo-1.0-dev
+          git config --global --add safe.directory '*'
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Linux release
+        # flutter_inappwebview_linux pide opciones de un clang más nuevo: que no frenen la compilación.
+        env:
+          CXXFLAGS: -Wno-unknown-warning-option
+        run: flutter build linux --release
+      - name: Empaquetar (.tar.gz con la carpeta lista para abrir)
+        run: |
+          version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
+          mkdir -p dist
+          tar -czf "dist/Kiji_Player_${version}_Linux_x86_64.tar.gz" -C build/linux/x64/release bundle
+      - uses: actions/upload-artifact@v6
+        with:
+          name: linux
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
   publicar:
     name: Release de GitHub
-    needs: [android, windows]
+    needs: [android, windows, linux]
+    # Linux todavía puede fallar (ver el trabajo linux): no frena la release de Android y Windows.
+    if: ${{ !cancelled() && needs.android.result == 'success' && needs.windows.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -163,6 +222,40 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      # Copias con nombre fijo: la página de descarga (docs/site) apunta a
+      # releases/latest/download/<nombre> y así siempre baja la última versión.
+      - name: Nombres fijos para la página de descarga
+        run: |
+          version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
+          cp "dist/Kiji-Player-${version}.apk" dist/Kiji-Player.apk
+          cp "dist/Kiji_Player_${version}_Windows_Setup.exe" dist/Kiji-Player-Windows-Setup.exe
+          linux="dist/Kiji_Player_${version}_Linux_x86_64.tar.gz"
+          if [ -f "$linux" ]; then cp "$linux" dist/Kiji-Player-Linux-x86_64.tar.gz; else echo "::warning::Sin el .tar.gz de Linux en esta release."; fi
+      # Solo estos archivos van a la release (nada repetido ni suelto):
+      #   APK: el universal con versión, los 3 por arquitectura y Kiji-Player.apk (el universal con
+      #        nombre fijo, para la página; en Obtainium elegir ese o el de la arquitectura).
+      #   Windows: el instalador con versión y su copia con nombre fijo (la página).
+      #   Linux: lo mismo, cuando compile.
+      - name: Solo los archivos de la release
+        run: |
+          version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
+          keep=(
+            "Kiji-Player-${version}.apk" "Kiji-Player-${version}-arm64-v8a.apk"
+            "Kiji-Player-${version}-armeabi-v7a.apk" "Kiji-Player-${version}-x86_64.apk" "Kiji-Player.apk"
+            "Kiji_Player_${version}_Windows_Setup.exe" "Kiji-Player-Windows-Setup.exe"
+            "Kiji_Player_${version}_Linux_x86_64.tar.gz" "Kiji-Player-Linux-x86_64.tar.gz"
+          )
+          for f in dist/*; do
+            name=$(basename "$f")
+            if [[ ! " ${keep[*]} " == *" $name "* ]]; then
+              echo "::warning::$name no es parte de la release: se deja afuera."
+              rm -rf "$f"
+            fi
+          done
+          for name in "${keep[@]:0:7}"; do
+            [ -f "dist/$name" ] || { echo "::error::Falta $name"; exit 1; }
+          done
+          ls -l dist
       - name: Notas en inglés y español (desde fastlane)
         run: |
           dart run tool/release_notes.dart dist notas.md
@@ -173,12 +266,12 @@ jobs:
           path: notas.md
           retention-days: 7
       - name: Crear la release (solo con una etiqueta)
-        if: github.ref_type == 'tag'
+        if: env.RELEASE_TAG != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" dist/* \
+          version="${RELEASE_TAG#v}"
+          gh release create "$RELEASE_TAG" dist/* \
             --title "Kiji Player $version" \
             --notes-file notas.md \
             --verify-tag \

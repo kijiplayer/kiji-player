@@ -1,0 +1,215 @@
+# Publicación automática de Kiji 0.8.0: el 13/11/2026 a las 15:30 UTC (10:30 en Ecuador).
+#
+# 1. Comprueba (si algo falla, NO publica y abre un issue con el motivo):
+#    - el PR #11 abierto y sin conflictos;
+#    - "Análisis y pruebas (Linux)", "Compilar Android" y "Compilar Windows" en verde en su último
+#      commit (Linux puede fallar);
+#    - el último estado de la cuenta kijiplayer en el PR es el comentario "LISTO PARA PUBLICAR";
+#    - pubspec.yaml del PR con la versión 0.8.0.
+# 2. Une el PR #11 (merge normal), crea la etiqueta v0.8.0 sobre ese commit y corre release.yml
+#    (workflow_call: una etiqueta creada con GITHUB_TOKEN no dispara otros workflows).
+# 3. Verifica la release (normal y "Latest", con Kiji-Player.apk y Kiji-Player-Windows-Setup.exe) y
+#    que el APK esté firmado con la misma clave que el de la v0.7.0. Si no, la pasa a borrador y abre
+#    un issue.
+#
+# Solo actúa el 13/11/2026 (el año que viene no vuelve a correr). Con "Run workflow" un día que no
+# es el 13/11, solo comprueba y deja el resultado en el resumen: no une, no etiqueta, no publica.
+# No activa GitHub Pages ni cambia ningún otro ajuste.
+name: Publicar 0.8.0
+
+on:
+  schedule:
+    - cron: '30 15 13 11 *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  # Para abrir el issue si algo sale mal.
+  issues: write
+
+concurrency:
+  group: publicar-0.8.0
+  cancel-in-progress: false
+
+env:
+  PR: '11'
+  VERSION: '0.8.0'
+  TAG: v0.8.0
+  DAY: '2026-11-13'
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  comprobar:
+    name: Comprobar que está listo
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      publicar: ${{ steps.fecha.outputs.publicar }}
+      sha: ${{ steps.pr.outputs.sha }}
+    steps:
+      - name: ¿Es el día?
+        id: fecha
+        run: |
+          today=$(date -u +%F)
+          if [ "$today" = "$DAY" ]; then
+            echo "publicar=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publicar=false" >> "$GITHUB_OUTPUT"
+            echo "Hoy es $today, no $DAY: solo se comprueba (no se publica)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Comprobaciones
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -u
+          problemas=()
+          # El PR abierto y sin conflictos (GitHub calcula "mergeable" de a poco: se espera un rato).
+          for i in $(seq 1 12); do
+            read -r state mergeable sha < <(gh api "repos/$GH_REPO/pulls/$PR" --jq '"\(.state) \(.mergeable) \(.head.sha)"')
+            [ "$mergeable" != null ] && break
+            sleep 10
+          done
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          [ "$state" = open ] || problemas+=("El PR #$PR no está abierto (estado: $state).")
+          [ "$mergeable" = true ] || problemas+=("El PR #$PR tiene conflictos o GitHub no lo puede unir (mergeable: $mergeable).")
+
+          # Los checks del último commit (Linux puede fallar).
+          for name in "Análisis y pruebas (Linux)" "Compilar Android" "Compilar Windows"; do
+            conclusion=$(gh api "repos/$GH_REPO/commits/$sha/check-runs?per_page=100" \
+              --jq "[.check_runs[] | select(.name == \"$name\")] | sort_by(.started_at) | last | .conclusion // \"sin correr\"")
+            [ "$conclusion" = success ] || problemas+=("El check «$name» no está en verde en $sha ($conclusion).")
+          done
+
+          # El último estado de la cuenta kijiplayer: "LISTO PARA PUBLICAR".
+          last=$(gh api "repos/$GH_REPO/issues/$PR/comments?per_page=100" --paginate \
+            --jq '.[] | select(.user.login == "kijiplayer") | select(.body | test("^(LISTO PARA PUBLICAR|NO LISTO)")) | .body | split("\n")[0]' | tail -n1)
+          [ "$(printf '%s' "$last" | head -n1 | tr -d '\r')" = "LISTO PARA PUBLICAR" ] \
+            || problemas+=("El último estado de kijiplayer en el PR no es «LISTO PARA PUBLICAR» (es: «${last:-ninguno}»).")
+
+          # La versión del PR.
+          version=$(gh api "repos/$GH_REPO/contents/pubspec.yaml?ref=$sha" --jq .content | base64 -d | grep -oP '^version: \K[^+\s]+')
+          [ "$version" = "$VERSION" ] || problemas+=("pubspec.yaml del PR dice $version, no $VERSION.")
+
+          if [ ${#problemas[@]} -gt 0 ]; then
+            printf '%s\n' "${problemas[@]}" > problemas.txt
+            { echo "### No está listo"; printf -- '- %s\n' "${problemas[@]}"; } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "### Listo: PR #$PR en $sha, checks en verde, versión $version" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Avisar (issue) si no está listo el día de la publicación
+        if: failure() && steps.fecha.outputs.publicar == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body="La publicación automática de Kiji $VERSION **no se hizo**: falló una comprobación."$'\n\n'
+          [ -f problemas.txt ] && body+=$(sed 's/^/- /' problemas.txt)$'\n\n'
+          body+="Ejecución: $GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID"
+          gh issue create --title "Publicación $VERSION: no se publicó" --body "$body"
+
+  unir:
+    name: Unir el PR y crear la etiqueta
+    needs: comprobar
+    if: needs.comprobar.outputs.publicar == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      commit: ${{ steps.merge.outputs.commit }}
+    steps:
+      - name: Unir el PR #11 (merge normal) y etiquetar
+        id: merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.comprobar.outputs.sha }}
+        run: |
+          # Solo si el PR sigue en el mismo commit que se comprobó.
+          gh pr merge "$PR" --merge --match-head-commit "$SHA" \
+            --subject "Kiji $VERSION" --body "Publicación automática de Kiji $VERSION."
+          for i in $(seq 1 12); do
+            commit=$(gh pr view "$PR" --json mergeCommit --jq '.mergeCommit.oid // ""')
+            [ -n "$commit" ] && break
+            sleep 5
+          done
+          [ -n "$commit" ] || { echo "::error::No se encontró el commit de la unión."; exit 1; }
+          gh api "repos/$GH_REPO/git/refs" -f ref="refs/tags/$TAG" -f sha="$commit"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "Unido en $commit y etiquetado $TAG." >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Release
+    needs: unir
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: v0.8.0
+    secrets: inherit
+
+  verificar:
+    name: Verificar la release y la firma
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Release normal, "Latest", con los archivos y la misma firma que la 0.7.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -u
+          problemas=()
+          read -r draft prerelease < <(gh api "repos/$GH_REPO/releases/tags/$TAG" --jq '"\(.draft) \(.prerelease)"')
+          [ "$draft" = false ] || problemas+=("La release $TAG es un borrador.")
+          [ "$prerelease" = false ] || problemas+=("La release $TAG está marcada como pre-release.")
+          assets=$(gh api "repos/$GH_REPO/releases/tags/$TAG" --jq '.assets[].name')
+          latest=$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)
+          [ "$latest" = "$TAG" ] || problemas+=("La última release (Latest) es $latest, no $TAG.")
+          for asset in Kiji-Player.apk Kiji-Player-Windows-Setup.exe; do
+            grep -qx "$asset" <<<"$assets" || problemas+=("Falta $asset en la release.")
+          done
+
+          # Firma: el certificado del APK nuevo tiene que ser el mismo que el de la v0.7.0.
+          mkdir -p apk && cd apk
+          gh release download "$TAG" -p 'Kiji-Player.apk' -O nueva.apk || problemas+=("No se pudo bajar Kiji-Player.apk de $TAG.")
+          gh release download v0.7.0 -p 'Kiji-Player-0.7.0.apk' -O vieja.apk || problemas+=("No se pudo bajar el APK de la v0.7.0.")
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          cert() { "$apksigner" verify --print-certs "$1" | grep -m1 'certificate SHA-256 digest' | awk '{print $NF}'; }
+          nueva=$( [ -f nueva.apk ] && cert nueva.apk || true )
+          vieja=$( [ -f vieja.apk ] && cert vieja.apk || true )
+          echo "Firma 0.8.0: ${nueva:-?}  ·  0.7.0: ${vieja:-?}" >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$nueva" ] || [ "$nueva" != "$vieja" ]; then
+            problemas+=("La firma del APK de $TAG (${nueva:-ninguna}) no coincide con la de la v0.7.0 (${vieja:-ninguna}).")
+            gh release edit "$TAG" --draft=true || true
+          fi
+          cd ..
+
+          if [ ${#problemas[@]} -gt 0 ]; then
+            printf '%s\n' "${problemas[@]}" > problemas.txt
+            { echo "### Problemas"; printf -- '- %s\n' "${problemas[@]}"; } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "### Kiji $VERSION publicada y verificada" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Avisar (issue) si algo salió mal
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body="Kiji $VERSION se unió y etiquetó, pero la verificación de la release falló."$'\n\n'
+          [ -f problemas.txt ] && body+=$(sed 's/^/- /' problemas.txt)$'\n\n'
+          body+="Si la firma no coincide, la release quedó como borrador. Ejecución: $GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID"
+          gh issue create --title "Publicación $VERSION: revisar la release" --body "$body"
+
+  avisar:
+    name: Avisar si la unión o la release fallaron
+    needs: [comprobar, unir, release]
+    # Solo si se llegó a publicar (si fallaron las comprobaciones, ya avisó ese paso).
+    if: failure() && needs.comprobar.result == 'success' && needs.comprobar.outputs.publicar == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --title "Publicación $VERSION: falló la unión o la release" \
+            --body "Falló unir el PR #$PR, crear la etiqueta $TAG o compilar la release. Ejecución: $GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID"
