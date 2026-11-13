@@ -32,6 +32,8 @@
       background: linear-gradient(90deg, var(--violet), #4d7bff); color: #fff; border-radius: 999px;
       padding: 18px 40px; font-size: 20px; font-weight: 700; box-shadow: 0 10px 40px rgba(124, 92, 255, .35); }
     .download small { font-weight: 500; font-size: 13px; opacity: .85; }
+    .other-phone { margin: 10px 0 0; font-size: 14px; }
+    .other-phone a { color: var(--cyan); }
     .others { margin-top: 16px; color: var(--muted); font-size: 14px; }
     .others a, .others .soon { margin: 0 6px; }
     .others .soon { white-space: nowrap; }
@@ -75,6 +77,9 @@
         </span>
         <small id="download-os"></small>
       </a>
+      <p class="other-phone" id="other-phone" hidden>
+        <a href="https://github.com/kijiplayer/kiji-player/releases/latest"><span data-l="es">¿Otro teléfono? Ver todas las versiones</span><span data-l="en">Another phone? See all versions</span></a>
+      </p>
       <p class="others">
         <span data-l="es">Otras plataformas:</span><span data-l="en">Other platforms:</span>
         <a href="https://github.com/kijiplayer/kiji-player/releases/latest/download/Kiji-Player.apk">Android (.apk)</a>
@@ -95,8 +100,8 @@
     <div class="steps">
       <div class="step">
         <img src="img/paso-1.webp" width="360" height="640" loading="lazy" alt="">
-        <b>1</b> <span data-l="es">Toca «Descargar Kiji» y abre el archivo <code>Kiji-Player.apk</code>.</span>
-        <span data-l="en">Tap “Download Kiji” and open the <code>Kiji-Player.apk</code> file.</span>
+        <b>1</b> <span data-l="es">Toca «Descargar Kiji» y abre el archivo <code>.apk</code> que bajó.</span>
+        <span data-l="en">Tap “Download Kiji” and open the <code>.apk</code> file it downloaded.</span>
       </div>
       <div class="step">
         <img src="img/paso-2.webp" width="360" height="640" loading="lazy" alt="">
@@ -155,18 +160,30 @@
         updateOs();
       }
       // Sistema: el botón grande baja directo lo que corresponde (siempre la última versión).
+      // En Android, el APK de arm64 (más liviano) si el navegador dice que es ARM de 64 bits; si no
+      // se sabe, el universal, que sirve en cualquier teléfono. Nada se guarda ni se envía.
       var base = 'https://github.com/kijiplayer/kiji-player/releases/latest/download/';
+      var arm64 = false;
+      var sizes = {};
+      function size(name) {
+        var bytes = sizes[name];
+        return bytes ? ' · ' + Math.round(bytes / 1048576) + ' MB' : '';
+      }
       function updateOs() {
         var ua = navigator.userAgent;
         var link = document.getElementById('download');
         var os = document.getElementById('download-os');
+        var other = document.getElementById('other-phone');
         var es = root.lang === 'es';
+        other.hidden = true;
         if (/android/i.test(ua)) {
-          link.href = base + 'Kiji-Player.apk';
-          os.textContent = es ? 'Para Android · APK' : 'For Android · APK';
+          var apk = arm64 ? 'Kiji-Player-arm64.apk' : 'Kiji-Player.apk';
+          link.href = base + apk;
+          os.textContent = (es ? 'Para Android · APK' : 'For Android · APK') + size(apk);
+          other.hidden = false;
         } else if (/windows/i.test(ua)) {
           link.href = base + 'Kiji-Player-Windows-Setup.exe';
-          os.textContent = es ? 'Para Windows · instalador' : 'For Windows · installer';
+          os.textContent = (es ? 'Para Windows · instalador' : 'For Windows · installer') + size('Kiji-Player-Windows-Setup.exe');
         } else if (/linux/i.test(ua)) {
           // Linux todavía no tiene versión: la página de versiones, con el aviso.
           link.href = 'https://github.com/kijiplayer/kiji-player/releases/latest';
@@ -175,6 +192,20 @@
           link.href = 'https://github.com/kijiplayer/kiji-player/releases/latest';
           os.textContent = es ? 'Elige tu plataforma' : 'Pick your platform';
         }
+      }
+      var uad = navigator.userAgentData;
+      if (uad && uad.getHighEntropyValues) {
+        uad.getHighEntropyValues(['architecture', 'bitness']).then(function (v) {
+          arm64 = v.architecture === 'arm' && v.bitness === '64';
+          updateOs();
+        }, function () {});
+      }
+      // Los tamaños los escribe pages.yml al publicar (descargas.json, en esta misma página).
+      if (window.fetch) {
+        fetch('descargas.json').then(function (r) { return r.ok ? r.json() : {}; }).then(function (d) {
+          sizes = (d && d.sizes) || {};
+          updateOs();
+        }, function () {});
       }
       button.addEventListener('click', function () { setLang(root.lang === 'es' ? 'en' : 'es'); });
       setLang(lang);

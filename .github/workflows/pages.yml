@@ -1,6 +1,7 @@
 # Página de descarga: publica docs/site/ en GitHub Pages.
 #
-# Corre solo al publicar una release o a mano ("Run workflow"). Nada más.
+# Corre al publicar una release, cuando termina bien el workflow Release (una release creada con
+# GITHUB_TOKEN no dispara "release: published") o a mano ("Run workflow"). Nada más.
 #
 # Está APAGADO hasta que el mantenedor lo prenda (este archivo no cambia la configuración del
 # repo). Para prenderlo:
@@ -14,6 +15,9 @@ name: Página de descarga
 on:
   release:
     types: [published]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -26,7 +30,7 @@ concurrency:
 jobs:
   publicar:
     name: Publicar en GitHub Pages
-    if: vars.KIJI_PAGES == 'true'
+    if: vars.KIJI_PAGES == 'true' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -44,6 +48,14 @@ jobs:
             echo "::error::La página no puede cargar nada de terceros ni usar cookies."
             exit 1
           fi
+      # Los tamaños de la última release, para mostrarlos en el botón: la página los lee de su
+      # propio sitio (descargas.json), sin pedir nada a otro servidor.
+      - name: Tamaños de las descargas
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/releases/latest"             --jq '{tag: .tag_name, sizes: ([.assets[] | {key: .name, value: .size}] | from_entries)}'             > docs/site/descargas.json || echo '{}' > docs/site/descargas.json
+          cat docs/site/descargas.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:

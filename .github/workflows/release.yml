@@ -228,12 +228,15 @@ jobs:
         run: |
           version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
           cp "dist/Kiji-Player-${version}.apk" dist/Kiji-Player.apk
+          cp "dist/Kiji-Player-${version}-arm64-v8a.apk" dist/Kiji-Player-arm64.apk
           cp "dist/Kiji_Player_${version}_Windows_Setup.exe" dist/Kiji-Player-Windows-Setup.exe
           linux="dist/Kiji_Player_${version}_Linux_x86_64.tar.gz"
           if [ -f "$linux" ]; then cp "$linux" dist/Kiji-Player-Linux-x86_64.tar.gz; else echo "::warning::Sin el .tar.gz de Linux en esta release."; fi
       # Solo estos archivos van a la release (nada repetido ni suelto):
-      #   APK: el universal con versión, los 3 por arquitectura y Kiji-Player.apk (el universal con
-      #        nombre fijo, para la página; en Obtainium elegir ese o el de la arquitectura).
+      #   APK: el universal con versión, los 3 por arquitectura, Kiji-Player.apk (el universal con
+      #        nombre fijo, para la página; en Obtainium elegir ese o el de la arquitectura) y
+      #        Kiji-Player-arm64.apk (el de arm64 con nombre fijo: la página lo baja en teléfonos ARM
+      #        de 64 bits).
       #   Windows: el instalador con versión y su copia con nombre fijo (la página).
       #   Linux: lo mismo, cuando compile.
       - name: Solo los archivos de la release
@@ -241,7 +244,7 @@ jobs:
           version=$(grep -oP '^version: \K[^+\s]+' pubspec.yaml)
           keep=(
             "Kiji-Player-${version}.apk" "Kiji-Player-${version}-arm64-v8a.apk"
-            "Kiji-Player-${version}-armeabi-v7a.apk" "Kiji-Player-${version}-x86_64.apk" "Kiji-Player.apk"
+            "Kiji-Player-${version}-armeabi-v7a.apk" "Kiji-Player-${version}-x86_64.apk" "Kiji-Player.apk" "Kiji-Player-arm64.apk"
             "Kiji_Player_${version}_Windows_Setup.exe" "Kiji-Player-Windows-Setup.exe"
             "Kiji_Player_${version}_Linux_x86_64.tar.gz" "Kiji-Player-Linux-x86_64.tar.gz"
           )
@@ -252,7 +255,7 @@ jobs:
               rm -rf "$f"
             fi
           done
-          for name in "${keep[@]:0:7}"; do
+          for name in "${keep[@]:0:8}"; do
             [ -f "dist/$name" ] || { echo "::error::Falta $name"; exit 1; }
           done
           ls -l dist
