@@ -4,4 +4,4 @@
 • Sound and lyrics: equalizer, speed, pitch, crossfade and word-by-word karaoke.
 • Import by link or connect your YouTube Music (optional); full backup.
 • Theater: 🍅 and 🌹 with curtain, ovation and «Your Theater».
-• 5 widgets: Ring, Now playing, Lyrics, Theater and Bar.
+• 5 widgets in beta: Ring, Now playing, Lyrics, Theater and Bar.

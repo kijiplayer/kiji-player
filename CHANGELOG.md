@@ -44,7 +44,7 @@
   aplaudidas y los premios del público. Todo queda en tu teléfono.
 
 **Plataformas**
-- Cinco widgets de Android en los tres estilos: Anillo (2x2), Ahora suena (4x2, o 4x4 con la letra),
+- Cinco widgets de Android (en beta) en los tres estilos: Anillo (2x2), Ahora suena (4x2, o 4x4 con la letra),
   Letra (4x2), Teatro (2x2) y Barra (4x1). Con la portada guardada en el teléfono (también sin
   internet) y livianos: se actualizan solo al cambiar de canción o de estado.
 - Arranque más rápido, el permiso de notificaciones se pide cuando Kiji ya está a la vista y sin

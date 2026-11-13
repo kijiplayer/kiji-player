@@ -1,7 +1,7 @@
 • Reproductor nuevo: anillo con la onda, modo compacto y pantalla completa.
 • Personaliza: color, fuente, fondo propio, estilo por canción y temas .kiji.
 • Biblioteca y música local: artistas, álbumes, carpetas y descarga de varias.
-• Sonido y letras: ecualizador, velocidad, tono, mezcla y karaoke por palabra.
+• Sonido y letras: ecualizador, velocidad, tono, mezcla y karaoke.
 • Importa por enlace o conecta tu YouTube Music (opcional); copia completa.
 • Teatro: 🍅 y 🌹 con telón, ovación y «Tu Teatro».
-• 5 widgets: Anillo, Ahora suena, Letra, Teatro y Barra.
+• 5 widgets en beta: Anillo, Ahora suena, Letra, Teatro y Barra.
