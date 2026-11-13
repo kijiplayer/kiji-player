@@ -31,18 +31,18 @@ void main() {
     expect(kijiVersion, version);
   });
 
-  test('Con la release v0.8.0 publicada, la 0.8.0 es la última (y «Acerca de» dice 0.8.0)', () {
-    expect(kijiVersion, '0.8.0');
+  test('Con la release v0.8.1 publicada, la 0.8.1 es la última (y «Acerca de» dice 0.8.1)', () {
+    expect(kijiVersion, '0.8.1');
     final release = Release.fromJson({
-      'tag_name': 'v0.8.0',
-      'name': 'Kiji Player 0.8.0',
+      'tag_name': 'v0.8.1',
+      'name': 'Kiji Player 0.8.1',
       'draft': false,
       'prerelease': false,
-      'html_url': 'https://github.com/kijiplayer/kiji-player/releases/tag/v0.8.0',
+      'html_url': 'https://github.com/kijiplayer/kiji-player/releases/tag/v0.8.1',
     })!;
-    expect(release.version, '0.8.0');
+    expect(release.version, '0.8.1');
     expect(compareVersions(release.version, kijiVersion), 0, reason: 'no hay una más nueva: «tienes la última»');
-    expect(compareVersions('0.7.0', kijiVersion), lessThan(0));
+    expect(compareVersions('0.8.0', kijiVersion), lessThan(0));
   });
 
   test('Comparar versiones', () {

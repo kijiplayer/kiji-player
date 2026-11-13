@@ -1,6 +1,14 @@
 # Novedades de Kiji Player
 
-## 0.8.0 — sin publicar
+## 0.8.1 — sin publicar
+
+**Arreglos del teatro: tomates y rosas a color en todos los estilos**
+- Tomates, manchas, rosas, telón rojo con cenefa dorada y confeti de colores también en Grafito y
+  Papel (en Grafito salían blancos y grises).
+- El aviso "… fue abucheada" se va al cambiar de canción.
+- "¡Siguiente acto!" sale cuando ya se ve la portada de la canción nueva.
+
+## 0.8.0 — 13 de noviembre de 2026
 
 **Reproductor nuevo**
 - El play dentro de un anillo con el progreso y la onda de la canción; nombres bajo los botones.

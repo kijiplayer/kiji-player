@@ -244,7 +244,7 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
           _crowdSeed = _random.nextInt(1 << 20);
         }
         if (!simple) {
-          final colors = KijiColors.theaterConfetti;
+          const colors = KijiColors.theaterConfetti;
           for (var i = 0; i < 46; i++) {
             final a = -pi / 2 + (_random.nextDouble() - 0.5) * 1.6;
             final speed = 0.9 + _random.nextDouble() * 0.8;
@@ -284,10 +284,13 @@ class _TheaterOverlayState extends ConsumerState<TheaterOverlay> with SingleTick
       if (_curtain > 0 || _curtainClosing) {
         // La siguiente canción sale a escena: el telón se abre cuando su portada ya entró (si no,
         // se vería corrido mientras la portada nueva se desliza). El "¡FUERA!" queda hasta entonces.
+        // "¡Siguiente acto!" sale cuando el telón ya se abrió y se ve la portada nueva (no sobre
+        // el telón ni sobre la portada anterior).
         _curtainFallback?.cancel();
         _curtainFallback = Timer(const Duration(milliseconds: 380), () {
-          _label = mounted ? _Label(tx.siguienteActo, _now, KijiColors.theaterGold) : null;
+          if (!mounted) return;
           _openCurtain();
+          _label = _Label(tx.siguienteActo, _now + curtainOpen, KijiColors.theaterGold);
         });
       } else {
         _label = null;
@@ -539,9 +542,9 @@ class _CurtainPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final velvet = KijiColors.theaterCurtain;
+    const velvet = KijiColors.theaterCurtain;
     final shadow = KijiColors.theaterCurtainShadow;
-    final gold = KijiColors.theaterGold;
+    const gold = KijiColors.theaterGold;
     final half = size.width / 2 * closed;
     // Sombra que los paños proyectan sobre la portada (del lado abierto).
     if (closed > 0 && closed < 1) {

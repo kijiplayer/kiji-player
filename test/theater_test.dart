@@ -336,4 +336,21 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     });
   }
+
+  test('El teatro es a color en los tres estilos (tomate rojo, rosa roja, telón rojo)', () {
+    final before = KijiLook.style;
+    addTearDown(() => KijiLook.style = before);
+    for (final style in KijiStyle.values) {
+      KijiLook.style = style;
+      expect(KijiColors.theaterTomato, const Color(0xFFD7262E), reason: style.name);
+      expect(KijiColors.theaterRose, const Color(0xFFE8335F), reason: style.name);
+      expect(KijiColors.theaterCurtain, const Color(0xFF8E1B2B), reason: style.name);
+      expect(KijiColors.theaterGold, const Color(0xFFE8C26A), reason: style.name);
+      // El confeti es de colores: ni blanco ni gris.
+      for (final c in KijiColors.theaterConfetti) {
+        final hsl = HSLColor.fromColor(c);
+        expect(hsl.saturation, greaterThan(0.4), reason: '${style.name} $c');
+      }
+    }
+  });
 }
