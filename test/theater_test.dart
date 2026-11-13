@@ -232,6 +232,22 @@ void main() {
     expect(c.read(theaterProvider).mostHatedOfMonth(DateTime(2026, 12, 1)), isNull);
   });
 
+  test('Lo de hoy (tomates y rosas) para el widget Teatro, y se guarda', () async {
+    var now = DateTime(2026, 11, 12, 10);
+    final c = make(clock: () => now);
+    await c.read(theaterProvider.notifier).loaded;
+    final n = c.read(theaterProvider.notifier);
+    n.tomato(_t('a'));
+    n.rose(_t('b'));
+    n.rose(_t('b'));
+    expect(c.read(theaterProvider).today(now), (1, 2));
+    expect(c.read(theaterProvider).today(DateTime(2026, 11, 13)), (0, 0));
+    await n.saved;
+    final again = make();
+    await again.read(theaterProvider.notifier).loaded;
+    expect(again.read(theaterProvider).today(now), (1, 2));
+  });
+
   test('Inicio no recomienda una canción abucheada', () {
     final booed = _t('mala'), ok = _t('buena');
     final feed = HomeFeedLogic.build(

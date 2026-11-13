@@ -21,7 +21,7 @@ import kotlin.math.roundToInt
  *   adb shell am broadcast -n io.github.kijiplayer.kiji.dev/io.github.kijiplayer.kiji.WidgetPreviewReceiver --ez on true
  *     → Kiji manda el estado como si hubiera un widget puesto.
  *   adb shell am broadcast -n ... --ez render true
- *     → files/widget-previews/<estilo>-<tamaño>.png (pequeño 2x2, mediano 4x2 y grande 4x4).
+ *     → files/widget-previews/<estilo>-<widget>.png (anillo, ahora suena, letra, teatro y barra).
  *   adb shell am broadcast -n ... --ez on false
  */
 class WidgetPreviewReceiver : BroadcastReceiver() {
@@ -38,13 +38,21 @@ class WidgetPreviewReceiver : BroadcastReceiver() {
         val style = context.getSharedPreferences("kiji_widgets", Context.MODE_PRIVATE).getString("style", "nocturne")
         val dir = File(context.filesDir, "widget-previews").apply { mkdirs() }
         val d = context.resources.displayMetrics.density
-        // Tamaños típicos de un lanzador de 4 o 5 columnas (dp).
-        for ((name, size) in listOf("pequeno" to (150 to 150), "mediano" to (320 to 150), "grande" to (320 to 330))) {
+        // Los cinco, en tamaños típicos de un lanzador de 4 o 5 columnas (dp).
+        val all = listOf(
+            Triple("anillo", KijiWidgets.Kind.RING, 150 to 150),
+            Triple("ahora-suena", KijiWidgets.Kind.NOW, 320 to 150),
+            Triple("ahora-suena-grande", KijiWidgets.Kind.NOW, 320 to 330),
+            Triple("letra", KijiWidgets.Kind.LYRICS, 320 to 150),
+            Triple("teatro", KijiWidgets.Kind.THEATER, 150 to 150),
+            Triple("barra", KijiWidgets.Kind.BAR, 320 to 64),
+        )
+        for ((name, kind, size) in all) {
             val (wDp, hDp) = size
             val w = (wDp * d).roundToInt()
             val h = (hDp * d).roundToInt()
             val margin = (16 * d).roundToInt()
-            val views = KijiWidgets.views(context, wDp, hDp)
+            val views = KijiWidgets.views(context, kind, wDp, hDp)
             val host = FrameLayout(context)
             val view = views.apply(context, host)
             view.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY))

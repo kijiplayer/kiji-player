@@ -82,10 +82,16 @@ class TheaterEntry {
 /// Todo el teatro: las canciones y cuántos tomates cayeron cada día ("aaaa-mm-dd").
 @immutable
 class TheaterState {
-  const TheaterState({this.songs = const {}, this.tomatoDays = const {}});
+  const TheaterState({this.songs = const {}, this.tomatoDays = const {}, this.roseDays = const {}});
 
   final Map<String, TheaterEntry> songs;
   final Map<String, int> tomatoDays;
+
+  /// Rosas de cada día ("aaaa-mm-dd"): para el contador de hoy del widget Teatro.
+  final Map<String, int> roseDays;
+
+  /// Tomates y rosas de [now] (el día).
+  (int, int) today(DateTime now) => (tomatoDays[_day(now)] ?? 0, roseDays[_day(now)] ?? 0);
 
   /// Con estos tomates seguidos una canción se saltea y deja de recomendarse.
   static const tomatoLimit = 3;
@@ -195,13 +201,17 @@ class TheaterNotifier extends Notifier<TheaterState> {
             }
           }
         }
-        final days = <String, int>{
-          if (json['tomatoDays'] case final Map raw)
+        Map<String, int> days(String key) => <String, int>{
+          if (json[key] case final Map raw)
             for (final e in raw.entries)
               if (e.key is String && e.value is int) e.key as String: e.value as int,
         };
         // Lo que se haya sumado mientras se leía, encima.
-        state = TheaterState(songs: {...songs, ...state.songs}, tomatoDays: {...days, ...state.tomatoDays});
+        state = TheaterState(
+          songs: {...songs, ...state.songs},
+          tomatoDays: {...days('tomatoDays'), ...state.tomatoDays},
+          roseDays: {...days('roseDays'), ...state.roseDays},
+        );
       }
     } catch (error) {
       debugPrint('=== TEATRO: no se pudo leer: ${error.runtimeType} ===');
@@ -216,6 +226,7 @@ class TheaterNotifier extends Notifier<TheaterState> {
         'version': 1,
         'songs': {for (final e in state.songs.values) e.id: e.toJson()},
         'tomatoDays': state.tomatoDays,
+        'roseDays': state.roseDays,
       });
     } catch (error) {
       debugPrint('=== TEATRO: no se pudo guardar: ${error.runtimeType} ===');
@@ -243,6 +254,7 @@ class TheaterNotifier extends Notifier<TheaterState> {
     state = TheaterState(
       songs: {...state.songs, track.id: entry},
       tomatoDays: {...state.tomatoDays, day: (state.tomatoDays[day] ?? 0) + 1},
+      roseDays: state.roseDays,
     );
     unawaited(_lastSave = _save());
     debugPrint('=== TEATRO: tomate (seguidos: ${entry.streak}) ===');
@@ -252,7 +264,12 @@ class TheaterNotifier extends Notifier<TheaterState> {
   /// 🌹 a [track]: aplausos, y cuenta como "me gusta".
   void rose(Track track) {
     final entry = _entry(track).copyWith(roses: _entry(track).roses + 1);
-    state = TheaterState(songs: {...state.songs, track.id: entry}, tomatoDays: state.tomatoDays);
+    final day = _day(_clock());
+    state = TheaterState(
+      songs: {...state.songs, track.id: entry},
+      tomatoDays: state.tomatoDays,
+      roseDays: {...state.roseDays, day: (state.roseDays[day] ?? 0) + 1},
+    );
     unawaited(_lastSave = _save());
     if (!ref.read(favoritesProvider).containsKey(track.id)) ref.read(favoritesProvider.notifier).toggle(track);
     debugPrint('=== TEATRO: rosa (${entry.roses}) ===');
@@ -265,6 +282,7 @@ class TheaterNotifier extends Notifier<TheaterState> {
     state = TheaterState(
       songs: {...state.songs, id: entry.copyWith(tomatoes: 0, streak: 0, booed: false)},
       tomatoDays: state.tomatoDays,
+      roseDays: state.roseDays,
     );
     unawaited(_lastSave = _save());
   }

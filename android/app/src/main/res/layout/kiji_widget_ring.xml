@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget pequeño (2x2): la portada y el play con su anillo de progreso. El fondo (la portada
-     desenfocada con el velo del estilo) y las imágenes las dibuja KijiWidgets.kt. -->
+<!-- Anillo (2x2): la portada en un círculo con la onda alrededor y play al centro (una sola imagen
+     que dibuja KijiWidgets.kt; tocarla es play/pausa). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -16,18 +16,10 @@
         android:scaleType="fitXY" />
 
     <ImageView
-        android:id="@+id/widget_cover"
+        android:id="@+id/widget_play"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        android:contentDescription="@string/kiji_widget_cover"
-        android:scaleType="fitCenter" />
-
-    <ImageView
-        android:id="@+id/widget_play"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom|end"
         android:layout_margin="6dp"
-        android:contentDescription="@string/kiji_widget_play" />
+        android:contentDescription="@string/kiji_widget_play"
+        android:scaleType="fitCenter" />
 </FrameLayout>

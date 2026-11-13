@@ -128,4 +128,30 @@ void main() {
     expect(lyricLineAt(const Lyrics(plain: 'Sin tiempos inventada'), const Duration(seconds: 3)), isNull);
     expect(lyricLineAt(null, Duration.zero), isNull);
   });
+
+  test('La letra del widget cambia línea por línea: cuánto falta para la siguiente', () {
+    final lyrics = Lyrics(synced: parseLrc('[00:02.00]Primera inventada\n[00:06.00]Segunda inventada'));
+    expect(untilNextLine(lyrics, const Duration(seconds: 3)), const Duration(seconds: 3));
+    expect(untilNextLine(lyrics, Duration.zero), const Duration(seconds: 2));
+    expect(untilNextLine(lyrics, const Duration(seconds: 7)), isNull, reason: 'la última: no hay más');
+    expect(untilNextLine(const Lyrics(plain: 'Sin tiempos inventada'), Duration.zero), isNull);
+  });
+
+  test('El widget Teatro recibe lo de hoy y los colores del telón', () {
+    final p = widgetPayload(
+      track: null,
+      playing: false,
+      position: Duration.zero,
+      duration: Duration.zero,
+      cover: null,
+      liked: false,
+      theater: true,
+      lyric: null,
+      tomatoesToday: 4,
+      rosesToday: 7,
+    );
+    expect((p['tomatoesToday'], p['rosesToday']), (4, 7));
+    expect(p['curtain'], KijiColors.theaterCurtain.toARGB32());
+    expect(p['gold'], KijiColors.theaterGold.toARGB32());
+  });
 }

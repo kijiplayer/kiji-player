@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Textos de Android (widgets): español de fábrica, inglés en values-en. -->
 <resources>
-    <string name="kiji_widget_small">Kiji</string>
-    <string name="kiji_widget_large">Kiji · reproductor</string>
-    <string name="kiji_widget_small_description">Portada y play. Agrándalo para ver la canción, la onda y los controles</string>
+    <string name="kiji_widget_small">Kiji · Anillo</string>
+    <string name="kiji_widget_large">Kiji · Ahora suena</string>
+    <string name="kiji_widget_small_description">La portada en un círculo con la onda alrededor y play al centro</string>
     <string name="kiji_widget_large_description">Portada, canción, onda y controles. Agrándalo para ver la letra</string>
     <string name="kiji_widget_prev">Anterior</string>
     <string name="kiji_widget_play">Reproducir o pausar</string>
@@ -12,4 +12,13 @@
     <string name="kiji_widget_idle">Kiji Player</string>
     <string name="kiji_widget_like">Me gusta</string>
     <string name="kiji_widget_tomato">Tirar un tomate</string>
+    <string name="kiji_widget_lyrics">Kiji · Letra</string>
+    <string name="kiji_widget_lyrics_description">La línea de la letra que suena, grande</string>
+    <string name="kiji_widget_theater">Kiji · Teatro</string>
+    <string name="kiji_widget_theater_description">Tomates y rosas a mano, con lo de hoy</string>
+    <string name="kiji_widget_bar">Kiji · Barra</string>
+    <string name="kiji_widget_bar_description">Una barra con la canción y play</string>
+    <string name="kiji_widget_no_lyrics">Sin letra sincronizada guardada</string>
+    <string name="kiji_widget_theater_today">TEATRO · HOY</string>
+    <string name="kiji_widget_rose">Tirar una rosa</string>
 </resources>

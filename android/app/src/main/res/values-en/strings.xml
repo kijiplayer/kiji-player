@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Textos de Android (widgets): español de fábrica, inglés en values-en. -->
 <resources>
-    <string name="kiji_widget_small">Kiji</string>
-    <string name="kiji_widget_large">Kiji · player</string>
-    <string name="kiji_widget_small_description">Cover and play. Make it bigger to see the song, wave and controls</string>
+    <string name="kiji_widget_small">Kiji · Ring</string>
+    <string name="kiji_widget_large">Kiji · Now playing</string>
+    <string name="kiji_widget_small_description">The cover in a circle with the wave around it and play in the middle</string>
     <string name="kiji_widget_large_description">Cover, song, wave and controls. Make it bigger to see the lyrics</string>
     <string name="kiji_widget_prev">Previous</string>
     <string name="kiji_widget_play">Play or pause</string>
@@ -12,4 +12,13 @@
     <string name="kiji_widget_idle">Kiji Player</string>
     <string name="kiji_widget_like">Like</string>
     <string name="kiji_widget_tomato">Throw a tomato</string>
+    <string name="kiji_widget_lyrics">Kiji · Lyrics</string>
+    <string name="kiji_widget_lyrics_description">The lyric line that is playing, big</string>
+    <string name="kiji_widget_theater">Kiji · Theater</string>
+    <string name="kiji_widget_theater_description">Tomatoes and roses at hand, with today\'s count</string>
+    <string name="kiji_widget_bar">Kiji · Bar</string>
+    <string name="kiji_widget_bar_description">A bar with the song and play</string>
+    <string name="kiji_widget_no_lyrics">No synced lyrics saved</string>
+    <string name="kiji_widget_theater_today">THEATER · TODAY</string>
+    <string name="kiji_widget_rose">Throw a rose</string>
 </resources>

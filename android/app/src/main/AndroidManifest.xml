@@ -82,6 +82,24 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_large_info" />
         </receiver>
+        <receiver android:name=".KijiWidgetLyrics" android:label="@string/kiji_widget_lyrics" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_lyrics_info" />
+        </receiver>
+        <receiver android:name=".KijiWidgetTheater" android:label="@string/kiji_widget_theater" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_theater_info" />
+        </receiver>
+        <receiver android:name=".KijiWidgetBar" android:label="@string/kiji_widget_bar" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/kiji_widget_bar_info" />
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

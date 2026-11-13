@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Kiji, empieza en 2x2 (portada y play). Se agranda y se adapta: 4x2 y 4x4. -->
+<!-- Anillo (2x2). -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="110dp" android:minHeight="110dp" android:targetCellWidth="2" android:targetCellHeight="2"
     android:minResizeWidth="110dp" android:minResizeHeight="110dp"
     android:resizeMode="horizontal|vertical" android:updatePeriodMillis="0" android:widgetCategory="home_screen"
-    android:initialLayout="@layout/kiji_widget_s" android:previewLayout="@layout/kiji_widget_s"
+    android:initialLayout="@layout/kiji_widget_ring" android:previewLayout="@layout/kiji_widget_ring"
     android:description="@string/kiji_widget_small_description" />
