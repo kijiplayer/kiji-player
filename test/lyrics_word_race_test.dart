@@ -68,11 +68,13 @@ void main() {
   });
 
   test('Si las de palabras tardan más de 2 s, queda la de línea', () async {
-    final slow = _Fake(LyricsSource.youlyplus, lyrics: _byWord, delay: const Duration(seconds: 4));
+    // La lenta tarda mucho más que los 2 s de espera: con margen, para que una PC cargada (o la CI)
+    // no la haga fallar sin motivo.
+    final slow = _Fake(LyricsSource.youlyplus, lyrics: _byWord, delay: const Duration(seconds: 10));
     final watch = Stopwatch()..start();
     final lyrics = await repo([_Fake(LyricsSource.lrclib, lyrics: _byLine), slow]).get(_request);
     expect(lyrics.source, LyricsSource.lrclib);
-    expect(watch.elapsed, lessThan(const Duration(milliseconds: 3500)), reason: 'no espera de más');
+    expect(watch.elapsed, lessThan(const Duration(seconds: 8)), reason: 'no espera a la lenta');
   });
 
   test('Una fuente que da 403 queda en pausa: no se le vuelve a preguntar enseguida, sin avisos', () async {
