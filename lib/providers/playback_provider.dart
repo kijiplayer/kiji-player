@@ -8,7 +8,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../features/equalizer/data/equalizer_engine.dart';
 import '../features/equalizer/data/equalizer_notifier.dart';
 import '../features/history/listening_history.dart';
 import '../features/playback_extras/domain/playback_rules.dart';
@@ -166,6 +165,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   /// una carga anterior sigue en curso, la anterior se descarta.
   int _loadToken = 0;
   StreamSubscription<int?>? _sessionSubscription;
+  EqualizerNotifier? _equalizer;
 
   /// Velocidad y tono de "Sonido" en el reproductor (y en la cola de la mezcla, si suena).
   Future<void> _applyRate(({double speed, double pitch}) rate) async {
@@ -213,14 +213,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
 
   @override
   PlaybackState build() {
-    // Ecualizador del sistema (solo Android): el efecto se conecta
-    // al crear el reproductor y el notificador aplica el perfil guardado.
-    final equalizer = ref.read(androidEqualizerProvider);
     // Las pausas por desconexión e interrupciones las maneja PlaybackAutomation (con su motivo).
-    _player = AudioPlayer(
-      handleInterruptions: false,
-      audioPipeline: equalizer == null ? null : AudioPipeline(androidAudioEffects: [equalizer]),
-    );
+    // Sin efectos en el AudioPipeline: el ecualizador (Android) va por SoundEffects.kt, enganchado
+    // a la sesión de audio. Si no se puede crear, la canción carga y suena igual (0.8.2).
+    _player = AudioPlayer(handleInterruptions: false);
     ref.read(equalizerProvider);
     // "Sonido": margen de seguridad cuando el ecualizador o los bajos suben mucho (no satura).
     _headroom = ref.read(equalizerProvider).headroom;
@@ -232,9 +228,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     });
     // "Sonido": velocidad y tono (con "Efectos" apagado, siempre lo normal), en vivo.
     ref.listen(equalizerProvider.select((s) => s.settings.playbackRate), (_, rate) => unawaited(_applyRate(rate)));
-    // Android: los bajos y la reverb se enganchan a la sesión de audio del reproductor.
+    // Android: el ecualizador, los bajos y la reverb se enganchan a la sesión de audio del reproductor.
+    final equalizer = ref.read(equalizerProvider.notifier);
+    _equalizer = equalizer;
     _sessionSubscription = _audioPlayer.androidAudioSessionIdStream.listen(
-      (id) => ref.read(equalizerProvider.notifier).audioSessionChanged(id),
+      equalizer.audioSessionChanged,
       onError: (Object error) => debugPrint('=== SONIDO: sin sesión de audio: $error ==='),
     );
     ref.onDispose(_dispose);
@@ -1102,6 +1100,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     await _stopTail();
     _saveTimer?.cancel();
     unawaited(_sessionSubscription?.cancel());
+    // Sin reproductor, los efectos de su sesión se sueltan.
+    _equalizer?.audioSessionChanged(null);
     _outputWait?.cancel();
     _lifecycleListener?.dispose();
     for (final subscription in _subscriptions) {

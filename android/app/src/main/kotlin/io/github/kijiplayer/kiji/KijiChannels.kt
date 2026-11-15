@@ -37,11 +37,17 @@ import javax.crypto.spec.GCMParameterSpec
  * notificación (antes vivían en MainActivity y ahí fallaban con MissingPluginException).
  */
 object KijiChannels {
+    /** El motor de Flutter se destruye: se sueltan los efectos de audio. */
+    @JvmStatic
+    fun unregister() {
+        SoundEffects.release()
+    }
+
     @JvmStatic
     fun register(context: Context, messenger: BinaryMessenger) {
         val app = context.applicationContext
 
-        // Refuerzo de bajos y reverb de "Sonido" (SoundEffects.kt).
+        // Ecualizador, refuerzo de bajos y reverb de "Sonido" (SoundEffects.kt).
         SoundEffects.register(messenger)
 
         // La música del teléfono (MediaStore), sin plugins de terceros (MediaLibrary.kt).

@@ -9,33 +9,45 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 
 import '../domain/equalizer_model.dart';
 
-/// Android: el ecualizador del sistema (`AndroidEqualizer` de just_audio, con las bandas que dé
-/// el teléfono) y, por un canal propio, BassBoost y PresetReverb sobre la misma sesión de audio
-/// (`SoundEffects.kt`). Lo que el teléfono no tenga no se muestra.
+/// Android: el ecualizador, BassBoost y PresetReverb del sistema, por un canal propio
+/// (`SoundEffects.kt`), enganchados a la sesión de audio del reproductor. Lo que el teléfono no
+/// tenga no se muestra.
+///
+/// 0.8.2: el ecualizador ya no va en el `AudioPipeline` de just_audio. Ahí se creaba al cargar
+/// cada canción y, si Android no podía crearlo (límite de efectos del sistema), la carga fallaba
+/// (`getNumberOfBands()` sobre null) y ninguna canción sonaba hasta reiniciar la app. Ahora un
+/// efecto que no se crea no toca la carga: la música suena igual, sin ecualizador.
 class AndroidSoundEngine extends SoundEngine {
-  AndroidSoundEngine(this.effect, {MethodChannel? channel}) : _channel = channel ?? const MethodChannel('kiji/sound');
+  AndroidSoundEngine({MethodChannel? channel}) : _channel = channel ?? const MethodChannel('kiji/sound');
 
-  final AndroidEqualizer effect;
   final MethodChannel _channel;
   int? _session;
   SoundMix? _last;
+  final _bands = Completer<EqBands>();
+  bool _readingBands = false;
+  bool? _available;
+  final _availability = StreamController<bool>.broadcast();
 
   @override
   bool get isSupported => true;
 
+  /// Las bandas del ecualizador del teléfono: llegan cuando el reproductor tiene sesión y Android
+  /// pudo crear el ecualizador (si no, se vuelve a intentar con la próxima sesión).
   @override
-  Future<EqBands?> bands() async {
-    final parameters = await effect.parameters;
-    return EqBands(
-      centers: [for (final band in parameters.bands) band.centerFrequency],
-      minDb: parameters.minDecibels,
-      maxDb: parameters.maxDecibels,
-    );
+  Future<EqBands?> bands() => _bands.future;
+
+  @override
+  Stream<bool> get availability => _availability.stream;
+
+  void _setAvailable(bool ok) {
+    if (_available == ok) return;
+    _available = ok;
+    debugPrint(ok ? '=== SONIDO: ecualizador disponible ===' : '=== SONIDO: el ecualizador no está disponible ahora; la música suena sin él ===');
+    _availability.add(ok);
   }
 
   @override
@@ -53,34 +65,82 @@ class AndroidSoundEngine extends SoundEngine {
   void setAudioSession(int? id) {
     if (id == _session) return;
     _session = id;
+    if (id == null || id == 0) {
+      unawaited(_release());
+      return;
+    }
+    unawaited(_readBands());
     final last = _last;
     if (last != null) unawaited(_applyNative(last));
+  }
+
+  Future<void> _readBands() async {
+    final session = _session;
+    if (_bands.isCompleted || _readingBands || session == null || session == 0) return;
+    _readingBands = true;
+    try {
+      final found = await _channel.invokeMapMethod<String, Object?>('bands', {'session': session});
+      if (found == null) {
+        _setAvailable(false);
+        return;
+      }
+      final centers = [for (final c in (found['centers'] as List? ?? const [])) (c as num).toDouble()];
+      if (centers.isEmpty) {
+        _setAvailable(false);
+        return;
+      }
+      _bands.complete(EqBands(
+        centers: centers,
+        minDb: (found['minDb'] as num? ?? -15).toDouble(),
+        maxDb: (found['maxDb'] as num? ?? 15).toDouble(),
+      ));
+      _setAvailable(true);
+    } catch (error) {
+      debugPrint('=== SONIDO: no se pudieron leer las bandas del ecualizador: $error ===');
+      _setAvailable(false);
+    } finally {
+      _readingBands = false;
+    }
+  }
+
+  Future<void> _release() async {
+    try {
+      await _channel.invokeMethod<void>('release');
+    } catch (error) {
+      debugPrint('=== SONIDO: no se pudieron soltar los efectos: $error ===');
+    }
   }
 
   @override
   Future<void> apply(SoundMix mix) async {
     _last = mix;
-    await effect.setEnabled(mix.enabled);
-    final parameters = await effect.parameters;
-    for (var i = 0; i < parameters.bands.length && i < mix.gains.length; i++) {
-      await parameters.bands[i].setGain(mix.gains[i]);
-    }
     await _applyNative(mix);
   }
 
   Future<void> _applyNative(SoundMix mix) async {
     final session = _session;
-    if (session == null) return; // se aplica cuando el reproductor tenga sesión
+    if (session == null || session == 0) return; // se aplica cuando el reproductor tenga sesión
     try {
-      await _channel.invokeMethod<void>('apply', {
+      final result = await _channel.invokeMapMethod<String, bool>('apply', {
         'session': session,
         'enabled': mix.enabled,
+        'gains': mix.gains,
         'bass': mix.bass,
         'reverb': mix.reverb.index,
       });
+      final eq = result?['eq'];
+      if (eq == false) _setAvailable(false);
+      if (eq == true && !_bands.isCompleted) unawaited(_readBands());
+      if (eq == true && _bands.isCompleted) _setAvailable(true);
     } catch (error) {
-      debugPrint('=== SONIDO: no se pudieron aplicar bajos/reverb: $error ===');
+      debugPrint('=== SONIDO: no se pudieron aplicar los efectos: $error ===');
     }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _release();
+    await _availability.close();
   }
 }
 
@@ -134,15 +194,12 @@ class UnsupportedSoundEngine extends SoundEngine {
   Future<void> apply(SoundMix mix) async {}
 }
 
-/// El efecto que se conecta al reproductor (solo Android). Uno solo por app:
-/// just_audio no deja usar el mismo efecto en dos reproductores.
-final androidEqualizerProvider = Provider<AndroidEqualizer?>(
-  (ref) => !kIsWeb && Platform.isAndroid ? AndroidEqualizer() : null,
-);
-
 final equalizerEngineProvider = Provider<SoundEngine>((ref) {
-  final effect = ref.watch(androidEqualizerProvider);
-  if (effect != null) return AndroidSoundEngine(effect);
+  if (!kIsWeb && Platform.isAndroid) {
+    final engine = AndroidSoundEngine();
+    ref.onDispose(engine.dispose);
+    return engine;
+  }
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) return MpvSoundEngine();
   return UnsupportedSoundEngine();
 });

@@ -2989,5 +2989,7 @@
   "novedades08PcTitulo": "En la PC",
   "@novedades08PcTitulo": {"description": "Novedad 0.8 solo para la PC"},
   "novedades08PcTexto": "Video de fondo, ecualizador con efectos y Ctrl/Shift + clic para elegir varias canciones.",
-  "@novedades08PcTexto": {"description": "Novedad 0.8 solo para la PC"}
+  "@novedades08PcTexto": {"description": "Novedad 0.8 solo para la PC"},
+  "ecualizadorNoDisponibleAhora": "El ecualizador no está disponible ahora. La música suena igual, sin él; vuelve a intentarlo en un rato.",
+  "@ecualizadorNoDisponibleAhora": {"description": "Sonido: Android no pudo crear el ecualizador (aviso suave)"}
 }

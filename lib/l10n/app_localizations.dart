@@ -8224,6 +8224,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Video de fondo, ecualizador con efectos y Ctrl/Shift + clic para elegir varias canciones.'**
   String get novedades08PcTexto;
+
+  /// Sonido: Android no pudo crear el ecualizador (aviso suave)
+  ///
+  /// In es, this message translates to:
+  /// **'El ecualizador no está disponible ahora. La música suena igual, sin él; vuelve a intentarlo en un rato.'**
+  String get ecualizadorNoDisponibleAhora;
 }
 
 class _AppLocalizationsDelegate

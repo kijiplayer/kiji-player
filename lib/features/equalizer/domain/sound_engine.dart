@@ -82,4 +82,11 @@ abstract class SoundEngine {
   void setAudioSession(int? id) {}
 
   Future<void> apply(SoundMix mix);
+
+  /// Si el ecualizador anda ahora (Android: puede no poder crearse un rato si el sistema se quedó
+  /// sin efectos). false: la música suena igual, sin él, y Sonido lo avisa suave.
+  Stream<bool> get availability => const Stream.empty();
+
+  /// Suelta lo que tenga tomado (efectos del sistema).
+  Future<void> dispose() async {}
 }

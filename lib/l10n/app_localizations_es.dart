@@ -5087,4 +5087,8 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get novedades08PcTexto =>
       'Video de fondo, ecualizador con efectos y Ctrl/Shift + clic para elegir varias canciones.';
+
+  @override
+  String get ecualizadorNoDisponibleAhora =>
+      'El ecualizador no está disponible ahora. La música suena igual, sin él; vuelve a intentarlo en un rato.';
 }
