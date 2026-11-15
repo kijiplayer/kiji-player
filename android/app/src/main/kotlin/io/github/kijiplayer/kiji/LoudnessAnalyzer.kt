@@ -127,9 +127,13 @@ object LoudnessAnalyzer {
             }
             return out.toByteArray()
         } finally {
+            // Siempre se sueltan el decodificador y el extractor (el sistema tiene pocos).
             runCatching { codec?.stop() }
+                .onFailure { Log.w("Kiji", "=== ONDA: no se pudo detener el decodificador: ${it.javaClass.simpleName} ===") }
             runCatching { codec?.release() }
-            extractor.release()
+                .onFailure { Log.w("Kiji", "=== ONDA: no se pudo soltar el decodificador: ${it.javaClass.simpleName} ===") }
+            runCatching { extractor.release() }
+                .onFailure { Log.w("Kiji", "=== ONDA: no se pudo soltar el extractor: ${it.javaClass.simpleName} ===") }
         }
     }
 
