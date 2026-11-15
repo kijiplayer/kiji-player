@@ -80,7 +80,11 @@ class CustomBackground extends ConsumerWidget {
         : ref.watch(backgroundToneProvider((path: file.path, light: palette.isLight))).valueOrNull;
     final scrim = backgroundScrim(palette, s.opacity, tone: tone);
     final media = video
-        ? (BackgroundStore.videoWithMediaKit ? _PcVideoBackground(file: file) : _VideoBackground(file: file))
+        // La clave es el archivo: con otro video (otro fondo, o el de otra canción) se cierra el
+        // reproductor viejo y se abre uno nuevo (si no, seguía el anterior, abierto).
+        ? (BackgroundStore.videoWithMediaKit
+              ? _PcVideoBackground(key: ValueKey(file.path), file: file)
+              : _VideoBackground(key: ValueKey(file.path), file: file))
         : Image.file(
             file,
             fit: BoxFit.cover,
@@ -110,7 +114,7 @@ class CustomBackground extends ConsumerWidget {
 /// Video de fondo: sin sonido y en bucle. Se queda quieto cuando Kiji no está a la vista, con el
 /// ahorro de batería o con "Reducir animaciones".
 class _VideoBackground extends ConsumerStatefulWidget {
-  const _VideoBackground({required this.file});
+  const _VideoBackground({super.key, required this.file});
 
   final File file;
 
@@ -201,7 +205,7 @@ class _VideoBackgroundState extends ConsumerState<_VideoBackground> with Widgets
 /// Video de fondo en la PC, con media_kit (la librería completa de mpv): sin sonido, en bucle, y
 /// quieto cuando Kiji no está a la vista o con "Reducir animaciones".
 class _PcVideoBackground extends ConsumerStatefulWidget {
-  const _PcVideoBackground({required this.file});
+  const _PcVideoBackground({super.key, required this.file});
 
   final File file;
 
