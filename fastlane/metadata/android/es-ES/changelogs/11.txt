@@ -1,0 +1,4 @@
+• Arreglado: a veces ninguna canción sonaba hasta reiniciar la app (por el ecualizador).
+• Si el ecualizador no está disponible, la música suena igual y Sonido te lo avisa.
+• El fondo de video cambia bien al elegir otro.
+• Kiji ocupa menos recursos del teléfono con los sonidos del teatro.

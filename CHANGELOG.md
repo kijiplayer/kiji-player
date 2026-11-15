@@ -1,6 +1,15 @@
 # Novedades de Kiji Player
 
-## 0.8.1 — sin publicar
+## 0.8.2 — sin publicar
+
+**Arreglos**
+- A veces ninguna canción sonaba hasta reiniciar la app: era el ecualizador. Ahora, si Android no
+  puede crearlo en ese momento, la música suena igual, sin él, y Sonido lo avisa con calma.
+- El fondo de video cambia bien al elegir otro (antes podía quedar el anterior).
+- Los sonidos del teatro ya no dejan recursos del teléfono tomados.
+- Al actualizar dentro de la 0.8, "Qué hay de nuevo" muestra lo de esta versión.
+
+## 0.8.1 — 13 de noviembre de 2026
 
 **Arreglos del teatro: tomates y rosas a color en todos los estilos**
 - Tomates, manchas, rosas, telón rojo con cenefa dorada y confeti de colores también en Grafito y

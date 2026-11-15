@@ -1,0 +1,4 @@
+• Fixed: sometimes no song would play until you restarted the app (caused by the equalizer).
+• If the equalizer is not available, music plays the same and Sound lets you know.
+• The video background changes properly when you pick another one.
+• Kiji uses fewer phone resources for theater sounds.
