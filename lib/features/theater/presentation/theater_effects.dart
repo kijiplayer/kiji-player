@@ -60,8 +60,17 @@ class TheaterSounds {
   static final instance = TheaterSounds._();
 
   final _players = <String, AudioPlayer>{};
+  final _idle = <String, Timer>{};
+
+  /// Un reproductor sin usar se suelta a los [idleRelease]: cada uno tiene su audio en el
+  /// sistema, y con 15 sonidos distintos quedaban 15 abiertos para siempre.
+  static const idleRelease = Duration(seconds: 20);
+
+  /// Cuántos reproductores hay abiertos ahora (para las pruebas).
+  int get openPlayers => _players.length;
 
   Future<void> play(String name, {double volume = 0.6}) async {
+    _idle.remove(name)?.cancel();
     try {
       final player = _players[name] ??= AudioPlayer(handleInterruptions: false, handleAudioSessionActivation: false);
       if (player.audioSource == null) await player.setAsset('assets/sounds/$name.wav');
@@ -70,6 +79,19 @@ class TheaterSounds {
       unawaited(player.play());
     } catch (error) {
       debugPrint('=== TEATRO: no sonó $name: ${error.runtimeType} ===');
+    } finally {
+      _idle[name] = Timer(idleRelease, () => unawaited(_release(name)));
+    }
+  }
+
+  Future<void> _release(String name) async {
+    _idle.remove(name)?.cancel();
+    final player = _players.remove(name);
+    if (player == null) return;
+    try {
+      await player.dispose();
+    } catch (error) {
+      debugPrint('=== TEATRO: no se pudo soltar $name: ${error.runtimeType} ===');
     }
   }
 
