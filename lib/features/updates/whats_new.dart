@@ -87,6 +87,19 @@ List<StartupScreen> startupScreens({
   if (shouldShowWhatsNew(lastSeenVersion: lastSeenVersion, freshInstall: freshInstall)) StartupScreen.whatsNew,
 ];
 
+/// Actualización dentro de la misma versión grande (0.8.0 → 0.8.2, por ejemplo): se muestran las
+/// notas cortas de esta compilación (las de fastlane), no las tarjetas de lo nuevo de la 0.8.
+bool isPatchUpdate(String? lastSeenVersion, {String current = kijiVersion}) {
+  List<int>? majorMinor(String? v) {
+    final m = RegExp(r'^(\d+)\.(\d+)').firstMatch(v ?? '');
+    return m == null ? null : [int.parse(m.group(1)!), int.parse(m.group(2)!)];
+  }
+
+  final before = majorMinor(lastSeenVersion);
+  final now = majorMinor(current);
+  return before != null && now != null && before[0] == now[0] && before[1] == now[1] && lastSeenVersion != current;
+}
+
 /// ¿Se muestran las novedades al abrir? Solo después de actualizar: nunca a quien recién
 /// instala (ve la bienvenida) ni dos veces la misma versión.
 bool shouldShowWhatsNew({required String? lastSeenVersion, required bool freshInstall}) {
