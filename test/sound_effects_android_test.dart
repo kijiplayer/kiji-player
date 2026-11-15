@@ -115,6 +115,8 @@ void main() {
 }
 
 class _UnavailableEngine extends SoundEngine {
+  // Se cierra en la prueba (addTearDown).
+  // ignore: close_sinks
   final controller = StreamController<bool>.broadcast();
   @override
   bool get isSupported => true;
