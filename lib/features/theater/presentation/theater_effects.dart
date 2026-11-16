@@ -66,6 +66,18 @@ class TheaterSounds {
   /// sistema, y con 15 sonidos distintos quedaban 15 abiertos para siempre.
   static const idleRelease = Duration(seconds: 20);
 
+  /// La ovación: su volumen y cuánto dura (assets/sounds/ovation.wav, pico de -4,4 dBFS).
+  static const ovationVolume = 0.6;
+  static const ovationLength = Duration(milliseconds: 3200);
+
+  /// Calla los sonidos que empiezan con [prefix] (los aplausos, al llegar la ovación).
+  void stopAll({required String prefix}) {
+    for (final entry in _players.entries) {
+      if (!entry.key.startsWith(prefix)) continue;
+      unawaited(entry.value.pause().catchError((Object e) => debugPrint('=== TEATRO: no se pudo callar ${entry.key}: ${e.runtimeType} ===')));
+    }
+  }
+
   /// Cuántos reproductores hay abiertos ahora (para las pruebas).
   int get openPlayers => _players.length;
 
@@ -188,7 +200,11 @@ void throwRose(WidgetRef ref, Track track) {
   );
   if (ovation) {
     _vibrate(ref, long: true);
-    unawaited(TheaterSounds.instance.play('ovation', volume: 0.7));
+    // Que no sature: se cortan los aplausos que quedaban sonando, la ovación va al 60 % y la
+    // música baja al 70 % mientras dura (pico de la suma ≈ 0,98 con la música al máximo).
+    TheaterSounds.instance.stopAll(prefix: 'applause_');
+    ref.read(playbackProvider.notifier).duck(duration: TheaterSounds.ovationLength);
+    unawaited(TheaterSounds.instance.play('ovation', volume: TheaterSounds.ovationVolume));
   } else {
     // Los aplausos crecen: más gente y más fuerte con cada rosa seguida.
     unawaited(TheaterSounds.instance.play('applause_${streak.clamp(1, 3)}', volume: (0.35 + 0.12 * streak).clamp(0.35, 0.85)));

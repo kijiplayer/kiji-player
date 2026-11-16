@@ -1160,6 +1160,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
   Future<void> _dispose() async {
     await _stopTail();
     _saveTimer?.cancel();
+    _duckTimer?.cancel();
     unawaited(_sessionSubscription?.cancel());
     // Sin reproductor, los efectos de su sesión se sueltan.
     _equalizer?.audioSessionChanged(null);
@@ -1454,7 +1455,23 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     unawaited(_applyVolume());
   }
 
-  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition * _headroom);
+  Future<void> _applyVolume() => _audioPlayer.setVolume(state.volume * _fade * _transition * _headroom * _duck);
+
+  /// La música baja un poco mientras suena algo encima (la ovación del teatro), para que la suma no
+  /// sature, y vuelve sola.
+  double _duck = 1;
+  Timer? _duckTimer;
+
+  /// Baja la música a [level] durante [duration] (la ovación: 0,7 por 3,2 s).
+  void duck({double level = 0.7, required Duration duration}) {
+    _duckTimer?.cancel();
+    _duck = level.clamp(0.0, 1.0);
+    unawaited(_applyVolume());
+    _duckTimer = Timer(duration, () {
+      _duck = 1;
+      unawaited(_applyVolume());
+    });
+  }
 
   Future<void> seekToProgress(double progress) async {
     final duration = state.duration;
