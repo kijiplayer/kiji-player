@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter/widgets.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/scheduler.dart';
@@ -144,6 +145,27 @@ enum _SourceMode { cached, withHeaders, plain }
 /// contar como falla del extractor.
 enum LoadResult { loaded, cancelled, offline, unplayable, contentBlocked }
 
+/// Cuándo reiniciar el reproductor solo (autocuración, 0.8.2). Un error del reproductor mismo
+/// (del plugin nativo o de los efectos: `PlatformException`, o un `StateError`), no de internet ni
+/// del archivo, es lo que antes dejaba a Kiji sin sonar hasta forzar la detención. Se reinicia como
+/// mucho una vez cada [cooldown]: si vuelve a fallar enseguida, no se insiste (se salta la canción
+/// como siempre).
+class PlayerHealer {
+  PlayerHealer({this.cooldown = const Duration(seconds: 30)});
+
+  final Duration cooldown;
+  DateTime? _last;
+
+  static bool isPlayerFault(Object error) => error is PlatformException || error is StateError;
+
+  bool shouldHeal(Object error, DateTime now) {
+    final last = _last;
+    if (!isPlayerFault(error) || (last != null && now.difference(last) < cooldown)) return false;
+    _last = now;
+    return true;
+  }
+}
+
 class PlaybackNotifier extends Notifier<PlaybackState> {
   AudioPlayer? _player;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
@@ -216,7 +238,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // Las pausas por desconexión e interrupciones las maneja PlaybackAutomation (con su motivo).
     // Sin efectos en el AudioPipeline: el ecualizador (Android) va por SoundEffects.kt, enganchado
     // a la sesión de audio. Si no se puede crear, la canción carga y suena igual (0.8.2).
-    _player = AudioPlayer(handleInterruptions: false);
+    _player = _newPlayer();
     ref.read(equalizerProvider);
     // "Sonido": margen de seguridad cuando el ecualizador o los bajos suben mucho (no satura).
     _headroom = ref.read(equalizerProvider).headroom;
@@ -229,12 +251,8 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     // "Sonido": velocidad y tono (con "Efectos" apagado, siempre lo normal), en vivo.
     ref.listen(equalizerProvider.select((s) => s.settings.playbackRate), (_, rate) => unawaited(_applyRate(rate)));
     // Android: el ecualizador, los bajos y la reverb se enganchan a la sesión de audio del reproductor.
-    final equalizer = ref.read(equalizerProvider.notifier);
-    _equalizer = equalizer;
-    _sessionSubscription = _audioPlayer.androidAudioSessionIdStream.listen(
-      equalizer.audioSessionChanged,
-      onError: (Object error) => debugPrint('=== SONIDO: sin sesión de audio: $error ==='),
-    );
+    _equalizer = ref.read(equalizerProvider.notifier);
+    _listenToSession();
     ref.onDispose(_dispose);
 
     _controls = ref.read(systemMediaControlsProvider);
@@ -313,6 +331,45 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       await _showInSystem(track, duration: _player?.duration);
       _pushSystemState();
     }
+  }
+
+  AudioPlayer _newPlayer() => AudioPlayer(handleInterruptions: false);
+
+  void _listenToSession() {
+    final equalizer = _equalizer;
+    if (equalizer == null) return;
+    _sessionSubscription = _audioPlayer.androidAudioSessionIdStream.listen(
+      equalizer.audioSessionChanged,
+      onError: (Object error) => debugPrint('=== SONIDO: sin sesión de audio: $error ==='),
+    );
+  }
+
+  final _healer = PlayerHealer();
+
+  /// Autocuración: tira el reproductor (y sus efectos) y crea uno nuevo, con el mismo volumen,
+  /// velocidad y tono, y la canción se vuelve a cargar (ver [PlayerHealer]).
+  Future<bool> _healPlayer(Object error) async {
+    if (!_healer.shouldHeal(error, DateTime.now())) return false;
+    debugPrint('=== REPRODUCCION: el reproductor falló (${error.runtimeType}); se reinicia solo ===');
+    await _stopTail();
+    for (final subscription in _subscriptions) {
+      await subscription.cancel();
+    }
+    _subscriptions.clear();
+    await _sessionSubscription?.cancel();
+    _equalizer?.audioSessionChanged(null);
+    final old = _player;
+    _player = _newPlayer();
+    try {
+      await old?.dispose();
+    } catch (disposeError) {
+      debugPrint('=== REPRODUCCION: el reproductor viejo no se cerró bien: ${disposeError.runtimeType} ===');
+    }
+    _listenToSession();
+    _listenToPlayer();
+    await _applyVolume();
+    await _applyRate(ref.read(equalizerProvider).settings.playbackRate);
+    return true;
   }
 
   AudioPlayer get _audioPlayer {
@@ -503,6 +560,10 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('=== ERROR AL CARGAR "${track.title}" ===');
       debugPrint('$error');
       debugPrint('$stackTrace');
+      // El reproductor mismo falló: se reinicia una vez, solo, y se vuelve a cargar la canción.
+      if (await _healPlayer(error) && token == _loadToken) {
+        return _loadTrack(track, index, autoPlay: autoPlay, initialPosition: initialPosition, skipClients: skipClients);
+      }
       state = state.copyWith(isInitialized: false);
       await _pausePlayer('error al cargar la canción'); // l10n-ignore
       // Un archivo del equipo que no se puede reproducir (formato raro, dañado): se salta a la
