@@ -524,6 +524,37 @@ List<YtShelf> parseMoodCategory(Map<String, dynamic> json) {
 /// Las canciones de una página (playlist, "Me gusta" de la cuenta).
 List<YtMusicSearchResult> parseSongRows(Map<String, dynamic> json) => _songRows(json);
 
+/// La marca de la página siguiente de una lista larga (playlist, "Me gusta", biblioteca), en
+/// cualquiera de las dos formas que usa YouTube: `continuationItemRenderer` (la nueva) o
+/// `nextContinuationData` (la vieja). null si no hay más.
+String? parseBrowseContinuation(Map<String, dynamic> json) {
+  String? found;
+  void walk(Object? n) {
+    if (found != null) return;
+    if (n is Map) {
+      final item = n['continuationItemRenderer'];
+      if (item is Map) {
+        final token = jsonStringAt(item, const ['continuationEndpoint', 'continuationCommand', 'token']);
+        if (token != null && token.isNotEmpty) {
+          found = token;
+          return;
+        }
+      }
+      final old = jsonStringAt(n, const ['nextContinuationData', 'continuation']);
+      if (old != null && old.isNotEmpty) {
+        found = old;
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(json);
+  return found;
+}
+
 /// Playlists de la biblioteca de la cuenta (tarjetas con su `browseId` "VL…"): (id, nombre).
 List<({String id, String name})> parseLibraryPlaylists(Map<String, dynamic> json) {
   final out = <({String id, String name})>[];

@@ -47,6 +47,9 @@ class _Reader implements YtAccountReader {
   final asked = <String>[];
   bool refuse = false;
 
+  /// La biblioteca trae además una playlist larga (en 3 páginas) y una que falla.
+  bool more = false;
+
   @override
   Future<Map<String, dynamic>?> browse(String browseId, YtSession session) async {
     asked.add(browseId);
@@ -61,15 +64,60 @@ class _Reader implements YtAccountReader {
         'contents': [_song('aaaaaaaaaaa', 'Glass Harbor', 'The Velvet Tides')],
       },
       'FEmusic_liked_playlists' => {
-        'contents': [_card('VLLM', 'Me gusta'), _card('VLPLinventada', 'Lista Inventada')],
+        'contents': [
+          _card('VLLM', 'Me gusta'),
+          _card('VLPLinventada', 'Lista Inventada'),
+          if (more) _card('VLPLrota', 'Lista Rota'),
+          if (more) _card('VLPLlarga', 'Lista Larga'),
+        ],
       },
       'VLPLinventada' => {
         'contents': [_song('bbbbbbbbbbb', 'Slow Comet', 'Aurelio Fen')],
+      },
+      // Una playlist larga: la primera página trae la marca de la siguiente.
+      'VLPLlarga' => {
+        'contents': [_song('ccccccccccc', 'Canción Uno', 'Grupo Inventado'), _cont('pagina-2')],
+      },
+      'VLPLrota' => throw DioException(
+        requestOptions: RequestOptions(),
+        response: Response(requestOptions: RequestOptions(), statusCode: 500),
+      ),
+      _ => null,
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic>?> continuation(String token, YtSession session) async {
+    asked.add('cont:$token');
+    return switch (token) {
+      'pagina-2' => {
+        'onResponseReceivedActions': [
+          {
+            'appendContinuationItemsAction': {
+              'continuationItems': [_song('ddddddddddd', 'Canción Dos', 'Grupo Inventado'), _cont('pagina-3')],
+            },
+          },
+        ],
+      },
+      'pagina-3' => {
+        'continuationContents': {
+          'musicPlaylistShelfContinuation': {
+            'contents': [_song('eeeeeeeeeee', 'Canción Tres', 'Grupo Inventado')],
+          },
+        },
       },
       _ => null,
     };
   }
 }
+
+Map<String, dynamic> _cont(String token) => {
+  'continuationItemRenderer': {
+    'continuationEndpoint': {
+      'continuationCommand': {'token': token},
+    },
+  },
+};
 
 class _Settings extends SettingsNotifier {
   _Settings(this.initial);
@@ -140,6 +188,17 @@ void main() {
     await c.read(ytSyncProvider.notifier).forget();
     expect(c.read(ytSyncProvider).isEmpty, isTrue);
     expect(File(p.join(dir.path, 'yt_sync.json')).existsSync(), isFalse);
+  });
+
+  test('Lee todas las páginas de una playlist larga, y una playlist que falla no tira las demás', () async {
+    YtSessionHolder.current = const YtSession(cookie: 'SAPISID=inventada');
+    final reader = _Reader()..more = true;
+    final c = make(reader);
+    expect(await c.read(ytSyncProvider.notifier).syncNow(), isTrue);
+    final playlists = c.read(ytSyncProvider).playlists;
+    expect(playlists.map((pl) => pl.name), ['Lista Inventada', 'Lista Larga']);
+    expect(playlists.last.tracks.map((t) => t.title), ['Canción Uno', 'Canción Dos', 'Canción Tres']);
+    expect(reader.asked, containsAll(['cont:pagina-2', 'cont:pagina-3']));
   });
 
   test('Cerrar sesión borra lo leído de la cuenta y apaga la sincronización', () async {

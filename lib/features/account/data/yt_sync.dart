@@ -55,6 +55,9 @@ class YtSyncState {
 /// Lee la cuenta (lo que se cambia en las pruebas).
 abstract interface class YtAccountReader {
   Future<Map<String, dynamic>?> browse(String browseId, YtSession session);
+
+  /// La página siguiente (con la marca de [parseBrowseContinuation]).
+  Future<Map<String, dynamic>?> continuation(String token, YtSession session);
 }
 
 class _ClientReader implements YtAccountReader {
@@ -63,6 +66,10 @@ class _ClientReader implements YtAccountReader {
 
   @override
   Future<Map<String, dynamic>?> browse(String browseId, YtSession session) => _client.browseWithAccount(browseId, session);
+
+  @override
+  Future<Map<String, dynamic>?> continuation(String token, YtSession session) =>
+      _client.browseContinuationWithAccount(token, session);
 }
 
 final ytAccountReaderProvider = Provider<YtAccountReader>((ref) => _ClientReader(ref.read(ytMusicClientProvider)));
@@ -82,6 +89,35 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
 
   /// Cuántas playlists de la cuenta se leen como mucho.
   static const maxPlaylists = 30;
+
+  /// Páginas por lista como mucho (unas 100 canciones cada una): "Me gusta" y las playlists largas
+  /// ya no quedan cortadas en la primera página.
+  static const maxPages = 30;
+
+  /// Todas las páginas de [browseId] (la primera y las siguientes, hasta [maxPages]).
+  Future<List<Map<String, dynamic>>> _pages(YtAccountReader reader, String browseId, YtSession session) async {
+    final first = await reader.browse(browseId, session);
+    if (first == null) return const [];
+    final pages = [first];
+    var token = parseBrowseContinuation(first);
+    final seen = <String>{};
+    while (token != null && pages.length < maxPages && seen.add(token)) {
+      final next = await reader.continuation(token, session);
+      if (next == null) break;
+      pages.add(next);
+      token = parseBrowseContinuation(next);
+    }
+    return pages;
+  }
+
+  static List<Track> _tracks(List<Map<String, dynamic>> pages) {
+    final seen = <String>{};
+    return [
+      for (final page in pages)
+        for (final r in parseSongRows(page))
+          if (seen.add(r.videoId)) ytTrackFromResult(r, audioUrl: ''),
+    ];
+  }
 
   Future<JsonFile> _json() async => _file ??= JsonFile(p.join((await _directory()).path, 'yt_sync.json'), logTag: 'SINCRONIZAR');
 
@@ -137,17 +173,28 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
     state = YtSyncState(liked: state.liked, playlists: state.playlists, syncedAt: state.syncedAt, syncing: true);
     final reader = ref.read(ytAccountReaderProvider);
     try {
-      final likedPage = await reader.browse('FEmusic_liked_videos', session);
-      final liked = likedPage == null ? <Track>[] : [for (final r in parseSongRows(likedPage)) ytTrackFromResult(r, audioUrl: '')];
-      final libraryPage = await reader.browse('FEmusic_liked_playlists', session);
-      final ids = libraryPage == null ? const <({String id, String name})>[] : parseLibraryPlaylists(libraryPage);
+      final liked = _tracks(await _pages(reader, 'FEmusic_liked_videos', session));
+      final seenIds = <String>{};
+      final ids = [
+        for (final page in await _pages(reader, 'FEmusic_liked_playlists', session))
+          for (final pl in parseLibraryPlaylists(page))
+            if (seenIds.add(pl.id)) pl,
+      ];
+      final before = {for (final pl in state.playlists) pl.id: pl};
       final playlists = <SyncedPlaylist>[];
       for (final pl in ids.take(maxPlaylists)) {
-        final page = await reader.browse('VL${pl.id}', session);
-        if (page == null) continue;
-        playlists.add(
-          SyncedPlaylist(id: pl.id, name: pl.name, tracks: [for (final r in parseSongRows(page)) ytTrackFromResult(r, audioUrl: '')]),
-        );
+        try {
+          final pages = await _pages(reader, 'VL${pl.id}', session);
+          if (pages.isEmpty) continue;
+          playlists.add(SyncedPlaylist(id: pl.id, name: pl.name, tracks: _tracks(pages)));
+        } catch (error) {
+          // La sesión venció: se corta todo (ver abajo). Otra falla: esta playlist queda como
+          // estaba y siguen las demás (antes una sola hacía fallar toda la lectura).
+          if (error is DioException && error.response?.statusCode == 401) rethrow;
+          debugPrint('=== SINCRONIZAR: una playlist no se pudo leer (${error.runtimeType}); queda la de antes ===');
+          final old = before[pl.id];
+          if (old != null) playlists.add(old);
+        }
       }
       final now = DateTime.now();
       state = YtSyncState(liked: liked, playlists: playlists, syncedAt: now);

@@ -237,6 +237,24 @@ class YtMusicClient {
     return response.data;
   }
 
+  /// La página siguiente de una lectura con la cuenta ([browseWithAccount]), con su marca.
+  Future<Map<String, dynamic>?> browseContinuationWithAccount(String token, YtSession session) async {
+    final context = Map<String, dynamic>.from(_context['context'] as Map);
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/browse',
+      queryParameters: {'key': _apiKey, 'prettyPrint': false, 'ctoken': token, 'continuation': token, 'type': 'next'},
+      data: {
+        'context': {
+          ...context,
+          if (session.dataSyncId != null) 'user': {'onBehalfOfUser': session.dataSyncId},
+        },
+        'continuation': token,
+      },
+      options: Options(headers: session.authHeaders()),
+    );
+    return response.data;
+  }
+
   /// Página de un artista (anónimo): canciones más escuchadas y álbumes.
   Future<ArtistPage?> artist(String browseId) async {
     final data = await _browse(browseId);
