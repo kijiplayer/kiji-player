@@ -68,6 +68,11 @@ android {
             // Reglas propias de R8 (WorkManager, InnerTubeX): ver proguard-rules.pro.
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+        // "profile" (para medir rendimiento) nunca se publica: se firma con la clave de depuración,
+        // así se instala encima de Kiji Dev sin tocar sus datos.
+        maybeCreate("profile").apply {
+            signingConfig = signingConfigs.getByName("debug")
+        }
     }
 }
 
