@@ -84,6 +84,20 @@ class TheaterSounds {
     }
   }
 
+  /// Suelta todos los reproductores ya (al cerrar, y en las pruebas): los temporizadores se
+  /// cancelan en el acto y los reproductores se cierran sin esperar.
+  void releaseAll() {
+    for (final timer in _idle.values) {
+      timer.cancel();
+    }
+    _idle.clear();
+    final players = [..._players.values];
+    _players.clear();
+    for (final player in players) {
+      unawaited(player.dispose().catchError((Object e) => debugPrint('=== TEATRO: no se pudo soltar un sonido: ${e.runtimeType} ===')));
+    }
+  }
+
   Future<void> _release(String name) async {
     _idle.remove(name)?.cancel();
     final player = _players.remove(name);
