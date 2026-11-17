@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -98,8 +101,9 @@ enum GlassKind {
   floating,
 }
 
-/// La superficie del vidrio líquido. [child] va encima.
-class LiquidGlass extends StatelessWidget {
+/// La superficie del vidrio líquido. [child] va encima. Al apretarlo "se hunde" (y vuelve con un
+/// rebote suave); con "reducir animaciones", quieto.
+class LiquidGlass extends StatefulWidget {
   const LiquidGlass({
     super.key,
     required this.child,
@@ -118,21 +122,63 @@ class LiquidGlass extends StatelessWidget {
   final Color? border;
 
   @override
+  State<LiquidGlass> createState() => _LiquidGlassState();
+}
+
+class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStateMixin {
+  late final _press = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 130),
+    reverseDuration: const Duration(milliseconds: 260),
+  );
+  Offset? _down;
+
+  @override
+  void dispose() {
+    _press.dispose();
+    super.dispose();
+  }
+
+  void _release() {
+    _down = null;
+    // También si recién empezaba a hundirse (si no, quedaba hundido).
+    if (_press.value > 0 || _press.isAnimating) unawaited(_press.reverse());
+  }
+
+  @override
   Widget build(BuildContext context) {
     final backdrop = GlassBackdrop.maybeOf(context);
     final vertical = Scrollable.maybeOf(context, axis: Axis.vertical)?.position;
     final horizontal = Scrollable.maybeOf(context, axis: Axis.horizontal)?.position;
-    return _LiquidGlassBox(
-      borderRadius: borderRadius,
-      kind: kind,
-      style: KijiLook.style,
-      palette: KijiColors.palette,
-      fill: fill,
-      border: border,
-      still: KijiEffects.still(context),
-      backdrop: backdrop,
-      repaint: Listenable.merge([?backdrop, ?vertical, ?horizontal]),
-      child: child,
+    final still = KijiEffects.still(context);
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: still
+          ? null
+          : (event) {
+              _down = event.position;
+              unawaited(_press.forward());
+            },
+      // Si el dedo se mueve (está deslizando, no tocando), vuelve enseguida.
+      onPointerMove: (event) {
+        final down = _down;
+        if (down != null && (event.position - down).distance > 10) _release();
+      },
+      onPointerUp: (_) => _release(),
+      onPointerCancel: (_) => _release(),
+      child: _LiquidGlassBox(
+        borderRadius: widget.borderRadius,
+        kind: widget.kind,
+        style: KijiLook.style,
+        palette: KijiColors.palette,
+        fill: widget.fill,
+        border: widget.border,
+        still: still,
+        backdrop: backdrop,
+        press: _press,
+        repaint: Listenable.merge([?backdrop, ?vertical, ?horizontal, _press]),
+        child: widget.child,
+      ),
     );
   }
 }
@@ -147,10 +193,12 @@ class _LiquidGlassBox extends SingleChildRenderObjectWidget {
     required this.border,
     required this.still,
     required this.backdrop,
+    required this.press,
     required this.repaint,
     super.child,
   });
 
+  final ValueListenable<double> press;
   final BorderRadius borderRadius;
   final GlassKind kind;
   final KijiStyle style;
@@ -171,6 +219,7 @@ class _LiquidGlassBox extends SingleChildRenderObjectWidget {
     border: border,
     still: still,
     backdrop: backdrop,
+    press: press,
     repaint: repaint,
   );
 
@@ -185,6 +234,7 @@ class _LiquidGlassBox extends SingleChildRenderObjectWidget {
       ..border = border
       ..still = still
       ..backdrop = backdrop
+      ..press = press
       ..repaint = repaint;
   }
 }
@@ -200,6 +250,7 @@ class RenderLiquidGlass extends RenderProxyBox {
     required this._border,
     required this._still,
     required this._backdrop,
+    required this._press,
     required this._repaint,
   });
 
@@ -280,122 +331,240 @@ class RenderLiquidGlass extends RenderProxyBox {
     super.detach();
   }
 
-  /// Papel: superficie sólida de papel (no es vidrio).
-  bool get _paper => _style == KijiStyle.paper;
+  /// Cuánto está hundido ahora (para las pruebas): 0 suelto, 1 apretado.
+  @visibleForTesting
+  double get debugPress => _still ? 0 : _press.value;
+
+  /// 0 suelto, 1 apretado: el vidrio "se hunde" (se achica apenas y se oscurece).
+  ValueListenable<double> _press;
+  set press(ValueListenable<double> value) {
+    if (identical(value, _press)) return;
+    _press = value;
+    markNeedsPaint();
+  }
+
+  /// Los colores del vidrio según el estilo (y el acento, en Nocturne).
+  ({List<Color> tint, List<Color> edge, Color spec, Color shadow, double shadowAlpha}) get _look {
+    switch (_style) {
+      case KijiStyle.nocturne:
+        // El vidrio toma el acento: violeta → cian de fábrica, o el que se haya elegido.
+        return (
+          tint: [_palette.violet.withValues(alpha: 0.17), _palette.cyan.withValues(alpha: 0.09)],
+          edge: [
+            const Color(0xCCFFFFFF),
+            _palette.violet.withValues(alpha: 0.55),
+            _palette.cyan.withValues(alpha: 0.45),
+            const Color(0x1FFFFFFF),
+          ],
+          spec: const Color(0x30FFFFFF),
+          shadow: const Color(0xFF000000),
+          shadowAlpha: 0.28,
+        );
+      case KijiStyle.graphite:
+        // Vidrio ahumado de museo: frío, sin color, con un filo blanco nítido.
+        return (
+          tint: [const Color(0x70101012), const Color(0x52000000)],
+          edge: [const Color(0xE6FFFFFF), const Color(0x24FFFFFF), const Color(0x0FFFFFFF), const Color(0x52FFFFFF)],
+          spec: const Color(0x1FFFFFFF),
+          shadow: const Color(0xFF000000),
+          shadowAlpha: 0.34,
+        );
+      case KijiStyle.paper:
+        // Papel translúcido cálido, con el borde de tinta y terracota.
+        return (
+          tint: [const Color(0xD9FFFFFF), const Color(0xC7F7EFE3)],
+          edge: [const Color(0x8CB4462B), const Color(0x2E1C1A17), const Color(0x14B4462B), const Color(0x592A241D)],
+          spec: const Color(0x8CFFFFFF),
+          shadow: const Color(0xFF5A3A22),
+          shadowAlpha: 0.14,
+        );
+    }
+  }
 
   @override
   void paint(PaintingContext context, Offset offset) {
     final canvas = context.canvas;
+    final look = _look;
+    final floating = _kind == GlassKind.floating;
+    final paper = _style == KijiStyle.paper;
+    final global = localToGlobal(Offset.zero) & size;
+    // Dónde está en la pantalla (0 arriba, 1 abajo): mueve el reflejo y el borde de luz al deslizar.
+    final screen = _screenHeight;
+    final t = _still || screen <= 0 ? 0.3 : (global.center.dy / screen).clamp(0.0, 1.0);
+    final press = _still ? 0.0 : _press.value.clamp(0.0, 1.2);
+
+    canvas.save();
+    if (press > 0) {
+      // Se hunde: un poco más chico desde el centro.
+      final center = (offset & size).center;
+      final scale = 1 - 0.022 * press;
+      canvas
+        ..translate(center.dx, center.dy)
+        ..scale(scale)
+        ..translate(-center.dx, -center.dy);
+    }
     final rect = offset & size;
     final rrect = _borderRadius.toRRect(rect);
-    if (_paper) {
-      canvas.drawRRect(rrect, Paint()..color = _fill ?? _palette.glassFill);
-      canvas.drawRRect(
-        rrect.deflate(0.5),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1
-          ..color = _border ?? _palette.glassBorder,
-      );
-      super.paint(context, offset);
-      return;
-    }
-    final museum = _style == KijiStyle.graphite;
-    final floating = _kind == GlassKind.floating;
 
-    // Profundidad: una sombra suave debajo (un rectángulo redondeado con blur: Impeller lo dibuja
-    // sin capas, es barato).
+    // Profundidad: sombra suave debajo (al hundirse, más corta). Impeller la dibuja sin capas.
     canvas.drawRRect(
-      rrect.shift(Offset(0, floating ? 6 : 4)),
+      rrect.shift(Offset(0, (floating ? 7 : 5) * (1 - 0.6 * press))),
       Paint()
-        ..color = Color.fromRGBO(0, 0, 0, floating ? 0.32 : 0.22)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, floating ? 14 : 10),
+        ..color = look.shadow.withValues(alpha: look.shadowAlpha * (floating ? 1.2 : 1) * (1 - 0.4 * press))
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, floating ? 16 : 12),
     );
 
     canvas.save();
     canvas.clipRRect(rrect);
-    // Lo de detrás, ya desenfocado: el recorte de cada capa publicada que cae bajo este vidrio.
-    final global = localToGlobal(Offset.zero) & size;
     if (floating) {
       // Encima de contenido que se mueve: primero el fondo del estilo, casi opaco.
-      canvas.drawRect(rect, Paint()..color = _palette.background.withValues(alpha: museum ? 0.95 : 0.93));
+      canvas.drawRect(rect, Paint()..color = _palette.background.withValues(alpha: paper ? 0.96 : 0.93));
     }
+    // Lo de detrás, ya desenfocado (sin desenfocar nada en este cuadro).
     final layers = _backdrop?.layers ?? const <GlassLayer>[];
+    final layerAlpha = floating ? 0.55 : 1.0;
     for (final layer in layers) {
-      final hit = global.intersect(layer.rect);
-      if (hit.isEmpty || hit.width <= 0 || hit.height <= 0) continue;
-      final sx = layer.image.width / layer.rect.width;
-      final sy = layer.image.height / layer.rect.height;
-      final src = Rect.fromLTWH(
-        (hit.left - layer.rect.left) * sx,
-        (hit.top - layer.rect.top) * sy,
-        hit.width * sx,
-        hit.height * sy,
-      );
-      final dst = hit.shift(offset - global.topLeft);
-      canvas.drawImageRect(
-        layer.image,
-        src,
-        dst,
-        Paint()
-          ..filterQuality = FilterQuality.medium
-          ..color = Color.fromRGBO(0, 0, 0, floating ? 0.55 : 1),
-      );
+      _drawLayer(canvas, layer, global, offset, global, layerAlpha);
     }
 
-    // El tinte del estilo.
-    canvas.drawRect(rect, Paint()..color = _fill ?? (museum ? KijiMuseum.pane.withValues(alpha: 0.42) : _palette.glassFill));
+    // El tinte del estilo (y del acento).
+    canvas.drawRect(
+      rect,
+      Paint()..shader = ui.Gradient.linear(rect.topLeft, rect.bottomRight, look.tint),
+    );
+    if (_fill case final fill?) canvas.drawRect(rect, Paint()..color = fill);
 
-    // Profundidad: arriba un poco de luz, abajo un poco de sombra (como un vidrio grueso).
+    // Refracción en los bordes: el fondo, un poco ampliado (como una lente), en un anillo fino.
+    final rim = (size.shortestSide * 0.16).clamp(6.0, 14.0);
+    final ring = Path.combine(
+      PathOperation.difference,
+      Path()..addRRect(rrect),
+      Path()..addRRect(rrect.deflate(rim)),
+    );
+    canvas.save();
+    canvas.clipPath(ring);
+    if (layers.isNotEmpty) {
+      // La lente: lo que hay detrás del centro del vidrio, estirado hasta el borde.
+      final lens = Rect.fromCenter(center: global.center, width: global.width / 1.09, height: global.height / 1.09);
+      for (final layer in layers) {
+        _drawLayer(canvas, layer, lens, offset, global, layerAlpha * 0.9);
+      }
+      canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(rect.topLeft, rect.bottomRight, look.tint));
+    }
+    // El borde grueso del vidrio junta luz: un velo del color del borde, más fuerte arriba.
     canvas.drawRect(
       rect,
       Paint()
         ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
-          Color.fromRGBO(255, 255, 255, museum ? 0.05 : 0.07),
+          look.edge.first.withValues(alpha: look.edge.first.a * (paper ? 0.18 : 0.12)),
+          look.edge[1].withValues(alpha: look.edge[1].a * 0.08),
+          look.edge.last.withValues(alpha: look.edge.last.a * 0.16),
+        ], const [0, 0.5, 1]),
+    );
+    canvas.restore();
+
+    // Profundidad: luz arriba y sombra abajo (al hundirse, más sombra).
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
+          Color.fromRGBO(255, 255, 255, paper ? 0.18 : 0.06),
           const Color.fromRGBO(255, 255, 255, 0),
-          Color.fromRGBO(0, 0, 0, museum ? 0.14 : 0.1),
-        ], const [0, 0.45, 1]),
+          Color.fromRGBO(0, 0, 0, (paper ? 0.04 : 0.12) + 0.1 * press),
+        ], const [0, 0.42, 1]),
     );
 
-    // Reflejo: una franja diagonal de luz que se corre con la posición en la pantalla (al deslizar
-    // se mueve, como la luz en un vidrio). Con "reducir animaciones", quieta.
-    final screen = _screenHeight;
-    final t = _still || screen <= 0 ? 0.3 : (global.center.dy / screen).clamp(0.0, 1.0);
-    final band = rect.width * 0.9;
+    // Brillo especular: un punto de luz suave que sigue el deslizamiento.
+    final spot = Offset(rect.left + rect.width * (0.18 + 0.64 * (1 - t)), rect.top + rect.height * 0.12);
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = ui.Gradient.radial(spot, math.max(rect.width, rect.height) * 0.55, [
+          look.spec.withValues(alpha: look.spec.a * (1 - 0.5 * press)),
+          look.spec.withValues(alpha: 0),
+        ]),
+    );
+    // Y una franja diagonal que cruza el vidrio al deslizar.
+    final band = rect.width * 0.7;
     final startX = rect.left - band + (rect.width + band) * (1 - t);
     canvas.drawRect(
       rect,
       Paint()
-        ..shader = ui.Gradient.linear(
-          Offset(startX, rect.top),
-          Offset(startX + band, rect.top + band * 0.6),
-          [
-            const Color.fromRGBO(255, 255, 255, 0),
-            Color.fromRGBO(255, 255, 255, museum ? 0.06 : 0.09),
-            const Color.fromRGBO(255, 255, 255, 0),
-          ],
-          const [0, 0.5, 1],
-        ),
+        ..shader = ui.Gradient.linear(Offset(startX, rect.top), Offset(startX + band, rect.top + band * 0.55), [
+          look.spec.withValues(alpha: 0),
+          look.spec.withValues(alpha: look.spec.a * 0.55),
+          look.spec.withValues(alpha: 0),
+        ], const [0, 0.5, 1]),
     );
     canvas.restore();
 
-    // Borde de luz fino: más brillante arriba a la izquierda, casi nada abajo a la derecha.
+    // Borde de luz: el ángulo de la luz gira con la posición en la pantalla (al deslizar cambia).
+    final angle = -math.pi * 0.75 + math.pi * 0.5 * t;
+    final radius = rect.longestSide / 2;
+    final dir = Offset(math.cos(angle), math.sin(angle)) * radius;
     final edge = _border;
     canvas.drawRRect(
       rrect.deflate(0.5),
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
+        ..strokeWidth = paper ? 1 : 1.2
         ..shader = edge != null
             ? null
-            : ui.Gradient.linear(rect.topLeft, rect.bottomRight, [
-                Color.fromRGBO(255, 255, 255, museum ? 0.34 : 0.42),
-                Color.fromRGBO(255, 255, 255, museum ? 0.08 : 0.1),
-                Color.fromRGBO(255, 255, 255, museum ? 0.16 : 0.2),
-              ], const [0, 0.55, 1])
+            : ui.Gradient.linear(rect.center + dir, rect.center - dir, look.edge, const [0, 0.35, 0.7, 1])
         ..color = edge ?? const Color(0xFFFFFFFF),
     );
+    // Un filo interior arriba: el grosor del vidrio.
+    if (!paper) {
+      canvas.drawRRect(
+        rrect.deflate(1.6),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1
+          ..shader = ui.Gradient.linear(rect.topCenter, rect.center, [const Color(0x29FFFFFF), const Color(0x00FFFFFF)]),
+      );
+    }
+    canvas.restore();
+    // El contenido, hundido igual que el vidrio (con su propia transformación: al pintarlo, el
+    // lienzo puede cambiar, así que no se toca el de arriba).
+    if (press > 0) {
+      // pushTransform toma la matriz relativa a [offset]: el centro es el del vidrio, en local.
+      final center = size.center(Offset.zero);
+      final scale = 1 - 0.022 * press;
+      final matrix = Matrix4.identity()
+        ..translateByDouble(center.dx, center.dy, 0, 1)
+        ..scaleByDouble(scale, scale, 1, 1)
+        ..translateByDouble(-center.dx, -center.dy, 0, 1);
+      context.pushTransform(needsCompositing, offset, matrix, super.paint);
+      return;
+    }
     super.paint(context, offset);
+  }
+
+  /// Dibuja la parte de [layer] que cae en [source] (coordenadas globales) sobre el vidrio, que está
+  /// en [global] (y en [offset] dentro del lienzo).
+  void _drawLayer(Canvas canvas, GlassLayer layer, Rect source, Offset offset, Rect global, double alpha) {
+    final hit = source.intersect(layer.rect);
+    if (hit.isEmpty || hit.width <= 0 || hit.height <= 0) return;
+    final sx = layer.image.width / layer.rect.width;
+    final sy = layer.image.height / layer.rect.height;
+    final src = Rect.fromLTWH((hit.left - layer.rect.left) * sx, (hit.top - layer.rect.top) * sy, hit.width * sx, hit.height * sy);
+    // Dónde va: la parte de [source] que se ve, estirada sobre el vidrio.
+    final fx = global.width / source.width;
+    final fy = global.height / source.height;
+    final dst = Rect.fromLTWH(
+      offset.dx + (hit.left - source.left) * fx,
+      offset.dy + (hit.top - source.top) * fy,
+      hit.width * fx,
+      hit.height * fy,
+    );
+    canvas.drawImageRect(
+      layer.image,
+      src,
+      dst,
+      Paint()
+        ..filterQuality = FilterQuality.medium
+        ..color = Color.fromRGBO(0, 0, 0, alpha),
+    );
   }
 
   double get _screenHeight {

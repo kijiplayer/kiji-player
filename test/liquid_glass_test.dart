@@ -89,4 +89,44 @@ void main() {
     controller.dispose();
     image.dispose();
   });
+
+  testWidgets('Al tocarlo el vidrio se hunde y vuelve; con "reducir animaciones", no', (tester) async {
+    Future<double> pressAfterTap({required bool calm}) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(disableAnimations: calm),
+              child: const Center(child: Glass(child: SizedBox(width: 200, height: 80))),
+            ),
+          ),
+        ),
+      );
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(LiquidGlass)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      final render = tester.renderObject<RenderLiquidGlass>(
+        find.descendant(of: find.byType(LiquidGlass), matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_LiquidGlassBox')),
+      );
+      final pressed = render.debugPress;
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(render.debugPress, 0, reason: 'al soltar vuelve');
+      return pressed;
+    }
+
+    expect(await pressAfterTap(calm: false), greaterThan(0.9));
+    expect(await pressAfterTap(calm: true), 0);
+  });
+
+  testWidgets('Un toque rapidísimo (apretar y soltar enseguida) no lo deja hundido', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: Center(child: Glass(child: SizedBox(width: 200, height: 80)))));
+    final gesture = await tester.startGesture(tester.getCenter(find.byType(LiquidGlass)));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    final render = tester.renderObject<RenderLiquidGlass>(
+      find.descendant(of: find.byType(LiquidGlass), matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_LiquidGlassBox')),
+    );
+    expect(render.debugPress, 0);
+  });
 }
