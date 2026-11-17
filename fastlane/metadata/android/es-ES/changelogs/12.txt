@@ -1,0 +1,3 @@
+• Vidrio líquido: tarjetas, barras y hojas con borde de luz, un reflejo que se mueve al deslizar y más profundidad. Y más fluido: Inicio y Búsqueda se deslizan sin perder cuadros.
+• Nuevo, opcional: el ícono de Kiji a juego con tu estilo y tu acento.
+• Perdón por el error de la 0.8.1 que a veces dejaba a Kiji sin sonar; quedó arreglado en la 0.8.2.

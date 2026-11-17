@@ -1,6 +1,23 @@
 # Novedades de Kiji Player
 
-## 0.8.2 — sin publicar
+## 0.8.3 — sin publicar
+
+**Vidrio líquido**
+- Las tarjetas, la barra, el mini-reproductor y las hojas son de "vidrio líquido": un borde de luz
+  fino, un reflejo suave que se mueve al deslizar y más profundidad. En Nocturne y Grafito; Papel
+  sigue de papel. Respeta "Reducir animaciones".
+- Y pesa menos: ya no se desenfoca nada en cada cuadro (el fondo se prepara una vez). A 120 Hz,
+  Inicio y Búsqueda bajan de unos 9,5 ms a unos 2,5 ms por cuadro.
+
+**Ícono a juego con el estilo** (opcional, apagado de fábrica)
+- El ícono de Kiji puede tomar los colores de tu estilo y de tu acento. En Android el cambio se
+  hace al salir de Kiji, nunca en medio de la música; en Windows, al momento.
+
+**Una disculpa**
+- Perdón por el error de la 0.8.1 que a veces dejaba a Kiji sin sonar hasta reiniciarla: quedó
+  arreglado en la 0.8.2.
+
+## 0.8.2 — 16 de noviembre de 2026
 
 **Arreglos**
 - A veces ninguna canción sonaba hasta reiniciar la app: era el ecualizador. Ahora, si Android no

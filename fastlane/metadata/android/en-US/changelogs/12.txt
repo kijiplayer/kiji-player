@@ -1,0 +1,3 @@
+• Liquid glass: cards, bars and sheets with a light edge, a reflection that moves as you scroll and more depth. And smoother: Home and Search scroll without dropping frames.
+• New, optional: Kiji's icon to match your style and accent.
+• Sorry for the 0.8.1 bug that sometimes left Kiji silent; it was fixed in 0.8.2.
