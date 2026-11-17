@@ -194,6 +194,7 @@ class SelectionBar extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
             child: Glass(
               radius: KijiRadii.tile,
+              floating: true,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
                 child: Column(

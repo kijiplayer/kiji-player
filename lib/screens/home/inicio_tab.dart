@@ -73,6 +73,7 @@ class InicioTab extends ConsumerWidget {
           moving: playback.isPlaying && !reduceMotion(context, ref),
           intensity: 0.6,
           fadeOut: true,
+          glassLayer: true,
         ),
       ),
     );

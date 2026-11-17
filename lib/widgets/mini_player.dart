@@ -39,6 +39,7 @@ class MiniPlayer extends ConsumerWidget {
 
     return Glass(
       radius: KijiRadii.miniPlayer,
+      floating: true,
       child: Material(
         type: MaterialType.transparency,
         child: Column(

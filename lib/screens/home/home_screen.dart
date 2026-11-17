@@ -11,6 +11,7 @@ import '../../features/yt_music/presentation/search_screen.dart';
 import '../../providers/playback_provider.dart';
 import '../../providers/shell_provider.dart';
 import '../../theme/kiji_tokens.dart';
+import '../../widgets/nocturne/liquid_glass.dart';
 import '../../widgets/mini_player.dart';
 import '../shell/desktop_shell.dart';
 import '../shell/pill_nav_bar.dart';
@@ -67,16 +68,19 @@ class HomeScreen extends ConsumerWidget {
         const SingleActivator(LogicalKeyboardKey.keyK, control: true): () => _focusSearch(ref),
         const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () => _focusSearch(ref),
       },
-      // El fondo propio (si se eligió) queda detrás de las pantallas principales.
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          const CustomBackground(),
-          LayoutBuilder(
-            builder: (context, constraints) =>
-                constraints.maxWidth >= KijiSizes.desktopBreakpoint ? const DesktopShell() : const _MobileShell(),
-          ),
-        ],
+      // El fondo propio (si se eligió) queda detrás de las pantallas principales. Lo publica ya
+      // desenfocado para los vidrios de encima (GlassBackdropHost, 0.8.3).
+      child: GlassBackdropHost(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const CustomBackground(),
+            LayoutBuilder(
+              builder: (context, constraints) =>
+                  constraints.maxWidth >= KijiSizes.desktopBreakpoint ? const DesktopShell() : const _MobileShell(),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -17,6 +17,7 @@ import '../../customize/data/track_overrides.dart';
 import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
 import '../data/background_store.dart';
+import '../../../widgets/nocturne/liquid_glass.dart';
 
 /// El fondo que se ve: el de la canción que suena (si tiene uno propio) o el general. La ruta es
 /// relativa a la carpeta de fondos.
@@ -188,8 +189,11 @@ class _StillBackgroundState extends State<_StillBackground> {
       final image = await picture.toImage(width, height);
       picture.dispose();
       photo.dispose();
+      // Para los vidrios de encima (0.8.3): la misma imagen, chica y ya desenfocada, una sola vez.
+      final glass = await _blurredForGlass(image);
       if (!mounted || _composing != key) {
         image.dispose();
+        glass?.dispose();
         return;
       }
       setState(() {
@@ -197,13 +201,60 @@ class _StillBackgroundState extends State<_StillBackground> {
         _composed = image;
         _composedFor = key;
       });
+      _publish(glass);
     } catch (error) {
       debugPrint('=== FONDO: no se pudo componer la foto (${error.runtimeType}); se dibuja por capas ===');
     }
   }
 
+  /// La foto compuesta, a 1/8 y desenfocada como el vidrio (lo que cada vidrio deja ver detrás).
+  static Future<ui.Image?> _blurredForGlass(ui.Image image) async {
+    try {
+      final w = (image.width / 8).ceil().clamp(1, 1 << 14);
+      final h = (image.height / 8).ceil().clamp(1, 1 << 14);
+      const sigma = KijiSizes.glassBlur / 2.5;
+      final recorder = PictureRecorder();
+      Canvas(recorder).drawImageRect(
+        image,
+        Offset.zero & Size(image.width.toDouble(), image.height.toDouble()),
+        Offset.zero & Size(w.toDouble(), h.toDouble()),
+        Paint()
+          ..filterQuality = FilterQuality.medium
+          ..imageFilter = ImageFilter.blur(sigmaX: sigma, sigmaY: sigma, tileMode: TileMode.clamp),
+      );
+      final picture = recorder.endRecording();
+      final small = await picture.toImage(w, h);
+      picture.dispose();
+      return small;
+    } catch (error) {
+      debugPrint('=== FONDO: no se pudo preparar el fondo para el vidrio (${error.runtimeType}) ===');
+      return null;
+    }
+  }
+
+  ui.Image? _glass;
+  GlassBackdropController? _backdrop;
+
+  /// Publica la foto desenfocada para los vidrios, en el lugar de la pantalla donde está el fondo.
+  void _publish(ui.Image? glass) {
+    if (glass == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final box = context.findRenderObject();
+      if (!mounted || box is! RenderBox || !box.hasSize) {
+        glass.dispose();
+        return;
+      }
+      final backdrop = _backdrop = GlassBackdrop.maybeOf(context);
+      backdrop?.set('photo', GlassLayer(glass, box.localToGlobal(Offset.zero) & box.size));
+      _glass?.dispose();
+      _glass = glass;
+    });
+  }
+
   @override
   void dispose() {
+    _backdrop?.remove('photo');
+    _glass?.dispose();
     _composed?.dispose();
     super.dispose();
   }

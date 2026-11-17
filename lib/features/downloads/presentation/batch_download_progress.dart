@@ -23,7 +23,7 @@ class BatchDownloadProgress extends ConsumerWidget {
       padding: padding,
       child: Glass(
         key: const Key('batch-download-progress'),
-        blur: false,
+        floating: true,
         padding: const EdgeInsets.fromLTRB(14, 10, 6, 12),
         child: Semantics(
           liveRegion: true,

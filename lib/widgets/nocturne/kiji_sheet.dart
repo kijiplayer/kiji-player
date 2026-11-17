@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
 import '../../theme/kiji_tokens.dart';
+import 'liquid_glass.dart';
 
 /// Hoja que sube desde abajo, como [showModalBottomSheet], que además se cierra deslizando hacia
 /// abajo desde cualquier parte: también sobre una lista, cuando la lista ya está arriba de todo.
@@ -29,8 +29,9 @@ Future<T?> showKijiSheet<T>({
       : null;
   // Controlador propio: así el arrastre sobre la lista mueve la hoja igual que la barrita.
   final controller = BottomSheet.createAnimationController(Navigator.of(context), sheetAnimationStyle: spring);
-  // Grafito: la hoja es de vidrio esmerilado (la dibuja [FrostedSheet], con su barrita).
-  final frosted = KijiLook.museum && backgroundColor == null;
+  // Nocturne y Grafito: la hoja es de vidrio líquido (la dibuja [FrostedSheet], con su barrita).
+  // Papel: su hoja de papel de siempre.
+  final frosted = KijiLook.style != KijiStyle.paper && backgroundColor == null;
   final handle = showDragHandle ?? Theme.of(context).bottomSheetTheme.showDragHandle ?? false;
   final future = showModalBottomSheet<T>(
     context: context,
@@ -140,9 +141,9 @@ class _SheetDragToDismissState extends State<SheetDragToDismiss> {
   }
 }
 
-/// Hoja de Grafito: vidrio esmerilado (ahumado + blanco 7 %) con borde de 1 px blanco 10 %.
-/// El desenfoque de lo que queda detrás solo va con alto rendimiento; sin él, el ahumado alcanza
-/// para que se lea.
+/// Hoja de vidrio líquido (Nocturne y Grafito, 0.8.3): base casi opaca del estilo, borde de luz
+/// fino arriba y el reflejo del vidrio, sin desenfocar lo de atrás en cada cuadro (antes, con alto
+/// rendimiento, un desenfoque de 24 en cada cuadro).
 class FrostedSheet extends StatelessWidget {
   const FrostedSheet({super.key, required this.handle, required this.child});
 
@@ -153,12 +154,9 @@ class FrostedSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = DecoratedBox(
-      decoration: BoxDecoration(
-        color: KijiMuseum.pane,
-        borderRadius: _radius,
-        border: Border.all(color: KijiColors.glassBorder),
-      ),
+    final body = LiquidGlass(
+      borderRadius: _radius,
+      kind: GlassKind.floating,
       // Material propio: los ListTile de adentro pintan aquí su fondo y su efecto al tocar (si no,
       // quedan detrás del vidrio).
       child: Material(
@@ -184,9 +182,6 @@ class FrostedSheet extends StatelessWidget {
         ),
       ),
     );
-    return ClipRRect(
-      borderRadius: _radius,
-      child: KijiEffects.rich ? BackdropFilter(filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24), child: body) : body,
-    );
+    return ClipRRect(borderRadius: _radius, child: body);
   }
 }
