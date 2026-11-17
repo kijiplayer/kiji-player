@@ -61,7 +61,10 @@ object AppIcon {
         val target = aliases[variant] ?: aliases.getValue("default")
         return try {
             val pm = context.packageManager
-            if (current(context) == variant) return true
+            // Solo se saltea si el alias pedido está prendido de verdad y es el único: si no hay
+            // ninguno prendido (estado raro, p. ej. tras instalar una versión vieja), se arregla.
+            val on = aliases.values.filter { enabled(context, it) }
+            if (on == listOf(target)) return true
             pm.setComponentEnabledSetting(
                 component(context, target),
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,

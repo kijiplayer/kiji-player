@@ -34,7 +34,8 @@ final appIconSyncProvider = Provider<void>((ref) {
     applying = true;
     pending = null;
     try {
-      if (await changer.current() != want) await changer.apply(want);
+      // Siempre se pide: el nativo decide si ya está (y arregla un estado sin ningún ícono prendido).
+      await changer.apply(want);
     } finally {
       applying = false;
     }
