@@ -418,7 +418,7 @@ class RenderLiquidGlass extends RenderProxyBox {
     canvas.clipRRect(rrect);
     if (floating) {
       // Encima de contenido que se mueve: primero el fondo del estilo, casi opaco.
-      canvas.drawRect(rect, Paint()..color = _palette.background.withValues(alpha: paper ? 0.96 : 0.93));
+      canvas.drawRect(rect, Paint()..color = _palette.background.withValues(alpha: paper || _style == KijiStyle.graphite ? 0.98 : 0.97));
     }
     // Lo de detrás, ya desenfocado (sin desenfocar nada en este cuadro).
     final layers = _backdrop?.layers ?? const <GlassLayer>[];
