@@ -12,7 +12,7 @@ import 'package:path_provider/path_provider.dart';
 /// Guarda secretos (como la clave de Gemini) **cifrados y solo en este
 /// dispositivo**. Interfaz propia:
 /// - Android: clave AES-GCM del Android Keystore (canal `kiji/secrets` en
-///   MainActivity); la clave nunca sale del Keystore.
+///   KijiActivity); la clave nunca sale del Keystore.
 /// - Windows: DPAPI (`CryptProtectData`), ligado a la cuenta de Windows.
 /// - Otras plataformas: no se guarda nada (devuelve false).
 /// Los secretos nunca se escriben en logs.

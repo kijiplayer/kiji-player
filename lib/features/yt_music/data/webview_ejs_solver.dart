@@ -242,6 +242,7 @@ class WebViewEjsSolver implements JsChallengeSolver {
             javaScriptEnabled: true,
             cacheEnabled: false,
             useShouldOverrideUrlLoading: true,
+            rendererPriorityPolicy: backgroundRendererPriority,
           ),
           // La página del solver no navega nunca: el código del reproductor
           // de YouTube podría intentarlo y se perdería todo lo preparado.

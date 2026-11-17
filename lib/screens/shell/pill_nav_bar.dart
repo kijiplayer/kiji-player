@@ -58,6 +58,7 @@ class PillNavBar extends ConsumerWidget {
 
     return Glass(
       radius: KijiRadii.pill,
+      floating: true,
       padding: const EdgeInsets.all(6),
       // El ancho total se anima igual que cada pestaña: así la fila nunca queda más ancha que
       // la píldora a mitad del cambio (pasaba con textos largos, como en inglés).

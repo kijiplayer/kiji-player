@@ -189,7 +189,11 @@ class BergamotEngine {
       (environment) => HeadlessInAppWebView(
         webViewEnvironment: environment,
         initialUrlRequest: URLRequest(url: WebUri('${server.base}index.html')),
-        initialSettings: InAppWebViewSettings(javaScriptEnabled: true, cacheEnabled: false),
+        initialSettings: InAppWebViewSettings(
+          javaScriptEnabled: true,
+          cacheEnabled: false,
+          rendererPriorityPolicy: backgroundRendererPriority,
+        ),
         onLoadStop: (controller, _) {
           if (!loaded.isCompleted) loaded.complete(controller);
         },

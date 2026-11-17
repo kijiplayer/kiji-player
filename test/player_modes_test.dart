@@ -102,6 +102,19 @@ void main() {
     }
   }
 
+  testWidgets('El menú ⋯ con el teléfono en horizontal no se desborda (se desplaza)', (tester) async {
+    await _pump(tester, const Size(960, 432));
+    final errors = <String>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = (d) => errors.add(d.exceptionAsString().split('\n').first);
+    addTearDown(() => FlutterError.onError = previous);
+    await tester.tap(find.byTooltip('Más opciones'));
+    await tester.pumpAndSettle();
+    FlutterError.onError = previous;
+    expect(errors, isEmpty);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('Pantalla completa: desde el ⋯, las barras se esconden solas y Esc sale', (tester) async {
     final screen = _Mode();
     final container = await _pump(tester, const Size(1280, 800), screen: screen);

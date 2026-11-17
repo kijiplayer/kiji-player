@@ -241,7 +241,7 @@ class _SoundScreenState extends ConsumerState<SoundScreen> {
     final action = await showKijiSheet<String>(
       context: context,
       builder: (context) => SafeArea(
-        child: Column(
+        child: SingleChildScrollView(child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(title: Text(preset.name, style: KijiText.title(size: 16))),
@@ -256,7 +256,7 @@ class _SoundScreenState extends ConsumerState<SoundScreen> {
               onTap: () => Navigator.pop(context, 'delete'),
             ),
           ],
-        ),
+        )),
       ),
     );
     if (!mounted) return;

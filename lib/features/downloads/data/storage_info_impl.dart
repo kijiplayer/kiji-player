@@ -26,7 +26,7 @@ StorageInfo createStorageInfo() {
 }
 
 /// Android: pregunta a `StatFs` mediante el canal `kiji/storage`
-/// (implementado en `MainActivity.kt`).
+/// (implementado en `KijiActivity.kt`).
 class AndroidStorageInfo implements StorageInfo {
   static const _channel = MethodChannel('kiji/storage');
 

@@ -1,10 +1,10 @@
 // Lo escribe tool/version.dart (no se edita a mano).
 
 /// Versión de Kiji (la misma en Kiji y Kiji Dev).
-const kijiVersion = '0.8.2';
+const kijiVersion = '0.8.3';
 
 /// Número de compilación: sube en cada versión (Android lo usa como versionCode).
-const kijiBuild = 11;
+const kijiBuild = 12;
 
 /// Fecha en que se generó esta versión.
-const kijiBuildDate = '2026-11-15';
+const kijiBuildDate = '2026-11-16';

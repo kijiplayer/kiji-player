@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generado por tool/make_style_icons.py (no editar a mano). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp" android:viewportWidth="200" android:viewportHeight="200">
+  <path android:fillColor="#FFFFFFFF" android:pathData="M58.0,46 H58.0 A8.0,8.0 0 0 1 66,54.0 V146.0 A8.0,8.0 0 0 1 58.0,154 H58.0 A8.0,8.0 0 0 1 50,146.0 V54.0 A8.0,8.0 0 0 1 58.0,46 Z"/>
+  <path android:fillColor="#FFFFFFFF" android:pathData="M87.0,88 H87.0 A7.0,7.0 0 0 1 94,95.0 V105.0 A7.0,7.0 0 0 1 87.0,112 H87.0 A7.0,7.0 0 0 1 80,105.0 V95.0 A7.0,7.0 0 0 1 87.0,88 Z"/>
+  <path android:fillColor="#FFFFFFFF" android:pathData="M111.0,76 H111.0 A7.0,7.0 0 0 1 118,83.0 V117.0 A7.0,7.0 0 0 1 111.0,124 H111.0 A7.0,7.0 0 0 1 104,117.0 V83.0 A7.0,7.0 0 0 1 111.0,76 Z"/>
+  <path android:fillColor="#FFFFFFFF" android:pathData="M135.0,62 H135.0 A7.0,7.0 0 0 1 142,69.0 V131.0 A7.0,7.0 0 0 1 135.0,138 H135.0 A7.0,7.0 0 0 1 128,131.0 V69.0 A7.0,7.0 0 0 1 135.0,62 Z"/>
+  <path android:fillColor="#FFFFFFFF" android:pathData="M159.0,48 H159.0 A7.0,7.0 0 0 1 166,55.0 V145.0 A7.0,7.0 0 0 1 159.0,152 H159.0 A7.0,7.0 0 0 1 152,145.0 V55.0 A7.0,7.0 0 0 1 159.0,48 Z"/>
+</vector>

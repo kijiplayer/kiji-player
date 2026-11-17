@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,6 +42,11 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
     _run();
   }
 
+  /// Con otra canción, la traducción espera un momento: al pasar canciones rápido no se traduce
+  /// cada una (0.8.3: 8 traducciones en 17 s trababan la pantalla mientras corrían).
+  static const settle = Duration(milliseconds: 1200);
+  Timer? _settle;
+
   @override
   void didUpdateWidget(TranslatedLyrics old) {
     super.didUpdateWidget(old);
@@ -47,11 +54,22 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
       _translations = null;
       _needsDownload = null;
       _forceLocal = false;
-      _run();
+      _settle?.cancel();
+      final id = widget.trackId;
+      _settle = Timer(settle, () {
+        if (mounted && widget.trackId == id) _run();
+      });
     }
   }
 
+  @override
+  void dispose() {
+    _settle?.cancel();
+    super.dispose();
+  }
+
   Future<void> _run({bool download = false}) async {
+    final trackId = widget.trackId;
     final settings = ref.read(settingsProvider);
     final service = ref.read(translationServiceProvider);
     final target = settings.translationTarget;
@@ -86,7 +104,8 @@ class _TranslatedLyricsState extends ConsumerState<TranslatedLyrics> {
           result = await service.translateLocal(widget.trackId, widget.lines, plan, target);
         }
       }
-      if (mounted) {
+      // Si mientras tanto cambió la canción, esta traducción ya no va.
+      if (mounted && widget.trackId == trackId) {
         setState(() {
           _translations = result;
           _needsDownload = null;

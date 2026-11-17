@@ -34,7 +34,7 @@ import javax.crypto.spec.GCMParameterSpec
 /**
  * Canales que no necesitan pantalla. Los registra el plugin local `kiji_channels` en cada motor
  * de Flutter, también en el del servicio de audio cuando Kiji arranca desde los auriculares o la
- * notificación (antes vivían en MainActivity y ahí fallaban con MissingPluginException).
+ * notificación (antes vivían en la actividad y ahí fallaban con MissingPluginException).
  */
 object KijiChannels {
     /** El motor de Flutter se destruye: se sueltan los efectos de audio. */
@@ -50,6 +50,9 @@ object KijiChannels {
         // Ecualizador, refuerzo de bajos y reverb de "Sonido" (SoundEffects.kt).
         SoundEffects.register(messenger)
 
+        // Ícono a juego con el estilo (AppIcon.kt).
+        AppIcon.register(app, messenger)
+
         // La música del teléfono (MediaStore), sin plugins de terceros (MediaLibrary.kt).
         MediaLibrary.register(app, messenger)
 
@@ -57,7 +60,7 @@ object KijiChannels {
         KijiWidgets.register(app, messenger)
 
         // Datos del equipo para el modo alto rendimiento. Sin pantalla no hay ventana para cambiar
-        // la frecuencia: MainActivity reemplaza este canal al abrirse.
+        // la frecuencia: KijiActivity reemplaza este canal al abrirse.
         MethodChannel(messenger, "kiji/display").setMethodCallHandler { call, result ->
             when (call.method) {
                 "setHighRefreshRate" -> result.success(null)

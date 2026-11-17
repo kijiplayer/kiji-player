@@ -8,7 +8,7 @@ import io.flutter.plugin.common.MethodChannel
 // AudioServiceActivity (en vez de FlutterActivity) comparte el motor de Flutter con el
 // servicio de audio, para que la música siga cuando se cierra la pantalla.
 // Los demás canales están en KijiChannels (sirven también sin pantalla).
-class MainActivity : AudioServiceActivity() {
+class KijiActivity : AudioServiceActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 

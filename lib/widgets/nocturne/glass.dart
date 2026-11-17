@@ -1,12 +1,13 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
 import '../../theme/kiji_tokens.dart';
+import 'liquid_glass.dart';
 import 'micro_motion.dart';
 
-/// Superficie de "vidrio": translúcida, con blur del fondo y un borde
-/// de 1 px que brilla apenas (Grafito: vidrio esmerilado; Papel: superficie sólida).
+/// Superficie de "vidrio líquido" (0.8.3, ver [LiquidGlass]): deja ver el fondo ya desenfocado,
+/// con un borde de luz fino, un reflejo que se corre al deslizar y profundidad, sin desenfocar
+/// nada en cada cuadro (Grafito: vidrio ahumado; Papel: superficie sólida de papel).
 class Glass extends StatelessWidget {
   const Glass({
     super.key,
@@ -15,51 +16,51 @@ class Glass extends StatelessWidget {
     this.padding,
     this.blur = true,
     this.onDark = false,
+    this.floating = false,
   });
 
   final Widget child;
   final double radius;
   final EdgeInsetsGeometry? padding;
 
-  /// El blur es caro en listas largas: se puede apagar y queda solo el vidrio.
+  /// Desde la 0.8.3 ningún vidrio desenfoca en vivo; se mantiene por compatibilidad (false: una
+  /// tarjeta de lista, igual que las demás).
   final bool blur;
 
   /// Sobre una pantalla que es siempre oscura (la letra): el vidrio de Nocturne, aunque el estilo
   /// sea claro (en Papel el vidrio es claro y opaco, y el ícono blanco no se vería).
   final bool onDark;
 
+  /// Encima de contenido que se mueve (barra de pestañas, mini-reproductor, barras de abajo): con
+  /// una base más opaca, para que lo de abajo nunca se cruce con lo de arriba.
+  final bool floating;
+
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(radius);
-    // Papel: superficie sólida. Grafito: vidrio esmerilado; con desenfoque va sobre cualquier
-    // contenido (mini-reproductor, barra de navegación), así que lleva el ahumado para que se lea.
-    final frosted = blur && KijiLook.style != KijiStyle.paper;
-    final dark = onDark && KijiColors.palette.isLight;
-    final body = DecoratedBox(
-      decoration: BoxDecoration(
-        color: dark
-            ? KijiPalette.nocturne.glassFill
-            : (frosted && KijiLook.museum ? KijiMuseum.pane : KijiColors.glassFill),
-        borderRadius: borderRadius,
-        border: Border.all(color: dark ? KijiPalette.nocturne.glassBorder : KijiColors.glassBorder),
-      ),
-      // Material propio: los ListTile y botones de adentro pintan aquí su efecto al tocar
-      // (si no, lo pintan detrás del vidrio y no se ve).
+    // Material propio: los ListTile y botones de adentro pintan aquí su efecto al tocar
+    // (si no, lo pintan detrás del vidrio y no se ve).
+    final body = ClipRRect(
+      borderRadius: borderRadius,
       child: Material(
         type: MaterialType.transparency,
         child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
       ),
     );
-    return ClipRRect(
+    if (onDark && KijiColors.palette.isLight) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: KijiPalette.nocturne.glassFill,
+          borderRadius: borderRadius,
+          border: Border.all(color: KijiPalette.nocturne.glassBorder),
+        ),
+        child: body,
+      );
+    }
+    return LiquidGlass(
       borderRadius: borderRadius,
-      child: frosted
-          // Agrupado (rendimiento): todos los vidrios de la pantalla comparten una sola pasada
-          // de desenfoque del fondo (BackdropGroup en app.dart).
-          ? BackdropFilter.grouped(
-              filter: ImageFilter.blur(sigmaX: KijiSizes.glassBlur, sigmaY: KijiSizes.glassBlur),
-              child: body,
-            )
-          : body,
+      kind: floating ? GlassKind.floating : GlassKind.card,
+      child: body,
     );
   }
 }

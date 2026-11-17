@@ -274,7 +274,7 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        child: Column(
+        child: SingleChildScrollView(child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -324,7 +324,7 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
             const SizedBox(height: 12),
             FilledButton.icon(icon: const Icon(Icons.bookmark_add_rounded), label: Text(tx.guardar), onPressed: _save),
           ],
-        ),
+        )),
       ),
     );
   }

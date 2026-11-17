@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../theme/kiji_tokens.dart';
+import 'liquid_glass.dart';
 
 /// Fondo "aurora": manchas de luz con los colores de la portada que se mueven muy despacio (una
 /// vuelta cada uno o dos minutos). Elegante y quieto a la vista; no distrae.
@@ -24,6 +25,7 @@ class AuroraBackground extends StatefulWidget {
     this.moving = true,
     this.intensity = 1,
     this.fadeOut = false,
+    this.glassLayer = false,
   });
 
   /// Dos o tres colores (los de la portada). Al cambiar, pasan de unos a otros en ~1 s.
@@ -36,6 +38,10 @@ class AuroraBackground extends StatefulWidget {
   /// Se desvanece hasta el color del fondo abajo (una franja, como en el Inicio). Va pintado en la
   /// misma imagen: un ShaderMask encima costaba una capa más en cada cuadro.
   final bool fadeOut;
+
+  /// Publica la aurora (ya dibujada chica y suave) para los vidrios de encima ([GlassBackdrop]):
+  /// así dejan ver sus colores sin desenfocar nada en cada cuadro (0.8.3).
+  final bool glassLayer;
 
   /// Ancho (px) al que se dibuja la aurora antes de estirarla.
   @visibleForTesting
@@ -97,8 +103,41 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
     _sync();
   }
 
+  GlassBackdropController? _backdrop;
+  Rect? _globalRect;
+
+  /// Publica la imagen actual para los vidrios, donde está la aurora en la pantalla.
+  void _publishGlass() {
+    if (!widget.glassLayer) return;
+    final image = _image;
+    final backdrop = _backdrop ??= GlassBackdrop.maybeOf(context);
+    final rect = _globalRect;
+    if (backdrop == null) return;
+    if (image == null || rect == null) {
+      backdrop.remove('aurora');
+      return;
+    }
+    backdrop.set('aurora', GlassLayer(image, rect));
+  }
+
+  /// Después de cada cuadro dibujado: si la aurora se movió en la pantalla, se vuelve a publicar.
+  void _trackRect() {
+    if (!widget.glassLayer) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = context.findRenderObject();
+      if (box is! RenderBox || !box.hasSize) return;
+      final rect = box.localToGlobal(Offset.zero) & box.size;
+      if (rect == _globalRect) return;
+      _globalRect = rect;
+      _publishGlass();
+    });
+  }
+
   @override
   void dispose() {
+    // Primero se saca de los vidrios; recién después se suelta la imagen.
+    _backdrop?.remove('aurora');
     _lifecycle.dispose();
     _ticker.dispose();
     _time.dispose();
@@ -180,8 +219,11 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
     final picture = recorder.endRecording();
     final image = picture.toImageSync(small.width.toInt(), small.height.toInt());
     picture.dispose();
-    _image?.dispose();
+    final old = _image;
     _image = image;
+    // Los vidrios pasan a la imagen nueva antes de soltar la vieja.
+    _publishGlass();
+    old?.dispose();
     _drawnWith = (rich, KijiColors.background, widget.intensity);
     _version.value++;
   }
@@ -203,6 +245,7 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
             _size = size;
             _render();
           }
+          _trackRect();
           return CustomPaint(
             painter: _AuroraPainter(
               image: () => _image,

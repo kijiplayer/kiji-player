@@ -67,7 +67,7 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
         await showKijiSheet<bool>(
               context: context,
               builder: (sheet) => SafeArea(
-                child: Column(
+                child: SingleChildScrollView(child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ListTile(
@@ -82,7 +82,7 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
                       onTap: () => Navigator.pop(sheet, true),
                     ),
                   ],
-                ),
+                )),
               ),
             ) ==
             true;

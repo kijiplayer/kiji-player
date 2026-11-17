@@ -5091,4 +5091,47 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get ecualizadorNoDisponibleAhora =>
       'El ecualizador no está disponible ahora. La música suena igual, sin él; vuelve a intentarlo en un rato.';
+
+  @override
+  String get iconoAJuegoConElEstilo => 'Ícono a juego con el estilo';
+
+  @override
+  String get iconoAJuegoConElEstiloNota =>
+      'El ícono de Kiji toma los colores de tu estilo y de tu acento.';
+
+  @override
+  String get iconoAvisoTitulo => '¿Cambiar el ícono de Kiji?';
+
+  @override
+  String get iconoAviso =>
+      'En algunos teléfonos la app se cierra un momento y el acceso directo de la pantalla de inicio puede tener que volver a ponerse. El cambio se hace al salir de Kiji, nunca en medio de la música.';
+
+  @override
+  String get iconoActivar => 'Cambiar el ícono';
+
+  @override
+  String get fondoVistaPrevia => 'Vista previa de Kiji con este fondo';
+
+  @override
+  String get fondoVistaPreviaSaludo => 'Buenas noches';
+
+  @override
+  String get fondoVistaPreviaTarjeta => 'Tus playlists';
+
+  @override
+  String get fondoVistaPreviaTarjetaNota => 'Así se ven las tarjetas';
+
+  @override
+  String get fondoVistaPreviaTexto =>
+      'El texto siempre se lee: Kiji ajusta la capa de encima a tu foto.';
+
+  @override
+  String get fondoVistaPreviaCancion => 'Una canción';
+
+  @override
+  String get fondoVistaPreviaArtista => 'Un artista';
+
+  @override
+  String get geminiEnPausa =>
+      'Gemini no está respondiendo ahora. Puedes traducir en el teléfono mientras tanto.';
 }

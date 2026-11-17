@@ -215,6 +215,29 @@ void main() {
       );
     });
 
+    test('Si Gemini rechaza (límite), queda en pausa: no se le vuelve a preguntar enseguida', () async {
+      await secrets.write(geminiKeySecret, 'clave-inventada');
+      gemini.fail = const GeminiException('Límite inventado', pause: Duration(hours: 1));
+      await expectLater(service.translateGemini('v3', lines, 'models/x', 'es'), throwsA(isA<TranslationException>()));
+      expect(gemini.calls, 1);
+      gemini.fail = null;
+      await expectLater(
+        service.translateGemini('v4', lines, 'models/x', 'es'),
+        throwsA(isA<TranslationException>().having((e) => e.suggestLocal, 'suggestLocal', isTrue)),
+      );
+      expect(gemini.calls, 1, reason: 'en pausa: ni se pregunta');
+      // También al "reabrir Kiji" (otro servicio, misma carpeta).
+      final reopened = TranslationService(
+        models: BergamotModels(directory: () async => dir, android: false),
+        engine: engine,
+        gemini: gemini,
+        secrets: secrets,
+        directory: () async => dir,
+      );
+      await expectLater(reopened.translateGemini('v4', lines, 'models/x', 'es'), throwsA(isA<TranslationException>()));
+      expect(gemini.calls, 1);
+    });
+
     test('En el teléfono: traduce, guarda y no repite', () async {
       const plan = LocalPlan(source: 'en', route: [(from: 'en', to: 'es')], missingBytes: 0);
       final out = await service.translateLocal('v3', lines, plan, 'es');

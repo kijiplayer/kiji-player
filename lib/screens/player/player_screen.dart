@@ -242,8 +242,10 @@ class _TopBar extends StatelessWidget {
     final navigator = Navigator.of(context);
     showKijiSheet<void>(
       context: context,
+      // Con el teléfono en horizontal la hoja tiene poco alto: se desplaza (antes se desbordaba).
       builder: (context) => SafeArea(
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (track.youtubeVideoId != null)
@@ -304,6 +306,7 @@ class _TopBar extends StatelessWidget {
                 },
               ),
           ],
+          ),
         ),
       ),
     );

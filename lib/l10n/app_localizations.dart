@@ -8230,6 +8230,84 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El ecualizador no está disponible ahora. La música suena igual, sin él; vuelve a intentarlo en un rato.'**
   String get ecualizadorNoDisponibleAhora;
+
+  /// Configuración → Apariencia: el ícono de la app con los colores del estilo
+  ///
+  /// In es, this message translates to:
+  /// **'Ícono a juego con el estilo'**
+  String get iconoAJuegoConElEstilo;
+
+  /// Subtítulo del ajuste del ícono
+  ///
+  /// In es, this message translates to:
+  /// **'El ícono de Kiji toma los colores de tu estilo y de tu acento.'**
+  String get iconoAJuegoConElEstiloNota;
+
+  /// Aviso antes de activar el ícono a juego (Android)
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cambiar el ícono de Kiji?'**
+  String get iconoAvisoTitulo;
+
+  /// Aviso honesto antes de activar el ícono a juego (Android)
+  ///
+  /// In es, this message translates to:
+  /// **'En algunos teléfonos la app se cierra un momento y el acceso directo de la pantalla de inicio puede tener que volver a ponerse. El cambio se hace al salir de Kiji, nunca en medio de la música.'**
+  String get iconoAviso;
+
+  /// Botón del aviso del ícono
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar el ícono'**
+  String get iconoActivar;
+
+  /// Etiqueta de accesibilidad de la vista previa del fondo
+  ///
+  /// In es, this message translates to:
+  /// **'Vista previa de Kiji con este fondo'**
+  String get fondoVistaPrevia;
+
+  /// Vista previa del fondo: saludo de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'Buenas noches'**
+  String get fondoVistaPreviaSaludo;
+
+  /// Vista previa del fondo: título de la tarjeta de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'Tus playlists'**
+  String get fondoVistaPreviaTarjeta;
+
+  /// Vista previa del fondo: texto de la tarjeta de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'Así se ven las tarjetas'**
+  String get fondoVistaPreviaTarjetaNota;
+
+  /// Vista previa del fondo: texto de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'El texto siempre se lee: Kiji ajusta la capa de encima a tu foto.'**
+  String get fondoVistaPreviaTexto;
+
+  /// Vista previa del fondo: título de ejemplo en el mini-reproductor
+  ///
+  /// In es, this message translates to:
+  /// **'Una canción'**
+  String get fondoVistaPreviaCancion;
+
+  /// Vista previa del fondo: artista de ejemplo en el mini-reproductor
+  ///
+  /// In es, this message translates to:
+  /// **'Un artista'**
+  String get fondoVistaPreviaArtista;
+
+  /// Traducción: Gemini en pausa tras un rechazo; se ofrece traducir en el teléfono
+  ///
+  /// In es, this message translates to:
+  /// **'Gemini no está respondiendo ahora. Puedes traducir en el teléfono mientras tanto.'**
+  String get geminiEnPausa;
 }
 
 class _AppLocalizationsDelegate

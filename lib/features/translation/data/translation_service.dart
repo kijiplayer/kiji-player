@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -8,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/secret_store.dart';
+import '../../../utils/source_pauses.dart';
 import '../domain/languages.dart';
 import 'bergamot_engine.dart';
 import 'bergamot_models.dart';
@@ -120,10 +122,19 @@ class TranslationService {
     return out;
   }
 
-  /// Traduce con Gemini, con la clave guardada en el dispositivo.
+  /// Gemini en pausa después de un rechazo (guardada en el dispositivo; ver [SourcePauses]).
+  late final SourcePauses _pauses = SourcePauses(directory: _directory);
+  static const _geminiPause = 'gemini';
+
+  /// Traduce con Gemini, con la clave guardada en el dispositivo. Si Gemini rechazó hace poco (límite,
+  /// clave, modelo o servidor), no se le pregunta: se ofrece traducir en el teléfono.
   Future<List<String?>> translateGemini(String trackId, List<String> lines, String model, String target) async {
     final hit = await cached(trackId, lines, 'gemini', target);
     if (hit != null) return hit;
+    await _pauses.ensureLoaded();
+    if (_pauses.paused(_geminiPause)) {
+      throw TranslationException(tx.geminiEnPausa, suggestLocal: true);
+    }
     final key = await secrets.read(geminiKeySecret);
     if (key == null || key.isEmpty) {
       throw TranslationException(tx.faltaLaClaveDeGeminiConfiguracion, suggestLocal: true);
@@ -131,8 +142,13 @@ class TranslationService {
     try {
       final out = await _byLines(lines, (texts) => gemini.translate(key, model, texts, target));
       await _save(trackId, lines, 'gemini', target, out);
+      unawaited(_pauses.success(_geminiPause));
       return out;
     } on GeminiException catch (error) {
+      if (error.pause case final first?) {
+        final pause = await _pauses.refuse(_geminiPause, first: first);
+        debugPrint('=== GEMINI: en pausa ${pause.inMinutes} min ===');
+      }
       throw TranslationException(error.message, suggestLocal: true);
     }
   }
