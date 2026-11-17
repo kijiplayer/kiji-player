@@ -3001,5 +3001,19 @@
   "iconoAviso": "En algunos teléfonos la app se cierra un momento y el acceso directo de la pantalla de inicio puede tener que volver a ponerse. El cambio se hace al salir de Kiji, nunca en medio de la música.",
   "@iconoAviso": {"description": "Aviso honesto antes de activar el ícono a juego (Android)"},
   "iconoActivar": "Cambiar el ícono",
-  "@iconoActivar": {"description": "Botón del aviso del ícono"}
+  "@iconoActivar": {"description": "Botón del aviso del ícono"},
+  "fondoVistaPrevia": "Vista previa de Kiji con este fondo",
+  "@fondoVistaPrevia": {"description": "Etiqueta de accesibilidad de la vista previa del fondo"},
+  "fondoVistaPreviaSaludo": "Buenas noches",
+  "@fondoVistaPreviaSaludo": {"description": "Vista previa del fondo: saludo de ejemplo"},
+  "fondoVistaPreviaTarjeta": "Tus playlists",
+  "@fondoVistaPreviaTarjeta": {"description": "Vista previa del fondo: título de la tarjeta de ejemplo"},
+  "fondoVistaPreviaTarjetaNota": "Así se ven las tarjetas",
+  "@fondoVistaPreviaTarjetaNota": {"description": "Vista previa del fondo: texto de la tarjeta de ejemplo"},
+  "fondoVistaPreviaTexto": "El texto siempre se lee: Kiji ajusta la capa de encima a tu foto.",
+  "@fondoVistaPreviaTexto": {"description": "Vista previa del fondo: texto de ejemplo"},
+  "fondoVistaPreviaCancion": "Una canción",
+  "@fondoVistaPreviaCancion": {"description": "Vista previa del fondo: título de ejemplo en el mini-reproductor"},
+  "fondoVistaPreviaArtista": "Un artista",
+  "@fondoVistaPreviaArtista": {"description": "Vista previa del fondo: artista de ejemplo en el mini-reproductor"}
 }

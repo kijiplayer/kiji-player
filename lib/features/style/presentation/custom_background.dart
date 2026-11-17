@@ -17,6 +17,7 @@ import '../../customize/data/track_overrides.dart';
 import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
 import '../data/background_store.dart';
+import '../../../widgets/nocturne/glass.dart';
 import '../../../widgets/nocturne/liquid_glass.dart';
 
 /// El fondo que se ve: el de la canción que suena (si tiene uno propio) o el general. La ruta es
@@ -65,11 +66,18 @@ final hasCustomBackgroundProvider = Provider<bool>((ref) => ref.watch(effectiveB
 /// desenfoque y la opacidad elegidos, y encima una capa del color del estilo que deja el texto
 /// siempre legible ([backgroundScrim]). Sin fondo propio no dibuja nada.
 class CustomBackground extends ConsumerWidget {
-  const CustomBackground({super.key});
+  const CustomBackground({super.key, this.preview = false});
+
+  /// Para la vista previa de Apariencia: el fondo general (no el de la canción), por capas y en
+  /// vivo (sin componerlo en una imagen: cambia con cada movimiento de los controles).
+  final bool preview;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bg = ref.watch(effectiveBackgroundProvider);
+    final general = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
+    final bg = preview
+        ? (general.file == null ? null : (path: general.file!, kind: general.kind))
+        : ref.watch(effectiveBackgroundProvider);
     final s = ref.watch(settingsProvider.select((s) => (blur: s.backgroundBlur, opacity: s.backgroundOpacity)));
     final folder = ref.watch(backgroundFolderProvider).valueOrNull;
     if (bg == null || folder == null) return const SizedBox.shrink();
@@ -114,7 +122,7 @@ class CustomBackground extends ConsumerWidget {
     // pantalla (rendimiento: el vidrio de encima la desenfoca en cada cuadro, y antes en cada
     // cuadro se volvían a dibujar la foto, su desenfoque y la capa). Se ve igual.
     final still = !video && !file.path.toLowerCase().endsWith('.gif');
-    if (!still) return layers;
+    if (preview || !still) return layers;
     return _StillBackground(
       file: file,
       background: KijiColors.background,
@@ -489,6 +497,9 @@ class BackgroundOptions extends ConsumerWidget {
           ],
         ),
         if (has) ...[
+          const SizedBox(height: 16),
+          // Cómo queda Kiji con este fondo: cambia al momento con el desenfoque y la opacidad.
+          const BackgroundPreview(),
           const SizedBox(height: 12),
           Text(tx.desenfoque, style: KijiText.mono(size: 11)),
           Slider(
@@ -509,6 +520,119 @@ class BackgroundOptions extends ConsumerWidget {
           style: TextStyle(color: KijiColors.muted, fontSize: 12),
         ),
       ],
+    );
+  }
+}
+
+/// Vista previa del fondo propio: la app de verdad (fondo, una tarjeta, texto y el mini-reproductor
+/// encima), armada al tamaño de la pantalla y achicada, así el desenfoque y la opacidad se ven
+/// exactamente como van a quedar. Cambia al momento mientras se mueven los controles.
+class BackgroundPreview extends StatelessWidget {
+  const BackgroundPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.clamp(0.0, 280.0);
+        final aspect = screen.width <= 0 ? 0.5 : screen.width / screen.height;
+        // En la PC (ventana ancha) la vista previa sale apaisada, como la ventana.
+        final height = (width / aspect).clamp(0.0, 520.0);
+        return Center(
+          child: Semantics(
+            label: tx.fondoVistaPrevia,
+            child: IgnorePointer(
+              child: Container(
+                key: const Key('background-preview'),
+                width: width,
+                height: height,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: KijiColors.glassBorder),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox.fromSize(
+                    size: screen,
+                    child: const Stack(fit: StackFit.expand, children: [CustomBackground(preview: true), _PreviewContent()]),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Lo que va encima en la vista previa: un saludo, una tarjeta y el mini-reproductor (de ejemplo).
+class _PreviewContent extends StatelessWidget {
+  const _PreviewContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 64, 20, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(tx.fondoVistaPreviaSaludo, style: KijiText.display(size: 34).copyWith(color: KijiColors.text)),
+          const SizedBox(height: 20),
+          Glass(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                Icon(Icons.queue_music_rounded, color: KijiColors.cyan, size: 36),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tx.fondoVistaPreviaTarjeta, style: KijiText.title(size: 20).copyWith(color: KijiColors.text)),
+                      const SizedBox(height: 4),
+                      Text(tx.fondoVistaPreviaTarjetaNota, style: TextStyle(color: KijiColors.muted, fontSize: 15)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(tx.fondoVistaPreviaTexto, style: TextStyle(color: KijiColors.text, fontSize: 17, height: 1.4)),
+          const Spacer(),
+          Glass(
+            floating: true,
+            radius: KijiRadii.miniPlayer,
+            padding: const EdgeInsets.fromLTRB(10, 10, 16, 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: KijiColors.accentGradientDiagonal,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tx.fondoVistaPreviaCancion, style: TextStyle(color: KijiColors.text, fontWeight: FontWeight.w600, fontSize: 16)),
+                      Text(tx.fondoVistaPreviaArtista, style: TextStyle(color: KijiColors.muted, fontSize: 14)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.pause_rounded, color: KijiColors.text, size: 30),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

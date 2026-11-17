@@ -1377,5 +1377,12 @@
   "iconoAJuegoConElEstiloNota": "Kiji's icon takes the colors of your style and accent.",
   "iconoAvisoTitulo": "Change Kiji's icon?",
   "iconoAviso": "On some phones the app closes for a moment and the home screen shortcut may need to be added again. The change happens when you leave Kiji, never in the middle of a song.",
-  "iconoActivar": "Change the icon"
+  "iconoActivar": "Change the icon",
+  "fondoVistaPrevia": "Preview of Kiji with this background",
+  "fondoVistaPreviaSaludo": "Good evening",
+  "fondoVistaPreviaTarjeta": "Your playlists",
+  "fondoVistaPreviaTarjetaNota": "This is how cards look",
+  "fondoVistaPreviaTexto": "Text is always readable: Kiji adjusts the layer on top to your photo.",
+  "fondoVistaPreviaCancion": "A song",
+  "fondoVistaPreviaArtista": "An artist"
 }

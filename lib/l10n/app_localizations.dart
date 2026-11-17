@@ -8260,6 +8260,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cambiar el ícono'**
   String get iconoActivar;
+
+  /// Etiqueta de accesibilidad de la vista previa del fondo
+  ///
+  /// In es, this message translates to:
+  /// **'Vista previa de Kiji con este fondo'**
+  String get fondoVistaPrevia;
+
+  /// Vista previa del fondo: saludo de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'Buenas noches'**
+  String get fondoVistaPreviaSaludo;
+
+  /// Vista previa del fondo: título de la tarjeta de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'Tus playlists'**
+  String get fondoVistaPreviaTarjeta;
+
+  /// Vista previa del fondo: texto de la tarjeta de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'Así se ven las tarjetas'**
+  String get fondoVistaPreviaTarjetaNota;
+
+  /// Vista previa del fondo: texto de ejemplo
+  ///
+  /// In es, this message translates to:
+  /// **'El texto siempre se lee: Kiji ajusta la capa de encima a tu foto.'**
+  String get fondoVistaPreviaTexto;
+
+  /// Vista previa del fondo: título de ejemplo en el mini-reproductor
+  ///
+  /// In es, this message translates to:
+  /// **'Una canción'**
+  String get fondoVistaPreviaCancion;
+
+  /// Vista previa del fondo: artista de ejemplo en el mini-reproductor
+  ///
+  /// In es, this message translates to:
+  /// **'Un artista'**
+  String get fondoVistaPreviaArtista;
 }
 
 class _AppLocalizationsDelegate

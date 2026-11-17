@@ -5097,4 +5097,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iconoActivar => 'Change the icon';
+
+  @override
+  String get fondoVistaPrevia => 'Preview of Kiji with this background';
+
+  @override
+  String get fondoVistaPreviaSaludo => 'Good evening';
+
+  @override
+  String get fondoVistaPreviaTarjeta => 'Your playlists';
+
+  @override
+  String get fondoVistaPreviaTarjetaNota => 'This is how cards look';
+
+  @override
+  String get fondoVistaPreviaTexto =>
+      'Text is always readable: Kiji adjusts the layer on top to your photo.';
+
+  @override
+  String get fondoVistaPreviaCancion => 'A song';
+
+  @override
+  String get fondoVistaPreviaArtista => 'An artist';
 }
