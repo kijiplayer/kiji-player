@@ -776,7 +776,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             showDragHandle: true,
             builder: (_) => Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-              child: Column(
+              child: SingleChildScrollView(child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -784,7 +784,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 14),
                   const ThemeFileOptions(),
                 ],
-              ),
+              )),
             ),
           ),
         ),

@@ -74,7 +74,7 @@ Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track 
         builder: (context, ref, _) {
           final override = ref.watch(trackOverridesProvider)[track.id];
           final notifier = ref.read(trackOverridesProvider.notifier);
-          return Column(
+          return SingleChildScrollView(child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -133,7 +133,7 @@ Future<void> showCustomizeTrackSheet(BuildContext context, WidgetRef ref, Track 
                   label: Text(tx.restaurarOriginal),
                 ),
             ],
-          );
+          ));
         },
       ),
     ),

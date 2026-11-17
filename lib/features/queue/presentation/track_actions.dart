@@ -32,7 +32,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
     context: context,
     showDragHandle: true,
     builder: (context) => SafeArea(
-      child: Column(
+      child: SingleChildScrollView(child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
@@ -100,7 +100,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
               },
             ),
         ],
-      ),
+      )),
     ),
   );
 }

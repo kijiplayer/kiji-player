@@ -120,7 +120,7 @@ Future<void> showDownloadFailureSheet(BuildContext context, WidgetRef ref, Strin
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: Column(
+            child: SingleChildScrollView(child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -137,7 +137,7 @@ Future<void> showDownloadFailureSheet(BuildContext context, WidgetRef ref, Strin
                 const SizedBox(height: 16),
                 ..._failureActions(context, ref, videoId, download, closeOnAction: true),
               ],
-            ),
+            )),
           ),
         );
       },
