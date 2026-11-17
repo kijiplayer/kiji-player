@@ -19,6 +19,15 @@ class WebViewUnavailable implements Exception {
   String toString() => 'No se pudo crear la WebView de $who: $cause';
 }
 
+/// Las WebViews ocultas de Kiji (traducción, solver de YouTube, token) trabajan de fondo: en
+/// Android, su proceso queda con prioridad baja ("waived") y no le quita procesador a la pantalla
+/// (0.8.3: mientras se traducía una letra, el dibujo de Kiji se trababa). Todas comparten un mismo
+/// proceso, así que todas la piden igual.
+final backgroundRendererPriority = RendererPriorityPolicy(
+  rendererRequestedPriority: RendererPriority.RENDERER_PRIORITY_WAIVED,
+  waivedWhenNotVisible: true,
+);
+
 /// Crea las WebView ocultas de Kiji (solver, PO token y traducción).
 ///
 /// En Windows todas comparten un entorno de WebView2 propio de Kiji, con su carpeta de datos dentro

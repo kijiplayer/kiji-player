@@ -259,7 +259,11 @@ class WebViewPoTokens implements PoTokenProvider {
       (environment) => HeadlessInAppWebView(
         webViewEnvironment: environment,
         initialData: InAppWebViewInitialData(data: _page, baseUrl: WebUri('https://www.youtube.com/')),
-        initialSettings: InAppWebViewSettings(javaScriptEnabled: true, userAgent: _userAgent),
+        initialSettings: InAppWebViewSettings(
+          javaScriptEnabled: true,
+          userAgent: _userAgent,
+          rendererPriorityPolicy: backgroundRendererPriority,
+        ),
         onLoadStop: (controller, _) {
           if (!loaded.isCompleted) loaded.complete(controller);
         },
