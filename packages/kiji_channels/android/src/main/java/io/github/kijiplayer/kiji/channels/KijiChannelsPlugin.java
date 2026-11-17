@@ -27,5 +27,13 @@ public class KijiChannelsPlugin implements FlutterPlugin {
     }
 
     @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {}
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        // Al destruir el motor se sueltan los efectos de audio (si no, quedan ocupando el límite
+        // de efectos del sistema).
+        try {
+            Class.forName("io.github.kijiplayer.kiji.KijiChannels").getMethod("unregister").invoke(null);
+        } catch (Exception e) {
+            Log.e("Kiji", "=== CANALES: no se pudieron soltar ===", e);
+        }
+    }
 }

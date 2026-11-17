@@ -69,6 +69,12 @@ class _SoundScreenState extends ConsumerState<SoundScreen> {
           ),
           if (eq.supported) ...[
             _title(eq.bands == null ? tx.ecualizador2 : tx.ecualizadorBandas(eq.bands!.centers.length)),
+            if (eq.equalizerUnavailable)
+              Padding(
+                key: const Key('sound-eq-unavailable'),
+                padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
+                child: Text(tx.ecualizadorNoDisponibleAhora, style: TextStyle(color: KijiColors.muted)),
+              ),
             if (perDeviceAvailable)
               _card(
                 SwitchListTile(

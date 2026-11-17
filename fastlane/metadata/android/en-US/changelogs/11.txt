@@ -1,0 +1,5 @@
+• Fixed: sometimes no song would play until you restarted the app.
+• If the equalizer is not available, music plays the same and Sound lets you know.
+• Lyrics are saved with all your downloads, including the ones that had been left without them.
+• Your long YouTube Music playlists show up complete.
+• The theater ovation no longer distorts, and the Library with a photo background scrolls more smoothly.

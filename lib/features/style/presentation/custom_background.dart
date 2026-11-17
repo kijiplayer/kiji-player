@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:ui' as ui show Image;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,7 +81,11 @@ class CustomBackground extends ConsumerWidget {
         : ref.watch(backgroundToneProvider((path: file.path, light: palette.isLight))).valueOrNull;
     final scrim = backgroundScrim(palette, s.opacity, tone: tone);
     final media = video
-        ? (BackgroundStore.videoWithMediaKit ? _PcVideoBackground(file: file) : _VideoBackground(file: file))
+        // La clave es el archivo: con otro video (otro fondo, o el de otra canción) se cierra el
+        // reproductor viejo y se abre uno nuevo (si no, seguía el anterior, abierto).
+        ? (BackgroundStore.videoWithMediaKit
+              ? _PcVideoBackground(key: ValueKey(file.path), file: file)
+              : _VideoBackground(key: ValueKey(file.path), file: file))
         : Image.file(
             file,
             fit: BoxFit.cover,
@@ -88,7 +93,7 @@ class CustomBackground extends ConsumerWidget {
             // Un archivo que ya no está: queda el fondo del estilo.
             errorBuilder: (_, _, _) => const SizedBox.shrink(),
           );
-    return IgnorePointer(
+    final layers = IgnorePointer(
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -104,13 +109,127 @@ class CustomBackground extends ConsumerWidget {
         ],
       ),
     );
+    // Una foto fija (no un GIF ni un video): se compone una sola vez en una imagen del tamaño de la
+    // pantalla (rendimiento: el vidrio de encima la desenfoca en cada cuadro, y antes en cada
+    // cuadro se volvían a dibujar la foto, su desenfoque y la capa). Se ve igual.
+    final still = !video && !file.path.toLowerCase().endsWith('.gif');
+    if (!still) return layers;
+    return _StillBackground(
+      file: file,
+      background: KijiColors.background,
+      opacity: s.opacity.clamp(0.1, 1).toDouble(),
+      blur: s.blur,
+      scrim: KijiColors.background.withValues(alpha: scrim),
+      fallback: layers,
+    );
+  }
+}
+
+/// La foto de fondo ya compuesta (fondo del estilo, foto con su opacidad y desenfoque, y la capa
+/// de legibilidad) en una sola imagen. Mientras se compone, [fallback] (las capas de siempre).
+class _StillBackground extends StatefulWidget {
+  const _StillBackground({
+    required this.file,
+    required this.background,
+    required this.opacity,
+    required this.blur,
+    required this.scrim,
+    required this.fallback,
+  });
+
+  final File file;
+  final Color background;
+  final double opacity;
+  final double blur;
+  final Color scrim;
+  final Widget fallback;
+
+  @override
+  State<_StillBackground> createState() => _StillBackgroundState();
+}
+
+class _StillBackgroundState extends State<_StillBackground> {
+  ui.Image? _composed;
+  Object? _composedFor;
+  Object? _composing;
+
+  Object _keyFor(Size size, double ratio) =>
+      (widget.file.path, widget.background, widget.opacity, widget.blur, widget.scrim, size, ratio);
+
+  Future<void> _compose(Size size, double ratio, Object key) async {
+    _composing = key;
+    try {
+      final width = (size.width * ratio).round();
+      final height = (size.height * ratio).round();
+      if (width <= 0 || height <= 0) return;
+      final bytes = await widget.file.readAsBytes();
+      final codec = await instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      codec.dispose();
+      final photo = frame.image;
+      final recorder = PictureRecorder();
+      final canvas = Canvas(recorder);
+      final full = Offset.zero & Size(width.toDouble(), height.toDouble());
+      canvas.drawRect(full, Paint()..color = widget.background);
+      // La foto como BoxFit.cover, con su opacidad y su desenfoque.
+      final src = Size(photo.width.toDouble(), photo.height.toDouble());
+      final fitted = applyBoxFit(BoxFit.cover, src, full.size);
+      final from = Alignment.center.inscribe(fitted.source, Offset.zero & src);
+      final paint = Paint()
+        ..filterQuality = FilterQuality.medium
+        ..color = Color.fromRGBO(0, 0, 0, widget.opacity);
+      if (widget.blur > 0.5) {
+        final sigma = widget.blur * ratio;
+        paint.imageFilter = ImageFilter.blur(sigmaX: sigma, sigmaY: sigma, tileMode: TileMode.decal);
+      }
+      canvas.drawImageRect(photo, from, full, paint);
+      canvas.drawRect(full, Paint()..color = widget.scrim);
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(width, height);
+      picture.dispose();
+      photo.dispose();
+      if (!mounted || _composing != key) {
+        image.dispose();
+        return;
+      }
+      setState(() {
+        _composed?.dispose();
+        _composed = image;
+        _composedFor = key;
+      });
+    } catch (error) {
+      debugPrint('=== FONDO: no se pudo componer la foto (${error.runtimeType}); se dibuja por capas ===');
+    }
+  }
+
+  @override
+  void dispose() {
+    _composed?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = MediaQuery.devicePixelRatioOf(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.biggest;
+        final key = _keyFor(size, ratio);
+        if (key != _composedFor && key != _composing && size.isFinite) {
+          unawaited(_compose(size, ratio, key));
+        }
+        final image = _composed;
+        if (image == null || key != _composedFor) return widget.fallback;
+        return IgnorePointer(child: RawImage(image: image, fit: BoxFit.fill, width: size.width, height: size.height));
+      },
+    );
   }
 }
 
 /// Video de fondo: sin sonido y en bucle. Se queda quieto cuando Kiji no está a la vista, con el
 /// ahorro de batería o con "Reducir animaciones".
 class _VideoBackground extends ConsumerStatefulWidget {
-  const _VideoBackground({required this.file});
+  const _VideoBackground({super.key, required this.file});
 
   final File file;
 
@@ -201,7 +320,7 @@ class _VideoBackgroundState extends ConsumerState<_VideoBackground> with Widgets
 /// Video de fondo en la PC, con media_kit (la librería completa de mpv): sin sonido, en bucle, y
 /// quieto cuando Kiji no está a la vista o con "Reducir animaciones".
 class _PcVideoBackground extends ConsumerStatefulWidget {
-  const _PcVideoBackground({required this.file});
+  const _PcVideoBackground({super.key, required this.file});
 
   final File file;
 

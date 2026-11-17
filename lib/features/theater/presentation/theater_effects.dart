@@ -60,8 +60,29 @@ class TheaterSounds {
   static final instance = TheaterSounds._();
 
   final _players = <String, AudioPlayer>{};
+  final _idle = <String, Timer>{};
+
+  /// Un reproductor sin usar se suelta a los [idleRelease]: cada uno tiene su audio en el
+  /// sistema, y con 15 sonidos distintos quedaban 15 abiertos para siempre.
+  static const idleRelease = Duration(seconds: 20);
+
+  /// La ovación: su volumen y cuánto dura (assets/sounds/ovation.wav, pico de -4,4 dBFS).
+  static const ovationVolume = 0.6;
+  static const ovationLength = Duration(milliseconds: 3200);
+
+  /// Calla los sonidos que empiezan con [prefix] (los aplausos, al llegar la ovación).
+  void stopAll({required String prefix}) {
+    for (final entry in _players.entries) {
+      if (!entry.key.startsWith(prefix)) continue;
+      unawaited(entry.value.pause().catchError((Object e) => debugPrint('=== TEATRO: no se pudo callar ${entry.key}: ${e.runtimeType} ===')));
+    }
+  }
+
+  /// Cuántos reproductores hay abiertos ahora (para las pruebas).
+  int get openPlayers => _players.length;
 
   Future<void> play(String name, {double volume = 0.6}) async {
+    _idle.remove(name)?.cancel();
     try {
       final player = _players[name] ??= AudioPlayer(handleInterruptions: false, handleAudioSessionActivation: false);
       if (player.audioSource == null) await player.setAsset('assets/sounds/$name.wav');
@@ -70,6 +91,33 @@ class TheaterSounds {
       unawaited(player.play());
     } catch (error) {
       debugPrint('=== TEATRO: no sonó $name: ${error.runtimeType} ===');
+    } finally {
+      _idle[name] = Timer(idleRelease, () => unawaited(_release(name)));
+    }
+  }
+
+  /// Suelta todos los reproductores ya (al cerrar, y en las pruebas): los temporizadores se
+  /// cancelan en el acto y los reproductores se cierran sin esperar.
+  void releaseAll() {
+    for (final timer in _idle.values) {
+      timer.cancel();
+    }
+    _idle.clear();
+    final players = [..._players.values];
+    _players.clear();
+    for (final player in players) {
+      unawaited(player.dispose().catchError((Object e) => debugPrint('=== TEATRO: no se pudo soltar un sonido: ${e.runtimeType} ===')));
+    }
+  }
+
+  Future<void> _release(String name) async {
+    _idle.remove(name)?.cancel();
+    final player = _players.remove(name);
+    if (player == null) return;
+    try {
+      await player.dispose();
+    } catch (error) {
+      debugPrint('=== TEATRO: no se pudo soltar $name: ${error.runtimeType} ===');
     }
   }
 
@@ -152,7 +200,11 @@ void throwRose(WidgetRef ref, Track track) {
   );
   if (ovation) {
     _vibrate(ref, long: true);
-    unawaited(TheaterSounds.instance.play('ovation', volume: 0.7));
+    // Que no sature: se cortan los aplausos que quedaban sonando, la ovación va al 60 % y la
+    // música baja al 70 % mientras dura (pico de la suma ≈ 0,98 con la música al máximo).
+    TheaterSounds.instance.stopAll(prefix: 'applause_');
+    ref.read(playbackProvider.notifier).duck(duration: TheaterSounds.ovationLength);
+    unawaited(TheaterSounds.instance.play('ovation', volume: TheaterSounds.ovationVolume));
   } else {
     // Los aplausos crecen: más gente y más fuerte con cada rosa seguida.
     unawaited(TheaterSounds.instance.play('applause_${streak.clamp(1, 3)}', volume: (0.35 + 0.12 * streak).clamp(0.35, 0.85)));

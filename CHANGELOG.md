@@ -1,6 +1,22 @@
 # Novedades de Kiji Player
 
-## 0.8.1 — sin publicar
+## 0.8.2 — sin publicar
+
+**Arreglos**
+- A veces ninguna canción sonaba hasta reiniciar la app: era el ecualizador. Ahora, si Android no
+  puede crearlo en ese momento, la música suena igual, sin él, y Sonido lo avisa con calma. Y si el
+  reproductor mismo falla al cargar una canción, Kiji lo reinicia solo y sigue sonando.
+- "Bajar la letra con las descargas": las canciones sin letra (instrumentales) frenaban a las demás,
+  y muchas descargas se quedaban sin letra. Ahora se guardan todas las que se encuentren.
+- YouTube Music con tu cuenta: las playlists largas y "Me gusta" se leen completos (antes, solo la
+  primera parte), y una playlist que falla no deja a las demás sin leer.
+- La ovación del teatro ya no satura: la música baja un poco mientras suena.
+- El fondo de video cambia bien al elegir otro, y los sonidos del teatro y los widgets ya no dejan
+  recursos del teléfono tomados (ni se redibujan con la pantalla apagada).
+- Más fluidez: con una foto de fondo, la Biblioteca se desliza sin perder cuadros a 120 Hz.
+- Al actualizar dentro de la 0.8, "Qué hay de nuevo" muestra lo de esta versión.
+
+## 0.8.1 — 13 de noviembre de 2026
 
 **Arreglos del teatro: tomates y rosas a color en todos los estilos**
 - Tomates, manchas, rosas, telón rojo con cenefa dorada y confeti de colores también en Grafito y

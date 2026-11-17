@@ -284,6 +284,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1600));
     expect(playback.calls, ['saltar sin sonar']);
     await tester.pumpWidget(const SizedBox());
+    TheaterSounds.instance.releaseAll();
     await tester.pump(const Duration(seconds: 5));
   });
 

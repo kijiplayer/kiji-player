@@ -8,6 +8,7 @@ import 'package:kiji_player/features/downloads/domain/downloaded_track.dart';
 import 'package:kiji_player/features/lyrics/data/lyrics_repository.dart';
 import 'package:kiji_player/features/lyrics/data/lyrics_sources.dart';
 import 'package:kiji_player/features/lyrics/domain/lyrics.dart';
+import 'package:kiji_player/providers/downloads_provider.dart';
 
 // Letras inventadas (nunca letras reales).
 
@@ -111,5 +112,39 @@ void main() {
     final lyrics = await repository.get(_request);
     expect(lyrics.synced.single.text, 'Guardada con la descarga');
     expect(online.calls, 0, reason: 'no hizo falta preguntar a ninguna fuente');
+  });
+
+  test('Letras pendientes: las canciones sin letra no frenan a las demás; sin respuesta, corta a las 3', () async {
+    // 5 instrumentales primero y después 3 con letra: antes se cortaba a las 3 "sin letra" y las
+    // otras no se bajaban nunca.
+    final results = [
+      ...List.filled(5, LyricsSave.none),
+      LyricsSave.saved,
+      LyricsSave.saved,
+      LyricsSave.saved,
+    ];
+    final asked = <int>[];
+    final saved = await fetchPendingLyrics(
+      List.generate(results.length, (i) => i),
+      (i) async {
+        asked.add(i);
+        return results[i];
+      },
+      pause: Duration.zero,
+    );
+    expect(saved, 3);
+    expect(asked, hasLength(8));
+
+    // Sin internet: 3 sin respuesta seguidas y se deja para después.
+    final offline = <int>[];
+    await fetchPendingLyrics(
+      List.generate(10, (i) => i),
+      (i) async {
+        offline.add(i);
+        return LyricsSave.unavailable;
+      },
+      pause: Duration.zero,
+    );
+    expect(offline, [0, 1, 2]);
   });
 }

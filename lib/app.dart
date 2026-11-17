@@ -145,7 +145,17 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
           case StartupScreen.style:
             if (!ref.read(settingsProvider).personalized) await PersonalizeScreen.open(context, ref);
           case StartupScreen.whatsNew:
-            await WhatsNewScreen.open(context);
+            // De 0.8.0 a 0.8.2: las líneas cortas de esta versión. De una versión grande anterior:
+            // las tarjetas de lo nuevo.
+            final notes = isPatchUpdate(settings.lastSeenVersion)
+                ? await loadBundledWhatsNew(Localizations.localeOf(context).languageCode)
+                : null;
+            if (!context.mounted) return;
+            if (notes != null) {
+              await showWhatsNewSheet(context, notes);
+            } else {
+              await WhatsNewScreen.open(context);
+            }
         }
       }
     });

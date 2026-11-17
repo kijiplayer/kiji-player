@@ -173,6 +173,48 @@ class DownloadCheck {
   bool get canDownload => blockedReason == null && estimate != null;
 }
 
+/// Cómo terminó buscar la letra de una descarga.
+enum LyricsSave {
+  saved,
+
+  /// Las fuentes respondieron y no hay letra (instrumental, o no la tienen): no es una falla.
+  none,
+
+  /// Ninguna fuente respondió (sin internet, caídas): se vuelve a probar más tarde.
+  unavailable,
+
+  /// Ya tenía letra, o "Bajar la letra" está apagado.
+  skipped,
+}
+
+/// Busca la letra de [pending], de a una y sin apuro. Corta después de [maxUnavailable] seguidas
+/// sin respuesta (sin internet: sigue la próxima vez). Antes también cortaba con 3 seguidas *sin
+/// letra* (instrumentales): como el orden era siempre el mismo, las demás no se bajaban nunca.
+/// Devuelve cuántas se guardaron.
+Future<int> fetchPendingLyrics<T>(
+  List<T> pending,
+  Future<LyricsSave> Function(T entry) save, {
+  int maxUnavailable = 3,
+  Duration pause = const Duration(seconds: 1),
+}) async {
+  var unavailable = 0;
+  var saved = 0;
+  for (final entry in pending) {
+    if (unavailable >= maxUnavailable) break;
+    switch (await save(entry)) {
+      case LyricsSave.saved:
+        saved++;
+        unavailable = 0;
+      case LyricsSave.none || LyricsSave.skipped:
+        unavailable = 0;
+      case LyricsSave.unavailable:
+        unavailable++;
+    }
+    if (pause > Duration.zero) await Future<void>.delayed(pause);
+  }
+  return saved;
+}
+
 class DownloadsNotifier extends Notifier<DownloadsState> {
   /// Cuántas descargas corren a la vez.
   static const _maxParallel = 2;
@@ -207,7 +249,10 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       );
       // Sin apuro: que primero arranque lo demás (la canción restaurada, el inicio).
       _coverTimer = Timer(coverUpgradeDelay, () => unawaited(_upgradeCovers()));
-      ref.onDispose(() => _coverTimer?.cancel());
+      ref.onDispose(() {
+        _coverTimer?.cancel();
+        _lyricsRetry?.cancel();
+      });
     } catch (error) {
       debugPrint('=== DESCARGAS: no se pudo leer el índice: $error ===');
       state = state.copyWith(loaded: true);
@@ -221,28 +266,32 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   /// Busca la letra de [entry] (caché, archivo o las fuentes prendidas, con la verificación de
   /// siempre) y la guarda junto a la canción para verla sin internet. Sin letra o sin internet, no
   /// guarda nada (se vuelve a probar la próxima vez que se abra Kiji).
-  Future<bool> _saveLyrics(DownloadedTrack entry) async {
+  Future<LyricsSave> _saveLyrics(DownloadedTrack entry) async {
     final settings = ref.read(settingsProvider);
-    if (!settings.downloadLyrics || entry.lyricsFileName != null) return false;
+    if (!settings.downloadLyrics || entry.lyricsFileName != null) return LyricsSave.skipped;
     // Con "solo con WiFi" o el ahorro de datos, sin WiFi se espera: se retoma al volver el WiFi.
     if (!await _lyricsNetworkOk()) {
       _waitForWifiForLyrics();
-      return false;
+      return LyricsSave.unavailable;
     }
     try {
       final lyrics = await ref
           .read(lyricsRepositoryProvider)
           .get(lyricsRequestFor(entry.toTrack()), disabled: settings.disabledLyricsSources);
-      if (lyrics.isEmpty) return false;
+      if (lyrics.isEmpty) {
+        debugPrint('=== DESCARGAS: "${entry.title}" no tiene letra en ninguna fuente ===');
+        return LyricsSave.none;
+      }
       final updated = await _repository.saveLyrics(entry.videoId, lyricsToLrc(lyrics));
       if (updated != null && state.completed.containsKey(entry.videoId)) {
         state = state.copyWith(completed: {...state.completed, entry.videoId: updated});
       }
       debugPrint('=== DESCARGAS: letra guardada con "${entry.title}" ===');
-      return true;
+      return LyricsSave.saved;
     } catch (error) {
+      // Ninguna fuente respondió (sin internet o caídas): se vuelve a probar más tarde.
       debugPrint('=== DESCARGAS: sin letra para guardar con "${entry.title}": $error ===');
-      return false;
+      return LyricsSave.unavailable;
     }
   }
 
@@ -278,6 +327,16 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   }
 
   StreamSubscription<List<ConnectivityResult>>? _wifiForLyrics;
+  Timer? _lyricsRetry;
+
+  /// Cuánto se espera para volver a buscar las letras que no se pudieron bajar.
+  static Duration lyricsRetryDelay = const Duration(minutes: 5);
+
+  void _retryLyricsLater() {
+    if (_lyricsRetry?.isActive ?? false) return;
+    debugPrint('=== DESCARGAS: letra sin respuesta; se vuelve a probar en ${lyricsRetryDelay.inMinutes} min ===');
+    _lyricsRetry = Timer(lyricsRetryDelay, () => unawaited(_lyricsForOldDownloads()));
+  }
 
   /// Espera al WiFi para bajar las letras que quedaron pendientes (una sola espera a la vez).
   void _waitForWifiForLyrics() {
@@ -301,15 +360,13 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   Future<void> _lyricsForOldDownloads() async {
     if (!ref.read(settingsProvider).downloadLyrics) return;
     if (!await _lyricsNetworkOk()) return _waitForWifiForLyrics();
-    final pending = [for (final d in state.completed.values) if (d.lyricsFileName == null) d];
+    final pending = [for (final d in state.completed.values) if (d.lyricsFileName == null) d]
+      // Las más nuevas primero.
+      ..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
     if (pending.isEmpty) return;
     debugPrint('=== DESCARGAS: ${pending.length} sin letra guardada; se busca en segundo plano ===');
-    var failures = 0;
-    for (final entry in pending) {
-      if (failures >= 3) break;
-      failures = await _saveLyrics(entry) ? 0 : failures + 1;
-      await Future<void>.delayed(const Duration(seconds: 1));
-    }
+    final saved = await fetchPendingLyrics(pending, _saveLyrics);
+    debugPrint('=== DESCARGAS: letras pendientes: $saved guardadas ===');
   }
 
   /// ¿Hay WiFi o cable? (sin datos para decidir, sí: no se bloquea).
@@ -486,8 +543,11 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       );
       await _repository.add(entry);
       debugPrint('=== DESCARGAS: "${track.title}" lista (${result.$2} bytes) ===');
-      // La letra, en segundo plano: no demora la descarga.
-      unawaited(_saveLyrics(entry));
+      // La letra, en segundo plano: no demora la descarga. Si ninguna fuente respondió, se vuelve
+      // a probar en un rato (antes, recién al volver a abrir Kiji).
+      unawaited(_saveLyrics(entry).then((result) {
+        if (result == LyricsSave.unavailable) _retryLyricsLater();
+      }));
       state = state.copyWith(
         completed: {...state.completed, videoId: entry},
         active: Map.of(state.active)..remove(videoId),

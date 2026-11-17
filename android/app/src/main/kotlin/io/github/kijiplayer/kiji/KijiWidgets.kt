@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapShader
@@ -23,6 +24,7 @@ import android.graphics.Shader
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -72,15 +74,43 @@ object KijiWidgets {
         BAR(KijiWidgetBar::class.java, "bar"),
     }
 
+    /** Hay un estado guardado sin dibujar (llegó con la pantalla apagada). */
+    @Volatile private var pendingDraw = false
+    private var screenReceiver: BroadcastReceiver? = null
+
+    private fun screenOn(context: Context): Boolean =
+        (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive ?: true
+
+    /** Al prenderse la pantalla, se dibuja lo último que llegó con la pantalla apagada. */
+    private fun watchScreen(app: Context) {
+        if (screenReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (!pendingDraw) return
+                pendingDraw = false
+                refreshAll(app)
+            }
+        }
+        try {
+            app.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_ON))
+            screenReceiver = receiver
+        } catch (e: Exception) {
+            Log.w(TAG, "=== WIDGETS: no se puede seguir la pantalla: ${e.javaClass.simpleName} ===")
+        }
+    }
+
     @JvmStatic
     fun register(context: Context, messenger: BinaryMessenger) {
         val app = context.applicationContext
+        watchScreen(app)
         channel = MethodChannel(messenger, "kiji/widgets").also { ch ->
             ch.setMethodCallHandler { call, result ->
                 when (call.method) {
                     "update" -> {
                         save(app, call.arguments as? Map<*, *> ?: emptyMap<String, Any?>())
-                        refreshAll(app)
+                        // Con la pantalla apagada no se dibuja (nadie lo ve, y la letra cambia a
+                        // cada línea): se guarda y se dibuja una vez al prenderse la pantalla.
+                        if (screenOn(app)) refreshAll(app) else pendingDraw = true
                         result.success(null)
                     }
                     // Cuántos hay puestos de cada tipo (sin ninguno, Kiji no les manda nada).

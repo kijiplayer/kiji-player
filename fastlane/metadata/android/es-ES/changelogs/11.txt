@@ -1,0 +1,5 @@
+• Arreglado: a veces ninguna canción sonaba hasta reiniciar la app.
+• Si el ecualizador no está disponible, la música suena igual y Sonido te lo avisa.
+• La letra se guarda con todas tus descargas, también las que se habían quedado sin ella.
+• Tus playlists largas de YouTube Music se ven completas.
+• La ovación del teatro ya no satura y la Biblioteca con foto de fondo va más fluida.

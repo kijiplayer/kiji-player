@@ -17,6 +17,7 @@ class EqualizerState {
     this.bands,
     this.supported = true,
     this.capabilities = const SoundCapabilities(),
+    this.equalizerUnavailable = false,
   });
 
   final EqualizerSettings settings;
@@ -30,6 +31,10 @@ class EqualizerState {
 
   /// Qué efectos hay aquí (lo que no hay, no se muestra).
   final SoundCapabilities capabilities;
+
+  /// El ecualizador no se pudo crear ahora (Android sin efectos libres): la música suena igual,
+  /// sin él, y Sonido lo avisa suave.
+  final bool equalizerUnavailable;
 
   EqProfile get activeProfile => settings.profileFor(output);
 
@@ -49,12 +54,14 @@ class EqualizerState {
     AudioOutputKind? output,
     EqBands? bands,
     SoundCapabilities? capabilities,
+    bool? equalizerUnavailable,
   }) => EqualizerState(
     settings: settings ?? this.settings,
     output: output ?? this.output,
     bands: bands ?? this.bands,
     supported: supported,
     capabilities: capabilities ?? this.capabilities,
+    equalizerUnavailable: equalizerUnavailable ?? this.equalizerUnavailable,
   );
 }
 
@@ -85,6 +92,14 @@ class EqualizerNotifier extends Notifier<EqualizerState> {
       onError: (Object error) => debugPrint('=== ECUALIZADOR: error al seguir la salida: $error ==='),
     );
     ref.onDispose(subscription.cancel);
+    final availability = _engine.availability.listen(
+      (ok) {
+        state = state.copyWith(equalizerUnavailable: !ok);
+        if (ok) unawaited(_waitForBands());
+      },
+      onError: (Object error) => debugPrint('=== SONIDO: error al seguir el ecualizador: $error ==='),
+    );
+    ref.onDispose(availability.cancel);
     unawaited(Future.microtask(() => _load(monitor)));
     unawaited(_waitForBands());
     unawaited(_readCapabilities());

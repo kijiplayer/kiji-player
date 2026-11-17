@@ -112,4 +112,12 @@ void main() {
     // Ya vio esta versión: nada (ni una segunda vez "Qué hay de nuevo").
     expect(startupScreens(freshInstall: false, personalized: true, lastSeenVersion: kijiVersion), isEmpty);
   });
+
+  test('De 0.8.0 a 0.8.x se muestran las notas cortas; de la 0.7, las tarjetas de la 0.8', () {
+    expect(isPatchUpdate('0.8.0', current: '0.8.2'), isTrue);
+    expect(isPatchUpdate('0.8.1', current: '0.8.2'), isTrue);
+    expect(isPatchUpdate('0.7.0', current: '0.8.2'), isFalse);
+    expect(isPatchUpdate(null, current: '0.8.2'), isFalse);
+    expect(isPatchUpdate('0.8.2', current: '0.8.2'), isFalse);
+  });
 }
