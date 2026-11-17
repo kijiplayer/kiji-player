@@ -20,7 +20,13 @@
   hace al salir de Kiji, nunca en medio de la música; en Windows, al momento.
 
 **Arreglos**
-- El menú ⋯ del reproductor y la hoja del fondo ya no se desbordan con el teléfono en horizontal.
+- Con el teléfono en horizontal ya no se desborda ninguna hoja (el menú ⋯, el fondo, las acciones
+  de una canción, personalizar, momentos y otras): si no entran, se desplazan.
+- El vidrio deja ver tu fondo, como en la 0.8.2 (antes quedaba un panel oscuro detrás).
+- Grafito: pasar muchas canciones seguidas ya no da un error.
+- Letras y traducción: una fuente caída o Gemini con límite quedan en pausa (y cada vez más larga)
+  en lugar de reintentar a cada rato; al pasar canciones rápido solo se traduce la última, y la
+  traducción en el teléfono traba menos la pantalla.
 
 **Una disculpa**
 - Perdón por el error de la 0.8.1 que a veces dejaba a Kiji sin sonar hasta reiniciarla: quedó
