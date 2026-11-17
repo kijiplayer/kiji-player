@@ -373,7 +373,7 @@ class RenderLiquidGlass extends RenderProxyBox {
       case KijiStyle.paper:
         // Papel translúcido cálido, con el borde de tinta y terracota.
         return (
-          tint: [const Color(0xF0FFFFFF), const Color(0xE8FBF7F0)],
+          tint: [const Color(0xF8FFFFFF), const Color(0xF2FCFAF5)],
           edge: [const Color(0x8CB4462B), const Color(0x2E1C1A17), const Color(0x14B4462B), const Color(0x592A241D)],
           spec: const Color(0x8CFFFFFF),
           shadow: const Color(0xFF5A3A22),
