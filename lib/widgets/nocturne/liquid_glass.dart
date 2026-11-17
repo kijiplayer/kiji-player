@@ -427,33 +427,51 @@ class RenderLiquidGlass extends RenderProxyBox {
       _drawLayer(canvas, layer, global, offset, global, layerAlpha);
     }
 
-    // El tinte del estilo (y del acento).
+    // Refracción en los bordes: el fondo, un poco ampliado (como una lente), en un anillo fino.
+    // Se rellena el anillo directo (drawDRRect con la imagen como sombreador): sin recortes con
+    // caminos, que en Impeller cuestan.
+    final rim = (size.shortestSide * 0.16).clamp(6.0, 14.0);
+    final inner = rrect.deflate(rim);
+    if (layers.isNotEmpty) {
+      // La lente: lo que hay detrás del centro del vidrio, estirado hasta el borde.
+      const zoom = 1.09;
+      for (final layer in layers) {
+        final sx = layer.image.width / layer.rect.width;
+        final sy = layer.image.height / layer.rect.height;
+        // Píxel de la imagen → punto global → punto ampliado desde el centro del vidrio → lienzo.
+        final c = global.center;
+        final matrix = Matrix4.identity()
+          ..translateByDouble(offset.dx - global.left + c.dx * (1 - zoom), offset.dy - global.top + c.dy * (1 - zoom), 0, 1)
+          ..scaleByDouble(zoom, zoom, 1, 1)
+          ..translateByDouble(layer.rect.left, layer.rect.top, 0, 1)
+          ..scaleByDouble(1 / sx, 1 / sy, 1, 1);
+        canvas.drawDRRect(
+          rrect,
+          inner,
+          Paint()
+            ..shader = ImageShader(layer.image, TileMode.clamp, TileMode.clamp, matrix.storage, filterQuality: FilterQuality.medium)
+            ..color = Color.fromRGBO(0, 0, 0, layerAlpha * 0.9),
+        );
+      }
+    }
+    // El tinte del estilo (y del acento) y la profundidad (luz arriba, sombra abajo; al hundirse,
+    // más sombra), en una sola pasada.
+    final shade = Color.fromRGBO(0, 0, 0, (paper ? 0.04 : 0.12) + 0.1 * press);
     canvas.drawRect(
       rect,
-      Paint()..shader = ui.Gradient.linear(rect.topLeft, rect.bottomRight, look.tint),
+      Paint()
+        ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
+          Color.alphaBlend(Color.fromRGBO(255, 255, 255, paper ? 0.18 : 0.06), look.tint.first),
+          Color.lerp(look.tint.first, look.tint.last, 0.5)!,
+          Color.alphaBlend(shade, look.tint.last),
+        ], const [0, 0.42, 1]),
     );
     if (_fill case final fill?) canvas.drawRect(rect, Paint()..color = fill);
 
-    // Refracción en los bordes: el fondo, un poco ampliado (como una lente), en un anillo fino.
-    final rim = (size.shortestSide * 0.16).clamp(6.0, 14.0);
-    final ring = Path.combine(
-      PathOperation.difference,
-      Path()..addRRect(rrect),
-      Path()..addRRect(rrect.deflate(rim)),
-    );
-    canvas.save();
-    canvas.clipPath(ring);
-    if (layers.isNotEmpty) {
-      // La lente: lo que hay detrás del centro del vidrio, estirado hasta el borde.
-      final lens = Rect.fromCenter(center: global.center, width: global.width / 1.09, height: global.height / 1.09);
-      for (final layer in layers) {
-        _drawLayer(canvas, layer, lens, offset, global, layerAlpha * 0.9);
-      }
-      canvas.drawRect(rect, Paint()..shader = ui.Gradient.linear(rect.topLeft, rect.bottomRight, look.tint));
-    }
     // El borde grueso del vidrio junta luz: un velo del color del borde, más fuerte arriba.
-    canvas.drawRect(
-      rect,
+    canvas.drawDRRect(
+      rrect,
+      inner,
       Paint()
         ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
           look.edge.first.withValues(alpha: look.edge.first.a * (paper ? 0.18 : 0.12)),
@@ -461,41 +479,33 @@ class RenderLiquidGlass extends RenderProxyBox {
           look.edge.last.withValues(alpha: look.edge.last.a * 0.16),
         ], const [0, 0.5, 1]),
     );
-    canvas.restore();
 
-    // Profundidad: luz arriba y sombra abajo (al hundirse, más sombra).
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
-          Color.fromRGBO(255, 255, 255, paper ? 0.18 : 0.06),
-          const Color.fromRGBO(255, 255, 255, 0),
-          Color.fromRGBO(0, 0, 0, (paper ? 0.04 : 0.12) + 0.1 * press),
-        ], const [0, 0.42, 1]),
-    );
-
-    // Brillo especular: un punto de luz suave que sigue el deslizamiento.
+    // Brillo especular: un punto de luz suave que sigue el deslizamiento (solo en su zona).
     final spot = Offset(rect.left + rect.width * (0.18 + 0.64 * (1 - t)), rect.top + rect.height * 0.12);
+    final spotRadius = math.max(rect.width, rect.height) * 0.55;
     canvas.drawRect(
-      rect,
+      Rect.fromCircle(center: spot, radius: spotRadius).intersect(rect),
       Paint()
-        ..shader = ui.Gradient.radial(spot, math.max(rect.width, rect.height) * 0.55, [
+        ..shader = ui.Gradient.radial(spot, spotRadius, [
           look.spec.withValues(alpha: look.spec.a * (1 - 0.5 * press)),
           look.spec.withValues(alpha: 0),
         ]),
     );
-    // Y una franja diagonal que cruza el vidrio al deslizar.
+    // Y una franja diagonal que cruza el vidrio al deslizar (solo donde está).
     final band = rect.width * 0.7;
     final startX = rect.left - band + (rect.width + band) * (1 - t);
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = ui.Gradient.linear(Offset(startX, rect.top), Offset(startX + band, rect.top + band * 0.55), [
-          look.spec.withValues(alpha: 0),
-          look.spec.withValues(alpha: look.spec.a * 0.55),
-          look.spec.withValues(alpha: 0),
-        ], const [0, 0.5, 1]),
-    );
+    final bandRect = Rect.fromLTRB(startX - band * 0.6, rect.top, startX + band * 1.6, rect.bottom).intersect(rect);
+    if (!bandRect.isEmpty && bandRect.width > 0) {
+      canvas.drawRect(
+        bandRect,
+        Paint()
+          ..shader = ui.Gradient.linear(Offset(startX, rect.top), Offset(startX + band, rect.top + band * 0.55), [
+            look.spec.withValues(alpha: 0),
+            look.spec.withValues(alpha: look.spec.a * 0.55),
+            look.spec.withValues(alpha: 0),
+          ], const [0, 0.5, 1]),
+      );
+    }
     canvas.restore();
 
     // Borde de luz: el ángulo de la luz gira con la posición en la pantalla (al deslizar cambia).
