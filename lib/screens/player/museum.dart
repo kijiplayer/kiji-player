@@ -74,7 +74,10 @@ Future<ui.Image?> museumImageFor(String id, ImageProvider provider) async {
   final completer = Completer<ui.Image>();
   ui.decodeImageFromPixels(pixels, side.toInt(), side.toInt(), ui.PixelFormat.rgba8888, completer.complete);
   final image = await completer.future;
-  if (_museumImages.length >= 6) _museumImages.remove(_museumImages.keys.first)?.dispose();
+  // Sale de la caché sin liberarla a mano: el fundido entre portadas puede estar dibujándola todavía
+  // (0.8.3: con 12 canciones en 10 s se liberaba una que seguía en pantalla). Cuando ya nadie la
+  // usa, la libera el recolector de memoria.
+  if (_museumImages.length >= 6) _museumImages.remove(_museumImages.keys.first);
   return _museumImages[id] = image;
 }
 
@@ -117,6 +120,10 @@ class _MuseumBackdropState extends ConsumerState<MuseumBackdrop> with SingleTick
     onStateChange: (_) => mounted ? setState(() {}) : null,
   );
   ui.Image? _image;
+
+  /// Cambia con cada portada nueva: la clave del fundido (nunca la imagen misma: una clave que
+  /// guarda un ui.Image falla al imprimirse si la imagen ya se liberó).
+  int _imageVersion = 0;
   String? _imageFor;
   bool _reduce = false;
 
@@ -145,7 +152,12 @@ class _MuseumBackdropState extends ConsumerState<MuseumBackdrop> with SingleTick
       return;
     }
     museumImageFor(id, provider).then((image) {
-      if (mounted && widget.track.id == id) setState(() => _image = image);
+      if (mounted && widget.track.id == id) {
+        setState(() {
+          _image = image;
+          _imageVersion++;
+        });
+      }
     });
   }
 
@@ -180,7 +192,7 @@ class _MuseumBackdropState extends ConsumerState<MuseumBackdrop> with SingleTick
           child: image == null
               ? const SizedBox.expand()
               : AnimatedBuilder(
-                  key: ValueKey(image),
+                  key: ValueKey(_imageVersion),
                   animation: _drift,
                   // Solo cambia la transformación de una capa ya dibujada: no se redibuja nada.
                   builder: (context, child) {
