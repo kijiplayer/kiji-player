@@ -89,4 +89,25 @@ void main() {
     await r.search(_request);
     expect(broken.calls, 2, reason: 'pasada la pausa se vuelve a probar');
   });
+
+  test('La pausa se guarda (no se pierde al reabrir Kiji) y crece si la fuente sigue fallando', () async {
+    var now = DateTime(2026, 11, 17, 12);
+    final broken = _Fake(LyricsSource.paxsenix, fails: true);
+    await repo([_Fake(LyricsSource.lrclib, lyrics: _byLine), broken], clock: () => now).search(_request);
+    expect(broken.calls, 1);
+    // "Se reabre Kiji": otro repositorio, misma carpeta. Sigue en pausa.
+    final again = repo([_Fake(LyricsSource.lrclib, lyrics: _byLine), broken], clock: () => now);
+    await again.search(_request);
+    expect(broken.calls, 1, reason: 'la pausa quedó guardada');
+    // Pasada la primera pausa (30 min) vuelve a fallar: ahora la pausa es de 1 h.
+    now = now.add(const Duration(minutes: 31));
+    await again.search(_request);
+    expect(broken.calls, 2);
+    now = now.add(const Duration(minutes: 45));
+    await again.search(_request);
+    expect(broken.calls, 2, reason: 'la segunda pausa es más larga');
+    now = now.add(const Duration(minutes: 20));
+    await again.search(_request);
+    expect(broken.calls, 3);
+  });
 }

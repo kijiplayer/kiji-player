@@ -2,6 +2,7 @@
 // Archivo de referencia: lyrics/LyricsHelper.kt (primero la caché, después las fuentes, y si
 // una falla se prueba la siguiente).
 
+import '../../../utils/source_pauses.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -70,14 +71,15 @@ class LyricsRepository {
   };
   static const wordWait = Duration(seconds: 2);
 
-  /// Una fuente que no respondió (403, caída, sin red) se saltea este tiempo, sin avisos.
-  static const failureCooldown = Duration(minutes: 30);
-  final _cooldownUntil = <LyricsSource, DateTime>{};
+  /// Una fuente que rechaza (403, 429, 5xx) se saltea este tiempo, sin avisos. Si sigue fallando,
+  /// la pausa crece (hasta 24 h) y se guarda en el dispositivo: no se vuelve a probar cada vez que
+  /// se abre Kiji (0.8.3; PaxSenix daba 403 siempre).
+  static const failureCooldown = SourcePauses.base;
+  late final SourcePauses _pauses = SourcePauses(directory: _baseDirectory, clock: _clock);
 
-  bool _coolingDown(LyricsSource source) {
-    final until = _cooldownUntil[source];
-    return until != null && _clock().isBefore(until);
-  }
+  static String _pauseId(LyricsSource source) => 'letras:${source.name}';
+
+  bool _coolingDown(LyricsSource source) => _pauses.paused(_pauseId(source));
 
   /// La letra guardada con la canción descargada (sin internet), si la hay.
   final Future<Lyrics?> Function(LyricsRequest request)? offline;
@@ -200,6 +202,7 @@ class LyricsRepository {
     // sirve, se muestra esta sin sincronizar (nunca con un aviso técnico).
     Lyrics? mismatched;
     final duration = Duration(milliseconds: request.durationMs);
+    await _pauses.ensureLoaded();
     final ordered = <LyricsFetcher>[];
     for (final f in _ordered(order)) {
       if (disabled.contains(f.source)) continue;
@@ -216,11 +219,13 @@ class LyricsRepository {
     final asked = <LyricsSource, Future<Lyrics?>>{};
     Future<Lyrics?> ask(LyricsFetcher f) => asked.putIfAbsent(f.source, () async {
       try {
-        return await f.fetch(request);
+        final lyrics = await f.fetch(request);
+        unawaited(_pauses.success(_pauseId(f.source)));
+        return lyrics;
       } on LyricsUnavailableException catch (error) {
         if (error.refused) {
-          _cooldownUntil[f.source] = _clock().add(failureCooldown);
-          debugPrint('=== LETRAS: ${f.source.label} en pausa ${failureCooldown.inMinutes} min ===');
+          final pause = await _pauses.refuse(_pauseId(f.source));
+          debugPrint('=== LETRAS: ${f.source.label} en pausa ${pause.inMinutes} min ===');
         }
         rethrow;
       }
