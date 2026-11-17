@@ -349,7 +349,7 @@ class RenderLiquidGlass extends RenderProxyBox {
       case KijiStyle.nocturne:
         // El vidrio toma el acento: violeta → cian de fábrica, o el que se haya elegido.
         return (
-          tint: [_palette.violet.withValues(alpha: 0.17), _palette.cyan.withValues(alpha: 0.09)],
+          tint: [_palette.violet.withValues(alpha: 0.11), _palette.cyan.withValues(alpha: 0.07)],
           edge: [
             const Color(0xCCFFFFFF),
             _palette.violet.withValues(alpha: 0.55),
@@ -363,7 +363,8 @@ class RenderLiquidGlass extends RenderProxyBox {
       case KijiStyle.graphite:
         // Vidrio ahumado de museo: frío, sin color, con un filo blanco nítido.
         return (
-          tint: [const Color(0x70101012), const Color(0x52000000)],
+          // Vidrio esmerilado: un velo blanco frío apenas (antes, un 44 % de negro: panel oscuro).
+          tint: [const Color(0x1FF2F4F8), const Color(0x0FDDE2EA)],
           edge: [const Color(0xE6FFFFFF), const Color(0x24FFFFFF), const Color(0x0FFFFFFF), const Color(0x52FFFFFF)],
           spec: const Color(0x1FFFFFFF),
           shadow: const Color(0xFF000000),
@@ -372,7 +373,7 @@ class RenderLiquidGlass extends RenderProxyBox {
       case KijiStyle.paper:
         // Papel translúcido cálido, con el borde de tinta y terracota.
         return (
-          tint: [const Color(0xD9FFFFFF), const Color(0xC7F7EFE3)],
+          tint: [const Color(0xF0FFFFFF), const Color(0xE8FBF7F0)],
           edge: [const Color(0x8CB4462B), const Color(0x2E1C1A17), const Color(0x14B4462B), const Color(0x592A241D)],
           spec: const Color(0x8CFFFFFF),
           shadow: const Color(0xFF5A3A22),
@@ -422,7 +423,7 @@ class RenderLiquidGlass extends RenderProxyBox {
     }
     // Lo de detrás, ya desenfocado (sin desenfocar nada en este cuadro).
     final layers = _backdrop?.layers ?? const <GlassLayer>[];
-    final layerAlpha = floating ? 0.55 : 1.0;
+    const layerAlpha = 1.0;
     for (final layer in layers) {
       _drawLayer(canvas, layer, global, offset, global, layerAlpha);
     }
@@ -450,13 +451,13 @@ class RenderLiquidGlass extends RenderProxyBox {
           inner,
           Paint()
             ..shader = ImageShader(layer.image, TileMode.clamp, TileMode.clamp, matrix.storage, filterQuality: FilterQuality.medium)
-            ..color = Color.fromRGBO(0, 0, 0, layerAlpha * 0.9),
+            ..color = const Color.fromRGBO(0, 0, 0, layerAlpha * 0.9),
         );
       }
     }
     // El tinte del estilo (y del acento) y la profundidad (luz arriba, sombra abajo; al hundirse,
     // más sombra), en una sola pasada.
-    final shade = Color.fromRGBO(0, 0, 0, (paper ? 0.04 : 0.12) + 0.1 * press);
+    final shade = Color.fromRGBO(0, 0, 0, (paper ? 0.03 : 0.05) + 0.1 * press);
     canvas.drawRect(
       rect,
       Paint()
@@ -467,18 +468,6 @@ class RenderLiquidGlass extends RenderProxyBox {
         ], const [0, 0.42, 1]),
     );
     if (_fill case final fill?) canvas.drawRect(rect, Paint()..color = fill);
-
-    // El borde grueso del vidrio junta luz: un velo del color del borde, más fuerte arriba.
-    canvas.drawDRRect(
-      rrect,
-      inner,
-      Paint()
-        ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
-          look.edge.first.withValues(alpha: look.edge.first.a * (paper ? 0.18 : 0.12)),
-          look.edge[1].withValues(alpha: look.edge[1].a * 0.08),
-          look.edge.last.withValues(alpha: look.edge.last.a * 0.16),
-        ], const [0, 0.5, 1]),
-    );
 
     // Brillo especular: un punto de luz suave que sigue el deslizamiento (solo en su zona).
     final spot = Offset(rect.left + rect.width * (0.18 + 0.64 * (1 - t)), rect.top + rect.height * 0.12);
