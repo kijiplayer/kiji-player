@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generado por tool/make_style_icons.py (no editar a mano). -->
+<resources>
+    <color name="ic_kiji_bg_nocturne">#0B0B14</color>
+    <color name="ic_kiji_bg_aurora">#0B0B14</color>
+    <color name="ic_kiji_bg_ember">#0B0B14</color>
+    <color name="ic_kiji_bg_mint">#0B0B14</color>
+    <color name="ic_kiji_bg_ocean">#0B0B14</color>
+    <color name="ic_kiji_bg_graphite">#0F0F10</color>
+    <color name="ic_kiji_bg_paper">#F3F1EC</color>
+    <item name="ic_launcher_nocturne" type="mipmap">@mipmap/ic_launcher</item>
+    <item name="ic_launcher_aurora" type="mipmap">@mipmap/ic_launcher</item>
+    <item name="ic_launcher_ember" type="mipmap">@mipmap/ic_launcher</item>
+    <item name="ic_launcher_mint" type="mipmap">@mipmap/ic_launcher</item>
+    <item name="ic_launcher_ocean" type="mipmap">@mipmap/ic_launcher</item>
+    <item name="ic_launcher_graphite" type="mipmap">@mipmap/ic_launcher</item>
+    <item name="ic_launcher_paper" type="mipmap">@mipmap/ic_launcher</item>
+</resources>

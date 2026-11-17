@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "app_icon.h"
 #include "media_controls.h"
 #include "win32_window.h"
 
@@ -39,6 +40,9 @@ class FlutterWindow : public Win32Window {
 
   // Controles multimedia de Windows (SMTC).
   std::unique_ptr<MediaControls> media_controls_;
+
+  // Ícono de la ventana a juego con el estilo (canal `kiji/icon`).
+  std::unique_ptr<AppIcon> app_icon_;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_

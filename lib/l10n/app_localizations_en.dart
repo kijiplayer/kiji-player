@@ -5080,4 +5080,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ecualizadorNoDisponibleAhora =>
       'The equalizer isn\'t available right now. Music plays the same, without it; try again in a while.';
+
+  @override
+  String get iconoAJuegoConElEstilo => 'Icon to match your style';
+
+  @override
+  String get iconoAJuegoConElEstiloNota =>
+      'Kiji\'s icon takes the colors of your style and accent.';
+
+  @override
+  String get iconoAvisoTitulo => 'Change Kiji\'s icon?';
+
+  @override
+  String get iconoAviso =>
+      'On some phones the app closes for a moment and the home screen shortcut may need to be added again. The change happens when you leave Kiji, never in the middle of a song.';
+
+  @override
+  String get iconoActivar => 'Change the icon';
 }

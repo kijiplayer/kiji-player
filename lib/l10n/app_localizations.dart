@@ -8230,6 +8230,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El ecualizador no está disponible ahora. La música suena igual, sin él; vuelve a intentarlo en un rato.'**
   String get ecualizadorNoDisponibleAhora;
+
+  /// Configuración → Apariencia: el ícono de la app con los colores del estilo
+  ///
+  /// In es, this message translates to:
+  /// **'Ícono a juego con el estilo'**
+  String get iconoAJuegoConElEstilo;
+
+  /// Subtítulo del ajuste del ícono
+  ///
+  /// In es, this message translates to:
+  /// **'El ícono de Kiji toma los colores de tu estilo y de tu acento.'**
+  String get iconoAJuegoConElEstiloNota;
+
+  /// Aviso antes de activar el ícono a juego (Android)
+  ///
+  /// In es, this message translates to:
+  /// **'¿Cambiar el ícono de Kiji?'**
+  String get iconoAvisoTitulo;
+
+  /// Aviso honesto antes de activar el ícono a juego (Android)
+  ///
+  /// In es, this message translates to:
+  /// **'En algunos teléfonos la app se cierra un momento y el acceso directo de la pantalla de inicio puede tener que volver a ponerse. El cambio se hace al salir de Kiji, nunca en medio de la música.'**
+  String get iconoAviso;
+
+  /// Botón del aviso del ícono
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar el ícono'**
+  String get iconoActivar;
 }
 
 class _AppLocalizationsDelegate

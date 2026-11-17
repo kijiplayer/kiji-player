@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'features/app_icon/presentation/app_icon_sync.dart';
 import 'features/backup/data/backup_notifier.dart';
 import 'features/playback_extras/data/battery_optimization.dart';
 import 'features/customize/data/track_overrides.dart';
@@ -292,6 +293,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     ref.watch(backupProvider);
     // Widgets de Android (canción, controles y colores del estilo).
     ref.watch(homeWidgetsProvider);
+    // El ícono de la app a juego con el estilo (si se eligió; 0.8.3).
+    ref.watch(appIconSyncProvider);
     return MaterialApp(
       title: 'Kiji Player', // l10n-ignore
       debugShowCheckedModeBanner: false,

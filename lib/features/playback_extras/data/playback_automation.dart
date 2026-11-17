@@ -13,7 +13,7 @@ import '../domain/playback_rules.dart';
 import '../../../utils/shared_events.dart';
 
 /// Volumen de la música del sistema (0 a 1), detrás de una interfaz
-///: en Android sale de `MainActivity` por el canal
+///: en Android sale de `KijiActivity` por el canal
 /// `kiji/volume`; en PC no hay (el silencio de Windows no pausa).
 abstract class SystemVolumeMonitor {
   Stream<double> get volume;

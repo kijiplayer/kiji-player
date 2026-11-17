@@ -34,6 +34,7 @@ class AppSettings {
     this.crossfadeSeconds = 0,
     this.dataSaver = false,
     this.downloadLyrics = true,
+    this.matchIconToStyle = false,
     this.autoBackup = true,
     this.backupFolder,
     this.excludedFolders,
@@ -202,6 +203,9 @@ class AppSettings {
   /// Al descargar una canción, bajar también su letra (con las fuentes que estén prendidas).
   final bool downloadLyrics;
 
+  /// El ícono de la app con los colores del estilo (y del acento). Apagado de fábrica.
+  final bool matchIconToStyle;
+
   /// Copia de seguridad: una copia por día, automática.
   final bool autoBackup;
 
@@ -336,6 +340,7 @@ class AppSettings {
     int? crossfadeSeconds,
     bool? dataSaver,
     bool? downloadLyrics,
+    bool? matchIconToStyle,
     bool? autoBackup,
     String? backupFolder,
     bool defaultBackupFolder = false,
@@ -401,6 +406,7 @@ class AppSettings {
         crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
         dataSaver: dataSaver ?? this.dataSaver,
         downloadLyrics: downloadLyrics ?? this.downloadLyrics,
+        matchIconToStyle: matchIconToStyle ?? this.matchIconToStyle,
         autoBackup: autoBackup ?? this.autoBackup,
         backupFolder: defaultBackupFolder ? null : (backupFolder ?? this.backupFolder),
         excludedFolders: defaultExcludedFolders ? null : (excludedFolders ?? this.excludedFolders),
@@ -465,6 +471,7 @@ class AppSettings {
         'crossfadeSeconds': crossfadeSeconds,
         'dataSaver': dataSaver,
         'downloadLyrics': downloadLyrics,
+        'matchIconToStyle': matchIconToStyle,
         'autoBackup': autoBackup,
         if (backupFolder != null) 'backupFolder': backupFolder,
         'excludedFolders': ?excludedFolders,
@@ -535,6 +542,7 @@ class AppSettings {
       crossfadeSeconds: crossfade >= 0 && crossfade <= maxCrossfadeSeconds ? crossfade : d.crossfadeSeconds,
       dataSaver: read('dataSaver', d.dataSaver),
       downloadLyrics: read('downloadLyrics', d.downloadLyrics),
+      matchIconToStyle: read('matchIconToStyle', d.matchIconToStyle),
       autoBackup: read('autoBackup', d.autoBackup),
       backupFolder: json['backupFolder'] is String && (json['backupFolder'] as String).isNotEmpty
           ? json['backupFolder'] as String

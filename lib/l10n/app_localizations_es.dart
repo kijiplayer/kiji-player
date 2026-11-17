@@ -5091,4 +5091,21 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get ecualizadorNoDisponibleAhora =>
       'El ecualizador no está disponible ahora. La música suena igual, sin él; vuelve a intentarlo en un rato.';
+
+  @override
+  String get iconoAJuegoConElEstilo => 'Ícono a juego con el estilo';
+
+  @override
+  String get iconoAJuegoConElEstiloNota =>
+      'El ícono de Kiji toma los colores de tu estilo y de tu acento.';
+
+  @override
+  String get iconoAvisoTitulo => '¿Cambiar el ícono de Kiji?';
+
+  @override
+  String get iconoAviso =>
+      'En algunos teléfonos la app se cierra un momento y el acceso directo de la pantalla de inicio puede tener que volver a ponerse. El cambio se hace al salir de Kiji, nunca en medio de la música.';
+
+  @override
+  String get iconoActivar => 'Cambiar el ícono';
 }

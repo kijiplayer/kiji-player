@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app_icon/data/app_icon_channel.dart';
 import '../../../features/history/listening_history.dart';
 import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
@@ -640,6 +641,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             subtitle: Text(styleName(style)),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => PersonalizeScreen.open(context, ref),
+          );
+        },
+      ),
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.iconoAJuegoConElEstilo,
+        subtitle: tx.iconoAJuegoConElEstiloNota,
+        keywords: const ['ícono', 'icono', 'icon', 'logo', 'lanzador', 'launcher', 'color'], // l10n-ignore
+        builder: (context, ref) {
+          final changer = ref.watch(appIconChangerProvider);
+          if (!changer.supported) return const SizedBox.shrink();
+          return SwitchListTile(
+            key: const Key('settings-match-icon'),
+            secondary: const Icon(Icons.app_shortcut_outlined),
+            title: Text(tx.iconoAJuegoConElEstilo),
+            subtitle: Text(tx.iconoAJuegoConElEstiloNota),
+            value: ref.watch(settingsProvider.select((s) => s.matchIconToStyle)),
+            onChanged: (on) async {
+              // Android: un aviso honesto antes de prenderlo (el lanzador puede cerrar la app un
+              // momento y el acceso directo puede tener que volver a ponerse).
+              if (on && changer.appliesOnExit) {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (dialog) => AlertDialog(
+                    title: Text(tx.iconoAvisoTitulo),
+                    content: Text(tx.iconoAviso),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(dialog, false), child: Text(tx.cancelar)),
+                      FilledButton(onPressed: () => Navigator.pop(dialog, true), child: Text(tx.iconoActivar)),
+                    ],
+                  ),
+                );
+                if (ok != true) return;
+              }
+              await ref.read(settingsProvider.notifier).update((s) => s.copyWith(matchIconToStyle: on));
+            },
           );
         },
       ),

@@ -105,6 +105,8 @@ flutter:
     - assets/sounds/curtain.wav
     # Ícono de la bandeja del sistema (PC).
     - assets/tray/
+    # Ícono de la ventana a juego con el estilo (Windows; tool/make_style_icons.py).
+    - assets/icons/windows/
     # "Novedades de esta versión": las mismas notas de la tienda de apps (una por compilación).
     - fastlane/metadata/android/es-ES/changelogs/
     - fastlane/metadata/android/en-US/changelogs/
