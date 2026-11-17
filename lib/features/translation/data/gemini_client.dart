@@ -9,9 +9,13 @@ import 'package:kiji_player/l10n/l10n.dart';
 
 /// Un error de Gemini en palabras simples (para el usuario).
 class GeminiException implements Exception {
-  const GeminiException(this.message, {this.offline = false});
+  const GeminiException(this.message, {this.offline = false, this.pause});
   final String message;
   final bool offline;
+
+  /// Gemini rechazó (límite, clave, modelo o servidor): cuánto esperar antes de volver a intentar
+  /// (la primera vez; si sigue, crece). null: no hace falta pausa (sin internet, respuesta rara).
+  final Duration? pause;
   @override
   String toString() => message;
 }
@@ -87,12 +91,16 @@ class GeminiClient {
       if (error.type == DioExceptionType.connectionError || error.type == DioExceptionType.connectionTimeout) {
         return GeminiException(tx.sinConexionAInternet, offline: true);
       }
-      if (status == 429) return GeminiException(tx.llegasteAlLimiteGratuitoDeGemini);
-      if (status == 400 && body.contains('API_KEY')) return GeminiException(tx.laClaveNoEsValidaRevisala);
-      if (status == 401 || status == 403) {
-        return GeminiException(tx.googleRechazoLaClaveOEl);
+      if (status == 429) return GeminiException(tx.llegasteAlLimiteGratuitoDeGemini, pause: const Duration(hours: 1));
+      // La clave no se arregla sola: hasta que se cambie (o 24 h).
+      if (status == 400 && body.contains('API_KEY')) {
+        return GeminiException(tx.laClaveNoEsValidaRevisala, pause: const Duration(hours: 24));
       }
-      return GeminiException(tx.geminiNoRespondioHttp(status ?? '?'));
+      if (status == 401 || status == 403) {
+        return GeminiException(tx.googleRechazoLaClaveOEl, pause: const Duration(hours: 24));
+      }
+      // Modelo que ya no existe (404) o servidor caído (5xx).
+      return GeminiException(tx.geminiNoRespondioHttp(status ?? '?'), pause: const Duration(minutes: 30));
     }
     return GeminiException(tx.geminiRespondioAlgoQueKijiNo);
   }
@@ -144,7 +152,9 @@ class GeminiClient {
     } on GeminiException {
       rethrow;
     } catch (error) {
-      debugPrint('=== GEMINI: no se pudo traducir (${error.runtimeType}) ===');
+      // El tipo y el código HTTP (nunca la clave ni el texto de la canción).
+      final detail = error is DioException ? ' ${error.type.name} ${error.response?.statusCode ?? ''}' : '';
+      debugPrint('=== GEMINI: no se pudo traducir (${error.runtimeType}$detail) ===');
       throw _explain(error);
     }
   }

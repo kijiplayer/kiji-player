@@ -5119,4 +5119,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fondoVistaPreviaArtista => 'An artist';
+
+  @override
+  String get geminiEnPausa =>
+      'Gemini isn\'t responding right now. You can translate on your phone in the meantime.';
 }

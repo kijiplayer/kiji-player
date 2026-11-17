@@ -8302,6 +8302,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Un artista'**
   String get fondoVistaPreviaArtista;
+
+  /// Traducción: Gemini en pausa tras un rechazo; se ofrece traducir en el teléfono
+  ///
+  /// In es, this message translates to:
+  /// **'Gemini no está respondiendo ahora. Puedes traducir en el teléfono mientras tanto.'**
+  String get geminiEnPausa;
 }
 
 class _AppLocalizationsDelegate

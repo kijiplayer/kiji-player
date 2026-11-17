@@ -1384,5 +1384,6 @@
   "fondoVistaPreviaTarjetaNota": "This is how cards look",
   "fondoVistaPreviaTexto": "Text is always readable: Kiji adjusts the layer on top to your photo.",
   "fondoVistaPreviaCancion": "A song",
-  "fondoVistaPreviaArtista": "An artist"
+  "fondoVistaPreviaArtista": "An artist",
+  "geminiEnPausa": "Gemini isn't responding right now. You can translate on your phone in the meantime."
 }

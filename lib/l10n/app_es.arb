@@ -3015,5 +3015,7 @@
   "fondoVistaPreviaCancion": "Una canción",
   "@fondoVistaPreviaCancion": {"description": "Vista previa del fondo: título de ejemplo en el mini-reproductor"},
   "fondoVistaPreviaArtista": "Un artista",
-  "@fondoVistaPreviaArtista": {"description": "Vista previa del fondo: artista de ejemplo en el mini-reproductor"}
+  "@fondoVistaPreviaArtista": {"description": "Vista previa del fondo: artista de ejemplo en el mini-reproductor"},
+  "geminiEnPausa": "Gemini no está respondiendo ahora. Puedes traducir en el teléfono mientras tanto.",
+  "@geminiEnPausa": {"description": "Traducción: Gemini en pausa tras un rechazo; se ofrece traducir en el teléfono"}
 }
