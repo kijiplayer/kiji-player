@@ -19,14 +19,20 @@ Future<T?> showKijiSheet<T>({
   BoxConstraints? constraints,
   bool useSafeArea = false,
 }) {
-  // Grafito: la hoja sube con un resorte.
-  final spring = KijiLook.museum
+  // La hoja sube con un rebote líquido (Grafito: su resorte); con "reducir animaciones", sin rebote.
+  final spring = KijiEffects.still(context)
+      ? null
+      : KijiLook.museum
       ? const AnimationStyle(
           curve: KijiMotion.spring,
           duration: Duration(milliseconds: 520),
           reverseDuration: Duration(milliseconds: 280),
         )
-      : null;
+      : const AnimationStyle(
+          curve: Curves.easeOutBack,
+          duration: Duration(milliseconds: 460),
+          reverseDuration: Duration(milliseconds: 240),
+        );
   // Controlador propio: así el arrastre sobre la lista mueve la hoja igual que la barrita.
   final controller = BottomSheet.createAnimationController(Navigator.of(context), sheetAnimationStyle: spring);
   // Nocturne y Grafito: la hoja es de vidrio líquido (la dibuja [FrostedSheet], con su barrita).
