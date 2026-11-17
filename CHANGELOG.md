@@ -3,15 +3,24 @@
 ## 0.8.3 — sin publicar
 
 **Vidrio líquido**
-- Las tarjetas, la barra, el mini-reproductor y las hojas son de "vidrio líquido": un borde de luz
-  fino, un reflejo suave que se mueve al deslizar y más profundidad. En Nocturne y Grafito; Papel
-  sigue de papel. Respeta "Reducir animaciones".
+- Las tarjetas, la barra, el mini-reproductor y las hojas son de "vidrio líquido", con el tono de
+  cada estilo: Nocturne toma tu acento, Grafito es vidrio ahumado y Papel, papel translúcido cálido.
+  Un borde de luz que cambia al deslizar, el fondo un poco ampliado en los bordes (como una lente),
+  un brillo que sigue el deslizamiento, y se hunden al tocarlos. Las hojas suben con un rebote.
+  Respeta "Reducir animaciones".
 - Y pesa menos: ya no se desenfoca nada en cada cuadro (el fondo se prepara una vez). A 120 Hz,
   Inicio y Búsqueda bajan de unos 9,5 ms a unos 2,5 ms por cuadro.
+
+**Vista previa del fondo**
+- Al elegir una imagen, un GIF o un video de fondo, una vista previa de Kiji con ese fondo (una
+  tarjeta, texto y el mini-reproductor) que cambia al momento con el desenfoque y la opacidad.
 
 **Ícono a juego con el estilo** (opcional, apagado de fábrica)
 - El ícono de Kiji puede tomar los colores de tu estilo y de tu acento. En Android el cambio se
   hace al salir de Kiji, nunca en medio de la música; en Windows, al momento.
+
+**Arreglos**
+- El menú ⋯ del reproductor y la hoja del fondo ya no se desbordan con el teléfono en horizontal.
 
 **Una disculpa**
 - Perdón por el error de la 0.8.1 que a veces dejaba a Kiji sin sonar hasta reiniciarla: quedó
