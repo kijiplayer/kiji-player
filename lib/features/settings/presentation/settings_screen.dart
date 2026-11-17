@@ -743,7 +743,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               context: context,
               isScrollControlled: true,
               showDragHandle: true,
-              builder: (_) => Padding(
+              // Con la vista previa la hoja es alta: se desplaza (en horizontal, o en teléfonos chicos).
+              builder: (_) => SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
