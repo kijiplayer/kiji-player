@@ -1,6 +1,6 @@
 # Novedades de Kiji Player
 
-## 0.8.3 — sin publicar
+## 0.8.3 — 17 de noviembre de 2026
 
 **Vidrio líquido**
 - Las tarjetas, la barra, el mini-reproductor y las hojas son de "vidrio líquido", con el tono de
