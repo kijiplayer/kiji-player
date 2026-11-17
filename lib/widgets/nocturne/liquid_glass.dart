@@ -318,7 +318,7 @@ class RenderLiquidGlass extends RenderProxyBox {
     final global = localToGlobal(Offset.zero) & size;
     if (floating) {
       // Encima de contenido que se mueve: primero el fondo del estilo, casi opaco.
-      canvas.drawRect(rect, Paint()..color = _palette.background.withValues(alpha: museum ? 0.9 : 0.86));
+      canvas.drawRect(rect, Paint()..color = _palette.background.withValues(alpha: museum ? 0.95 : 0.93));
     }
     final layers = _backdrop?.layers ?? const <GlassLayer>[];
     for (final layer in layers) {
