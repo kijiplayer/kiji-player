@@ -1,4 +1,5 @@
-• Arreglado: a veces ninguna canción sonaba hasta reiniciar la app (por el ecualizador).
+• Arreglado: a veces ninguna canción sonaba hasta reiniciar la app.
 • Si el ecualizador no está disponible, la música suena igual y Sonido te lo avisa.
-• El fondo de video cambia bien al elegir otro.
-• Kiji ocupa menos recursos del teléfono con los sonidos del teatro.
+• La letra se guarda con todas tus descargas, también las que se habían quedado sin ella.
+• Tus playlists largas de YouTube Music se ven completas.
+• La ovación del teatro ya no satura y la Biblioteca con foto de fondo va más fluida.
