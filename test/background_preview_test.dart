@@ -54,6 +54,10 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('background-preview')), findsOneWidget);
+    // Con la proporción de la pantalla: se ve entera, sin recortes.
+    final preview = tester.getSize(find.byKey(const Key('background-preview')));
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    expect(preview.width / preview.height, closeTo(screen.width / screen.height, 0.01));
     // Sin desenfoque, nada que desenfocar; al mover el control, al momento.
     expect(find.descendant(of: find.byKey(const Key('background-preview')), matching: find.byType(ImageFiltered)), findsNothing);
     await container.read(settingsProvider.notifier).update((s) => s.copyWith(backgroundBlur: 12));

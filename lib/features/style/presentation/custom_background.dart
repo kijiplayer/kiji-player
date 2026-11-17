@@ -535,10 +535,11 @@ class BackgroundPreview extends StatelessWidget {
     final screen = MediaQuery.sizeOf(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth.clamp(0.0, 280.0);
-        final aspect = screen.width <= 0 ? 0.5 : screen.width / screen.height;
-        // En la PC (ventana ancha) la vista previa sale apaisada, como la ventana.
-        final height = (width / aspect).clamp(0.0, 520.0);
+        final aspect = screen.width <= 0 || screen.height <= 0 ? 0.5 : screen.width / screen.height;
+        // Con la proporción de la pantalla (en la PC, apaisada como la ventana): como mucho 280 de
+        // ancho y 420 de alto, así se ve entera (antes, al limitar el alto, se recortaba).
+        final width = [constraints.maxWidth, 280.0, 420.0 * aspect].reduce((a, b) => a < b ? a : b);
+        final height = width / aspect;
         return Center(
           child: Semantics(
             label: tx.fondoVistaPrevia,
