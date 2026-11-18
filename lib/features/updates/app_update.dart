@@ -389,7 +389,7 @@ Future<void> _downloadWorker((SendPort, String, String) args) async {
   try {
     final response = await (await client.getUrl(Uri.parse(url))).close();
     if (response.statusCode != HttpStatus.ok) {
-      port.send(['error', 'HTTP ${response.statusCode}']);
+      port.send(['error', 'HTTP ${response.statusCode}']); // l10n-ignore (solo para el registro)
       return;
     }
     final total = response.contentLength;
