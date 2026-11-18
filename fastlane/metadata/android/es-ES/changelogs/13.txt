@@ -1,2 +1,4 @@
-• Actualizar desde Kiji: con una versión nueva, toca "Actualizar" y Kiji la baja, comprueba que sea la oficial (suma y firma) y la instala. Nada se baja sin que toques el botón; con "solo Wi-Fi", pregunta antes de usar datos móviles.
-• Si algo falla, sigue el enlace a la página.
+• Actualizar desde Kiji: toca "Actualizar" y Kiji baja la versión nueva, comprueba que sea la oficial y la instala. Nada se baja sin tocar el botón.
+• Si tu sesión de YouTube vence, Kiji te avisa y te deja volver a iniciarla.
+• Arreglado: en Windows, las canciones descargadas no sonaban.
+• Arreglado: el inicio de sesión con YouTube se quedaba trabado.

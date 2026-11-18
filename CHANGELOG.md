@@ -13,6 +13,15 @@
   móviles. En Windows, Kiji se cierra, se actualiza y vuelve a abrirse, sin tocar tus datos.
 - Si algo falla, sigue estando "Descargar desde la página".
 
+**Tu cuenta de YouTube Music**
+- "Me gusta" muestra tus me gusta de verdad, y se suma "Agregadas a tu biblioteca".
+- Si tu sesión vence, Kiji te lo dice en Configuración y en la Biblioteca, con un botón para volver
+  a iniciarla (antes la lectura fallaba sin avisar). "Sincronizar ahora" dice qué leyó.
+
+**Arreglos**
+- Arreglado: en Windows, las canciones descargadas no sonaban.
+- Arreglado: el inicio de sesión con YouTube se quedaba trabado en la página de Google.
+
 ## 0.8.3 — 17 de noviembre de 2026
 
 **Vidrio líquido**
