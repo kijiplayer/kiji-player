@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -181,18 +182,9 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
       await dir.create(recursive: true);
       final sums = await _sums(release, cancel);
       final file = _file = File(p.join(dir.path, asset.name));
-      await _http.download(
-        asset.url,
-        file.path,
-        cancelToken: cancel,
-        onReceiveProgress: (received, total) {
-          if (cancel.isCancelled) return;
-          final size = total > 0 ? total : asset.size;
-          // Cada 0,5 % (y al final): llegan miles de pedacitos y redibujar por cada uno traba.
-          if (received < size && received - state.received < size / 200) return;
-          state = state.copyWith(received: received, total: size);
-        },
-      );
+      await _downloadInBackground(asset.url, file.path, cancel, (received, total) {
+        if (!cancel.isCancelled) state = state.copyWith(received: received, total: total > 0 ? total : asset.size);
+      });
       debugPrint('=== ACTUALIZAR: bajado (${file.lengthSync() ~/ (1024 * 1024)} MB); se comprueba ===');
       state = state.copyWith(phase: AppUpdatePhase.verifying);
       final expected = expectedSha256(asset, sums);
@@ -205,6 +197,14 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
         return;
       }
       await install();
+    } on _DownloadCancelled {
+      debugPrint('=== ACTUALIZAR: descarga cancelada ===');
+      await _deleteFile();
+      state = const AppUpdateState();
+    } on _DownloadFailed catch (error) {
+      debugPrint('=== ACTUALIZAR: no se pudo bajar (${error.detail}) ===');
+      await _deleteFile();
+      state = state.copyWith(phase: AppUpdatePhase.failed, failure: AppUpdateFailure.download);
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) {
         debugPrint('=== ACTUALIZAR: descarga cancelada ===');
@@ -221,6 +221,56 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
       state = state.copyWith(phase: AppUpdatePhase.failed, failure: AppUpdateFailure.download);
     } finally {
       if (identical(_cancel, cancel)) _cancel = null;
+    }
+  }
+
+  /// Baja [url] a [path] en otro isolate: escribir decenas de MB en el de la pantalla la trababa
+  /// (medido en el teléfono: cuadros de 11 ms de mediana mientras bajaba). Avisa el progreso cada
+  /// 0,5 %. Al cancelar, el isolate deja de bajar, cierra y borra el archivo, y recién ahí termina.
+  Future<void> _downloadInBackground(
+    String url,
+    String path,
+    CancelToken cancel,
+    void Function(int received, int total) onProgress,
+  ) async {
+    final port = ReceivePort();
+    final done = Completer<void>();
+    SendPort? control;
+    var cancelRequested = false;
+    final isolate = await Isolate.spawn(_downloadWorker, (port.sendPort, url, path));
+    port.listen((message) {
+      if (done.isCompleted || message is! List) return;
+      switch (message) {
+        case ['ready', final SendPort worker]:
+          control = worker;
+          if (cancelRequested) worker.send('cancel');
+        case ['progress', final int received, final int total]:
+          onProgress(received, total);
+        case ['done', final int received, final int total]:
+          onProgress(received, total);
+          done.complete();
+        case ['cancelled']:
+          done.completeError(_DownloadCancelled());
+        case ['error', final String detail]:
+          done.completeError(_DownloadFailed(detail));
+      }
+    });
+    unawaited(
+      cancel.whenCancel.then((_) {
+        cancelRequested = true;
+        control?.send('cancel');
+        // Por si el isolate no contesta (red colgada): a los 3 s se lo corta.
+        Future<void>.delayed(const Duration(seconds: 3), () {
+          if (done.isCompleted) return;
+          isolate.kill(priority: Isolate.immediate);
+          done.completeError(_DownloadCancelled());
+        });
+      }),
+    );
+    try {
+      await done.future;
+    } finally {
+      port.close();
     }
   }
 
@@ -315,3 +365,64 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
 }
 
 final appUpdateProvider = NotifierProvider<AppUpdateNotifier, AppUpdateState>(AppUpdateNotifier.new);
+
+class _DownloadCancelled implements Exception {}
+
+class _DownloadFailed implements Exception {
+  _DownloadFailed(this.detail);
+
+  /// Solo el tipo de error o el código HTTP (nada de la persona).
+  final String detail;
+}
+
+/// Lo que corre en el otro isolate: baja con HttpClient (sigue las redirecciones de GitHub) y
+/// escribe el archivo. Mensajes: ready (con su puerto para "cancel"), progress, done, cancelled o
+/// error.
+Future<void> _downloadWorker((SendPort, String, String) args) async {
+  final (port, url, path) = args;
+  final control = ReceivePort();
+  var cancelled = false;
+  control.listen((_) => cancelled = true);
+  port.send(['ready', control.sendPort]);
+  final client = HttpClient()..userAgent = 'KijiPlayer'; // l10n-ignore
+  final file = File(path);
+  try {
+    final response = await (await client.getUrl(Uri.parse(url))).close();
+    if (response.statusCode != HttpStatus.ok) {
+      port.send(['error', 'HTTP ${response.statusCode}']);
+      return;
+    }
+    final total = response.contentLength;
+    final step = total > 0 ? total ~/ 200 : 1 << 20;
+    final sink = file.openWrite();
+    var received = 0, reported = 0;
+    try {
+      await for (final chunk in response) {
+        if (cancelled) break;
+        sink.add(chunk);
+        received += chunk.length;
+        if (received - reported >= step) {
+          reported = received;
+          port.send(['progress', received, total]);
+        }
+      }
+    } finally {
+      await sink.close();
+    }
+    if (cancelled) {
+      if (file.existsSync()) file.deleteSync();
+      port.send(['cancelled']);
+      return;
+    }
+    if (total > 0 && received != total) {
+      port.send(['error', 'incompleto']);
+      return;
+    }
+    port.send(['done', received, total]);
+  } catch (error) {
+    port.send(['error', '${error.runtimeType}']);
+  } finally {
+    client.close(force: true);
+    control.close();
+  }
+}
