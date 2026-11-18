@@ -33,9 +33,10 @@ void main() {
   tearDown(() {
     YtSessionHolder.current = null;
     YtSessionHolder.rejected = false;
+    YtSessionHolder.streamRefused = false;
   });
 
-  test('si YouTube rechaza la sesión de la cuenta (401), se reintenta sin ella y no se vuelve a mandar', () async {
+  test('si YouTube rechaza la sesión para el audio (401), se reintenta sin ella y no se vuelve a mandar', () async {
     YtSessionHolder.current = const YtSession(cookie: 'SAPISID=inventada; OTRA=1');
     final youtube = _FakeYouTube();
     final client = YtMusicClient(playerDio: Dio()..httpClientAdapter = youtube);
@@ -51,7 +52,11 @@ void main() {
 
     await client.tryClient('videoInventado', web, visitorData: 'visitante');
     expect(youtube.requests, [true, false], reason: 'primero con la sesión (401) y enseguida sin ella');
-    expect(YtSessionHolder.rejected, isTrue);
+    expect(YtSessionHolder.streamRefused, isTrue);
+    // Un 401 del audio no quiere decir que la sesión venció: la lectura de la cuenta sigue (y no se
+    // avisa nada); eso lo decide la sincronización.
+    expect(YtSessionHolder.rejected, isFalse);
+    expect(YtSessionHolder.usable, isNotNull);
 
     await client.tryClient('otroVideo', web, visitorData: 'visitante');
     expect(youtube.requests.last, isFalse, reason: 'la sesión rechazada ya no se manda');

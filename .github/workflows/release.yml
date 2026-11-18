@@ -259,6 +259,12 @@ jobs:
             [ -f "dist/$name" ] || { echo "::error::Falta $name"; exit 1; }
           done
           ls -l dist
+      # Kiji (0.8.4+) compara cada descarga de "Actualizar" con estas sumas antes de instalar.
+      - name: Sumas SHA-256 (SHA256SUMS.txt)
+        run: |
+          cd dist
+          sha256sum -- * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
       - name: Notas en inglés y español (desde fastlane)
         run: |
           dart run tool/release_notes.dart dist notas.md

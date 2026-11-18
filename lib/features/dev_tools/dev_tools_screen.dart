@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,9 @@ import '../extractor/data/path_health.dart';
 import '../reports/data/error_reporter.dart';
 import '../settings/data/settings_store.dart';
 import '../stream_cache/data/stream_cache.dart';
+import '../updates/app_update.dart';
+import '../updates/update_checker.dart';
+import '../updates/updates_screen.dart';
 import '../welcome/presentation/welcome_screen.dart';
 import '../yt_music/presentation/extractor_health_screen.dart';
 
@@ -22,6 +26,21 @@ import '../yt_music/presentation/extractor_health_screen.dart';
 /// extractor, caché y descargas. Nada de esto sale del teléfono.
 class DevToolsScreen extends StatelessWidget {
   const DevToolsScreen({super.key});
+
+  /// "Actualizar" de punta a punta sin publicar nada: la PC sirve una release de prueba
+  /// (`latest.json`, el APK de Kiji Dev y SHA256SUMS.txt) y `adb reverse tcp:8787 tcp:8787`.
+  static Future<void> _testUpdate(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final response = await Dio().get<Object>('${UpdateSource.localTest.downloadPrefix}latest.json');
+      final release = Release.fromJson(response.data);
+      if (release == null || !context.mounted) return;
+      await showReleaseSheet(context, release, source: UpdateSource.localTest);
+    } catch (error) {
+      debugPrint('=== ACTUALIZAR: no hay release de prueba en 127.0.0.1:8787 (${error.runtimeType}) ===');
+      messenger.showSnackBar(const SnackBar(content: Text('No hay release de prueba en 127.0.0.1:8787')));
+    }
+  }
 
   static Future<void> open(BuildContext context) =>
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DevToolsScreen()));
@@ -38,6 +57,11 @@ class DevToolsScreen extends StatelessWidget {
               tooltip: 'Ver la bienvenida',
               icon: const Icon(Icons.waving_hand_outlined),
               onPressed: () => WelcomeScreen.open(context),
+            ),
+            IconButton(
+              tooltip: 'Probar la actualización (versión servida desde la PC)',
+              icon: const Icon(Icons.system_update_alt_rounded),
+              onPressed: () => _testUpdate(context),
             ),
             IconButton(
               tooltip: 'Probar el aviso de error',

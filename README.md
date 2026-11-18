@@ -1,4 +1,9 @@
 <p align="center">
+  <b>Kiji Player — free open-source music player for Android and Windows.</b><br>
+  <a href="https://kijiplayer.github.io/kiji-player/">Download it at kijiplayer.github.io/kiji-player</a>
+</p>
+
+<p align="center">
   <b>English</b> | <a href="README.es.md">Español</a>
 </p>
 

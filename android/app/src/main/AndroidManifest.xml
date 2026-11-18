@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- "Actualizar" desde Kiji: abrir el instalador del sistema con el APK oficial ya verificado. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Abre el pedido del sistema "quitar la optimización de batería" (solo si la persona acepta). -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- WorkManager (la prueba diaria del extractor) pide "al encender el teléfono" para reprogramar
@@ -200,6 +202,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- El APK de una actualización se le pasa al instalador del sistema (solo cache/updates). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_paths" />
+        </provider>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

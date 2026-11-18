@@ -1,0 +1,4 @@
+• Update from Kiji: tap "Update" and Kiji downloads the new version, checks it's the official one and installs it. Nothing is downloaded until you tap the button.
+• If your YouTube session expires, Kiji tells you and lets you sign in again.
+• Fixed: on Windows, downloaded songs didn't play.
+• Fixed: signing in to YouTube got stuck.

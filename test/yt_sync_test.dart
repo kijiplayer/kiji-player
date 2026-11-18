@@ -47,6 +47,12 @@ class _Reader implements YtAccountReader {
   final asked = <String>[];
   bool refuse = false;
 
+  /// Código con que se rechaza (401 o 403).
+  int refuseStatus = 401;
+
+  /// YouTube responde 200 pero como a alguien sin sesión.
+  bool loggedOut = false;
+
   /// La biblioteca trae además una playlist larga (en 3 páginas) y una que falla.
   bool more = false;
 
@@ -56,12 +62,24 @@ class _Reader implements YtAccountReader {
     if (refuse) {
       throw DioException(
         requestOptions: RequestOptions(),
-        response: Response(requestOptions: RequestOptions(), statusCode: 401),
+        response: Response(requestOptions: RequestOptions(), statusCode: refuseStatus),
       );
     }
+    if (loggedOut) {
+      return {
+        'responseContext': {
+          'mainAppWebResponseContext': {'loggedOut': true},
+        },
+      };
+    }
     return switch (browseId) {
-      'FEmusic_liked_videos' => {
+      // "Me gusta" (la playlist LM).
+      'VLLM' => {
         'contents': [_song('aaaaaaaaaaa', 'Glass Harbor', 'The Velvet Tides')],
+      },
+      // Las canciones agregadas a la biblioteca.
+      'FEmusic_liked_videos' => {
+        'contents': [_song('fffffffffff', 'Paper Lanterns', 'Mira Solenne'), _song('aaaaaaaaaaa', 'Glass Harbor', 'The Velvet Tides')],
       },
       'FEmusic_liked_playlists' => {
         'contents': [
@@ -180,9 +198,10 @@ void main() {
     expect(await c.read(ytSyncProvider.notifier).syncNow(), isTrue);
     final state = c.read(ytSyncProvider);
     expect(state.liked.single.title, 'Glass Harbor');
-    expect(state.playlists.single.name, 'Lista Inventada');
+    expect(state.recent.map((t) => t.title), ['Paper Lanterns', 'Glass Harbor']);
+    expect(state.playlists.single.name, 'Lista Inventada', reason: '"Me gusta" (LM) no se repite como playlist');
     expect(state.playlists.single.tracks.single.title, 'Slow Comet');
-    expect(reader.asked, isNot(contains('VLLM')), reason: '"Me gusta" va aparte');
+    expect(state.problem, isNull);
     expect(File(p.join(dir.path, 'yt_sync.json')).existsSync(), isTrue);
     // Apagarlo borra lo leído.
     await c.read(ytSyncProvider.notifier).forget();
@@ -221,13 +240,63 @@ void main() {
     expect(c.read(settingsProvider).ytSync, isFalse);
   });
 
-  test('Si la sesión vence (401), sigue como invitado sin romper nada', () async {
+  for (final (what, setUp) in [
+    ('401', (_Reader r) => r.refuse = true),
+    ('403', (_Reader r) => r..refuse = true..refuseStatus = 403),
+    ('"sin sesión"', (_Reader r) => r.loggedOut = true),
+  ]) {
+    test('Si YouTube rechaza la sesión ($what): se avisa, sigue como invitado y "Leer ahora" vuelve a probar', () async {
+      YtSessionHolder.current = const YtSession(cookie: 'SAPISID=inventada');
+      final reader = _Reader();
+      setUp(reader);
+      final c = make(reader);
+      expect(await c.read(ytSyncProvider.notifier).syncNow(), isFalse);
+      expect(YtSessionHolder.rejected, isTrue);
+      expect(YtSessionHolder.usable, isNull, reason: 'los pedidos siguen sin la cuenta');
+      expect(c.read(ytSyncProvider).problem, SyncProblem.sessionRejected, reason: 'se muestra el aviso');
+      expect(c.read(ytSyncProvider).syncing, isFalse);
+      // Si YouTube vuelve a aceptarla, "Leer ahora" lee y el aviso se va.
+      reader
+        ..refuse = false
+        ..loggedOut = false;
+      expect(await c.read(ytSyncProvider.notifier).syncNow(), isTrue);
+      expect(YtSessionHolder.rejected, isFalse);
+      expect(c.read(ytSyncProvider).problem, isNull);
+    });
+  }
+
+  test('Sin conexión: el motivo queda a la vista (no es la sesión)', () async {
     YtSessionHolder.current = const YtSession(cookie: 'SAPISID=inventada');
-    final reader = _Reader()..refuse = true;
+    final reader = _Reader()
+      ..refuse = true
+      ..refuseStatus = 500;
     final c = make(reader);
     expect(await c.read(ytSyncProvider.notifier).syncNow(), isFalse);
-    expect(YtSessionHolder.rejected, isTrue);
-    expect(YtSessionHolder.usable, isNull, reason: 'los pedidos siguen sin la cuenta');
-    expect(c.read(ytSyncProvider).syncing, isFalse);
+    expect(YtSessionHolder.rejected, isFalse);
+    expect(c.read(ytSyncProvider).problem, SyncProblem.failed);
+  });
+
+  test('Comprobar una sesión nueva antes de guardarla: aceptada, rechazada o sin respuesta', () async {
+    final reader = _Reader();
+    final c = ProviderContainer(overrides: [
+      ytAccountReaderProvider.overrideWithValue(reader),
+      accountProvider.overrideWith(() => AccountNotifier(secrets: _MemorySecrets())),
+    ]);
+    addTearDown(c.dispose);
+    final account = c.read(accountProvider.notifier);
+    const session = YtSession(cookie: 'SAPISID=inventada');
+    expect(await account.check(session), SessionCheck.ok);
+    expect(reader.asked, ['FEmusic_liked_playlists'], reason: 'solo lee');
+    expect(await account.check(const YtSession(cookie: 'OTRA=1')), SessionCheck.rejected, reason: 'sin SAPISID');
+    reader.loggedOut = true;
+    expect(await account.check(session), SessionCheck.rejected);
+    reader
+      ..loggedOut = false
+      ..refuse = true
+      ..refuseStatus = 403;
+    expect(await account.check(session), SessionCheck.rejected);
+    reader.refuseStatus = 503;
+    expect(await account.check(session), SessionCheck.failed);
+    expect(c.read(accountProvider), isNull, reason: 'comprobar no guarda nada');
   });
 }

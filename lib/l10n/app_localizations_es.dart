@@ -1895,11 +1895,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unaVezPorDiaPreguntaA =>
-      'Una vez por día pregunta a GitHub si hay una versión nueva. Nunca baja ni instala nada.';
+      'Una vez por día pregunta a GitHub si hay una versión nueva. Solo la baja si tocas Actualizar.';
 
   @override
   String get unaVezPorDiaPreguntaA2 =>
-      'Una vez por día pregunta a GitHub si hay una versión nueva y te muestra sus novedades. Nunca baja ni instala nada por su cuenta.';
+      'Una vez por día pregunta a GitHub si hay una versión nueva y te muestra sus novedades. Nunca baja ni instala nada por su cuenta: solo si tocas Actualizar, y después de comprobar el archivo.';
 
   @override
   String get versionDeKiji => 'Versión de Kiji';
@@ -2423,10 +2423,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String kiji(Object? p0) {
     return 'Kiji $p0';
   }
-
-  @override
-  String get kijiNuncaSeActualizaSoloNi =>
-      'Kiji nunca se actualiza solo ni baja nada: la descarga la haces tú desde la página oficial, si quieres.';
 
   @override
   String get abrirLaPaginaOficial => 'Abrir la página oficial';
@@ -3278,7 +3274,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get privacidadActualizaciones =>
-      'Si \"Buscar actualizaciones\" está prendido, una vez por día Kiji le pide a GitHub cuál es la última versión publicada. GitHub ve esa consulta como una visita a una página (tu IP y que es Kiji); no se manda nada tuyo. Se apaga en Configuración → Actualizaciones.';
+      'Si \"Buscar actualizaciones\" está prendido, una vez por día Kiji le pide a GitHub cuál es la última versión publicada. GitHub ve esa consulta como una visita a una página (tu IP y que es Kiji); no se manda nada tuyo. Si tocas Actualizar, el archivo se baja de GitHub igual que desde la página. Se apaga en Configuración → Actualizaciones.';
 
   @override
   String get soloParaCancionesConCuenta =>
@@ -5134,4 +5130,129 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get geminiEnPausa =>
       'Gemini no está respondiendo ahora. Puedes traducir en el teléfono mientras tanto.';
+
+  @override
+  String actualizarConTamano(String size) {
+    return 'Actualizar ($size)';
+  }
+
+  @override
+  String get descargarDesdeLaPagina => 'Descargar desde la página';
+
+  @override
+  String get actualizarComoFunciona =>
+      'Kiji baja el archivo oficial solo cuando tocas Actualizar, y comprueba que sea el publicado (suma y firma) antes de instalarlo.';
+
+  @override
+  String bajandoDe(String received, String total) {
+    return 'Bajando: $received de $total';
+  }
+
+  @override
+  String get comprobandoElArchivo =>
+      'Comprobando que el archivo sea el oficial…';
+
+  @override
+  String get noEstasConWifi => 'No estás con Wi-Fi';
+
+  @override
+  String bajarConDatosMoviles(String size) {
+    return 'Tienes «solo con Wi-Fi» o el ahorro de datos. ¿Bajar la actualización ($size) con datos móviles?';
+  }
+
+  @override
+  String get usarDatosMoviles => 'Usar datos móviles';
+
+  @override
+  String get esperarAlWifi => 'Esperar al Wi-Fi';
+
+  @override
+  String get unPermisoParaInstalar => 'Un permiso para instalar';
+
+  @override
+  String get permisoInstalarExplicacion =>
+      'Para instalar una actualización, Android pide que permitas a Kiji instalar apps. Kiji solo lo usa para instalar versiones oficiales de Kiji, ya comprobadas (la misma firma y la misma suma que las publicadas), y solo cuando tocas Actualizar. Lo puedes quitar cuando quieras en los ajustes del teléfono.';
+
+  @override
+  String get irALosAjustes => 'Ir a los ajustes';
+
+  @override
+  String get yaLoPermiti => 'Ya lo permití';
+
+  @override
+  String get seAbrioElInstalador =>
+      'Se abrió el instalador de Android. Si lo cerraste sin querer, puedes abrirlo de nuevo.';
+
+  @override
+  String get abrirElInstalador => 'Abrir el instalador';
+
+  @override
+  String get listoParaInstalarEnPc =>
+      'Listo y comprobado. Kiji se cerrará para instalar la versión nueva y volverá a abrirse. Tu música, tus playlists y tus ajustes no se tocan.';
+
+  @override
+  String get instalarYVolverAAbrir => 'Instalar y volver a abrir Kiji';
+
+  @override
+  String get actualizacionSinArchivo =>
+      'Esta versión no trae un archivo para este equipo.';
+
+  @override
+  String get actualizacionNoSeBajo =>
+      'No se pudo bajar la actualización. Revisa tu conexión o bájala desde la página.';
+
+  @override
+  String get actualizacionSinSuma =>
+      'Esta versión no publica una suma para comprobar el archivo, así que no se instaló.';
+
+  @override
+  String get actualizacionSumaDistinta =>
+      'El archivo bajado no coincide con el publicado: se borró y no se instaló.';
+
+  @override
+  String get actualizacionFirmaDistinta =>
+      'El archivo no está firmado como Kiji: se borró y no se instaló.';
+
+  @override
+  String get actualizacionNoSeInstalo => 'No se pudo abrir el instalador.';
+
+  @override
+  String get kijiDevNoSeActualiza =>
+      'Kiji Dev no se actualiza a la versión pública.';
+
+  @override
+  String get tuSesionDeYoutubeVencio =>
+      'Tu sesión de YouTube venció. Vuelve a iniciarla.';
+
+  @override
+  String get volverAIniciarSesion => 'Volver a iniciar sesión';
+
+  @override
+  String get agregadasATuBiblioteca => 'Agregadas a tu biblioteca';
+
+  @override
+  String leidoDeTuCuenta(int liked, int recent, int playlists) {
+    return 'Leído: $liked me gusta, $recent en tu biblioteca y $playlists playlists';
+  }
+
+  @override
+  String get noSePudoLeerTuCuenta =>
+      'No se pudo leer tu cuenta: revisa la conexión y vuelve a probar.';
+
+  @override
+  String get yaInicieSesion => 'Ya inicié sesión';
+
+  @override
+  String get comprobandoTuSesion => 'Comprobando tu sesión…';
+
+  @override
+  String get todaviaNoApareceTuSesion =>
+      'Todavía no aparece tu sesión de Google. Termina de iniciar sesión en la página (con tu contraseña y el segundo paso, si lo tienes) y vuelve a tocar «Ya inicié sesión».';
+
+  @override
+  String get youtubeNoAceptoLaSesion =>
+      'Google inició la sesión, pero YouTube Music no la aceptó. Vuelve a intentarlo; si sigue igual, abre music.youtube.com en un navegador y revisa que la cuenta pueda usar YouTube Music.';
+
+  @override
+  String get sesionIniciadaCorto => 'Sesión iniciada';
 }

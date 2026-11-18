@@ -137,4 +137,30 @@ void main() {
     expect(find.text('Sincronizar ahora'), findsOneWidget);
     expect(find.text('Todavía no se sincronizó.'), findsOneWidget);
   });
+
+  testWidgets('Sesión rechazada por YouTube: aviso en la Biblioteca y en Cuenta, con «Volver a iniciar sesión»', (tester) async {
+    YtSessionHolder.rejected = false;
+    addTearDown(() => YtSessionHolder.rejected = false);
+    final c = make(session: const YtSession(cookie: 'SAPISID=inventada'));
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: c,
+        child: const MaterialApp(
+          home: Scaffold(body: Column(children: [SessionExpiredBanner(), AccountStatusTile()])),
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('yt-session-expired')), findsNothing);
+    YtSessionHolder.rejected = true;
+    await tester.pump();
+    expect(find.byKey(const Key('yt-session-expired')), findsOneWidget);
+    expect(find.byKey(const Key('yt-session-sign-in-again')), findsOneWidget);
+    expect(find.byKey(const Key('account-sign-in-again')), findsOneWidget);
+    expect(find.textContaining('venció'), findsNWidgets(2));
+    // Si YouTube vuelve a aceptarla ("Leer ahora"), el aviso se va solo.
+    YtSessionHolder.rejected = false;
+    await tester.pump();
+    expect(find.byKey(const Key('yt-session-expired')), findsNothing);
+    expect(find.byKey(const Key('account-sign-out')), findsOneWidget);
+  });
 }

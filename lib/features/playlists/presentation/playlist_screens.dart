@@ -22,7 +22,7 @@ import '../../moments/presentation/moments_screen.dart';
 import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
 import '../../account/data/account_store.dart';
-import '../../account/presentation/account_screens.dart' show YtConnectCard;
+import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard;
 import '../../account/data/yt_sync.dart';
 import '../../local_library/domain/local_groups.dart' show LocalGroup;
 import '../../local_library/presentation/local_group_screen.dart';
@@ -258,6 +258,8 @@ class PlaylistsView extends ConsumerWidget {
         ),
         // Sin sesión: "Conecta tu YouTube Music (opcional)" (se puede cerrar para siempre).
         const YtConnectCard(),
+        // Con sesión, si YouTube la rechazó: "Tu sesión venció. Vuelve a iniciarla".
+        const SessionExpiredBanner(),
         // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
         ...() {
           final sync = ref.watch(ytSyncProvider);
@@ -281,6 +283,18 @@ class PlaylistsView extends ConsumerWidget {
                 onTap: () => LocalGroupScreen.open(
                   context,
                   group('yt:liked', tx.meGustaDeYoutube, sync.liked),
+                  LocalGroupKind.playlist,
+                ),
+              ),
+            if (sync.recent.isNotEmpty)
+              ListTile(
+                key: const Key('yt-sync-recent'),
+                leading: Icon(Icons.library_add_check_outlined, color: KijiColors.cyan),
+                title: Text(tx.agregadasATuBiblioteca),
+                subtitle: Text(_count(sync.recent.length), style: TextStyle(color: KijiColors.muted)),
+                onTap: () => LocalGroupScreen.open(
+                  context,
+                  group('yt:recent', tx.agregadasATuBiblioteca, sync.recent),
                   LocalGroupKind.playlist,
                 ),
               ),
