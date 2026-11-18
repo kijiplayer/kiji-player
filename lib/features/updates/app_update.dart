@@ -187,7 +187,10 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
         cancelToken: cancel,
         onReceiveProgress: (received, total) {
           if (cancel.isCancelled) return;
-          state = state.copyWith(received: received, total: total > 0 ? total : asset.size);
+          final size = total > 0 ? total : asset.size;
+          // Cada 0,5 % (y al final): llegan miles de pedacitos y redibujar por cada uno traba.
+          if (received < size && received - state.received < size / 200) return;
+          state = state.copyWith(received: received, total: size);
         },
       );
       state = state.copyWith(phase: AppUpdatePhase.verifying);
