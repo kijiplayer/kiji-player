@@ -1,5 +1,18 @@
 # Novedades de Kiji Player
 
+## 0.8.4 — sin publicar
+
+**Actualizar desde Kiji**
+- Cuando hay una versión nueva, Kiji muestra sus novedades, el tamaño y un botón "Actualizar":
+  la baja (con progreso, y se puede cancelar), comprueba que sea la publicada y abre el
+  instalador. Nada se baja sin que toques el botón.
+- Comprueba la suma SHA-256 publicada y, en Android, que esté firmada con el mismo certificado que
+  la Kiji que tienes. Si algo no coincide, la borra y no instala.
+- En Android baja el APK justo para tu teléfono y, la primera vez, te explica por qué pide permiso
+  para instalar apps. Con "solo con Wi-Fi" o el ahorro de datos, pregunta antes de usar datos
+  móviles. En Windows, Kiji se cierra, se actualiza y vuelve a abrirse, sin tocar tus datos.
+- Si algo falla, sigue estando "Descargar desde la página".
+
 ## 0.8.3 — 17 de noviembre de 2026
 
 **Vidrio líquido**

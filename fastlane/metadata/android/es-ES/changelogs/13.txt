@@ -1,0 +1,2 @@
+• Actualizar desde Kiji: con una versión nueva, toca "Actualizar" y Kiji la baja, comprueba que sea la oficial (suma y firma) y la instala. Nada se baja sin que toques el botón; con "solo Wi-Fi", pregunta antes de usar datos móviles.
+• Si algo falla, sigue el enlace a la página.

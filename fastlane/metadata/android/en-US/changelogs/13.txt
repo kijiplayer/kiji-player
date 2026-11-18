@@ -1,0 +1,2 @@
+• Update from Kiji: when there's a new version, tap "Update" and Kiji downloads it, checks it's the official one (checksum and signature) and installs it. Nothing is downloaded until you tap the button; with "Wi-Fi only", it asks before using mobile data.
+• If anything fails, the link to the page is still there.
