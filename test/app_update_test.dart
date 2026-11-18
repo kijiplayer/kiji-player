@@ -245,6 +245,41 @@ void main() {
       expect(installer.installed, ['Kiji-Player-arm64.apk']);
     });
 
+    test('Cancelar a mitad: no instala, borra lo bajado y vuelve al principio', () async {
+      // Una descarga lenta: 1 KB cada 20 ms.
+      server.listen((request) async {
+        if (request.uri.path == '/SHA256SUMS.txt') {
+          request.response.write('$apkSha  Kiji-Player-arm64.apk\n');
+          await request.response.close();
+          return;
+        }
+        request.response.headers.contentLength = 200 * 1024;
+        try {
+          for (var i = 0; i < 200; i++) {
+            request.response.add(List.filled(1024, 1));
+            await request.response.flush();
+            await Future<void>.delayed(const Duration(milliseconds: 20));
+          }
+          await request.response.close();
+        } catch (_) {
+          // El cliente cortó (se canceló): es lo esperado en esta prueba.
+        }
+      });
+      final installer = _FakeInstaller();
+      final c = container(installer);
+      final notifier = c.read(appUpdateProvider.notifier);
+      final running = notifier.start(release(), source: source);
+      while (c.read(appUpdateProvider).received == 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(c.read(appUpdateProvider).phase, AppUpdatePhase.downloading);
+      notifier.cancel();
+      await running;
+      expect(c.read(appUpdateProvider).phase, AppUpdatePhase.idle);
+      expect(installer.installed, isEmpty);
+      expect(downloaded().existsSync(), isFalse);
+    });
+
     test('Windows: verificado, espera la confirmación', () async {
       serve('$apkSha  Kiji-Player-arm64.apk\n');
       final installer = _FakeInstaller(confirm: true);

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -82,8 +83,12 @@ String? expectedSha256(ReleaseAsset asset, Map<String, String> sums) {
   return listed ?? digest;
 }
 
-/// SHA-256 de un archivo, leyéndolo por partes.
-Future<String> sha256OfFile(File file) async => (await sha256.bind(file.openRead()).first).toString();
+/// SHA-256 de un archivo, leyéndolo por partes y en otro isolate: un APK son decenas de MB y
+/// calcularlo en el de la pantalla la trababa.
+Future<String> sha256OfFile(File file) {
+  final path = file.path;
+  return Isolate.run(() async => (await sha256.bind(File(path).openRead()).first).toString());
+}
 
 /// ¿El archivo es el publicado? Si no hay suma para comparar, tampoco: nunca se instala sin verificar.
 Future<bool> verifySha256(File file, String? expected) async {

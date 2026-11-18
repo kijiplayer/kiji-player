@@ -193,6 +193,7 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
           state = state.copyWith(received: received, total: size);
         },
       );
+      debugPrint('=== ACTUALIZAR: bajado (${file.lengthSync() ~/ (1024 * 1024)} MB); se comprueba ===');
       state = state.copyWith(phase: AppUpdatePhase.verifying);
       final expected = expectedSha256(asset, sums);
       if (expected == null) return await _reject(AppUpdateFailure.noChecksum);
@@ -245,10 +246,17 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
   Future<void> _deleteFile() async {
     final file = _file;
     _file = null;
-    try {
-      if (file != null && file.existsSync()) await file.delete();
-    } catch (error) {
-      debugPrint('=== ACTUALIZAR: no se pudo borrar el archivo (${error.runtimeType}) ===');
+    if (file == null) return;
+    // Recién cancelada, la descarga puede tener el archivo abierto un momento (en Windows no se
+    // puede borrar así): se reintenta unas veces.
+    for (var attempt = 0; attempt < 10; attempt++) {
+      try {
+        if (file.existsSync()) await file.delete();
+        return;
+      } catch (error) {
+        if (attempt == 9) debugPrint('=== ACTUALIZAR: no se pudo borrar el archivo (${error.runtimeType}) ===');
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
     }
   }
 
