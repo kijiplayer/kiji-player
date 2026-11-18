@@ -63,3 +63,12 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; "Actualizar" desde Kiji (0.8.4): Kiji abre este instalador en silencio con /KIJIUPDATE=1 y se
+; cierra; al terminar, Kiji vuelve a abrirse sola (como la persona, aunque el instalador pidió permisos).
+Filename: "{app}\{#AppExe}"; Flags: nowait runasoriginaluser; Check: IsKijiUpdate
+
+[Code]
+function IsKijiUpdate: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:KIJIUPDATE|0}') = '1');
+end;
