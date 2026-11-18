@@ -125,7 +125,7 @@ class AppUpdateNotifier extends Notifier<AppUpdateState> {
     BaseOptions(
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 60),
-      headers: {'User-Agent': 'KijiPlayer'},
+      headers: {'User-Agent': 'KijiPlayer'}, // l10n-ignore
     ),
   );
 

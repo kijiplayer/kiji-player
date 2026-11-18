@@ -132,7 +132,7 @@ class UpdateNotifier extends Notifier<UpdateState> {
             BaseOptions(
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 15),
-              headers: {'Accept': 'application/vnd.github+json', 'User-Agent': 'KijiPlayer'},
+              headers: {'Accept': 'application/vnd.github+json', 'User-Agent': 'KijiPlayer'}, // l10n-ignore
             ),
           ),
       _directoryPath = directory,
