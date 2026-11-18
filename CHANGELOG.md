@@ -1,6 +1,6 @@
 # Novedades de Kiji Player
 
-## 0.8.4 — sin publicar
+## 0.8.4 — 18 de noviembre de 2026
 
 **Actualizar desde Kiji**
 - Cuando hay una versión nueva, Kiji muestra sus novedades, el tamaño y un botón "Actualizar":
