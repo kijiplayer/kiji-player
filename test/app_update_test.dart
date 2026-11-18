@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/features/updates/app_update.dart';
+import 'package:kiji_player/features/updates/data/windows_update_installer.dart';
 import 'package:kiji_player/features/updates/domain/update_assets.dart';
 import 'package:kiji_player/features/updates/domain/update_installer.dart';
 import 'package:kiji_player/features/updates/update_checker.dart';
@@ -76,6 +77,22 @@ void main() {
     });
     test('Windows: el instalador de nombre fijo', () {
       expect(pickWindowsAsset(_all, '9.9.9')!.name, 'Kiji-Player-Windows-Setup.exe');
+    });
+  });
+
+  group('Windows', () {
+    test('solo se ofrece si Kiji vino del instalador (está unins000.exe)', () async {
+      final dir = Directory.systemTemp.createTempSync('kiji_win');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final exe = '${dir.path}${Platform.pathSeparator}kiji_player.exe';
+      final release = Release(version: '9.9.9', name: 'v9.9.9', notes: '', url: kijiReleasesPage, assets: _all);
+      expect(await WindowsUpdateInstaller(executable: exe).pickAsset(release), isNull);
+      File('${dir.path}${Platform.pathSeparator}unins000.exe').writeAsStringSync('');
+      expect((await WindowsUpdateInstaller(executable: exe).pickAsset(release))!.name, 'Kiji-Player-Windows-Setup.exe');
+    });
+    test('el instalador se abre en silencio, en modo actualización, y vuelve a abrir Kiji', () {
+      expect(WindowsUpdateInstaller.arguments, containsAll(['/SILENT', '/SUPPRESSMSGBOXES', '/KIJIUPDATE=1']));
+      expect(WindowsUpdateInstaller().confirmBeforeInstall, isTrue);
     });
   });
 
