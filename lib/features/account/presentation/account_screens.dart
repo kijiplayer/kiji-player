@@ -186,9 +186,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   static final _start = WebUri(
     'https://accounts.google.com/ServiceLogin?continue=${Uri.encodeComponent('https://music.youtube.com')}',
   );
+  static final _music = WebUri('https://music.youtube.com');
+
+  /// Cada cuánto se miran las cookies (Google cambia su última página: no se espera una URL exacta).
+  static const pollEvery = Duration(seconds: 2);
+
+  /// Si en este tiempo no se detectó, aparece "Ya inicié sesión".
+  static const manualAfter = Duration(minutes: 2);
+
   bool _done = false;
   bool _ready = false;
+  bool _checking = false;
+  bool _showManual = false;
+
+  /// Ya se volvió a abrir el inicio con destino YouTube Music (con la sesión de Google lista).
+  bool _resent = false;
   String? _error;
+  InAppWebViewController? _controller;
+  Timer? _poll;
+  Timer? _manual;
 
   @override
   void initState() {
@@ -197,44 +213,112 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     CookieManager.instance().deleteAllCookies().whenComplete(() {
       if (mounted) setState(() => _ready = true);
     });
+    _poll = Timer.periodic(pollEvery, (_) => unawaited(_check()));
+    _manual = Timer(manualAfter, () {
+      if (mounted && !_done) setState(() => _showManual = true);
+    });
   }
 
-  Future<void> _onPage(InAppWebViewController controller, WebUri? url) async {
-    if (_done || url == null || !url.host.endsWith('music.youtube.com')) return;
-    _done = true;
+  @override
+  void dispose() {
+    _poll?.cancel();
+    _manual?.cancel();
+    super.dispose();
+  }
+
+  static bool _hasSession(List<Cookie> cookies) =>
+      cookies.any((c) => c.name == 'SAPISID' || c.name == '__Secure-3PAPISID');
+
+  /// ¿Terminó el inicio de sesión? Se decide por las cookies de sesión, no por la página. [manual]:
+  /// "Ya inicié sesión" (si no hay sesión, se explica qué falta).
+  Future<void> _check({bool manual = false}) async {
+    final controller = _controller;
+    if (_done || _checking || !_ready || controller == null) return;
+    _checking = true;
     try {
-      final cookies = await CookieManager.instance().getCookies(url: WebUri('https://music.youtube.com'));
+      final cookies = CookieManager.instance();
+      final music = await cookies.getCookies(url: _music);
+      if (_hasSession(music)) {
+        await _finish(controller, music);
+        return;
+      }
+      // Google ya inició la sesión, pero YouTube todavía no tiene la suya (Google se quedó en su
+      // página de "ya iniciaste sesión"): se vuelve a abrir el inicio con destino YouTube Music,
+      // que con la sesión de Google lista pasa derecho y deja las cookies de YouTube.
+      final google = await cookies.getCookies(url: WebUri('https://accounts.google.com'));
+      if (_hasSession(google) && (!_resent || manual)) {
+        _resent = true;
+        debugPrint('=== CUENTA: Google inició la sesión; se abre YouTube Music para terminar ===');
+        await controller.loadUrl(urlRequest: URLRequest(url: _start));
+        return;
+      }
+      if (manual && mounted) setState(() => _error = tx.todaviaNoApareceTuSesion);
+    } catch (error) {
+      debugPrint('=== CUENTA: no se pudieron mirar las cookies (${error.runtimeType}) ===');
+      if (manual && mounted) setState(() => _error = tx.noSePudoCompletarElInicio);
+    } finally {
+      _checking = false;
+    }
+  }
+
+  /// Con las cookies de YouTube Music: se arma la sesión, se comprueba con un pedido real (leer la
+  /// biblioteca) y recién ahí se guarda (cifrada) y se cierra la ventana.
+  Future<void> _finish(InAppWebViewController controller, List<Cookie> cookies) async {
+    _done = true;
+    _poll?.cancel();
+    _poll = null;
+    if (mounted) {
+      setState(() {
+        _error = null;
+        _showManual = false;
+      });
+    }
+    try {
       final cookie = [for (final c in cookies) '${c.name}=${c.value}'].join('; ');
-      final config = await controller.evaluateJavascript(
-        source: 'JSON.stringify(window.yt && yt.config_ ? [yt.config_.VISITOR_DATA, yt.config_.DATASYNC_ID] : [])', // l10n-ignore
-      );
-      final values = config is String ? jsonDecode(config) : null;
+      Object? values;
+      final url = await controller.getUrl();
+      if (url != null && url.host.endsWith('music.youtube.com')) {
+        final config = await controller.evaluateJavascript(
+          source: 'JSON.stringify(window.yt && yt.config_ ? [yt.config_.VISITOR_DATA, yt.config_.DATASYNC_ID] : [])', // l10n-ignore
+        );
+        values = config is String ? jsonDecode(config) : null;
+      }
       final session = YtSession(
         cookie: cookie,
         visitorData: values is List && values.isNotEmpty ? values[0] as String? : null,
         dataSyncId: values is List && values.length > 1 ? (values[1] as String?)?.split('||').first : null,
       );
-      final ok = await ref.read(accountProvider.notifier).signIn(session);
+      final account = ref.read(accountProvider.notifier);
+      final check = await account.check(session);
+      debugPrint('=== CUENTA: comprobación de la sesión nueva: ${check.name} ===');
+      if (check == SessionCheck.rejected) {
+        _fail(tx.youtubeNoAceptoLaSesion);
+        return;
+      }
+      // Sin conexión para comprobarla (failed): se guarda igual; la sincronización avisará si no anda.
+      final ok = await account.signIn(session);
       // La sesión ya está guardada (cifrada): la WebView no se queda con nada.
       await CookieManager.instance().deleteAllCookies();
       if (!mounted) return;
       if (ok) {
         Navigator.of(context).pop(true);
       } else {
-        setState(() {
-          _done = false;
-          _error = tx.noSePudoCompletarElInicio;
-        });
+        _fail(tx.noSePudoCompletarElInicio);
       }
     } catch (error) {
       debugPrint('=== CUENTA: falló el inicio de sesión (${error.runtimeType}) ===');
-      if (mounted) {
-        setState(() {
-          _done = false;
-          _error = tx.noSePudoCompletarElInicio;
-        });
-      }
+      _fail(tx.noSePudoCompletarElInicio);
     }
+  }
+
+  void _fail(String message) {
+    _done = false;
+    if (!mounted) return;
+    setState(() {
+      _error = message;
+      _showManual = true;
+    });
+    _poll ??= Timer.periodic(pollEvery, (_) => unawaited(_check()));
   }
 
   @override
@@ -247,15 +331,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             width: double.infinity,
             color: const Color(0x33FFB84D),
             padding: const EdgeInsets.all(12),
-            child: Text(_error ?? accountWarning, style: const TextStyle(fontSize: 13)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _done ? tx.comprobandoTuSesion : (_error ?? accountWarning),
+                  key: const Key('login-message'),
+                  style: const TextStyle(fontSize: 13),
+                ),
+                if (_showManual && !_done)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      key: const Key('login-manual-check'),
+                      icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
+                      label: Text(tx.yaInicieSesion),
+                      onPressed: () => _check(manual: true),
+                    ),
+                  ),
+              ],
+            ),
           ),
+          if (_done) const LinearProgressIndicator(),
           Expanded(
             child: !_ready
                 ? const Center(child: CircularProgressIndicator())
                 : InAppWebView(
                     initialUrlRequest: URLRequest(url: _start),
                     initialSettings: InAppWebViewSettings(javaScriptEnabled: true, incognito: false),
-                    onLoadStop: _onPage,
+                    onWebViewCreated: (controller) => _controller = controller,
+                    onLoadStop: (controller, _) => _check(),
+                    // Google cambia de paso sin cargar una página nueva: también se mira ahí.
+                    onUpdateVisitedHistory: (controller, _, _) => _check(),
                   ),
           ),
         ],
@@ -294,6 +401,7 @@ Future<bool> showAccountOfferDialog(BuildContext context, WidgetRef ref, Account
 Future<bool> signInToYouTubeMusic(BuildContext context, WidgetRef ref) async {
   final ok = await LoginScreen.open(context);
   if (!ok || !context.mounted) return ok;
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.sesionIniciadaCorto)));
   await offerSyncOnce(context, ref);
   return true;
 }

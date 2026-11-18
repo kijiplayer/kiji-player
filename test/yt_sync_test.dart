@@ -275,4 +275,28 @@ void main() {
     expect(YtSessionHolder.rejected, isFalse);
     expect(c.read(ytSyncProvider).problem, SyncProblem.failed);
   });
+
+  test('Comprobar una sesión nueva antes de guardarla: aceptada, rechazada o sin respuesta', () async {
+    final reader = _Reader();
+    final c = ProviderContainer(overrides: [
+      ytAccountReaderProvider.overrideWithValue(reader),
+      accountProvider.overrideWith(() => AccountNotifier(secrets: _MemorySecrets())),
+    ]);
+    addTearDown(c.dispose);
+    final account = c.read(accountProvider.notifier);
+    const session = YtSession(cookie: 'SAPISID=inventada');
+    expect(await account.check(session), SessionCheck.ok);
+    expect(reader.asked, ['FEmusic_liked_playlists'], reason: 'solo lee');
+    expect(await account.check(const YtSession(cookie: 'OTRA=1')), SessionCheck.rejected, reason: 'sin SAPISID');
+    reader.loggedOut = true;
+    expect(await account.check(session), SessionCheck.rejected);
+    reader
+      ..loggedOut = false
+      ..refuse = true
+      ..refuseStatus = 403;
+    expect(await account.check(session), SessionCheck.rejected);
+    reader.refuseStatus = 503;
+    expect(await account.check(session), SessionCheck.failed);
+    expect(c.read(accountProvider), isNull, reason: 'comprobar no guarda nada');
+  });
 }

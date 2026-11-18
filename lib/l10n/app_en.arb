@@ -1413,5 +1413,10 @@
   "volverAIniciarSesion": "Sign in again",
   "agregadasATuBiblioteca": "Added to your library",
   "leidoDeTuCuenta": "Read: {liked} liked, {recent} in your library and {playlists} playlists",
-  "noSePudoLeerTuCuenta": "Couldn't read your account: check your connection and try again."
+  "noSePudoLeerTuCuenta": "Couldn't read your account: check your connection and try again.",
+  "yaInicieSesion": "I've signed in",
+  "comprobandoTuSesion": "Checking your session…",
+  "todaviaNoApareceTuSesion": "Your Google session doesn't show up yet. Finish signing in on the page (with your password and the second step, if you have one) and tap \"I've signed in\" again.",
+  "youtubeNoAceptoLaSesion": "Google signed you in, but YouTube Music didn't accept the session. Try again; if it keeps happening, open music.youtube.com in a browser and check that the account can use YouTube Music.",
+  "sesionIniciadaCorto": "Signed in"
 }

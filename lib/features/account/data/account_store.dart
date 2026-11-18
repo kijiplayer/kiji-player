@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -11,6 +12,17 @@ import '../../settings/data/settings_store.dart';
 import 'yt_sync.dart';
 import '../domain/yt_session.dart';
 import '../../../models/track.dart';
+
+/// Qué dijo YouTube Music al comprobar una sesión.
+enum SessionCheck {
+  ok,
+
+  /// 401/403 o "sin sesión": YouTube no la acepta.
+  rejected,
+
+  /// Sin conexión o sin respuesta: no se sabe.
+  failed,
+}
 
 /// Nombre del secreto donde va la sesión (cifrado con el Keystore o DPAPI).
 const ytSessionSecret = 'yt_session';
@@ -42,6 +54,27 @@ class AccountNotifier extends Notifier<YtSession?> {
       debugPrint('=== CUENTA: no se pudo leer la sesión guardada (${error.runtimeType}) ===');
     } finally {
       if (!_loaded.isCompleted) _loaded.complete();
+    }
+  }
+
+  /// ¿YouTube Music acepta [session]? Un pedido real y liviano: leer las playlists de la biblioteca
+  /// (solo lectura). No guarda nada.
+  Future<SessionCheck> check(YtSession session) async {
+    if (!session.isValid) return SessionCheck.rejected;
+    try {
+      final page = await ref
+          .read(ytAccountReaderProvider)
+          .browse('FEmusic_liked_playlists', session)
+          .timeout(const Duration(seconds: 20));
+      if (isLoggedOutResponse(page)) return SessionCheck.rejected;
+      return SessionCheck.ok;
+    } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      debugPrint('=== CUENTA: la comprobación de la sesión falló (${error.type.name} ${status ?? ''}) ===');
+      return status == 401 || status == 403 ? SessionCheck.rejected : SessionCheck.failed;
+    } catch (error) {
+      debugPrint('=== CUENTA: la comprobación de la sesión falló (${error.runtimeType}) ===');
+      return SessionCheck.failed;
     }
   }
 

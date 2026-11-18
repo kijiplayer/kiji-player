@@ -8476,6 +8476,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo leer tu cuenta: revisa la conexión y vuelve a probar.'**
   String get noSePudoLeerTuCuenta;
+
+  /// Botón que aparece a los 2 minutos en el inicio de sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Ya inicié sesión'**
+  String get yaInicieSesion;
+
+  /// Mientras se comprueba la sesión con YouTube Music
+  ///
+  /// In es, this message translates to:
+  /// **'Comprobando tu sesión…'**
+  String get comprobandoTuSesion;
+
+  /// Ya inicié sesión: no hay cookies de sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no aparece tu sesión de Google. Termina de iniciar sesión en la página (con tu contraseña y el segundo paso, si lo tienes) y vuelve a tocar «Ya inicié sesión».'**
+  String get todaviaNoApareceTuSesion;
+
+  /// La comprobación con YouTube Music falló por la sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Google inició la sesión, pero YouTube Music no la aceptó. Vuelve a intentarlo; si sigue igual, abre music.youtube.com en un navegador y revisa que la cuenta pueda usar YouTube Music.'**
+  String get youtubeNoAceptoLaSesion;
+
+  /// Aviso al terminar el inicio de sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Sesión iniciada'**
+  String get sesionIniciadaCorto;
 }
 
 class _AppLocalizationsDelegate

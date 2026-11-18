@@ -5227,4 +5227,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noSePudoLeerTuCuenta =>
       'Couldn\'t read your account: check your connection and try again.';
+
+  @override
+  String get yaInicieSesion => 'I\'ve signed in';
+
+  @override
+  String get comprobandoTuSesion => 'Checking your session…';
+
+  @override
+  String get todaviaNoApareceTuSesion =>
+      'Your Google session doesn\'t show up yet. Finish signing in on the page (with your password and the second step, if you have one) and tap \"I\'ve signed in\" again.';
+
+  @override
+  String get youtubeNoAceptoLaSesion =>
+      'Google signed you in, but YouTube Music didn\'t accept the session. Try again; if it keeps happening, open music.youtube.com in a browser and check that the account can use YouTube Music.';
+
+  @override
+  String get sesionIniciadaCorto => 'Signed in';
 }

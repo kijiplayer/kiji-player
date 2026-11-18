@@ -3074,5 +3074,15 @@
   "leidoDeTuCuenta": "Leído: {liked} me gusta, {recent} en tu biblioteca y {playlists} playlists",
   "@leidoDeTuCuenta": {"description": "Resultado de Leer ahora", "placeholders": {"liked": {"type": "int"}, "recent": {"type": "int"}, "playlists": {"type": "int"}}},
   "noSePudoLeerTuCuenta": "No se pudo leer tu cuenta: revisa la conexión y vuelve a probar.",
-  "@noSePudoLeerTuCuenta": {"description": "Leer ahora falló (no por la sesión)"}
+  "@noSePudoLeerTuCuenta": {"description": "Leer ahora falló (no por la sesión)"},
+  "yaInicieSesion": "Ya inicié sesión",
+  "@yaInicieSesion": {"description": "Botón que aparece a los 2 minutos en el inicio de sesión"},
+  "comprobandoTuSesion": "Comprobando tu sesión…",
+  "@comprobandoTuSesion": {"description": "Mientras se comprueba la sesión con YouTube Music"},
+  "todaviaNoApareceTuSesion": "Todavía no aparece tu sesión de Google. Termina de iniciar sesión en la página (con tu contraseña y el segundo paso, si lo tienes) y vuelve a tocar «Ya inicié sesión».",
+  "@todaviaNoApareceTuSesion": {"description": "Ya inicié sesión: no hay cookies de sesión"},
+  "youtubeNoAceptoLaSesion": "Google inició la sesión, pero YouTube Music no la aceptó. Vuelve a intentarlo; si sigue igual, abre music.youtube.com en un navegador y revisa que la cuenta pueda usar YouTube Music.",
+  "@youtubeNoAceptoLaSesion": {"description": "La comprobación con YouTube Music falló por la sesión"},
+  "sesionIniciadaCorto": "Sesión iniciada",
+  "@sesionIniciadaCorto": {"description": "Aviso al terminar el inicio de sesión"}
 }

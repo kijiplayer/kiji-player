@@ -5238,4 +5238,21 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get noSePudoLeerTuCuenta =>
       'No se pudo leer tu cuenta: revisa la conexión y vuelve a probar.';
+
+  @override
+  String get yaInicieSesion => 'Ya inicié sesión';
+
+  @override
+  String get comprobandoTuSesion => 'Comprobando tu sesión…';
+
+  @override
+  String get todaviaNoApareceTuSesion =>
+      'Todavía no aparece tu sesión de Google. Termina de iniciar sesión en la página (con tu contraseña y el segundo paso, si lo tienes) y vuelve a tocar «Ya inicié sesión».';
+
+  @override
+  String get youtubeNoAceptoLaSesion =>
+      'Google inició la sesión, pero YouTube Music no la aceptó. Vuelve a intentarlo; si sigue igual, abre music.youtube.com en un navegador y revisa que la cuenta pueda usar YouTube Music.';
+
+  @override
+  String get sesionIniciadaCorto => 'Sesión iniciada';
 }
