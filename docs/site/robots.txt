@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kijiplayer.github.io/kiji-player/sitemap.xml
