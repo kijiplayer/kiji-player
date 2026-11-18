@@ -2,7 +2,8 @@
 // dominio público (Unlicense, ver LICENSE). Archivo original: lib/mediakit_player.dart.
 // Cambios de Kiji (marcados con "Kiji:"): velocidad, tono y efectos de sonido en una sola cadena
 // de filtros de mpv (`af`), para que media_kit no la pise al cambiar el tono, y la lista de
-// reproductores vivos para aplicarles los efectos a todos (también al de la mezcla). Sin nombre de
+// reproductores vivos para aplicarles los efectos a todos (también al de la mezcla), y mpv sin cargar
+// archivos junto al audio (la letra <id>.lrc lo hacía fallar). Sin nombre de
 // biblioteca (`library;`), que el análisis de Kiji marca como innecesario.
 
 library;
@@ -95,6 +96,9 @@ class MediaKitPlayer extends AudioPlayerPlatform {
     return platform is NativePlayer ? platform.getProperty(key) : null;
   }
 
+  /// Kiji: que mpv no busque archivos junto al audio (ver el constructor).
+  static const mpvNoSiblingFiles = {'sub-auto': 'no', 'audio-file-auto': 'no', 'cover-art-auto': 'no'};
+
   MediaKitPlayer(super.id) {
     live.add(this);
     _player = Player(
@@ -114,6 +118,13 @@ class MediaKitPlayer extends AudioPlayerPlatform {
 
     if (JustAudioMediaKit.prefetchPlaylist) {
       setProperty(_player, 'prefetch-playlist', 'yes');
+    }
+    // Kiji: mpv carga solo los archivos "hermanos" del audio (subtítulos, audio y portada con el
+    // mismo nombre). Desde la 0.8.2 cada descarga tiene su letra al lado (<id>.lrc): mpv la abría
+    // como subtítulo externo, fallaba ("Can not open external file") y la canción no sonaba.
+    // Kiji muestra las letras por su cuenta: mpv solo tiene que abrir el audio.
+    for (final option in mpvNoSiblingFiles.entries) {
+      unawaited(setProperty(_player, option.key, option.value));
     }
 
     _streamSubscriptions = [

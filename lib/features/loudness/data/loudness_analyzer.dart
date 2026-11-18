@@ -87,6 +87,10 @@ class MpvLoudnessAnalyzer implements LoudnessAnalyzer {
         ('audio-samplerate', '$_sampleRate'),
         ('audio-format', 's16'),
         ('volume', '100'),
+        // Ni la letra (<id>.lrc) ni la portada de al lado: solo el audio.
+        ('sub-auto', 'no'),
+        ('audio-file-auto', 'no'),
+        ('cover-art-auto', 'no'),
       ]) {
         await mpv.setProperty(key, value);
       }
