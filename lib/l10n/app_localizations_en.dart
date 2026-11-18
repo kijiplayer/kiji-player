@@ -5208,4 +5208,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kijiDevNoSeActualiza =>
       'Kiji Dev doesn\'t update to the public version.';
+
+  @override
+  String get tuSesionDeYoutubeVencio =>
+      'Your YouTube session expired. Sign in again.';
+
+  @override
+  String get volverAIniciarSesion => 'Sign in again';
+
+  @override
+  String get agregadasATuBiblioteca => 'Added to your library';
+
+  @override
+  String leidoDeTuCuenta(int liked, int recent, int playlists) {
+    return 'Read: $liked liked, $recent in your library and $playlists playlists';
+  }
+
+  @override
+  String get noSePudoLeerTuCuenta =>
+      'Couldn\'t read your account: check your connection and try again.';
 }

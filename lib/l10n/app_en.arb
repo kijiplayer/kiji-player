@@ -1408,5 +1408,10 @@
   "actualizacionSumaDistinta": "The downloaded file doesn't match the published one: it was deleted and not installed.",
   "actualizacionFirmaDistinta": "The file isn't signed like Kiji: it was deleted and not installed.",
   "actualizacionNoSeInstalo": "Couldn't open the installer.",
-  "kijiDevNoSeActualiza": "Kiji Dev doesn't update to the public version."
+  "kijiDevNoSeActualiza": "Kiji Dev doesn't update to the public version.",
+  "tuSesionDeYoutubeVencio": "Your YouTube session expired. Sign in again.",
+  "volverAIniciarSesion": "Sign in again",
+  "agregadasATuBiblioteca": "Added to your library",
+  "leidoDeTuCuenta": "Read: {liked} liked, {recent} in your library and {playlists} playlists",
+  "noSePudoLeerTuCuenta": "Couldn't read your account: check your connection and try again."
 }

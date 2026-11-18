@@ -6,6 +6,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 
 /// La sesión de YouTube Music del usuario (opcional). Se guarda SOLO cifrada en el dispositivo y
 /// solo viaja a YouTube. Nunca se escribe en el registro: [toString] no muestra nada.
@@ -72,10 +73,20 @@ abstract final class YtSessionHolder {
   static YtSession? current;
   static bool get signedIn => current != null;
 
-  /// YouTube rechazó la sesión (401: venció o se cerró en otro lado). Hasta volver a conectar la
-  /// cuenta, los pedidos van sin ella (anónimos), como si no hubiera cuenta.
-  static bool rejected = false;
+  /// YouTube rechazó la sesión al leer la cuenta (401/403 o "no hay sesión"): venció o se cerró en
+  /// otro lado. Se muestra en Configuración → Cuenta y en la Biblioteca ("Vuelve a iniciarla"), y
+  /// hasta volver a iniciarla los pedidos van sin ella, como si no hubiera cuenta.
+  static final rejectedListenable = ValueNotifier<bool>(false);
+  static bool get rejected => rejectedListenable.value;
+  static set rejected(bool value) => rejectedListenable.value = value;
 
-  /// La sesión que se manda en los pedidos: ninguna si YouTube ya la rechazó.
+  /// El audio con la sesión (WEB_REMIX) dio 401: ese pedido sigue sin ella. No quiere decir que la
+  /// sesión venció (la lectura de la cuenta puede andar igual): no se avisa ni frena la sincronización.
+  static bool streamRefused = false;
+
+  /// La sesión que se manda al pedir el audio.
+  static YtSession? get forStreams => rejected || streamRefused ? null : current;
+
+  /// La sesión para leer la cuenta: ninguna si YouTube ya la rechazó.
   static YtSession? get usable => rejected ? null : current;
 }

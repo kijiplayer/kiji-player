@@ -40,6 +40,7 @@ class AccountScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
+          const SessionExpiredBanner(),
           Glass(
             blur: false,
             radius: KijiRadii.card,
@@ -132,7 +133,7 @@ class AccountScreen extends ConsumerWidget {
                     title: Text(
                       sync.syncedAt == null
                           ? tx.todaviaNoSeLeyoLaCuenta
-                          : tx.deTuCuentaMeGustaYPlaylists(sync.liked.length, sync.playlists.length),
+                          : tx.leidoDeTuCuenta(sync.liked.length, sync.recent.length, sync.playlists.length),
                     ),
                     trailing: sync.syncing
                         ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
@@ -324,6 +325,52 @@ Future<void> offerSyncOnce(BuildContext context, WidgetRef ref) async {
   unawaited(ref.read(ytSyncProvider.notifier).syncNow());
 }
 
+/// "Tu sesión de YouTube venció. Vuelve a iniciarla", con el botón. Solo con la sesión iniciada y
+/// rechazada por YouTube (al leer la cuenta). Va en Configuración → Cuenta y en la Biblioteca.
+class SessionExpiredBanner extends ConsumerWidget {
+  const SessionExpiredBanner({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(accountProvider) == null) return const SizedBox.shrink();
+    if (!ref.watch(ytSessionRejectedProvider)) return const SizedBox.shrink();
+    return Builder(
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Glass(
+            key: const Key('yt-session-expired'),
+            blur: false,
+            radius: KijiRadii.card,
+            padding: const EdgeInsets.fromLTRB(16, 12, 10, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.lock_clock_outlined, color: KijiColors.cyan, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(tx.tuSesionDeYoutubeVencio, style: KijiText.title(size: 15))),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    key: const Key('yt-session-sign-in-again'),
+                    icon: const Icon(Icons.login_rounded, size: 18),
+                    label: Text(tx.volverAIniciarSesion),
+                    onPressed: () => signInToYouTubeMusic(context, ref),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Biblioteca, sin sesión: "Conecta tu YouTube Music (opcional)". Discreta, y con "No mostrar más"
 /// no vuelve.
 class YtConnectCard extends ConsumerWidget {
@@ -392,6 +439,8 @@ class AccountStatusTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(accountProvider);
+    // Se redibuja si YouTube rechaza la sesión (o vuelve a aceptarla).
+    final rejected = session != null && ref.watch(ytSessionRejectedProvider);
     return ListTile(
       key: const Key('account-status'),
       leading: Icon(session == null ? Icons.person_outline_rounded : Icons.verified_user_rounded),
@@ -399,14 +448,14 @@ class AccountStatusTile extends ConsumerWidget {
       subtitle: Text(
         session == null
             ? tx.cuentaOpcionalNota
-            : (YtSessionHolder.rejected ? tx.sesionVencidaVuelveAConectar : tx.sesionSoloEnEsteDispositivo),
+            : (rejected ? tx.tuSesionDeYoutubeVencio : tx.sesionSoloEnEsteDispositivo),
       ),
       onTap: () => AccountScreen.open(context),
-      trailing: session == null
+      trailing: session == null || rejected
           ? FilledButton(
-              key: const Key('account-sign-in'),
+              key: Key(session == null ? 'account-sign-in' : 'account-sign-in-again'),
               onPressed: () => signInToYouTubeMusic(context, ref),
-              child: Text(tx.iniciarSesionBoton),
+              child: Text(session == null ? tx.iniciarSesionBoton : tx.volverAIniciarSesion),
             )
           : OutlinedButton(
               key: const Key('account-sign-out'),
@@ -464,10 +513,34 @@ class SyncNowTile extends ConsumerWidget {
       key: const Key('settings-yt-sync-now'),
       leading: const Icon(Icons.sync_rounded),
       title: Text(at == null ? tx.todaviaNoSeSincronizo : tx.ultimaSincronizacion(describeDate(at, DateTime.now()))),
-      subtitle: at == null ? null : Text(tx.deTuCuentaMeGustaYPlaylists(sync.liked.length, sync.playlists.length)),
+      subtitle: switch (sync.problem) {
+        SyncProblem.sessionRejected => Text(tx.tuSesionDeYoutubeVencio),
+        SyncProblem.failed => Text(tx.noSePudoLeerTuCuenta),
+        null when at == null => null,
+        null => Text(tx.leidoDeTuCuenta(sync.liked.length, sync.recent.length, sync.playlists.length)),
+      },
       trailing: sync.syncing
           ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
-          : TextButton(onPressed: () => ref.read(ytSyncProvider.notifier).syncNow(), child: Text(tx.sincronizarAhora)),
+          : TextButton(
+              key: const Key('settings-yt-sync-now-button'),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final ok = await ref.read(ytSyncProvider.notifier).syncNow();
+                final after = ref.read(ytSyncProvider);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      ok
+                          ? tx.leidoDeTuCuenta(after.liked.length, after.recent.length, after.playlists.length)
+                          : after.problem == SyncProblem.sessionRejected
+                          ? tx.tuSesionDeYoutubeVencio
+                          : tx.noSePudoLeerTuCuenta,
+                    ),
+                  ),
+                );
+              },
+              child: Text(tx.sincronizarAhora),
+            ),
     );
   }
 }

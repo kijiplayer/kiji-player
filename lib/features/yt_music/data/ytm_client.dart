@@ -615,7 +615,7 @@ class YtMusicClient {
     }
     visitorData ??= await _getVisitorData();
     // Cuenta opcional: solo en las formas que la admiten (la de la web de YouTube Music).
-    final session = client.loginSupported ? YtSessionHolder.usable : null;
+    final session = client.loginSupported ? YtSessionHolder.forStreams : null;
     if (session?.visitorData != null) visitorData = session!.visitorData;
     // Reproductor incrustado: su visitorData y sus encryptedHostFlags salen de la página embed.
     String? hostFlags;
@@ -696,8 +696,8 @@ class YtMusicClient {
       // 401 con la cuenta opcional: YouTube ya no acepta esa sesión (venció o se cerró en otro
       // lado). Se deja de mandar y se reintenta enseguida sin ella, como sin cuenta.
       if (session != null && error is DioException && error.response?.statusCode == 401) {
-        debugPrint('=== YTM stream [${client.label}]: YouTube rechazó la sesión de la cuenta; sigue sin ella ===');
-        YtSessionHolder.rejected = true;
+        debugPrint('=== YTM stream [${client.label}]: YouTube rechazó la sesión para el audio; sigue sin ella ===');
+        YtSessionHolder.streamRefused = true;
         return tryClient(videoId, client, lowQuality: lowQuality, retried: retried);
       }
       return StreamAttempt(

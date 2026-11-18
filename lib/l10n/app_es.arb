@@ -3064,5 +3064,15 @@
   "actualizacionNoSeInstalo": "No se pudo abrir el instalador.",
   "@actualizacionNoSeInstalo": {"description": "Error"},
   "kijiDevNoSeActualiza": "Kiji Dev no se actualiza a la versión pública.",
-  "@kijiDevNoSeActualiza": {"description": "Aviso en Kiji Dev"}
+  "@kijiDevNoSeActualiza": {"description": "Aviso en Kiji Dev"},
+  "tuSesionDeYoutubeVencio": "Tu sesión de YouTube venció. Vuelve a iniciarla.",
+  "@tuSesionDeYoutubeVencio": {"description": "Aviso en Configuración y Biblioteca cuando YouTube rechaza la sesión"},
+  "volverAIniciarSesion": "Volver a iniciar sesión",
+  "@volverAIniciarSesion": {"description": "Botón del aviso de sesión vencida"},
+  "agregadasATuBiblioteca": "Agregadas a tu biblioteca",
+  "@agregadasATuBiblioteca": {"description": "Biblioteca: canciones agregadas a la biblioteca de YouTube Music (recientes primero)"},
+  "leidoDeTuCuenta": "Leído: {liked} me gusta, {recent} en tu biblioteca y {playlists} playlists",
+  "@leidoDeTuCuenta": {"description": "Resultado de Leer ahora", "placeholders": {"liked": {"type": "int"}, "recent": {"type": "int"}, "playlists": {"type": "int"}}},
+  "noSePudoLeerTuCuenta": "No se pudo leer tu cuenta: revisa la conexión y vuelve a probar.",
+  "@noSePudoLeerTuCuenta": {"description": "Leer ahora falló (no por la sesión)"}
 }

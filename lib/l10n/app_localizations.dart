@@ -8446,6 +8446,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Kiji Dev no se actualiza a la versión pública.'**
   String get kijiDevNoSeActualiza;
+
+  /// Aviso en Configuración y Biblioteca cuando YouTube rechaza la sesión
+  ///
+  /// In es, this message translates to:
+  /// **'Tu sesión de YouTube venció. Vuelve a iniciarla.'**
+  String get tuSesionDeYoutubeVencio;
+
+  /// Botón del aviso de sesión vencida
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a iniciar sesión'**
+  String get volverAIniciarSesion;
+
+  /// Biblioteca: canciones agregadas a la biblioteca de YouTube Music (recientes primero)
+  ///
+  /// In es, this message translates to:
+  /// **'Agregadas a tu biblioteca'**
+  String get agregadasATuBiblioteca;
+
+  /// Resultado de Leer ahora
+  ///
+  /// In es, this message translates to:
+  /// **'Leído: {liked} me gusta, {recent} en tu biblioteca y {playlists} playlists'**
+  String leidoDeTuCuenta(int liked, int recent, int playlists);
+
+  /// Leer ahora falló (no por la sesión)
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo leer tu cuenta: revisa la conexión y vuelve a probar.'**
+  String get noSePudoLeerTuCuenta;
 }
 
 class _AppLocalizationsDelegate

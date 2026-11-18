@@ -81,6 +81,7 @@ class AccountNotifier extends Notifier<YtSession?> {
     YtSessionHolder.current = session;
     // Sesión nueva (o sin cuenta): vuelve a valer, aunque YouTube hubiera rechazado la anterior.
     YtSessionHolder.rejected = false;
+    YtSessionHolder.streamRefused = false;
     state = session;
     // Motor A (InnerTubeX, Android) usa la misma sesión.
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
@@ -109,3 +110,17 @@ final accountOfferProvider = StateProvider<AccountOffer?>((ref) => null);
 
 /// Canciones por las que ya se preguntó en esta sesión de Kiji (nunca se insiste).
 final askedForAccount = <String>{};
+
+/// ¿YouTube rechazó la sesión? (Sigue a [YtSessionHolder.rejectedListenable]: la interfaz se
+/// redibuja cuando cambia.)
+final ytSessionRejectedProvider = NotifierProvider<_SessionRejectedNotifier, bool>(_SessionRejectedNotifier.new);
+
+class _SessionRejectedNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    void changed() => state = YtSessionHolder.rejected;
+    YtSessionHolder.rejectedListenable.addListener(changed);
+    ref.onDispose(() => YtSessionHolder.rejectedListenable.removeListener(changed));
+    return YtSessionHolder.rejected;
+  }
+}

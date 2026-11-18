@@ -40,16 +40,59 @@ class SyncedPlaylist {
   }
 }
 
-/// Lo que se leyó de la cuenta: "Me gusta" y las playlists, y cuándo.
+/// Por qué no se pudo leer la cuenta la última vez.
+enum SyncProblem {
+  /// YouTube rechazó la sesión (venció o se cerró en otro lado): hay que volver a iniciarla.
+  sessionRejected,
+
+  /// Sin conexión o YouTube no respondió: se puede reintentar.
+  failed,
+}
+
+/// Lo que se leyó de la cuenta: "Me gusta", lo agregado a la biblioteca (lo más reciente primero)
+/// y las playlists, y cuándo.
 class YtSyncState {
-  const YtSyncState({this.liked = const [], this.playlists = const [], this.syncedAt, this.syncing = false});
+  const YtSyncState({
+    this.liked = const [],
+    this.recent = const [],
+    this.playlists = const [],
+    this.syncedAt,
+    this.syncing = false,
+    this.problem,
+  });
 
   final List<Track> liked;
+
+  /// Canciones agregadas a la biblioteca de YouTube Music (como las ordena YouTube: recientes primero).
+  final List<Track> recent;
   final List<SyncedPlaylist> playlists;
   final DateTime? syncedAt;
   final bool syncing;
+  final SyncProblem? problem;
 
-  bool get isEmpty => liked.isEmpty && playlists.isEmpty;
+  bool get isEmpty => liked.isEmpty && recent.isEmpty && playlists.isEmpty;
+
+  YtSyncState copyWith({bool? syncing, SyncProblem? Function()? problem}) => YtSyncState(
+    liked: liked,
+    recent: recent,
+    playlists: playlists,
+    syncedAt: syncedAt,
+    syncing: syncing ?? this.syncing,
+    problem: problem == null ? this.problem : problem(),
+  );
+}
+
+/// YouTube rechazó la sesión: 401/403, o respondió como a alguien sin sesión.
+class SessionRejected implements Exception {
+  const SessionRejected();
+}
+
+/// ¿La respuesta es la de alguien sin sesión? (YouTube a veces responde 200 sin la cuenta.)
+bool isLoggedOutResponse(Map<String, dynamic>? page) {
+  final context = page?['responseContext'];
+  if (context is! Map) return false;
+  final web = context['mainAppWebResponseContext'];
+  return web is Map && web['loggedOut'] == true;
 }
 
 /// Lee la cuenta (lo que se cambia en las pruebas).
@@ -77,7 +120,8 @@ final ytAccountReaderProvider = Provider<YtAccountReader>((ref) => _ClientReader
 /// "Sincronizar con YouTube": solo con la sesión iniciada y el interruptor prendido (apagado de
 /// fábrica). Solo lectura: trae "Me gusta" y las playlists de la cuenta para verlas en Kiji; nunca
 /// escribe nada en la cuenta. Lo leído queda solo en el dispositivo (`yt_sync.json`, fuera de la
-/// copia de seguridad). Si la sesión falla o venció, Kiji sigue como invitado, sin avisos.
+/// copia de seguridad). Si YouTube rechaza la sesión, se avisa ("Vuelve a iniciarla") y Kiji sigue
+/// como invitado.
 class YtSyncNotifier extends Notifier<YtSyncState> {
   YtSyncNotifier({Future<Directory> Function()? directory}) : _directory = directory ?? getApplicationSupportDirectory;
 
@@ -96,7 +140,15 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
 
   /// Todas las páginas de [browseId] (la primera y las siguientes, hasta [maxPages]).
   Future<List<Map<String, dynamic>>> _pages(YtAccountReader reader, String browseId, YtSession session) async {
-    final first = await reader.browse(browseId, session);
+    Map<String, dynamic>? first;
+    try {
+      first = await reader.browse(browseId, session);
+    } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      if (status == 401 || status == 403) throw const SessionRejected();
+      rethrow;
+    }
+    if (isLoggedOutResponse(first)) throw const SessionRejected();
     if (first == null) return const [];
     final pages = [first];
     var token = parseBrowseContinuation(first);
@@ -151,6 +203,10 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
           for (final t in (json['liked'] as List? ?? const []))
             if (t is Map<String, dynamic>) Track.fromJson(t),
         ],
+        recent: [
+          for (final t in (json['recent'] as List? ?? const []))
+            if (t is Map<String, dynamic>) Track.fromJson(t),
+        ],
         playlists: [for (final pl in (json['playlists'] as List? ?? const [])) ?SyncedPlaylist.fromJson(pl)],
         syncedAt: DateTime.tryParse('${json['syncedAt']}'),
       );
@@ -166,19 +222,24 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
     await syncNow();
   }
 
-  /// Lee la cuenta ahora. Devuelve false si no se pudo (sin sesión, apagado o YouTube la rechazó).
+  /// Lee la cuenta ahora ("Leer ahora" y al abrir Kiji). Devuelve false si no se pudo (sin sesión,
+  /// apagado o YouTube la rechazó); el motivo queda en [YtSyncState.problem] y se muestra.
   Future<bool> syncNow() async {
-    final session = YtSessionHolder.usable;
+    // Aunque la sesión se haya marcado como rechazada, "Leer ahora" vuelve a probar: si YouTube la
+    // acepta, la marca se borra.
+    final session = YtSessionHolder.current;
     if (!ref.read(settingsProvider).ytSync || session == null || state.syncing) return false;
-    state = YtSyncState(liked: state.liked, playlists: state.playlists, syncedAt: state.syncedAt, syncing: true);
+    state = state.copyWith(syncing: true);
     final reader = ref.read(ytAccountReaderProvider);
     try {
-      final liked = _tracks(await _pages(reader, 'FEmusic_liked_videos', session));
+      // "Me gusta" es la playlist LM; las canciones de la biblioteca, lo agregado (recientes primero).
+      final liked = _tracks(await _pages(reader, 'VLLM', session));
+      final recent = _tracks(await _pages(reader, 'FEmusic_liked_videos', session));
       final seenIds = <String>{};
       final ids = [
         for (final page in await _pages(reader, 'FEmusic_liked_playlists', session))
           for (final pl in parseLibraryPlaylists(page))
-            if (seenIds.add(pl.id)) pl,
+            if (pl.id != 'LM' && seenIds.add(pl.id)) pl,
       ];
       final before = {for (final pl in state.playlists) pl.id: pl};
       final playlists = <SyncedPlaylist>[];
@@ -190,26 +251,35 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
         } catch (error) {
           // La sesión venció: se corta todo (ver abajo). Otra falla: esta playlist queda como
           // estaba y siguen las demás (antes una sola hacía fallar toda la lectura).
-          if (error is DioException && error.response?.statusCode == 401) rethrow;
+          if (error is SessionRejected) rethrow;
           debugPrint('=== SINCRONIZAR: una playlist no se pudo leer (${error.runtimeType}); queda la de antes ===');
           final old = before[pl.id];
           if (old != null) playlists.add(old);
         }
       }
       final now = DateTime.now();
-      state = YtSyncState(liked: liked, playlists: playlists, syncedAt: now);
+      YtSessionHolder.rejected = false;
+      state = YtSyncState(liked: liked, recent: recent, playlists: playlists, syncedAt: now);
       await (await _json()).write({
         'syncedAt': now.toIso8601String(),
         'liked': [for (final t in liked) t.toJson()],
+        'recent': [for (final t in recent) t.toJson()],
         'playlists': [for (final pl in playlists) pl.toJson()],
       });
-      debugPrint('=== SINCRONIZAR: ${liked.length} me gusta y ${playlists.length} playlists de la cuenta ===');
+      debugPrint(
+        '=== SINCRONIZAR: ${liked.length} me gusta, ${recent.length} en la biblioteca y ${playlists.length} playlists ===',
+      );
       return true;
+    } on SessionRejected {
+      // La sesión venció o se cerró: se avisa (Configuración y Biblioteca) y Kiji sigue como invitado.
+      YtSessionHolder.rejected = true;
+      debugPrint('=== SINCRONIZAR: YouTube rechazó la sesión; hay que volver a iniciarla ===');
+      state = state.copyWith(syncing: false, problem: () => SyncProblem.sessionRejected);
+      return false;
     } catch (error) {
-      // 401 (la sesión venció o se cerró): la cuenta queda de lado y Kiji sigue como invitado.
-      if (error is DioException && error.response?.statusCode == 401) YtSessionHolder.rejected = true;
-      debugPrint('=== SINCRONIZAR: no se pudo leer la cuenta (${error.runtimeType}); se sigue como invitado ===');
-      state = YtSyncState(liked: state.liked, playlists: state.playlists, syncedAt: state.syncedAt);
+      final detail = error is DioException ? ' ${error.type.name} ${error.response?.statusCode ?? ''}' : '';
+      debugPrint('=== SINCRONIZAR: no se pudo leer la cuenta (${error.runtimeType}$detail) ===');
+      state = state.copyWith(syncing: false, problem: () => SyncProblem.failed);
       return false;
     }
   }
