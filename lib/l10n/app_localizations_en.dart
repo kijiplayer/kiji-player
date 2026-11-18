@@ -1889,11 +1889,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unaVezPorDiaPreguntaA =>
-      'Once a day it asks GitHub if there\'s a new version. It never downloads or installs anything.';
+      'Once a day it asks GitHub if there\'s a new version. It only downloads it if you tap Update.';
 
   @override
   String get unaVezPorDiaPreguntaA2 =>
-      'Once a day it asks GitHub if there\'s a new version and shows you what\'s new. It never downloads or installs anything on its own.';
+      'Once a day it asks GitHub if there\'s a new version and shows you what\'s new. It never downloads or installs anything on its own: only if you tap Update, and after checking the file.';
 
   @override
   String get versionDeKiji => 'Kiji version';
@@ -2418,10 +2418,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String kiji(Object? p0) {
     return 'Kiji $p0';
   }
-
-  @override
-  String get kijiNuncaSeActualizaSoloNi =>
-      'Kiji never updates itself or downloads anything: you download it yourself from the official page, if you want.';
 
   @override
   String get abrirLaPaginaOficial => 'Open the official page';
@@ -3271,7 +3267,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacidadActualizaciones =>
-      'If \"Check for updates\" is on, once a day Kiji asks GitHub for the latest published version. GitHub sees that request as a page visit (your IP and that it\'s Kiji); nothing of yours is sent. You can turn it off in Settings → Updates.';
+      'If \"Check for updates\" is on, once a day Kiji asks GitHub for the latest published version. GitHub sees that request as a page visit (your IP and that it\'s Kiji); nothing of yours is sent. If you tap Update, the file is downloaded from GitHub just like from the page. You can turn it off in Settings → Updates.';
 
   @override
   String get soloParaCancionesConCuenta =>
@@ -5123,4 +5119,93 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get geminiEnPausa =>
       'Gemini isn\'t responding right now. You can translate on your phone in the meantime.';
+
+  @override
+  String actualizarConTamano(String size) {
+    return 'Update ($size)';
+  }
+
+  @override
+  String get descargarDesdeLaPagina => 'Download from the page';
+
+  @override
+  String get actualizarComoFunciona =>
+      'Kiji downloads the official file only when you tap Update, and checks it\'s the published one (checksum and signature) before installing it.';
+
+  @override
+  String bajandoDe(String received, String total) {
+    return 'Downloading: $received of $total';
+  }
+
+  @override
+  String get comprobandoElArchivo =>
+      'Checking that the file is the official one…';
+
+  @override
+  String get noEstasConWifi => 'You\'re not on Wi-Fi';
+
+  @override
+  String bajarConDatosMoviles(String size) {
+    return 'You have \"Wi-Fi only\" or data saver on. Download the update ($size) using mobile data?';
+  }
+
+  @override
+  String get usarDatosMoviles => 'Use mobile data';
+
+  @override
+  String get esperarAlWifi => 'Wait for Wi-Fi';
+
+  @override
+  String get unPermisoParaInstalar => 'One permission to install';
+
+  @override
+  String get permisoInstalarExplicacion =>
+      'To install an update, Android asks you to allow Kiji to install apps. Kiji only uses it to install official Kiji versions it has already checked (the same signature and checksum as the published ones), and only when you tap Update. You can turn it off anytime in your phone\'s settings.';
+
+  @override
+  String get irALosAjustes => 'Open settings';
+
+  @override
+  String get yaLoPermiti => 'I\'ve allowed it';
+
+  @override
+  String get seAbrioElInstalador =>
+      'Android\'s installer is open. If you closed it by mistake, you can open it again.';
+
+  @override
+  String get abrirElInstalador => 'Open the installer';
+
+  @override
+  String get listoParaInstalarEnPc =>
+      'Ready and checked. Kiji will close to install the new version and open again. Your music, playlists and settings stay as they are.';
+
+  @override
+  String get instalarYVolverAAbrir => 'Install and reopen Kiji';
+
+  @override
+  String get actualizacionSinArchivo =>
+      'This version has no file for this device.';
+
+  @override
+  String get actualizacionNoSeBajo =>
+      'Couldn\'t download the update. Check your connection or download it from the page.';
+
+  @override
+  String get actualizacionSinSuma =>
+      'This version doesn\'t publish a checksum to check the file, so it wasn\'t installed.';
+
+  @override
+  String get actualizacionSumaDistinta =>
+      'The downloaded file doesn\'t match the published one: it was deleted and not installed.';
+
+  @override
+  String get actualizacionFirmaDistinta =>
+      'The file isn\'t signed like Kiji: it was deleted and not installed.';
+
+  @override
+  String get actualizacionNoSeInstalo => 'Couldn\'t open the installer.';
+
+  @override
+  String get kijiDevNoSeActualiza =>
+      'Kiji Dev doesn\'t update to the public version.';
 }

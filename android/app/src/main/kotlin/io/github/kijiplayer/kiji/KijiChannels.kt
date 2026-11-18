@@ -53,6 +53,9 @@ object KijiChannels {
         // Ícono a juego con el estilo (AppIcon.kt).
         AppIcon.register(app, messenger)
 
+        // "Actualizar" desde Kiji (AppUpdater.kt).
+        AppUpdater.register(app, messenger)
+
         // La música del teléfono (MediaStore), sin plugins de terceros (MediaLibrary.kt).
         MediaLibrary.register(app, messenger)
 

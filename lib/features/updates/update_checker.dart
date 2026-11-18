@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../utils/json_file.dart';
+import 'domain/update_assets.dart';
 import '../settings/data/settings_store.dart';
 import '../../version.dart';
 
@@ -14,14 +15,20 @@ import 'package:kiji_player/l10n/l10n.dart';
 
 export '../../version.dart';
 
-/// Repositorio oficial. Solo se abre su página; Kiji nunca baja ni instala nada.
+/// Repositorio oficial. Kiji solo baja versiones de aquí, y solo cuando la persona toca "Actualizar".
 const kijiRepo = 'kijiplayer/kiji-player';
 const kijiReleasesPage = 'https://github.com/$kijiRepo/releases';
 
 /// Una versión publicada en GitHub.
 @immutable
 class Release {
-  const Release({required this.version, required this.name, required this.notes, required this.url});
+  const Release({
+    required this.version,
+    required this.name,
+    required this.notes,
+    required this.url,
+    this.assets = const [],
+  });
 
   /// Sin la "v" del principio ("1.2.0").
   final String version;
@@ -30,6 +37,9 @@ class Release {
 
   /// Página oficial de esa versión (siempre dentro del repositorio de Kiji).
   final String url;
+
+  /// Los archivos publicados (APK, instaladores y SHA256SUMS.txt).
+  final List<ReleaseAsset> assets;
 
   static Release? fromJson(Object? json) {
     if (json is! Map) return null;
@@ -42,6 +52,10 @@ class Release {
       notes: '${json['body'] ?? ''}'.trim(),
       // Solo páginas del repositorio oficial: otra dirección no se abre nunca.
       url: url.startsWith('https://github.com/$kijiRepo/') ? url : kijiReleasesPage,
+      assets: [
+        if (json['assets'] case final List list)
+          for (final item in list) ?ReleaseAsset.fromJson(item),
+      ],
     );
   }
 }
@@ -118,7 +132,7 @@ class UpdateNotifier extends Notifier<UpdateState> {
             BaseOptions(
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 15),
-              headers: {'Accept': 'application/vnd.github+json', 'User-Agent': 'KijiPlayer/$kijiVersion'},
+              headers: {'Accept': 'application/vnd.github+json', 'User-Agent': 'KijiPlayer'},
             ),
           ),
       _directoryPath = directory,

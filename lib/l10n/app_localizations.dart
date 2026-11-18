@@ -3272,13 +3272,13 @@ abstract class AppLocalizations {
   /// No description provided for @unaVezPorDiaPreguntaA.
   ///
   /// In es, this message translates to:
-  /// **'Una vez por día pregunta a GitHub si hay una versión nueva. Nunca baja ni instala nada.'**
+  /// **'Una vez por día pregunta a GitHub si hay una versión nueva. Solo la baja si tocas Actualizar.'**
   String get unaVezPorDiaPreguntaA;
 
   /// No description provided for @unaVezPorDiaPreguntaA2.
   ///
   /// In es, this message translates to:
-  /// **'Una vez por día pregunta a GitHub si hay una versión nueva y te muestra sus novedades. Nunca baja ni instala nada por su cuenta.'**
+  /// **'Una vez por día pregunta a GitHub si hay una versión nueva y te muestra sus novedades. Nunca baja ni instala nada por su cuenta: solo si tocas Actualizar, y después de comprobar el archivo.'**
   String get unaVezPorDiaPreguntaA2;
 
   /// No description provided for @versionDeKiji.
@@ -4168,12 +4168,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Kiji {p0}'**
   String kiji(Object? p0);
-
-  /// No description provided for @kijiNuncaSeActualizaSoloNi.
-  ///
-  /// In es, this message translates to:
-  /// **'Kiji nunca se actualiza solo ni baja nada: la descarga la haces tú desde la página oficial, si quieres.'**
-  String get kijiNuncaSeActualizaSoloNi;
 
   /// No description provided for @abrirLaPaginaOficial.
   ///
@@ -5432,7 +5426,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacidadActualizaciones.
   ///
   /// In es, this message translates to:
-  /// **'Si \"Buscar actualizaciones\" está prendido, una vez por día Kiji le pide a GitHub cuál es la última versión publicada. GitHub ve esa consulta como una visita a una página (tu IP y que es Kiji); no se manda nada tuyo. Se apaga en Configuración → Actualizaciones.'**
+  /// **'Si \"Buscar actualizaciones\" está prendido, una vez por día Kiji le pide a GitHub cuál es la última versión publicada. GitHub ve esa consulta como una visita a una página (tu IP y que es Kiji); no se manda nada tuyo. Si tocas Actualizar, el archivo se baja de GitHub igual que desde la página. Se apaga en Configuración → Actualizaciones.'**
   String get privacidadActualizaciones;
 
   /// No description provided for @soloParaCancionesConCuenta.
@@ -8308,6 +8302,150 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Gemini no está respondiendo ahora. Puedes traducir en el teléfono mientras tanto.'**
   String get geminiEnPausa;
+
+  /// Botón que baja e instala la versión nueva
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizar ({size})'**
+  String actualizarConTamano(String size);
+
+  /// Abre la página oficial de la versión
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar desde la página'**
+  String get descargarDesdeLaPagina;
+
+  /// Explicación bajo el botón Actualizar
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji baja el archivo oficial solo cuando tocas Actualizar, y comprueba que sea el publicado (suma y firma) antes de instalarlo.'**
+  String get actualizarComoFunciona;
+
+  /// Progreso de la descarga
+  ///
+  /// In es, this message translates to:
+  /// **'Bajando: {received} de {total}'**
+  String bajandoDe(String received, String total);
+
+  /// Mientras se verifica la descarga
+  ///
+  /// In es, this message translates to:
+  /// **'Comprobando que el archivo sea el oficial…'**
+  String get comprobandoElArchivo;
+
+  /// Título de la pregunta por datos móviles
+  ///
+  /// In es, this message translates to:
+  /// **'No estás con Wi-Fi'**
+  String get noEstasConWifi;
+
+  /// Pregunta antes de usar datos móviles
+  ///
+  /// In es, this message translates to:
+  /// **'Tienes «solo con Wi-Fi» o el ahorro de datos. ¿Bajar la actualización ({size}) con datos móviles?'**
+  String bajarConDatosMoviles(String size);
+
+  /// Botón
+  ///
+  /// In es, this message translates to:
+  /// **'Usar datos móviles'**
+  String get usarDatosMoviles;
+
+  /// Botón
+  ///
+  /// In es, this message translates to:
+  /// **'Esperar al Wi-Fi'**
+  String get esperarAlWifi;
+
+  /// Título de la explicación del permiso
+  ///
+  /// In es, this message translates to:
+  /// **'Un permiso para instalar'**
+  String get unPermisoParaInstalar;
+
+  /// Explicación antes de abrir el ajuste de instalar apps
+  ///
+  /// In es, this message translates to:
+  /// **'Para instalar una actualización, Android pide que permitas a Kiji instalar apps. Kiji solo lo usa para instalar versiones oficiales de Kiji, ya comprobadas (la misma firma y la misma suma que las publicadas), y solo cuando tocas Actualizar. Lo puedes quitar cuando quieras en los ajustes del teléfono.'**
+  String get permisoInstalarExplicacion;
+
+  /// Botón
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a los ajustes'**
+  String get irALosAjustes;
+
+  /// Botón al volver de los ajustes
+  ///
+  /// In es, this message translates to:
+  /// **'Ya lo permití'**
+  String get yaLoPermiti;
+
+  /// Después de abrir el instalador
+  ///
+  /// In es, this message translates to:
+  /// **'Se abrió el instalador de Android. Si lo cerraste sin querer, puedes abrirlo de nuevo.'**
+  String get seAbrioElInstalador;
+
+  /// Botón
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir el instalador'**
+  String get abrirElInstalador;
+
+  /// Windows: antes de instalar
+  ///
+  /// In es, this message translates to:
+  /// **'Listo y comprobado. Kiji se cerrará para instalar la versión nueva y volverá a abrirse. Tu música, tus playlists y tus ajustes no se tocan.'**
+  String get listoParaInstalarEnPc;
+
+  /// Botón en Windows
+  ///
+  /// In es, this message translates to:
+  /// **'Instalar y volver a abrir Kiji'**
+  String get instalarYVolverAAbrir;
+
+  /// Error
+  ///
+  /// In es, this message translates to:
+  /// **'Esta versión no trae un archivo para este equipo.'**
+  String get actualizacionSinArchivo;
+
+  /// Error
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo bajar la actualización. Revisa tu conexión o bájala desde la página.'**
+  String get actualizacionNoSeBajo;
+
+  /// Error
+  ///
+  /// In es, this message translates to:
+  /// **'Esta versión no publica una suma para comprobar el archivo, así que no se instaló.'**
+  String get actualizacionSinSuma;
+
+  /// Error
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo bajado no coincide con el publicado: se borró y no se instaló.'**
+  String get actualizacionSumaDistinta;
+
+  /// Error
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo no está firmado como Kiji: se borró y no se instaló.'**
+  String get actualizacionFirmaDistinta;
+
+  /// Error
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo abrir el instalador.'**
+  String get actualizacionNoSeInstalo;
+
+  /// Aviso en Kiji Dev
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji Dev no se actualiza a la versión pública.'**
+  String get kijiDevNoSeActualiza;
 }
 
 class _AppLocalizationsDelegate

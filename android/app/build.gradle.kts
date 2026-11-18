@@ -96,6 +96,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("androidx.collection:collection-ktx:1.5.0")
+    // FileProvider: el APK de una actualización se le pasa al instalador del sistema (AppUpdater.kt).
+    implementation("androidx.core:core:1.13.1")
     // Prueba diaria del extractor: solo con WiFi y batería no baja.
     implementation("androidx.work:work-runtime-ktx:2.10.5")
 }
