@@ -8,6 +8,7 @@ import '../data/moments_store.dart';
 import '../domain/moment.dart';
 import 'moments_screen.dart';
 
+import '../../../widgets/top_notice.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
@@ -248,24 +249,20 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
             end: Duration(seconds: _range.end.round()),
           )
         : notifier.add(track, widget.position);
-    Navigator.of(context).pop();
-    if (moment.isInterval && _repeat) {
-      toggleMomentLoop(context, ref, moment);
-      return;
-    }
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            moment.isInterval
-                ? tx.tramoGuardado(formatDuration(moment.position), formatDuration(moment.end!))
-                : tx.momentoGuardadoEn(formatDuration(moment.position)),
-          ),
-          persist: false,
-          action: SnackBarAction(label: tx.ver, onPressed: () => MomentsScreen.open(context)),
-        ),
+    // El aviso se muestra antes de cerrar la hoja: después su `context` ya no existe ("View" daba
+    // "Null check operator used on a null value"). Va arriba y corto, para no tapar los controles.
+    if (!(moment.isInterval && _repeat)) {
+      showTopNotice(
+        context,
+        message: moment.isInterval
+            ? tx.tramoGuardado(formatDuration(moment.position), formatDuration(moment.end!))
+            : tx.momentoGuardadoEn(formatDuration(moment.position)),
+        actionLabel: tx.ver,
+        onAction: MomentsScreen.openWith,
       );
+    }
+    if (moment.isInterval && _repeat) toggleMomentLoop(context, ref, moment);
+    Navigator.of(context).pop();
   }
 
   @override

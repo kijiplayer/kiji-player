@@ -7,6 +7,7 @@ import '../../../providers/playback_provider.dart';
 import '../../../theme/kiji_tokens.dart';
 import '../../../utils/duration_formatter.dart';
 import '../../../widgets/album_cover.dart';
+import '../../../widgets/top_notice.dart';
 import '../../customize/presentation/track_text.dart';
 import '../data/moments_store.dart';
 import '../domain/moment.dart';
@@ -20,15 +21,13 @@ void saveCurrentMoment(BuildContext context, WidgetRef ref) {
   final track = playback.track;
   if (track == null) return;
   final moment = ref.read(momentsProvider.notifier).add(track, playback.position);
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        content: Text(tx.momentoGuardadoEn(formatDuration(moment.position))),
-        persist: false,
-        action: SnackBarAction(label: tx.ver, onPressed: () => MomentsScreen.open(context)),
-      ),
-    );
+  // Arriba y corto: abajo están los controles del reproductor.
+  showTopNotice(
+    context,
+    message: tx.momentoGuardadoEn(formatDuration(moment.position)),
+    actionLabel: tx.ver,
+    onAction: MomentsScreen.openWith,
+  );
 }
 
 /// Ir a un Momento: la canción arranca en ese segundo.
@@ -46,8 +45,11 @@ Future<void> playMoment(WidgetRef ref, Moment moment) {
 class MomentsScreen extends ConsumerWidget {
   const MomentsScreen({super.key});
 
-  static Future<void> open(BuildContext context) =>
-      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const MomentsScreen()));
+  static Future<void> open(BuildContext context) => openWith(Navigator.of(context));
+
+  /// Con un Navigator guardado antes (el aviso de "Momento guardado" ya no tiene su `context`).
+  static Future<void> openWith(NavigatorState navigator) =>
+      navigator.push(MaterialPageRoute<void>(builder: (_) => const MomentsScreen()));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
