@@ -21,15 +21,35 @@ class TheaterScreen extends ConsumerStatefulWidget {
   ConsumerState<TheaterScreen> createState() => _TheaterScreenState();
 }
 
-class _TheaterScreenState extends ConsumerState<TheaterScreen> {
+class _TheaterScreenState extends ConsumerState<TheaterScreen> with SingleTickerProviderStateMixin {
   final _keys = [GlobalKey(), GlobalKey(), GlobalKey(), GlobalKey()];
   final _pages = PageController(viewportFraction: 0.88);
   int _page = 0;
   bool _sharing = false;
 
+  /// La entrada: el telón se abre y la cartelera aparece (antes aparecía de golpe).
+  late final AnimationController _entrance = AnimationController(
+    vsync: this,
+    duration: TheaterCurtain.duration,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_entrance.isDismissed && !_entrance.isAnimating) {
+      // Con "reducir animaciones", sin telón.
+      if (KijiEffects.still(context)) {
+        _entrance.value = 1;
+      } else {
+        _entrance.forward();
+      }
+    }
+  }
+
   @override
   void dispose() {
     _pages.dispose();
+    _entrance.dispose();
     super.dispose();
   }
 
@@ -91,7 +111,10 @@ class _TheaterScreenState extends ConsumerState<TheaterScreen> {
                 ),
               ),
             )
-          : Column(
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                _entering(Column(
               children: [
                 Expanded(
                   child: PageView.builder(
@@ -124,7 +147,91 @@ class _TheaterScreenState extends ConsumerState<TheaterScreen> {
                   ),
                 ),
               ],
+            )),
+                // El telón, encima, hasta que se abre del todo.
+                IgnorePointer(child: TheaterCurtain(progress: _entrance)),
+              ],
             ),
+    );
+  }
+
+  /// La cartelera entra mientras se abre el telón: aparece y se acerca un poco.
+  Widget _entering(Widget child) {
+    final show = CurvedAnimation(parent: _entrance, curve: const Interval(0.3, 1, curve: Curves.easeOutCubic));
+    return FadeTransition(
+      opacity: show,
+      child: ScaleTransition(scale: Tween(begin: 0.92, end: 1.0).animate(show), child: child),
+    );
+  }
+}
+
+/// El telón rojo de la entrada al Teatro: dos mitades con pliegues y flecos dorados que se abren
+/// hacia los costados.
+class TheaterCurtain extends StatelessWidget {
+  const TheaterCurtain({super.key, required this.progress});
+
+  static const duration = Duration(milliseconds: 1100);
+
+  /// 0: cerrado; 1: abierto del todo (y no se dibuja).
+  final Animation<double> progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: progress,
+      builder: (context, _) {
+        if (progress.value >= 1) return const SizedBox.shrink();
+        final open = Curves.easeInOutCubic.transform(progress.value);
+        return LayoutBuilder(
+          builder: (context, box) {
+            final half = box.maxWidth / 2;
+            return Stack(
+              children: [
+                Positioned(
+                  left: -half * open,
+                  top: 0,
+                  bottom: 0,
+                  width: half + 1,
+                  child: const _CurtainHalf(left: true),
+                ),
+                Positioned(
+                  right: -half * open,
+                  top: 0,
+                  bottom: 0,
+                  width: half + 1,
+                  child: const _CurtainHalf(left: false),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CurtainHalf extends StatelessWidget {
+  const _CurtainHalf({required this.left});
+
+  final bool left;
+
+  @override
+  Widget build(BuildContext context) {
+    const light = KijiColors.theaterCurtain;
+    final dark = KijiColors.theaterCurtainShadow;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        // Pliegues: franjas de luz y sombra.
+        gradient: LinearGradient(
+          colors: [dark, light, dark, light, dark, light, dark],
+          stops: const [0, 0.14, 0.3, 0.46, 0.62, 0.8, 1],
+        ),
+        border: Border(
+          bottom: const BorderSide(color: KijiColors.theaterGold, width: 6),
+          left: left ? BorderSide.none : const BorderSide(color: KijiColors.theaterGold, width: 2),
+          right: left ? const BorderSide(color: KijiColors.theaterGold, width: 2) : BorderSide.none,
+        ),
+      ),
     );
   }
 }
