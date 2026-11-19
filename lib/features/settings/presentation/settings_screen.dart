@@ -479,18 +479,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => ExcludedFoldersScreen.open(context),
         ),
       ),
-      SettingOption(
-        section: SettingsSection.storage,
-        title: tx.ocultarAudiosCortos,
-        subtitle: tx.noMostrarEnLaBibliotecaLos,
-        keywords: const ['sonidos', 'notificaciones', 'juegos', 'tonos', 'filtrar'],
-        builder: (context, ref) => SwitchListTile(
-          title: Text(tx.ocultarAudiosCortos),
-          subtitle: Text(tx.noMuestraEnLaBibliotecaLos),
-          value: ref.watch(settingsProvider).hideShortAudios,
-          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(hideShortAudios: value)),
+      // En Android, lo de menos de 30 s ya queda afuera siempre (ver `filterMusic`).
+      if (kIsWeb || defaultTargetPlatform != TargetPlatform.android)
+        SettingOption(
+          section: SettingsSection.storage,
+          title: tx.ocultarAudiosCortos,
+          subtitle: tx.noMostrarEnLaBibliotecaLos,
+          keywords: const ['sonidos', 'notificaciones', 'juegos', 'tonos', 'filtrar'],
+          builder: (context, ref) => SwitchListTile(
+            title: Text(tx.ocultarAudiosCortos),
+            subtitle: Text(tx.noMuestraEnLaBibliotecaLos),
+            value: ref.watch(settingsProvider).hideShortAudios,
+            onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(hideShortAudios: value)),
+          ),
         ),
-      ),
       // Letras
       SettingOption(
         section: SettingsSection.lyrics,
