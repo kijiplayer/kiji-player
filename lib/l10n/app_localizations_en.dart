@@ -5244,4 +5244,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sesionIniciadaCorto => 'Signed in';
+
+  @override
+  String get cartelKijiTeatro => 'KIJI  ·  THEATER';
+
+  @override
+  String get letraMenosMedioSegundo => '−0.5 s';
+
+  @override
+  String get letraMasMedioSegundo => '+0.5 s';
 }

@@ -8506,6 +8506,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sesión iniciada'**
   String get sesionIniciadaCorto;
+
+  /// Encabezado de la cartelera del Teatro (en mayúsculas, con espacios)
+  ///
+  /// In es, this message translates to:
+  /// **'KIJI  ·  TEATRO'**
+  String get cartelKijiTeatro;
+
+  /// Botón del panel de letras: adelantar la letra medio segundo
+  ///
+  /// In es, this message translates to:
+  /// **'−0,5 s'**
+  String get letraMenosMedioSegundo;
+
+  /// Botón del panel de letras: atrasar la letra medio segundo
+  ///
+  /// In es, this message translates to:
+  /// **'+0,5 s'**
+  String get letraMasMedioSegundo;
 }
 
 class _AppLocalizationsDelegate

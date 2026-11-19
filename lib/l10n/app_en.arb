@@ -1418,5 +1418,8 @@
   "comprobandoTuSesion": "Checking your session…",
   "todaviaNoApareceTuSesion": "Your Google session doesn't show up yet. Finish signing in on the page (with your password and the second step, if you have one) and tap \"I've signed in\" again.",
   "youtubeNoAceptoLaSesion": "Google signed you in, but YouTube Music didn't accept the session. Try again; if it keeps happening, open music.youtube.com in a browser and check that the account can use YouTube Music.",
-  "sesionIniciadaCorto": "Signed in"
+  "sesionIniciadaCorto": "Signed in",
+  "cartelKijiTeatro": "KIJI  ·  THEATER",
+  "letraMenosMedioSegundo": "−0.5 s",
+  "letraMasMedioSegundo": "+0.5 s"
 }

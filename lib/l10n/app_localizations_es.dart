@@ -5255,4 +5255,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sesionIniciadaCorto => 'Sesión iniciada';
+
+  @override
+  String get cartelKijiTeatro => 'KIJI  ·  TEATRO';
+
+  @override
+  String get letraMenosMedioSegundo => '−0,5 s';
+
+  @override
+  String get letraMasMedioSegundo => '+0,5 s';
 }

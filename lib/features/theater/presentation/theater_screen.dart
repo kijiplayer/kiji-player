@@ -208,7 +208,7 @@ class _Bulbs extends StatelessWidget {
   }
 }
 
-/// Encabezado de cartel: "KIJI · TEATRO", el título grande y un adorno.
+/// Encabezado de cartel: "KIJI · TEATRO" (en el idioma de la app), el título grande y un adorno.
 class _Heading extends StatelessWidget {
   const _Heading({required this.title, this.emoji});
 
@@ -220,7 +220,7 @@ class _Heading extends StatelessWidget {
     final accent = KijiColors.theaterPosterAccent;
     return Column(
       children: [
-        Text('KIJI  ·  TEATRO', textAlign: TextAlign.center, style: KijiText.poster(size: 12, spacing: 4, color: accent)), // l10n-ignore
+        Text(tx.cartelKijiTeatro, textAlign: TextAlign.center, style: KijiText.poster(size: 12, spacing: 4, color: accent)),
         const SizedBox(height: 10),
         if (emoji != null) Text(emoji!, style: const TextStyle(fontSize: 38)),
         Text(title.toUpperCase(), textAlign: TextAlign.center, style: KijiText.poster(size: 26, spacing: 1)),

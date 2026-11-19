@@ -38,7 +38,9 @@ const tenBands = [31.0, 62.0, 125.0, 250.0, 500.0, 1000.0, 2000.0, 4000.0, 8000.
 
 Map<int, double> _curve(List<double> db) => {for (var i = 0; i < tenBands.length; i++) tenBands[i].round(): db[i]};
 
-final eqPresets = <EqPreset>[
+/// Un getter (no una lista fija): los nombres salen del idioma de ahora, no del que había al leerla por
+/// primera vez (en inglés se veían «Bajos», «Voz», «Noche»).
+List<EqPreset> get eqPresets => <EqPreset>[
   EqPreset('flat', tx.eqNormal, _curve([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])),
   EqPreset('bass', tx.eqBajos, _curve([6, 6, 5, 3, 1, 0, 0, 0, 0, 0])),
   EqPreset('vocal', tx.eqVoz, _curve([-3, -3, -2, -1, 1, 3, 4, 3, 1, 0])),
