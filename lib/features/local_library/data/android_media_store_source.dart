@@ -18,6 +18,9 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
   final LocalLibraryService _service;
   final LocalScanStore _store;
 
+  /// La última cantidad de audios que no son música (para registrarla solo cuando cambia).
+  static int? _lastSkipped;
+
   @override
   bool get usesFolders => false;
 
@@ -67,7 +70,11 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
         ),
       );
     }
-    if (skipped > 0) debugPrint('=== BIBLIOTECA: $skipped audios que no son música quedan afuera ===');
+    // Una vez, y otra solo si cambia la cantidad (el registro se llenaba y tapaba lo importante).
+    if (skipped > 0 && skipped != _lastSkipped) {
+      debugPrint('=== BIBLIOTECA: $skipped audios que no son música quedan afuera ===');
+    }
+    _lastSkipped = skipped;
     final tracks = await _store.scan(entries: entries, force: force, exclusions: exclusions);
     return [...tracks]..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
   }
