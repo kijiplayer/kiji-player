@@ -256,10 +256,22 @@ class _WaveformPainter extends CustomPainter {
     }
   }
 
+  /// Cuánto se ve lo que falta por sonar (con el color del acento).
+  static const restAlpha = 0.35;
+
   void _paintBars(Canvas canvas, Size size) {
     // En Grafito y Papel el acento es un solo color: la onda queda monocroma (blanco o tinta).
     final played = Paint()..shader = KijiColors.accentGradient.createShader(Offset.zero & size);
-    final rest = Paint()..color = KijiColors.waveRest;
+    // Lo que falta, con el mismo degradado más tenue: la onda nace ya con el color del estilo (antes,
+    // al empezar una canción quedaba toda gris).
+    final gradient = KijiColors.accentGradient;
+    final rest = Paint()
+      ..shader = LinearGradient(
+        colors: [for (final c in gradient.colors) c.withValues(alpha: c.a * restAlpha)],
+        stops: gradient.stops,
+        begin: gradient.begin,
+        end: gradient.end,
+      ).createShader(Offset.zero & size);
     final step = size.width / bars.length;
     final radius = Radius.circular(barWidth / 2);
 
