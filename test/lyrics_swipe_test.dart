@@ -66,4 +66,41 @@ void main() {
       expect(await swipe(tester, const Offset(200, 600), const Offset(0, -50)), 0);
     });
   });
+
+  group('Cerrar el reproductor deslizando hacia abajo', () {
+    Future<(int, int)> swipe(WidgetTester tester, Offset from, Offset by, {double speed = 1500}) async {
+      var up = 0, down = 0;
+      tester.view.physicalSize = const Size(400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        home: LyricsSwipeDetector(
+          onSwipeUp: () => up++,
+          onSwipeDown: () => down++,
+          child: const SizedBox.expand(key: Key('reproductor')),
+        ),
+      ));
+      await tester.flingFrom(from, by, speed);
+      await tester.pumpAndSettle();
+      return (up, down);
+    }
+
+    testWidgets('un deslizar claro hacia abajo lo cierra', (tester) async {
+      expect(await swipe(tester, const Offset(200, 300), const Offset(0, 300)), (0, 1));
+    });
+
+    testWidgets('un recorrido largo y lento también', (tester) async {
+      expect(await swipe(tester, const Offset(200, 200), const Offset(0, 400), speed: 200), (0, 1));
+    });
+
+    testWidgets('un toquecito no lo cierra y vuelve a su lugar', (tester) async {
+      expect(await swipe(tester, const Offset(200, 300), const Offset(0, 30), speed: 100), (0, 0));
+      final moved = tester.getTopLeft(find.byKey(const Key('reproductor')));
+      expect(moved.dy, 0, reason: 'volvió arriba');
+    });
+
+    testWidgets('hacia arriba sigue abriendo la letra (y no lo cierra)', (tester) async {
+      expect(await swipe(tester, const Offset(200, 600), const Offset(0, -300)), (1, 0));
+    });
+  });
 }

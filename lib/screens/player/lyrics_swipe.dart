@@ -42,20 +42,30 @@ class LyricsSwipeRule {
   bool accepts({required double upwardDistance, required double upwardVelocity}) =>
       upwardDistance >= minDistance && upwardVelocity >= minVelocity;
 
+  /// ¿El arrastre hacia abajo alcanza para cerrar el reproductor? Un recorrido largo (aunque sea
+  /// lento) o uno corto y rápido, como en cualquier reproductor.
+  bool acceptsDown({required double downwardDistance, required double downwardVelocity}) =>
+      downwardDistance >= minDistance * 1.5 || (downwardDistance >= minDistance / 2 && downwardVelocity >= minVelocity);
+
   static double _max(double a, double b) => a > b ? a : b;
 }
 
 /// Envuelve el reproductor y llama a [onSwipeUp] solo con un deslizar hacia arriba claro que no
-/// empezó en la zona de gestos del sistema ni mientras Kiji se iba a segundo plano.
+/// empezó en la zona de gestos del sistema ni mientras Kiji se iba a segundo plano. Hacia abajo
+/// ([onSwipeDown]) el reproductor sigue al dedo y, al soltar, se cierra o vuelve a su lugar.
 class LyricsSwipeDetector extends StatefulWidget {
   const LyricsSwipeDetector({
     super.key,
     required this.onSwipeUp,
     required this.child,
+    this.onSwipeDown,
     this.rule = const LyricsSwipeRule(),
   });
 
   final VoidCallback onSwipeUp;
+
+  /// Deslizar hacia abajo: cerrar el reproductor.
+  final VoidCallback? onSwipeDown;
   final Widget child;
   final LyricsSwipeRule rule;
 
@@ -63,9 +73,17 @@ class LyricsSwipeDetector extends StatefulWidget {
   State<LyricsSwipeDetector> createState() => _LyricsSwipeDetectorState();
 }
 
-class _LyricsSwipeDetectorState extends State<LyricsSwipeDetector> with WidgetsBindingObserver {
+class _LyricsSwipeDetectorState extends State<LyricsSwipeDetector>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   Offset? _start;
   Offset? _last;
+
+  /// Cuánto bajó el reproductor siguiendo al dedo (y su vuelta a 0 si no se cierra).
+  late final AnimationController _drag = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+    upperBound: double.infinity,
+  );
 
   @override
   void initState() {
@@ -76,6 +94,7 @@ class _LyricsSwipeDetectorState extends State<LyricsSwipeDetector> with WidgetsB
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _drag.dispose();
     super.dispose();
   }
 
@@ -103,19 +122,33 @@ class _LyricsSwipeDetectorState extends State<LyricsSwipeDetector> with WidgetsB
   }
 
   void _onUpdate(DragUpdateDetails details) {
-    if (_start != null) _last = details.globalPosition;
+    final start = _start;
+    if (start == null) return;
+    _last = details.globalPosition;
+    if (widget.onSwipeDown != null) _drag.value = (details.globalPosition.dy - start.dy).clamp(0, double.infinity);
+  }
+
+  void _settleBack() {
+    if (_drag.value > 0) _drag.animateTo(0, curve: Curves.easeOutCubic);
   }
 
   void _onEnd(DragEndDetails details) {
     final start = _start;
     final last = _last;
     _reset();
-    if (start == null || last == null) return;
+    if (start == null || last == null) return _settleBack();
     final lifecycle = WidgetsBinding.instance.lifecycleState;
-    if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
+    if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return _settleBack();
+    final velocity = details.primaryVelocity ?? 0;
+    final down = widget.onSwipeDown;
+    if (down != null && widget.rule.acceptsDown(downwardDistance: last.dy - start.dy, downwardVelocity: velocity)) {
+      down();
+      return;
+    }
+    _settleBack();
     final accepted = widget.rule.accepts(
       upwardDistance: start.dy - last.dy,
-      upwardVelocity: -(details.primaryVelocity ?? 0),
+      upwardVelocity: -velocity,
     );
     if (accepted) widget.onSwipeUp();
   }
@@ -128,8 +161,18 @@ class _LyricsSwipeDetectorState extends State<LyricsSwipeDetector> with WidgetsB
       onVerticalDragStart: _onStart,
       onVerticalDragUpdate: _onUpdate,
       onVerticalDragEnd: _onEnd,
-      onVerticalDragCancel: _reset,
-      child: widget.child,
+      onVerticalDragCancel: () {
+        _reset();
+        _settleBack();
+      },
+      child: widget.onSwipeDown == null
+          ? widget.child
+          : AnimatedBuilder(
+              animation: _drag,
+              builder: (context, child) =>
+                  Transform.translate(offset: Offset(0, _drag.value), child: child),
+              child: widget.child,
+            ),
     );
   }
 }

@@ -112,8 +112,10 @@ class PlayerScreen extends ConsumerWidget {
                   PlayerHalo(track: track, playing: playback.isPlaying),
                 // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
                 // del sistema (salir de Kiji desde abajo no debe abrir la letra).
+                // Deslizar hacia abajo lo cierra, como en cualquier reproductor.
                 LyricsSwipeDetector(
                   onSwipeUp: () => LyricsScreen.open(context),
+                  onSwipeDown: () => Navigator.of(context).maybePop(),
                   child: SafeArea(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
