@@ -132,7 +132,7 @@ class KijiTheme {
         customAccent: accent == AppSettings.customAccentName ? custom : null,
         font: font,
         blur: blur.toDouble().clamp(0, AppSettings.maxBackgroundBlur),
-        opacity: opacity.toDouble().clamp(0.1, 1),
+        opacity: opacity.toDouble().clamp(AppSettings.minBackgroundOpacity, 1),
         imageName: imageName,
         imageBytes: imageBytes,
       );

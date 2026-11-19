@@ -108,7 +108,7 @@ class CustomBackground extends ConsumerWidget {
         children: [
           ColoredBox(color: KijiColors.background),
           Opacity(
-            opacity: s.opacity.clamp(0.1, 1),
+            opacity: s.opacity.clamp(AppSettings.minBackgroundOpacity, 1),
             child: s.blur <= 0.5
                 ? media
                 : ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: s.blur, sigmaY: s.blur), child: media),
@@ -126,7 +126,7 @@ class CustomBackground extends ConsumerWidget {
     return _StillBackground(
       file: file,
       background: KijiColors.background,
-      opacity: s.opacity.clamp(0.1, 1).toDouble(),
+      opacity: s.opacity.clamp(AppSettings.minBackgroundOpacity, 1).toDouble(),
       blur: s.blur,
       scrim: KijiColors.background.withValues(alpha: scrim),
       fallback: layers,
@@ -509,8 +509,8 @@ class BackgroundOptions extends ConsumerWidget {
           ),
           Text(tx.opacidad, style: KijiText.mono(size: 11)),
           Slider(
-            value: s.backgroundOpacity,
-            min: 0.1,
+            value: s.backgroundOpacity.clamp(AppSettings.minBackgroundOpacity, 1),
+            min: AppSettings.minBackgroundOpacity,
             onChanged: (v) => notifier.update((s) => s.copyWith(backgroundOpacity: v)),
           ),
         ],

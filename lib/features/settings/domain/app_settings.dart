@@ -280,6 +280,10 @@ class AppSettings {
   /// Desenfoque del fondo (0 a [maxBackgroundBlur]) y cuánto se ve (0,1 a 1).
   final double backgroundBlur;
   final double backgroundOpacity;
+
+  /// La opacidad más baja del fondo propio: con menos, la foto desaparecía en el fondo del estilo
+  /// (casi negro en Grafito y Nocturne) y no tenía sentido tenerla puesta.
+  static const minBackgroundOpacity = 0.25;
   static const maxBackgroundBlur = 30.0;
 
   /// El color propio, si se eligió uno.
@@ -578,7 +582,7 @@ class AppSettings {
           : null,
       backgroundKind: json['backgroundKind'] == 'video' ? 'video' : 'image',
       backgroundBlur: (json['backgroundBlur'] as num?)?.toDouble().clamp(0, maxBackgroundBlur) ?? d.backgroundBlur,
-      backgroundOpacity: (json['backgroundOpacity'] as num?)?.toDouble().clamp(0.1, 1) ?? d.backgroundOpacity,
+      backgroundOpacity: (json['backgroundOpacity'] as num?)?.toDouble().clamp(minBackgroundOpacity, 1) ?? d.backgroundOpacity,
       theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,
