@@ -1,5 +1,21 @@
 # Novedades de Kiji Player
 
+## 0.8.5 — sin publicar
+
+**Arreglos**
+- Los títulos del reproductor ya no se parten a mitad de palabra: se achican si hace falta y
+  usan todo el ancho.
+- Con Kiji en inglés no quedan textos en español (ecualizador, Teatro, búsqueda).
+- El reproductor se cierra deslizando hacia abajo.
+- El Teatro entra con su telón, y cambiar de estilo es un fundido suave (sin pantalla negra).
+- «Momento guardado»: el aviso va arriba, dura poco y «Ver» abre tus momentos.
+- Elegir un preset del ecualizador ya no prende los efectos solo.
+- «Estilo de esta canción» muestra la canción que suena y marca el fondo elegido.
+- La onda arranca con color, y «Reproduciendo desde» no cambia a mitad de la canción.
+- La búsqueda muestra resultados antes, y las búsquedas recientes se pueden dejar de guardar.
+- La Biblioteca ya no muestra como música las grabaciones o audios sueltos de Descargas, y lee
+  la música del teléfono una sola vez.
+
 ## 0.8.4 — 18 de noviembre de 2026
 
 **Actualizar desde Kiji**

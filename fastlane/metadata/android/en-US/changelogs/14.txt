@@ -1,0 +1,5 @@
+• Player titles no longer break mid-word, and the player closes with a swipe down.
+• No more Spanish text when Kiji is in English.
+• The Theater opens with its curtain; changing style is a smooth fade.
+• Faster search, and you can stop saving recent searches.
+• Fixes for Moments, the equalizer, the song style and the Library.
