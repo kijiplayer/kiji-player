@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiji_player/features/style/presentation/style_parts.dart';
 
 import 'package:kiji_player/features/customize/data/track_overrides.dart';
 import 'package:kiji_player/features/customize/presentation/track_style_sheet.dart';
@@ -87,5 +88,40 @@ void main() {
     await tester.tap(find.byKey(const Key('track-style-reset')));
     await tester.pump();
     expect(c.read(trackOverridesProvider)[_song.id]?.hasStyle ?? false, isFalse);
+  });
+
+  testWidgets('La hoja: la vista previa es la canción que suena y se marca el fondo elegido', (tester) async {
+    tester.view.physicalSize = const Size(420, 1100);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final c = ProviderContainer(overrides: [
+      playbackProvider.overrideWith(() => _Playback(_song)),
+      trackOverridesProvider.overrideWith(() => TrackOverridesNotifier(directory: _noDisk)),
+    ]);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: c,
+      child: const MaterialApp(home: Scaffold(body: TrackStyleSheet(track: _song))),
+    ));
+    expect(find.text('Glass Harbor'), findsNothing, reason: 'nada de la canción inventada');
+    expect(find.descendant(of: find.byType(StylePreview), matching: find.text(_song.title)), findsOneWidget);
+
+    bool selected(String key) => tester.widget<ChoiceChip>(find.byKey(Key(key))).selected;
+    expect(selected('track-style-bg-image'), isFalse);
+    expect(selected('track-style-bg-video'), isFalse);
+    c.read(trackOverridesProvider.notifier).setStyle(
+      _song.id,
+      (s) => s.copyWith(backgroundFile: 'fondo.mp4', backgroundKind: 'video'),
+    );
+    await tester.pump();
+    expect(selected('track-style-bg-video'), isTrue);
+    expect(selected('track-style-bg-image'), isFalse);
+    c.read(trackOverridesProvider.notifier).setStyle(
+      _song.id,
+      (s) => s.copyWith(backgroundFile: 'fondo.jpg', backgroundKind: 'image'),
+    );
+    await tester.pump();
+    expect(selected('track-style-bg-image'), isTrue);
+    expect(selected('track-style-bg-video'), isFalse);
   });
 }

@@ -90,9 +90,24 @@ class StyleCard extends StatelessWidget {
 /// Miniatura del reproductor en [style]: se dibuja con la paleta y la letra de ese estilo, no con
 /// las del estilo activo (así se ven los tres a la vez).
 class StylePreview extends StatelessWidget {
-  const StylePreview({super.key, required this.style, this.palette, this.titleFont});
+  const StylePreview({
+    super.key,
+    required this.style,
+    this.palette,
+    this.titleFont,
+    this.title,
+    this.artist,
+    this.cover,
+  });
 
   final KijiStyle style;
+
+  /// La canción que se muestra ("Estilo de esta canción": la que suena). Sin ella, una inventada.
+  final String? title;
+  final String? artist;
+
+  /// La portada de esa canción (en lugar del cuadro de colores).
+  final Widget? cover;
 
   /// Para la vista previa en vivo de "Personaliza Kiji": la paleta y la letra elegidas (si no, las
   /// de fábrica de [style]).
@@ -147,7 +162,12 @@ class StylePreview extends StatelessWidget {
                       child: Center(
                         child: AspectRatio(
                           aspectRatio: 1,
-                          child: DecoratedBox(
+                          child: cover != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(coverRadius),
+                                  child: FittedBox(fit: BoxFit.cover, child: cover),
+                                )
+                              : DecoratedBox(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(coverRadius),
                               gradient: switch (style) {
@@ -176,7 +196,7 @@ class StylePreview extends StatelessWidget {
                     ),
                     SizedBox(height: w * 0.06),
                     Text(
-                      'Glass Harbor', // l10n-ignore
+                      title ?? 'Glass Harbor', // l10n-ignore
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textScaler: TextScaler.noScaling,
@@ -189,7 +209,7 @@ class StylePreview extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'The Velvet Tides', // l10n-ignore
+                      artist ?? 'The Velvet Tides', // l10n-ignore
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textScaler: TextScaler.noScaling,
