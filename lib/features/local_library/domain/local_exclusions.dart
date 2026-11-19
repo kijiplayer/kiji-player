@@ -49,6 +49,20 @@ class LocalExclusions {
     return false;
   }
 
+  /// Carpetas donde caen archivos sueltos (bajados de chats, de TikTok, de generadores de voz…).
+  static const _looseFolders = {'download', 'downloads', 'documents', 'descargas', 'documentos'};
+
+  /// Un audio en Descargas o Documentos **sin etiquetas** (sin artista: el sistema dice
+  /// `<unknown>`) no es música: son grabaciones, audios de TikTok o de generadores de voz. La música
+  /// bajada trae su artista. No se borra nada: solo no se muestra en la Biblioteca.
+  static bool isUntaggedLooseAudio(String path, String? artist) {
+    final name = artist?.trim().toLowerCase() ?? '';
+    if (name.isNotEmpty && name != '<unknown>' && name != 'unknown') return false;
+    final segments = path.replaceAll('\\', '/').toLowerCase().split('/');
+    if (segments.length < 2) return false;
+    return segments.sublist(0, segments.length - 1).any(_looseFolders.contains);
+  }
+
   /// Para saber si cambió (y volver a leer la música).
   String get key => folders.join('\n');
 }

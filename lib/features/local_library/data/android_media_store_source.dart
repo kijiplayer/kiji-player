@@ -43,7 +43,10 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
     var skipped = 0;
     for (final song in songs) {
       // Notas de voz, audios de chats y grabaciones no son música (y no se registra su nombre).
-      if (song.isMusic == false || song.isRecording == true || exclusions.excludes(song.data)) {
+      if (song.isMusic == false ||
+          song.isRecording == true ||
+          exclusions.excludes(song.data) ||
+          LocalExclusions.isUntaggedLooseAudio(song.data, song.artist)) {
         skipped++;
         continue;
       }
