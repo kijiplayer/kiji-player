@@ -1421,5 +1421,7 @@
   "sesionIniciadaCorto": "Signed in",
   "cartelKijiTeatro": "KIJI  ·  THEATER",
   "letraMenosMedioSegundo": "−0.5 s",
-  "letraMasMedioSegundo": "+0.5 s"
+  "letraMasMedioSegundo": "+0.5 s",
+  "efectosApagadosPresetElegido": "Effects are off: the chosen preset will play when you turn them on.",
+  "prenderEfectos": "Turn on"
 }

@@ -5253,4 +5253,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get letraMasMedioSegundo => '+0.5 s';
+
+  @override
+  String get efectosApagadosPresetElegido =>
+      'Effects are off: the chosen preset will play when you turn them on.';
+
+  @override
+  String get prenderEfectos => 'Turn on';
 }

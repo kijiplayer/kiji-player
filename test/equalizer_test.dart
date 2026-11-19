@@ -245,6 +245,20 @@ void main() {
       return c;
     }
 
+    test('Elegir un preset con los efectos apagados no los prende (queda elegido)', () async {
+      final engine = FakeSoundEngine();
+      final monitor = _FakeMonitor(AudioOutputKind.speaker);
+      final c = container(engine, monitor);
+      final eq = c.read(equalizerProvider.notifier);
+      c.read(equalizerProvider);
+      await _settle();
+      await eq.setEnabled(false);
+      await eq.selectPreset(AudioOutputKind.speaker, 'bass');
+      expect(c.read(equalizerProvider).settings.enabled, isFalse);
+      expect(c.read(equalizerProvider).settings.profileFor(AudioOutputKind.speaker).presetId, 'bass');
+      expect(engine.enabled, isFalse);
+    });
+
     test('apagado de fábrica: no cambia el sonido', () async {
       final engine = FakeSoundEngine();
       final c = container(engine, _FakeMonitor(AudioOutputKind.speaker));

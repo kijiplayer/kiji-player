@@ -233,6 +233,22 @@ class _SoundScreenState extends ConsumerState<SoundScreen> {
             padding: const EdgeInsets.only(top: 8),
             child: Text(tx.presetsPropiosNota, style: TextStyle(color: KijiColors.muted, fontSize: 12)),
           ),
+        // Elegir un preset no prende los efectos: si están apagados, se dice claro y se ofrece prenderlos.
+        if (!settings.enabled)
+          Padding(
+            key: const Key('eq-effects-off-note'),
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 18, color: KijiColors.muted),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(tx.efectosApagadosPresetElegido, style: TextStyle(color: KijiColors.muted, fontSize: 13)),
+                ),
+                TextButton(onPressed: () => _notifier.setEnabled(true), child: Text(tx.prenderEfectos)),
+              ],
+            ),
+          ),
       ],
     );
   }

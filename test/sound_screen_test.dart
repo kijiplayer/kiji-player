@@ -60,10 +60,16 @@ void main() {
     expect(find.text('REVERB'), findsOneWidget);
     expect(find.text('MEZCLA ENTRE CANCIONES'), findsOneWidget);
 
-    // Tocar un preset enciende los efectos (si no, no se oiría).
+    // Tocar un preset con los efectos apagados lo deja elegido, sin prenderlos, y lo avisa con un
+    // botón para prenderlos.
     await tester.tap(find.widgetWithText(ChoiceChip, 'Rock'));
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('eq-effects-off-note')), findsOneWidget);
+    expect(find.text('Encendidos: Rock'), findsNothing);
+    await tester.tap(find.descendant(of: find.byKey(const Key('eq-effects-off-note')), matching: find.byType(TextButton)));
+    await tester.pumpAndSettle();
     expect(find.text('Encendidos: Rock'), findsOneWidget);
+    expect(find.byKey(const Key('eq-effects-off-note')), findsNothing);
     expect(engine.last?.enabled, isTrue);
     expect(engine.last?.gains, const EqProfile(presetId: 'rock').gainsFor(tenBands));
 

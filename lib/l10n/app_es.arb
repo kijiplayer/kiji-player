@@ -3090,5 +3090,9 @@
   "letraMenosMedioSegundo": "−0,5 s",
   "@letraMenosMedioSegundo": {"description": "Botón del panel de letras: adelantar la letra medio segundo"},
   "letraMasMedioSegundo": "+0,5 s",
-  "@letraMasMedioSegundo": {"description": "Botón del panel de letras: atrasar la letra medio segundo"}
+  "@letraMasMedioSegundo": {"description": "Botón del panel de letras: atrasar la letra medio segundo"},
+  "efectosApagadosPresetElegido": "Los efectos están apagados: el preset elegido va a sonar cuando los prendas.",
+  "@efectosApagadosPresetElegido": {"description": "Ecualizador: aviso cuando se elige un preset con los efectos apagados"},
+  "prenderEfectos": "Prender",
+  "@prenderEfectos": {"description": "Botón para prender los efectos desde el aviso"}
 }

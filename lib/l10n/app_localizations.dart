@@ -8524,6 +8524,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'+0,5 s'**
   String get letraMasMedioSegundo;
+
+  /// Ecualizador: aviso cuando se elige un preset con los efectos apagados
+  ///
+  /// In es, this message translates to:
+  /// **'Los efectos están apagados: el preset elegido va a sonar cuando los prendas.'**
+  String get efectosApagadosPresetElegido;
+
+  /// Botón para prender los efectos desde el aviso
+  ///
+  /// In es, this message translates to:
+  /// **'Prender'**
+  String get prenderEfectos;
 }
 
 class _AppLocalizationsDelegate
