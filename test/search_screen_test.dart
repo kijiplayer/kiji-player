@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,7 +39,41 @@ class _FakeClient extends YtMusicClient {
   }) async => const YtSearchPage([], null);
 }
 
+/// Artistas, álbumes y playlists tardan (no llegan hasta que se suelte [slow]).
+class _SlowCollections extends _FakeClient {
+  final slow = Completer<void>();
+
+  @override
+  Future<YtSearchPage<YtCollection>> searchCollectionsPage(
+    String query,
+    YtCollectionKind kind, {
+    String? continuation,
+  }) async {
+    await slow.future;
+    return const YtSearchPage([], null);
+  }
+}
+
 void main() {
+  testWidgets('Todo: las canciones aparecen sin esperar a artistas, álbumes y playlists', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final client = _SlowCollections();
+    await tester.pumpWidget(ProviderScope(
+      child: MaterialApp(home: Scaffold(body: SearchScreen(client: client))),
+    ));
+    await tester.enterText(find.byType(TextField), 'algo inventado');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('Canción 1.1'), findsOneWidget, reason: 'sin esperar a lo que tarda');
+    client.slow.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('Canción 1.1'), findsOneWidget);
+  });
+
   testWidgets('Si la primera página no llena la pantalla, pide la siguiente sola', (tester) async {
     tester.view.physicalSize = const Size(800, 2400); // ventana muy alta
     tester.view.devicePixelRatio = 1;

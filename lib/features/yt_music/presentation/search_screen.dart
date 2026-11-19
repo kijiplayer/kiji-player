@@ -169,7 +169,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _onChanged(String query) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () => _search(query));
+    // Una pausa corta mientras se escribe (350 ms; antes 500): no se busca letra por letra.
+    _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
     setState(() {}); // refresca el mensaje vacío/placeholder al instante
   }
 
@@ -186,8 +187,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     _ => YtCollectionKind.album,
   };
 
-  /// Pestaña Todo: todo a la vez; si una parte falla, se muestra el resto.
-  Future<SearchOverview> _loadOverview(String query) async {
+  /// Pestaña Todo: todo a la vez; si una parte falla, se muestra el resto. Con [onPartial], se
+  /// muestra apenas llegan el resultado principal y las canciones, y se completa con artistas,
+  /// álbumes y playlists a medida que llegan (antes se esperaba al más lento de los cinco).
+  Future<SearchOverview> _loadOverview(String query, {void Function(SearchOverview overview)? onPartial}) async {
     var failures = 0;
     Future<T?> part<T>(String what, Future<T> future) async {
       try {
@@ -199,18 +202,41 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       }
     }
 
-    final top = part('resultado principal', _client.searchTop(query)); // l10n-ignore (registro)
-    final songs = part('canciones', _client.searchSongsPage(query)); // l10n-ignore (registro)
-    final artists = part('artistas', _client.searchCollectionsPage(query, YtCollectionKind.artist)); // l10n-ignore (registro)
-    final albums = part('álbumes', _client.searchCollectionsPage(query, YtCollectionKind.album)); // l10n-ignore (registro)
-    final playlists = part('playlists', _client.searchCollectionsPage(query, YtCollectionKind.playlist)); // l10n-ignore (registro)
-    final overview = SearchOverview.from(
-      top: await top,
-      songs: (await songs)?.items ?? const [],
-      artists: (await artists)?.items ?? const [],
-      albums: (await albums)?.items ?? const [],
-      playlists: (await playlists)?.items ?? const [],
+    YtTopResult? top;
+    YtSearchPage<YtMusicSearchResult>? songs;
+    YtSearchPage<YtCollection>? artists, albums, playlists;
+    var mainReady = false;
+    SearchOverview build() => SearchOverview.from(
+      top: top,
+      songs: songs?.items ?? const [],
+      artists: artists?.items ?? const [],
+      albums: albums?.items ?? const [],
+      playlists: playlists?.items ?? const [],
     );
+    void emit() {
+      if (mainReady && onPartial != null) onPartial(build());
+    }
+
+    final main = [
+      part('resultado principal', _client.searchTop(query)).then((v) => top = v), // l10n-ignore (registro)
+      part('canciones', _client.searchSongsPage(query)).then((v) => songs = v), // l10n-ignore (registro)
+    ];
+    final rest = [
+      part('artistas', _client.searchCollectionsPage(query, YtCollectionKind.artist)) // l10n-ignore (registro)
+          .then((v) => artists = v)
+          .then((_) => emit()),
+      part('álbumes', _client.searchCollectionsPage(query, YtCollectionKind.album)) // l10n-ignore (registro)
+          .then((v) => albums = v)
+          .then((_) => emit()),
+      part('playlists', _client.searchCollectionsPage(query, YtCollectionKind.playlist)) // l10n-ignore (registro)
+          .then((v) => playlists = v)
+          .then((_) => emit()),
+    ];
+    await Future.wait(main);
+    mainReady = true;
+    emit();
+    await Future.wait(rest);
+    final overview = build();
     if (overview.isEmpty && failures == 5) throw StateError('falló toda la búsqueda');
     return overview;
   }
@@ -244,7 +270,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
     try {
       if (_kind == SearchKind.all) {
-        final overview = await _loadOverview(query);
+        final overview = await _loadOverview(
+          query,
+          onPartial: (partial) {
+            if (!mounted || generation != _generation || partial.isEmpty) return;
+            setState(() {
+              _overview = partial;
+              _loading = false;
+            });
+          },
+        );
         if (!mounted || generation != _generation) return;
         setState(() {
           _overview = overview;
