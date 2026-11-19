@@ -14,6 +14,7 @@ class AppSettings {
     this.reduceMotion = false,
     this.streamCacheLimitBytes = defaultCacheLimit,
     this.hideShortAudios = false,
+    this.musicFolderChoices = const {},
     this.searchHistoryOn = true,
     this.pauseOnMute = false,
     this.resumeOnBluetooth = true,
@@ -220,7 +221,11 @@ class AppSettings {
   /// ([LocalExclusions.defaultFolders]: WhatsApp, Telegram y grabadoras).
   final List<String>? excludedFolders;
 
-  LocalExclusions get localExclusions => LocalExclusions(excludedFolders ?? LocalExclusions.defaultFolders);
+  /// "Carpetas de música": cada carpeta mostrada u oculta en la Biblioteca (ocultar no borra nada).
+  final Map<String, bool> musicFolderChoices;
+
+  LocalExclusions get localExclusions =>
+      LocalExclusions(excludedFolders ?? LocalExclusions.defaultFolders, choices: musicFolderChoices);
 
   /// Letras: fuentes por internet apagadas por el usuario.
   final Set<LyricsSource> disabledLyricsSources;
@@ -328,6 +333,7 @@ class AppSettings {
     bool? reduceMotion,
     int? streamCacheLimitBytes,
     bool? hideShortAudios,
+    Map<String, bool>? musicFolderChoices,
     bool? searchHistoryOn,
     bool? pauseOnMute,
     bool? resumeOnBluetooth,
@@ -395,6 +401,7 @@ class AppSettings {
         reduceMotion: reduceMotion ?? this.reduceMotion,
         streamCacheLimitBytes: streamCacheLimitBytes ?? this.streamCacheLimitBytes,
         hideShortAudios: hideShortAudios ?? this.hideShortAudios,
+        musicFolderChoices: musicFolderChoices ?? this.musicFolderChoices,
         searchHistoryOn: searchHistoryOn ?? this.searchHistoryOn,
         pauseOnMute: pauseOnMute ?? this.pauseOnMute,
         resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
@@ -461,6 +468,7 @@ class AppSettings {
         'reduceMotion': reduceMotion,
         'streamCacheLimitBytes': streamCacheLimitBytes,
         'hideShortAudios': hideShortAudios,
+        if (musicFolderChoices.isNotEmpty) 'musicFolderChoices': musicFolderChoices,
         'searchHistoryOn': searchHistoryOn,
         'pauseOnMute': pauseOnMute,
         'resumeOnBluetooth': resumeOnBluetooth,
@@ -533,6 +541,11 @@ class AppSettings {
       reduceMotion: read('reduceMotion', d.reduceMotion),
       streamCacheLimitBytes: cacheLimitOptions.contains(limit) ? limit : d.streamCacheLimitBytes,
       hideShortAudios: read('hideShortAudios', d.hideShortAudios),
+      musicFolderChoices: {
+        if (json['musicFolderChoices'] case final Map choices)
+          for (final MapEntry(:key, :value) in choices.entries)
+            if (key is String && value is bool) key: value,
+      },
       searchHistoryOn: read('searchHistoryOn', d.searchHistoryOn),
       pauseOnMute: read('pauseOnMute', d.pauseOnMute),
       resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),

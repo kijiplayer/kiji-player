@@ -5281,4 +5281,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noGuardarBusquedas => 'No guardar búsquedas';
+
+  @override
+  String get carpetasDeMusica => 'Carpetas de música';
+
+  @override
+  String get carpetasDeMusicaDescripcion =>
+      'Elige qué carpetas del teléfono se ven en la Biblioteca';
+
+  @override
+  String get carpetasDeMusicaNota =>
+      'Ocultar una carpeta no borra nada: solo deja de verse en la Biblioteca, y la puedes volver a mostrar cuando quieras. Las que tienen sobre todo audios sin artista (grabaciones, audios sueltos) empiezan ocultas.';
+
+  @override
+  String get carpetasDeMusicaVacio =>
+      'No hay carpetas con música en este teléfono (o falta el permiso).';
+
+  @override
+  String nAudios(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count audios',
+      one: '1 audio',
+    );
+    return '$_temp0';
+  }
 }

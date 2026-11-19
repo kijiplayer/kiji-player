@@ -3100,5 +3100,15 @@
   "guardarBusquedasRecientesNota": "Se muestran arriba al buscar y quedan solo en este dispositivo. Apagarlo borra las que hay.",
   "@guardarBusquedasRecientesNota": {"description": "Nota del ajuste"},
   "noGuardarBusquedas": "No guardar búsquedas",
-  "@noGuardarBusquedas": {"description": "Botón en Recientes de la búsqueda"}
+  "@noGuardarBusquedas": {"description": "Botón en Recientes de la búsqueda"},
+  "carpetasDeMusica": "Carpetas de música",
+  "@carpetasDeMusica": {"description": "Configuración: elegir qué carpetas del teléfono se ven en la Biblioteca"},
+  "carpetasDeMusicaDescripcion": "Elige qué carpetas del teléfono se ven en la Biblioteca",
+  "@carpetasDeMusicaDescripcion": {"description": "Subtítulo del ajuste"},
+  "carpetasDeMusicaNota": "Ocultar una carpeta no borra nada: solo deja de verse en la Biblioteca, y la puedes volver a mostrar cuando quieras. Las que tienen sobre todo audios sin artista (grabaciones, audios sueltos) empiezan ocultas.",
+  "@carpetasDeMusicaNota": {"description": "Explicación arriba de la lista"},
+  "carpetasDeMusicaVacio": "No hay carpetas con música en este teléfono (o falta el permiso).",
+  "@carpetasDeMusicaVacio": {"description": "Lista vacía"},
+  "nAudios": "{count, plural, =1{1 audio} other{{count} audios}}",
+  "@nAudios": {"description": "Cantidad de audios de una carpeta", "placeholders": {"count": {"type": "int"}}}
 }

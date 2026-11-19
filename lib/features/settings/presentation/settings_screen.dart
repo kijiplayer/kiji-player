@@ -4,6 +4,7 @@
 
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,6 +33,7 @@ import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/sound_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../local_library/presentation/excluded_folders_screen.dart';
+import '../../local_library/presentation/music_folders_screen.dart';
 import '../../lyrics/presentation/lyrics_menu_sheet.dart';
 import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
 import '../../reports/presentation/reports_screen.dart';
@@ -448,6 +450,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
       ],
       // Contenido
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+        SettingOption(
+          section: SettingsSection.storage,
+          title: tx.carpetasDeMusica,
+          subtitle: tx.carpetasDeMusicaDescripcion,
+          keywords: const ['biblioteca', 'carpetas', 'musica', 'library', 'folders', 'ocultar', 'descargas'],
+          builder: (context, ref) => ListTile(
+            key: const Key('settings-music-folders'),
+            leading: const Icon(Icons.folder_special_outlined),
+            title: Text(tx.carpetasDeMusica),
+            subtitle: Text(tx.carpetasDeMusicaDescripcion),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => MusicFoldersScreen.open(context),
+          ),
+        ),
       SettingOption(
         section: SettingsSection.storage,
         title: tx.carpetasExcluidas,

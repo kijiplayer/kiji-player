@@ -1426,5 +1426,10 @@
   "prenderEfectos": "Turn on",
   "guardarBusquedasRecientes": "Save recent searches",
   "guardarBusquedasRecientesNota": "They show up at the top when you search and stay on this device only. Turning it off deletes them.",
-  "noGuardarBusquedas": "Don't save searches"
+  "noGuardarBusquedas": "Don't save searches",
+  "carpetasDeMusica": "Music folders",
+  "carpetasDeMusicaDescripcion": "Choose which phone folders show up in the Library",
+  "carpetasDeMusicaNota": "Hiding a folder doesn't delete anything: it just stops showing in the Library, and you can show it again anytime. Folders with mostly untagged audio (recordings, loose files) start hidden.",
+  "carpetasDeMusicaVacio": "There are no music folders on this phone (or the permission is missing).",
+  "nAudios": "{count, plural, =1{1 audio} other{{count} audios}}"
 }

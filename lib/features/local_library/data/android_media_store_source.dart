@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../models/track.dart';
 import '../domain/local_exclusions.dart';
+import '../domain/music_filter.dart';
 import '../domain/local_library_source.dart';
 import 'local_library_service.dart';
 import 'local_scan_store.dart';
@@ -18,8 +19,6 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
   final LocalLibraryService _service;
   final LocalScanStore _store;
 
-  /// La última cantidad de audios que no son música (para registrarla solo cuando cambia).
-  static int? _lastSkipped;
 
   @override
   bool get usesFolders => false;
@@ -36,20 +35,39 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
   @override
   Future<void> removeFolder(String folder) async {}
 
+  /// Las carpetas con audios de la última lectura (para "Carpetas de música").
+  static List<MusicFolder> lastFolders = const [];
+
+  /// El último resumen registrado (para registrarlo una sola vez, y otra solo si cambia).
+  static String? _lastSummary;
+
+  static AudioCandidate _candidate(MediaStoreSong song) => AudioCandidate(
+    path: song.data,
+    artist: song.artist,
+    isMusic: song.isMusic,
+    isRecording: song.isRecording,
+    durationMs: song.duration,
+  );
+
+  /// Las carpetas con audios y si se muestran (lee el MediaStore; no cambia nada).
+  Future<List<MusicFolder>> musicFolders({LocalExclusions exclusions = LocalExclusions.defaults}) async {
+    final songs = await _service.fetchSongs();
+    return lastFolders = filterMusic([for (final s in songs) _candidate(s)], exclusions: exclusions, choices: exclusions.choices).folders;
+  }
+
   @override
   Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async {
     final songs = await _service.fetchSongs();
+    final result = filterMusic([for (final s in songs) _candidate(s)], exclusions: exclusions, choices: exclusions.choices);
+    lastFolders = result.folders;
+    // Una vez (y otra solo si cambia): cuántos quedaron afuera y por qué. Sin nombres de archivos.
+    final summary = '${result.totalSkipped} audios afuera (sistema ${result.skipped[MusicSkip.system]}, '
+        'voz ${result.skipped[MusicSkip.voice]}, carpeta oculta ${result.skipped[MusicSkip.hiddenFolder]})';
+    if (result.totalSkipped > 0 && summary != _lastSummary) debugPrint('=== BIBLIOTECA: $summary ===');
+    _lastSummary = summary;
     final entries = <ScanEntry>[];
-    var skipped = 0;
-    for (final song in songs) {
-      // Notas de voz, audios de chats y grabaciones no son música (y no se registra su nombre).
-      if (song.isMusic == false ||
-          song.isRecording == true ||
-          exclusions.excludes(song.data) ||
-          LocalExclusions.isUntaggedLooseAudio(song.data, song.artist)) {
-        skipped++;
-        continue;
-      }
+    for (final i in result.kept) {
+      final song = songs[i];
       // Formatos que Kiji reproduce (lo demás se saltea sin avisos).
       final ext = song.fileExtension.toLowerCase();
       if (!localAudioExtensions.contains('.$ext')) {
@@ -73,11 +91,6 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
         ),
       );
     }
-    // Una vez, y otra solo si cambia la cantidad (el registro se llenaba y tapaba lo importante).
-    if (skipped > 0 && skipped != _lastSkipped) {
-      debugPrint('=== BIBLIOTECA: $skipped audios que no son música quedan afuera ===');
-    }
-    _lastSkipped = skipped;
     final tracks = await _store.scan(entries: entries, force: force, exclusions: exclusions);
     return [...tracks]..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
   }

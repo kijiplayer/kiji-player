@@ -41,15 +41,4 @@ void main() {
     await tester.pump();
     expect(container.read(settingsProvider).localExclusions.folders, LocalExclusions.defaultFolders);
   });
-
-  test('Audios sin etiquetas en Descargas o Documentos no son música (grabaciones, TikTok, voces)', () {
-    // Como los que aparecían en la Biblioteca: en Download/, sin artista.
-    expect(LocalExclusions.isUntaggedLooseAudio('/storage/emulated/0/Download/ElevenLabs_2026-10-19.mp3', '<unknown>'), isTrue);
-    expect(LocalExclusions.isUntaggedLooseAudio('/storage/emulated/0/Download/TikDownloader_123.mp3', null), isTrue);
-    expect(LocalExclusions.isUntaggedLooseAudio('/storage/emulated/0/Documents/descarga.m4a', ''), isTrue);
-    // Música bajada con su artista: sí es música.
-    expect(LocalExclusions.isUntaggedLooseAudio('/storage/emulated/0/Download/Daft Punk - One More Time.mp3', 'Daft Punk'), isFalse);
-    // Sin artista pero en la carpeta de música: se respeta (puede ser música propia).
-    expect(LocalExclusions.isUntaggedLooseAudio('/storage/emulated/0/Music/maqueta.mp3', '<unknown>'), isFalse);
-  });
 }

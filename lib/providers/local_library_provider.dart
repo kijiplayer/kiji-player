@@ -24,7 +24,11 @@ final localTracksProvider = FutureProvider<List<Track>>((ref) async {
   try {
     // Solo lo que usa: antes miraba todos los ajustes y cada cambio (el estilo, el tema…) volvía a
     // leer el MediaStore entero y a filtrar ("52 audios que no son música" decenas de veces).
-    ref.watch(settingsProvider.select((s) => (folders: s.excludedFolders, hideShort: s.hideShortAudios)));
+    ref.watch(
+      settingsProvider.select(
+        (s) => (folders: s.excludedFolders, hideShort: s.hideShortAudios, choices: s.musicFolderChoices),
+      ),
+    );
     if (!await source.hasAccess()) return const [];
     final settings = ref.read(settingsProvider);
     return [

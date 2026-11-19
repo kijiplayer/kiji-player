@@ -8554,6 +8554,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No guardar búsquedas'**
   String get noGuardarBusquedas;
+
+  /// Configuración: elegir qué carpetas del teléfono se ven en la Biblioteca
+  ///
+  /// In es, this message translates to:
+  /// **'Carpetas de música'**
+  String get carpetasDeMusica;
+
+  /// Subtítulo del ajuste
+  ///
+  /// In es, this message translates to:
+  /// **'Elige qué carpetas del teléfono se ven en la Biblioteca'**
+  String get carpetasDeMusicaDescripcion;
+
+  /// Explicación arriba de la lista
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar una carpeta no borra nada: solo deja de verse en la Biblioteca, y la puedes volver a mostrar cuando quieras. Las que tienen sobre todo audios sin artista (grabaciones, audios sueltos) empiezan ocultas.'**
+  String get carpetasDeMusicaNota;
+
+  /// Lista vacía
+  ///
+  /// In es, this message translates to:
+  /// **'No hay carpetas con música en este teléfono (o falta el permiso).'**
+  String get carpetasDeMusicaVacio;
+
+  /// Cantidad de audios de una carpeta
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 audio} other{{count} audios}}'**
+  String nAudios(int count);
 }
 
 class _AppLocalizationsDelegate
