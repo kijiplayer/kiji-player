@@ -8536,6 +8536,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Prender'**
   String get prenderEfectos;
+
+  /// Ajuste de privacidad
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar búsquedas recientes'**
+  String get guardarBusquedasRecientes;
+
+  /// Nota del ajuste
+  ///
+  /// In es, this message translates to:
+  /// **'Se muestran arriba al buscar y quedan solo en este dispositivo. Apagarlo borra las que hay.'**
+  String get guardarBusquedasRecientesNota;
+
+  /// Botón en Recientes de la búsqueda
+  ///
+  /// In es, this message translates to:
+  /// **'No guardar búsquedas'**
+  String get noGuardarBusquedas;
 }
 
 class _AppLocalizationsDelegate

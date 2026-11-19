@@ -1423,5 +1423,8 @@
   "letraMenosMedioSegundo": "−0.5 s",
   "letraMasMedioSegundo": "+0.5 s",
   "efectosApagadosPresetElegido": "Effects are off: the chosen preset will play when you turn them on.",
-  "prenderEfectos": "Turn on"
+  "prenderEfectos": "Turn on",
+  "guardarBusquedasRecientes": "Save recent searches",
+  "guardarBusquedasRecientesNota": "They show up at the top when you search and stay on this device only. Turning it off deletes them.",
+  "noGuardarBusquedas": "Don't save searches"
 }

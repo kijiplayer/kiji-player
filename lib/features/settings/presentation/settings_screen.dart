@@ -1006,6 +1006,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.privacy,
+        title: tx.guardarBusquedasRecientes,
+        subtitle: tx.guardarBusquedasRecientesNota,
+        keywords: const ['busqueda', 'historial', 'recientes', 'search', 'history'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-search-history'),
+          secondary: const Icon(Icons.history_rounded),
+          title: Text(tx.guardarBusquedasRecientes),
+          subtitle: Text(tx.guardarBusquedasRecientesNota),
+          value: ref.watch(settingsProvider.select((s) => s.searchHistoryOn)),
+          onChanged: (on) => setSearchHistoryOn(ref, on),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
         title: tx.letrasYTraduccion,
         subtitle: tx.queSeEnviaAlBuscarO,
         keywords: const ['letras', 'traduccion', 'gemini', 'clave'],

@@ -14,6 +14,7 @@ class AppSettings {
     this.reduceMotion = false,
     this.streamCacheLimitBytes = defaultCacheLimit,
     this.hideShortAudios = false,
+    this.searchHistoryOn = true,
     this.pauseOnMute = false,
     this.resumeOnBluetooth = true,
     this.batteryAsked = false,
@@ -136,6 +137,9 @@ class AppSettings {
 
   /// Contenido: ocultar de la Biblioteca los audios de menos de 30 s.
   final bool hideShortAudios;
+
+  /// Guardar y mostrar las búsquedas recientes (apagado: no se guardan ni se muestran).
+  final bool searchHistoryOn;
 
   /// Reproductor: pausar si el volumen del teléfono llega a cero y
   /// seguir al subirlo (solo si fue esa la causa de la pausa).
@@ -324,6 +328,7 @@ class AppSettings {
     bool? reduceMotion,
     int? streamCacheLimitBytes,
     bool? hideShortAudios,
+    bool? searchHistoryOn,
     bool? pauseOnMute,
     bool? resumeOnBluetooth,
     bool? batteryAsked,
@@ -390,6 +395,7 @@ class AppSettings {
         reduceMotion: reduceMotion ?? this.reduceMotion,
         streamCacheLimitBytes: streamCacheLimitBytes ?? this.streamCacheLimitBytes,
         hideShortAudios: hideShortAudios ?? this.hideShortAudios,
+        searchHistoryOn: searchHistoryOn ?? this.searchHistoryOn,
         pauseOnMute: pauseOnMute ?? this.pauseOnMute,
         resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
         batteryAsked: batteryAsked ?? this.batteryAsked,
@@ -455,6 +461,7 @@ class AppSettings {
         'reduceMotion': reduceMotion,
         'streamCacheLimitBytes': streamCacheLimitBytes,
         'hideShortAudios': hideShortAudios,
+        'searchHistoryOn': searchHistoryOn,
         'pauseOnMute': pauseOnMute,
         'resumeOnBluetooth': resumeOnBluetooth,
         'batteryAsked': batteryAsked,
@@ -526,6 +533,7 @@ class AppSettings {
       reduceMotion: read('reduceMotion', d.reduceMotion),
       streamCacheLimitBytes: cacheLimitOptions.contains(limit) ? limit : d.streamCacheLimitBytes,
       hideShortAudios: read('hideShortAudios', d.hideShortAudios),
+      searchHistoryOn: read('searchHistoryOn', d.searchHistoryOn),
       pauseOnMute: read('pauseOnMute', d.pauseOnMute),
       resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),
       batteryAsked: read('batteryAsked', d.batteryAsked),

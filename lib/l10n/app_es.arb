@@ -3094,5 +3094,11 @@
   "efectosApagadosPresetElegido": "Los efectos están apagados: el preset elegido va a sonar cuando los prendas.",
   "@efectosApagadosPresetElegido": {"description": "Ecualizador: aviso cuando se elige un preset con los efectos apagados"},
   "prenderEfectos": "Prender",
-  "@prenderEfectos": {"description": "Botón para prender los efectos desde el aviso"}
+  "@prenderEfectos": {"description": "Botón para prender los efectos desde el aviso"},
+  "guardarBusquedasRecientes": "Guardar búsquedas recientes",
+  "@guardarBusquedasRecientes": {"description": "Ajuste de privacidad"},
+  "guardarBusquedasRecientesNota": "Se muestran arriba al buscar y quedan solo en este dispositivo. Apagarlo borra las que hay.",
+  "@guardarBusquedasRecientesNota": {"description": "Nota del ajuste"},
+  "noGuardarBusquedas": "No guardar búsquedas",
+  "@noGuardarBusquedas": {"description": "Botón en Recientes de la búsqueda"}
 }

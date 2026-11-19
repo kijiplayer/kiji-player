@@ -25,6 +25,7 @@ import '../../customize/presentation/track_text.dart';
 import '../../history/listening_history.dart';
 import '../../recommendations/data/home_feed_provider.dart';
 import '../../recommendations/data/search_history.dart';
+import '../../settings/data/settings_store.dart';
 import '../../recommendations/presentation/home_sections.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -376,7 +377,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// Guarda la búsqueda en "Recientes" (solo al confirmarla: Enter o tocar
   /// un resultado; no cada letra).
-  void _remember(String query) => ref.read(searchHistoryProvider.notifier).add(query);
+  /// Con «Guardar búsquedas recientes» apagado, no se guarda nada.
+  void _remember(String query) {
+    if (!ref.read(settingsProvider).searchHistoryOn) return;
+    ref.read(searchHistoryProvider.notifier).add(query);
+  }
 
   void _searchFor(String query) {
     _controller.text = query;
@@ -387,7 +392,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// Antes de escribir: búsquedas recientes y sugerencias.
   Widget _buildBeforeTyping() {
-    final recent = ref.watch(searchHistoryProvider);
+    final recent = ref.watch(settingsProvider.select((s) => s.searchHistoryOn))
+        ? ref.watch(searchHistoryProvider)
+        : const <String>[];
     final isNew = ref.watch(listeningHistoryProvider).isEmpty;
     final feed = isNew ? null : ref.watch(homeFeedProvider).value;
     final suggestions = feed == null ? const <Track>[] : (feed.discover.isNotEmpty ? feed.discover : feed.mix);
@@ -399,6 +406,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             children: [
               Expanded(child: Text(tx.recientes, style: KijiText.mono(size: 11))),
               TextButton(onPressed: () => ref.read(searchHistoryProvider.notifier).clear(), child: Text(tx.borrar)),
+              // Dejar de guardarlas (y borrar las que hay): también en Configuración → Privacidad.
+              IconButton(
+                key: const Key('search-history-off'),
+                tooltip: tx.noGuardarBusquedas,
+                icon: const Icon(Icons.visibility_off_outlined, size: 20),
+                onPressed: () => setSearchHistoryOn(ref, false),
+              ),
             ],
           ),
           for (final query in recent.take(8))

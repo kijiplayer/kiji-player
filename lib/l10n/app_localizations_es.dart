@@ -5271,4 +5271,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get prenderEfectos => 'Prender';
+
+  @override
+  String get guardarBusquedasRecientes => 'Guardar búsquedas recientes';
+
+  @override
+  String get guardarBusquedasRecientesNota =>
+      'Se muestran arriba al buscar y quedan solo en este dispositivo. Apagarlo borra las que hay.';
+
+  @override
+  String get noGuardarBusquedas => 'No guardar búsquedas';
 }
