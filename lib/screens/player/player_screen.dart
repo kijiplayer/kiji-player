@@ -108,8 +108,8 @@ class PlayerScreen extends ConsumerWidget {
               fit: StackFit.expand,
               children: [
                 // Un fondo propio (el de esta canción o el general) reemplaza al del estilo.
-                if (ref.watch(hasCustomBackgroundProvider))
-                  const CustomBackground()
+                if (ref.watch(playerHasCustomBackgroundProvider))
+                  const CustomBackground(player: true)
                 else
                   PlayerHalo(track: track, playing: playback.isPlaying),
                 // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos

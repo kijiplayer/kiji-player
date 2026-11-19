@@ -20,13 +20,19 @@ import '../data/background_store.dart';
 import '../../../widgets/nocturne/glass.dart';
 import '../../../widgets/nocturne/liquid_glass.dart';
 
-/// El fondo que se ve: el de la canción que suena (si tiene uno propio) o el general. La ruta es
-/// relativa a la carpeta de fondos.
+/// El fondo general (Apariencia → Fondo): el de toda la app. La ruta es relativa a la carpeta de
+/// fondos.
+final generalBackgroundProvider = Provider<({String path, String kind})?>((ref) {
+  final s = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
+  return s.file == null ? null : (path: s.file!, kind: s.kind);
+});
+
+/// El fondo del reproductor: el propio de la canción que suena (si tiene) o el general. El fondo
+/// de una canción se ve solo en su reproductor (0.8.5: antes cubría toda la app mientras sonaba).
 final effectiveBackgroundProvider = Provider<({String path, String kind})?>((ref) {
   final song = ref.watch(currentTrackStyleProvider);
   if (song?.backgroundFile != null) return (path: 'canciones/${song!.backgroundFile}', kind: song.backgroundKind ?? 'image');
-  final s = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
-  return s.file == null ? null : (path: s.file!, kind: s.kind);
+  return ref.watch(generalBackgroundProvider);
 });
 
 /// El tono de una foto de fondo, para que la capa de
@@ -59,14 +65,20 @@ final backgroundToneProvider = FutureProvider.family<Color?, ({String path, bool
 Color videoBackgroundTone(KijiPalette palette) =>
     Color.lerp(palette.background, palette.isLight ? Colors.black : Colors.white, 0.45)!;
 
-/// Hay un fondo propio a la vista (las pantallas principales dejan ver lo de atrás).
-final hasCustomBackgroundProvider = Provider<bool>((ref) => ref.watch(effectiveBackgroundProvider) != null);
+/// Hay un fondo general propio (las pantallas principales dejan ver lo de atrás).
+final hasCustomBackgroundProvider = Provider<bool>((ref) => ref.watch(generalBackgroundProvider) != null);
+
+/// El reproductor tiene un fondo propio (el de la canción o el general).
+final playerHasCustomBackgroundProvider = Provider<bool>((ref) => ref.watch(effectiveBackgroundProvider) != null);
 
 /// El fondo propio, detrás de las pantallas principales: la foto, el GIF o el video, con el
 /// desenfoque y la opacidad elegidos, y encima una capa del color del estilo que deja el texto
 /// siempre legible ([backgroundScrim]). Sin fondo propio no dibuja nada.
 class CustomBackground extends ConsumerWidget {
-  const CustomBackground({super.key, this.preview = false});
+  const CustomBackground({super.key, this.preview = false, this.player = false});
+
+  /// En el reproductor: el fondo de la canción que suena, si tiene uno; si no, el general.
+  final bool player;
 
   /// Para la vista previa de Apariencia: el fondo general (no el de la canción), por capas y en
   /// vivo (sin componerlo en una imagen: cambia con cada movimiento de los controles).
@@ -77,7 +89,7 @@ class CustomBackground extends ConsumerWidget {
     final general = ref.watch(settingsProvider.select((s) => (file: s.backgroundFile, kind: s.backgroundKind)));
     final bg = preview
         ? (general.file == null ? null : (path: general.file!, kind: general.kind))
-        : ref.watch(effectiveBackgroundProvider);
+        : ref.watch(player ? effectiveBackgroundProvider : generalBackgroundProvider);
     final s = ref.watch(settingsProvider.select((s) => (blur: s.backgroundBlur, opacity: s.backgroundOpacity)));
     final folder = ref.watch(backgroundFolderProvider).valueOrNull;
     if (bg == null || folder == null) return const SizedBox.shrink();
