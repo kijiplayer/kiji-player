@@ -10,11 +10,13 @@
 - El Teatro entra con su telón, y cambiar de estilo es un fundido suave (sin pantalla negra).
 - «Momento guardado»: el aviso va arriba, dura poco y «Ver» abre tus momentos.
 - Elegir un preset del ecualizador ya no prende los efectos solo.
-- «Estilo de esta canción» muestra la canción que suena y marca el fondo elegido.
+- «Estilo de esta canción» muestra la canción que suena y marca el fondo elegido. El fondo de una
+  canción se ve solo en su reproductor; el resto de Kiji usa el fondo general.
 - La onda arranca con color, y «Reproduciendo desde» no cambia a mitad de la canción.
 - La búsqueda muestra resultados antes, y las búsquedas recientes se pueden dejar de guardar.
-- La Biblioteca ya no muestra como música las grabaciones o audios sueltos de Descargas, y lee
-  la música del teléfono una sola vez.
+- La Biblioteca muestra solo lo que Android marca como música y dura 30 s o más, sin grabaciones,
+  tonos ni audios de WhatsApp o Telegram. En Configuración → «Carpetas de música» eliges qué
+  carpetas se ven (ocultar no borra nada). Y lee la música del teléfono una sola vez.
 
 ## 0.8.4 — 18 de noviembre de 2026
 
