@@ -61,8 +61,8 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
     final result = filterMusic([for (final s in songs) _candidate(s)], exclusions: exclusions, choices: exclusions.choices);
     lastFolders = result.folders;
     // Una vez (y otra solo si cambia): cuántos quedaron afuera y por qué. Sin nombres de archivos.
-    final summary = '${result.totalSkipped} audios afuera (sistema ${result.skipped[MusicSkip.system]}, '
-        'voz ${result.skipped[MusicSkip.voice]}, carpeta oculta ${result.skipped[MusicSkip.hiddenFolder]})';
+    final summary = '${result.totalSkipped} audios afuera (sistema ${result.skipped[MusicSkip.system]}, '  // l10n-ignore (registro)
+        'voz ${result.skipped[MusicSkip.voice]}, carpeta oculta ${result.skipped[MusicSkip.hiddenFolder]})';  // l10n-ignore (registro)
     if (result.totalSkipped > 0 && summary != _lastSummary) debugPrint('=== BIBLIOTECA: $summary ===');
     _lastSummary = summary;
     final entries = <ScanEntry>[];
