@@ -376,75 +376,93 @@ class _TitleRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final liked = ref.watch(favoritesProvider).containsKey(track.id);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Grafito: entran deslizándose, una línea después de la otra.
-              MuseumLineIn(
-                trackId: track.id,
-                line: 0,
-                child: TrackTitleText(
-                  track,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  // Grafito: grande y fino.
-                  style: KijiLook.museum
-                      ? KijiText.title(
-                          size: compact ? 24 : 38,
-                          weight: FontWeight.w300,
-                        ).copyWith(letterSpacing: compact ? -0.5 : -1, height: 1.05)
-                      : KijiText.title(size: compact ? 20 : 26),
+    // El título nunca se parte a mitad de palabra: se achica hasta un mínimo legible y recién ahí
+    // corta con «…» (antes: «elephan / t cage»).
+    final title = MuseumLineIn(
+      trackId: track.id,
+      line: 0,
+      child: TrackTitleText(
+        track,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        minFontSize: compact ? 16 : (KijiLook.museum ? 24 : 20),
+        // Grafito: grande y fino.
+        style: KijiLook.museum
+            ? KijiText.title(
+                size: compact ? 24 : 38,
+                weight: FontWeight.w300,
+              ).copyWith(letterSpacing: compact ? -0.5 : -1, height: 1.05)
+            : KijiText.title(size: compact ? 20 : 26),
+      ),
+    );
+    final artist = MuseumLineIn(
+      trackId: track.id,
+      line: 1,
+      child: TrackArtistText(
+        track,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        // Grafito: el artista como una etiqueta (versalitas espaciadas).
+        style: KijiLook.museum
+            ? TextStyle(
+                color: KijiColors.muted,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2.2,
+              )
+            : TextStyle(color: KijiColors.muted, fontSize: 16),
+      ),
+    );
+    final actions = <Widget>[
+      // Reacciones de teatro: 🍅 y 🌹 (en el modo compacto no entran al lado de la portada chica;
+      // sacudir el teléfono sigue tirando tomates).
+      if (!compact) TheaterButtons(track: track),
+      if (track.youtubeVideoId != null)
+        downloaded
+            ? Tooltip(
+                message: tx.descargadaSuenaSinConexion,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
                 ),
-              ),
-              const SizedBox(height: 4),
-              MuseumLineIn(
-                trackId: track.id,
-                line: 1,
-                child: TrackArtistText(
-                  track,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  // Grafito: el artista como una etiqueta (versalitas espaciadas).
-                  style: KijiLook.museum
-                      ? TextStyle(
-                          color: KijiColors.muted,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 2.2,
-                        )
-                      : TextStyle(color: KijiColors.muted, fontSize: 16),
-                ),
-              ),
-            ],
+              )
+            : DownloadButton(track: track),
+      // "Agregar a playlist" a un toque.
+      IconButton(
+        tooltip: tx.agregarAPlaylist,
+        onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
+        icon: Icon(Icons.playlist_add_rounded, color: KijiLook.museum ? KijiColors.muted : KijiColors.text),
+      ),
+      IconButton(
+        tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
+        onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
+        icon: LikeHeart(liked: liked),
+      ),
+    ];
+    if (compact) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [title, const SizedBox(height: 4), artist],
+            ),
           ),
-        ),
-        // Reacciones de teatro: 🍅 y 🌹 (en el modo compacto no entran al lado de la portada chica;
-        // sacudir el teléfono sigue tirando tomates).
-        if (!compact) TheaterButtons(track: track),
-        if (track.youtubeVideoId != null)
-          downloaded
-              ? Tooltip(
-                  message: tx.descargadaSuenaSinConexion,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
-                  ),
-                )
-              : DownloadButton(track: track),
-        // "Agregar a playlist" a un toque.
-        IconButton(
-          tooltip: tx.agregarAPlaylist,
-          onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
-          icon: Icon(Icons.playlist_add_rounded, color: KijiLook.museum ? KijiColors.muted : KijiColors.text),
-        ),
-        IconButton(
-          tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
-          onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
-          icon: LikeHeart(liked: liked),
+          ...actions,
+        ],
+      );
+    }
+    // El título usa todo el ancho; los botones van en la fila del artista.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        title,
+        Row(
+          children: [
+            Expanded(child: artist),
+            ...actions,
+          ],
         ),
       ],
     );

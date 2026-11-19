@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../widgets/fit_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
@@ -13,7 +15,15 @@ Track displayTrack(WidgetRef ref, Track track) {
 
 /// Título de la canción, respetando el que eligió el usuario.
 class TrackTitleText extends ConsumerWidget {
-  const TrackTitleText(this.track, {super.key, this.style, this.maxLines, this.overflow, this.textAlign});
+  const TrackTitleText(
+    this.track, {
+    super.key,
+    this.style,
+    this.maxLines,
+    this.overflow,
+    this.textAlign,
+    this.minFontSize,
+  });
 
   final Track track;
   final TextStyle? style;
@@ -21,8 +31,19 @@ class TrackTitleText extends ConsumerWidget {
   final TextOverflow? overflow;
   final TextAlign? textAlign;
 
+  /// Con un mínimo, el título se achica antes de partir una palabra (ver [FitText]).
+  final double? minFontSize;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Text(
+  Widget build(BuildContext context, WidgetRef ref) => minFontSize != null && style != null
+      ? FitText(
+          displayTrack(ref, track).title,
+          style: style!,
+          minFontSize: minFontSize!,
+          maxLines: maxLines ?? 2,
+          textAlign: textAlign,
+        )
+      : Text(
         displayTrack(ref, track).title,
         style: style,
         maxLines: maxLines,
