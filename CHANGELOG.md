@@ -1,6 +1,6 @@
 # Novedades de Kiji Player
 
-## 0.8.5 — sin publicar
+## 0.8.5 — 19 de noviembre de 2026
 
 **Arreglos**
 - Los títulos del reproductor ya no se parten a mitad de palabra: se achican si hace falta y
