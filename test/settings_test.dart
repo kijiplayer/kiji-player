@@ -289,6 +289,9 @@ void main() {
     expect(find.text('Tema'), findsOneWidget, reason: 'en inglés también, con la app en español');
     await search('escaparate');
     expect(find.text('Vista'), findsOneWidget);
+    // Acerca de → Página oficial (abre kijiplayer.github.io en el navegador).
+    await search('pagina oficial');
+    expect(find.text('Página oficial'), findsOneWidget);
   });
 
   testWidgets('Configuración en la PC: secciones a la izquierda y la elegida a la derecha', (tester) async {

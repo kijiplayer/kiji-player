@@ -46,7 +46,10 @@ const _release = Release(
 );
 
 void main() {
-  for (final (language, label, note) in [('es', 'Actualizar', 'Algo nuevo'), ('en', 'Update', 'Something new')]) {
+  for (final (language, label, note, whatsNew) in [
+    ('es', 'Actualizar', 'Algo nuevo', 'Ver qué hay de nuevo'),
+    ('en', 'Update', 'Something new', "See what's new"),
+  ]) {
     testWidgets('Hoja de versión nueva ($language), también en horizontal', (tester) async {
       setKijiLocale(Locale(language));
       tester.view.physicalSize = const Size(2400, 1080);
@@ -73,6 +76,9 @@ void main() {
       // El botón dice el tamaño; nada se bajó todavía.
       expect(find.textContaining('$label (32'), findsOneWidget);
       expect(find.byKey(const Key('update-open-page')), findsOneWidget);
+      // Junto a "Actualizar", la página oficial (solo abre el enlace).
+      expect(find.text(whatsNew), findsOneWidget);
+      expect(kijiOfficialPage, 'https://kijiplayer.github.io/kiji-player');
       expect(installer.installs, 0);
     });
   }

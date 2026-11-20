@@ -5307,4 +5307,14 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get paginaOficial => 'Página oficial';
+
+  @override
+  String get paginaOficialDescripcion =>
+      'Descargas y novedades de Kiji, en el navegador';
+
+  @override
+  String get verQueHayDeNuevo => 'Ver qué hay de nuevo';
 }

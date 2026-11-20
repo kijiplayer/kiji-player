@@ -1431,5 +1431,8 @@
   "carpetasDeMusicaDescripcion": "Choose which phone folders show up in the Library",
   "carpetasDeMusicaNota": "Hiding a folder doesn't delete anything: it just stops showing in the Library, and you can show it again anytime. Folders with mostly untagged audio (recordings, loose files) start hidden.",
   "carpetasDeMusicaVacio": "There are no music folders on this phone (or the permission is missing).",
-  "nAudios": "{count, plural, =1{1 audio} other{{count} audios}}"
+  "nAudios": "{count, plural, =1{1 audio} other{{count} audios}}",
+  "paginaOficial": "Official page",
+  "paginaOficialDescripcion": "Kiji's downloads and news, in your browser",
+  "verQueHayDeNuevo": "See what's new"
 }

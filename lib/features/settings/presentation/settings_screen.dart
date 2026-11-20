@@ -1289,6 +1289,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.about,
+        title: tx.paginaOficial,
+        subtitle: tx.paginaOficialDescripcion,
+        keywords: const ['web', 'pagina', 'sitio', 'descargar', 'website', 'page'],
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-official-page'),
+          leading: const Icon(Icons.public_rounded),
+          title: Text(tx.paginaOficial),
+          subtitle: Text(tx.paginaOficialDescripcion),
+          trailing: const Icon(Icons.open_in_new_rounded),
+          onTap: openOfficialPage,
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.about,
         title: tx.queHayDeNuevo,
         subtitle: tx.queHayDeNuevoDescripcion,
         keywords: const ['changelog', 'novedades', 'cambios', 'version', 'whats new', 'nuevo', 'new'], // l10n-ignore

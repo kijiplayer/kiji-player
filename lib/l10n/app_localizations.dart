@@ -8584,6 +8584,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count, plural, =1{1 audio} other{{count} audios}}'**
   String nAudios(int count);
+
+  /// Acerca de: abre la página de Kiji en el navegador
+  ///
+  /// In es, this message translates to:
+  /// **'Página oficial'**
+  String get paginaOficial;
+
+  /// Subtítulo de la página oficial
+  ///
+  /// In es, this message translates to:
+  /// **'Descargas y novedades de Kiji, en el navegador'**
+  String get paginaOficialDescripcion;
+
+  /// Aviso de actualización: abre la página oficial junto a Actualizar
+  ///
+  /// In es, this message translates to:
+  /// **'Ver qué hay de nuevo'**
+  String get verQueHayDeNuevo;
 }
 
 class _AppLocalizationsDelegate

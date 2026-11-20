@@ -5296,4 +5296,14 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get paginaOficial => 'Official page';
+
+  @override
+  String get paginaOficialDescripcion =>
+      'Kiji\'s downloads and news, in your browser';
+
+  @override
+  String get verQueHayDeNuevo => 'See what\'s new';
 }

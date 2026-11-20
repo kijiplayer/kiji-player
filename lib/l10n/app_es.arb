@@ -3110,5 +3110,11 @@
   "carpetasDeMusicaVacio": "No hay carpetas con música en este teléfono (o falta el permiso).",
   "@carpetasDeMusicaVacio": {"description": "Lista vacía"},
   "nAudios": "{count, plural, =1{1 audio} other{{count} audios}}",
-  "@nAudios": {"description": "Cantidad de audios de una carpeta", "placeholders": {"count": {"type": "int"}}}
+  "@nAudios": {"description": "Cantidad de audios de una carpeta", "placeholders": {"count": {"type": "int"}}},
+  "paginaOficial": "Página oficial",
+  "@paginaOficial": {"description": "Acerca de: abre la página de Kiji en el navegador"},
+  "paginaOficialDescripcion": "Descargas y novedades de Kiji, en el navegador",
+  "@paginaOficialDescripcion": {"description": "Subtítulo de la página oficial"},
+  "verQueHayDeNuevo": "Ver qué hay de nuevo",
+  "@verQueHayDeNuevo": {"description": "Aviso de actualización: abre la página oficial junto a Actualizar"}
 }

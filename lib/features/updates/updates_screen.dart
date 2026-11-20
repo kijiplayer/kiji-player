@@ -25,6 +25,12 @@ String agoText(DateTime when, DateTime now) {
   return tx.haceNDias(d.inDays);
 }
 
+/// La página oficial de Kiji (descargas y novedades).
+const kijiOfficialPage = 'https://kijiplayer.github.io/kiji-player'; // l10n-ignore
+
+/// Abre la página oficial de Kiji en el navegador. Solo abre el enlace: no manda nada.
+Future<void> openOfficialPage() => openReleasePage(kijiOfficialPage);
+
 /// Abre la página oficial de la versión (en el navegador).
 Future<void> openReleasePage(String url) async {
   try {
@@ -153,6 +159,12 @@ class UpdateActions extends ConsumerWidget {
             onPressed: () => notifier.start(release, source: source),
             icon: const Icon(Icons.system_update_alt_rounded),
             label: Text(tx.actualizarConTamano(size)),
+          ),
+          TextButton.icon(
+            key: const Key('update-whats-new'),
+            onPressed: openOfficialPage,
+            icon: const Icon(Icons.open_in_new_rounded),
+            label: Text(tx.verQueHayDeNuevo),
           ),
           const SizedBox(height: 8),
           Text(tx.actualizarComoFunciona, style: muted),
