@@ -5,9 +5,13 @@
 /// que tenga adentro) o una ruta completa ("/storage/emulated/0/Podcasts": esa carpeta). Además,
 /// los archivos con nombre de nota de voz de WhatsApp (AUD-…-WA…, PTT-…-WA…) nunca son música.
 class LocalExclusions {
-  const LocalExclusions(this.folders);
+  const LocalExclusions(this.folders, {this.choices = const {}});
 
   final List<String> folders;
+
+  /// "Carpetas de música": cada carpeta (ruta completa) mostrada (true) u oculta (false). Las que
+  /// no están, con su valor inicial (ver `filterMusic`).
+  final Map<String, bool> choices;
 
   /// De fábrica: WhatsApp (también Business), Telegram y las grabadoras.
   static const defaultFolders = [
@@ -19,6 +23,8 @@ class LocalExclusions {
     'org.telegram.messenger', // l10n-ignore
     'Recordings', // l10n-ignore
     'Call recordings', // l10n-ignore
+    'Call', // l10n-ignore
+    'Calls', // l10n-ignore
     'Voice Recorder', // l10n-ignore
     'Sound recorder', // l10n-ignore
     'Grabaciones', // l10n-ignore
@@ -50,5 +56,5 @@ class LocalExclusions {
   }
 
   /// Para saber si cambió (y volver a leer la música).
-  String get key => folders.join('\n');
+  String get key => [...folders, for (final MapEntry(:key, :value) in choices.entries) '$key=$value'].join('\n');
 }

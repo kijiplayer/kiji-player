@@ -79,6 +79,12 @@ void main() {
   test('Valores fuera de rango se acomodan', () {
     final theme = KijiTheme.decode(_zip({'tema.json': _json({..._good(), 'backgroundBlur': 500, 'backgroundOpacity': -1})}))!;
     expect(theme.blur, AppSettings.maxBackgroundBlur);
-    expect(theme.opacity, 0.1);
+    expect(theme.opacity, AppSettings.minBackgroundOpacity);
+  });
+
+  test('La opacidad del fondo nunca baja del mínimo (la foto no desaparece en el fondo del estilo)', () {
+    expect(AppSettings.minBackgroundOpacity, greaterThanOrEqualTo(0.25));
+    expect(AppSettings.fromJson({'backgroundOpacity': 0.1}).backgroundOpacity, AppSettings.minBackgroundOpacity);
+    expect(AppSettings.fromJson({'backgroundOpacity': 0.6}).backgroundOpacity, 0.6);
   });
 }

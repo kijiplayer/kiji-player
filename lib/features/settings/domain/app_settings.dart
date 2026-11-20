@@ -14,6 +14,8 @@ class AppSettings {
     this.reduceMotion = false,
     this.streamCacheLimitBytes = defaultCacheLimit,
     this.hideShortAudios = false,
+    this.musicFolderChoices = const {},
+    this.searchHistoryOn = true,
     this.pauseOnMute = false,
     this.resumeOnBluetooth = true,
     this.batteryAsked = false,
@@ -137,6 +139,9 @@ class AppSettings {
   /// Contenido: ocultar de la Biblioteca los audios de menos de 30 s.
   final bool hideShortAudios;
 
+  /// Guardar y mostrar las búsquedas recientes (apagado: no se guardan ni se muestran).
+  final bool searchHistoryOn;
+
   /// Reproductor: pausar si el volumen del teléfono llega a cero y
   /// seguir al subirlo (solo si fue esa la causa de la pausa).
   final bool pauseOnMute;
@@ -216,7 +221,11 @@ class AppSettings {
   /// ([LocalExclusions.defaultFolders]: WhatsApp, Telegram y grabadoras).
   final List<String>? excludedFolders;
 
-  LocalExclusions get localExclusions => LocalExclusions(excludedFolders ?? LocalExclusions.defaultFolders);
+  /// "Carpetas de música": cada carpeta mostrada u oculta en la Biblioteca (ocultar no borra nada).
+  final Map<String, bool> musicFolderChoices;
+
+  LocalExclusions get localExclusions =>
+      LocalExclusions(excludedFolders ?? LocalExclusions.defaultFolders, choices: musicFolderChoices);
 
   /// Letras: fuentes por internet apagadas por el usuario.
   final Set<LyricsSource> disabledLyricsSources;
@@ -280,6 +289,10 @@ class AppSettings {
   /// Desenfoque del fondo (0 a [maxBackgroundBlur]) y cuánto se ve (0,1 a 1).
   final double backgroundBlur;
   final double backgroundOpacity;
+
+  /// La opacidad más baja del fondo propio: con menos, la foto desaparecía en el fondo del estilo
+  /// (casi negro en Grafito y Nocturne) y no tenía sentido tenerla puesta.
+  static const minBackgroundOpacity = 0.25;
   static const maxBackgroundBlur = 30.0;
 
   /// El color propio, si se eligió uno.
@@ -320,6 +333,8 @@ class AppSettings {
     bool? reduceMotion,
     int? streamCacheLimitBytes,
     bool? hideShortAudios,
+    Map<String, bool>? musicFolderChoices,
+    bool? searchHistoryOn,
     bool? pauseOnMute,
     bool? resumeOnBluetooth,
     bool? batteryAsked,
@@ -386,6 +401,8 @@ class AppSettings {
         reduceMotion: reduceMotion ?? this.reduceMotion,
         streamCacheLimitBytes: streamCacheLimitBytes ?? this.streamCacheLimitBytes,
         hideShortAudios: hideShortAudios ?? this.hideShortAudios,
+        musicFolderChoices: musicFolderChoices ?? this.musicFolderChoices,
+        searchHistoryOn: searchHistoryOn ?? this.searchHistoryOn,
         pauseOnMute: pauseOnMute ?? this.pauseOnMute,
         resumeOnBluetooth: resumeOnBluetooth ?? this.resumeOnBluetooth,
         batteryAsked: batteryAsked ?? this.batteryAsked,
@@ -451,6 +468,8 @@ class AppSettings {
         'reduceMotion': reduceMotion,
         'streamCacheLimitBytes': streamCacheLimitBytes,
         'hideShortAudios': hideShortAudios,
+        if (musicFolderChoices.isNotEmpty) 'musicFolderChoices': musicFolderChoices,
+        'searchHistoryOn': searchHistoryOn,
         'pauseOnMute': pauseOnMute,
         'resumeOnBluetooth': resumeOnBluetooth,
         'batteryAsked': batteryAsked,
@@ -522,6 +541,12 @@ class AppSettings {
       reduceMotion: read('reduceMotion', d.reduceMotion),
       streamCacheLimitBytes: cacheLimitOptions.contains(limit) ? limit : d.streamCacheLimitBytes,
       hideShortAudios: read('hideShortAudios', d.hideShortAudios),
+      musicFolderChoices: {
+        if (json['musicFolderChoices'] case final Map choices)
+          for (final MapEntry(:key, :value) in choices.entries)
+            if (key is String && value is bool) key: value,
+      },
+      searchHistoryOn: read('searchHistoryOn', d.searchHistoryOn),
       pauseOnMute: read('pauseOnMute', d.pauseOnMute),
       resumeOnBluetooth: read('resumeOnBluetooth', d.resumeOnBluetooth),
       batteryAsked: read('batteryAsked', d.batteryAsked),
@@ -578,7 +603,7 @@ class AppSettings {
           : null,
       backgroundKind: json['backgroundKind'] == 'video' ? 'video' : 'image',
       backgroundBlur: (json['backgroundBlur'] as num?)?.toDouble().clamp(0, maxBackgroundBlur) ?? d.backgroundBlur,
-      backgroundOpacity: (json['backgroundOpacity'] as num?)?.toDouble().clamp(0.1, 1) ?? d.backgroundOpacity,
+      backgroundOpacity: (json['backgroundOpacity'] as num?)?.toDouble().clamp(minBackgroundOpacity, 1) ?? d.backgroundOpacity,
       theme: themes.contains(json['theme']) ? json['theme'] as String : d.theme,
       font: fonts.contains(json['font']) ? json['font'] as String : d.font,
       lyricsSize: lyricsSizes.contains(json['lyricsSize']) ? json['lyricsSize'] as String : d.lyricsSize,

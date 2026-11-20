@@ -25,6 +25,7 @@ import '../../customize/presentation/track_text.dart';
 import '../../history/listening_history.dart';
 import '../../recommendations/data/home_feed_provider.dart';
 import '../../recommendations/data/search_history.dart';
+import '../../settings/data/settings_store.dart';
 import '../../recommendations/presentation/home_sections.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -169,7 +170,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _onChanged(String query) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () => _search(query));
+    // Una pausa corta mientras se escribe (350 ms; antes 500): no se busca letra por letra.
+    _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
     setState(() {}); // refresca el mensaje vacío/placeholder al instante
   }
 
@@ -186,8 +188,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     _ => YtCollectionKind.album,
   };
 
-  /// Pestaña Todo: todo a la vez; si una parte falla, se muestra el resto.
-  Future<SearchOverview> _loadOverview(String query) async {
+  /// Pestaña Todo: todo a la vez; si una parte falla, se muestra el resto. Con [onPartial], se
+  /// muestra apenas llegan el resultado principal y las canciones, y se completa con artistas,
+  /// álbumes y playlists a medida que llegan (antes se esperaba al más lento de los cinco).
+  Future<SearchOverview> _loadOverview(String query, {void Function(SearchOverview overview)? onPartial}) async {
     var failures = 0;
     Future<T?> part<T>(String what, Future<T> future) async {
       try {
@@ -199,18 +203,41 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       }
     }
 
-    final top = part('resultado principal', _client.searchTop(query)); // l10n-ignore (registro)
-    final songs = part('canciones', _client.searchSongsPage(query)); // l10n-ignore (registro)
-    final artists = part('artistas', _client.searchCollectionsPage(query, YtCollectionKind.artist)); // l10n-ignore (registro)
-    final albums = part('álbumes', _client.searchCollectionsPage(query, YtCollectionKind.album)); // l10n-ignore (registro)
-    final playlists = part('playlists', _client.searchCollectionsPage(query, YtCollectionKind.playlist)); // l10n-ignore (registro)
-    final overview = SearchOverview.from(
-      top: await top,
-      songs: (await songs)?.items ?? const [],
-      artists: (await artists)?.items ?? const [],
-      albums: (await albums)?.items ?? const [],
-      playlists: (await playlists)?.items ?? const [],
+    YtTopResult? top;
+    YtSearchPage<YtMusicSearchResult>? songs;
+    YtSearchPage<YtCollection>? artists, albums, playlists;
+    var mainReady = false;
+    SearchOverview build() => SearchOverview.from(
+      top: top,
+      songs: songs?.items ?? const [],
+      artists: artists?.items ?? const [],
+      albums: albums?.items ?? const [],
+      playlists: playlists?.items ?? const [],
     );
+    void emit() {
+      if (mainReady && onPartial != null) onPartial(build());
+    }
+
+    final main = [
+      part('resultado principal', _client.searchTop(query)).then((v) => top = v), // l10n-ignore (registro)
+      part('canciones', _client.searchSongsPage(query)).then((v) => songs = v), // l10n-ignore (registro)
+    ];
+    final rest = [
+      part('artistas', _client.searchCollectionsPage(query, YtCollectionKind.artist)) // l10n-ignore (registro)
+          .then((v) => artists = v)
+          .then((_) => emit()),
+      part('álbumes', _client.searchCollectionsPage(query, YtCollectionKind.album)) // l10n-ignore (registro)
+          .then((v) => albums = v)
+          .then((_) => emit()),
+      part('playlists', _client.searchCollectionsPage(query, YtCollectionKind.playlist)) // l10n-ignore (registro)
+          .then((v) => playlists = v)
+          .then((_) => emit()),
+    ];
+    await Future.wait(main);
+    mainReady = true;
+    emit();
+    await Future.wait(rest);
+    final overview = build();
     if (overview.isEmpty && failures == 5) throw StateError('falló toda la búsqueda');
     return overview;
   }
@@ -244,7 +271,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
     try {
       if (_kind == SearchKind.all) {
-        final overview = await _loadOverview(query);
+        final overview = await _loadOverview(
+          query,
+          onPartial: (partial) {
+            if (!mounted || generation != _generation || partial.isEmpty) return;
+            setState(() {
+              _overview = partial;
+              _loading = false;
+            });
+          },
+        );
         if (!mounted || generation != _generation) return;
         setState(() {
           _overview = overview;
@@ -341,7 +377,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// Guarda la búsqueda en "Recientes" (solo al confirmarla: Enter o tocar
   /// un resultado; no cada letra).
-  void _remember(String query) => ref.read(searchHistoryProvider.notifier).add(query);
+  /// Con «Guardar búsquedas recientes» apagado, no se guarda nada.
+  void _remember(String query) {
+    if (!ref.read(settingsProvider).searchHistoryOn) return;
+    ref.read(searchHistoryProvider.notifier).add(query);
+  }
 
   void _searchFor(String query) {
     _controller.text = query;
@@ -352,7 +392,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   /// Antes de escribir: búsquedas recientes y sugerencias.
   Widget _buildBeforeTyping() {
-    final recent = ref.watch(searchHistoryProvider);
+    final recent = ref.watch(settingsProvider.select((s) => s.searchHistoryOn))
+        ? ref.watch(searchHistoryProvider)
+        : const <String>[];
     final isNew = ref.watch(listeningHistoryProvider).isEmpty;
     final feed = isNew ? null : ref.watch(homeFeedProvider).value;
     final suggestions = feed == null ? const <Track>[] : (feed.discover.isNotEmpty ? feed.discover : feed.mix);
@@ -364,6 +406,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             children: [
               Expanded(child: Text(tx.recientes, style: KijiText.mono(size: 11))),
               TextButton(onPressed: () => ref.read(searchHistoryProvider.notifier).clear(), child: Text(tx.borrar)),
+              // Dejar de guardarlas (y borrar las que hay): también en Configuración → Privacidad.
+              IconButton(
+                key: const Key('search-history-off'),
+                tooltip: tx.noGuardarBusquedas,
+                icon: const Icon(Icons.visibility_off_outlined, size: 20),
+                onPressed: () => setSearchHistoryOn(ref, false),
+              ),
             ],
           ),
           for (final query in recent.take(8))

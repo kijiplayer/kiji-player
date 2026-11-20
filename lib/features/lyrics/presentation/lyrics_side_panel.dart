@@ -233,7 +233,7 @@ class _LyricsSettings extends ConsumerWidget {
                 OutlinedButton(
                   style: _compact,
                   onPressed: () => move(-500),
-                  child: Tooltip(message: tx.laLetraVaDespues, child: const Text('−0,5 s')), // l10n-ignore
+                  child: Tooltip(message: tx.laLetraVaDespues, child: Text(tx.letraMenosMedioSegundo)),
                 ),
                 SizedBox(
                   width: 84,
@@ -248,7 +248,7 @@ class _LyricsSettings extends ConsumerWidget {
                 OutlinedButton(
                   style: _compact,
                   onPressed: () => move(500),
-                  child: Tooltip(message: tx.laLetraVaAntes, child: const Text('+0,5 s')), // l10n-ignore
+                  child: Tooltip(message: tx.laLetraVaAntes, child: Text(tx.letraMasMedioSegundo)),
                 ),
               ],
             ),

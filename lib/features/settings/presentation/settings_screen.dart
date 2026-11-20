@@ -4,6 +4,7 @@
 
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,6 +33,7 @@ import '../../equalizer/data/equalizer_notifier.dart';
 import '../../equalizer/presentation/sound_screen.dart';
 import '../../import/presentation/import_screen.dart';
 import '../../local_library/presentation/excluded_folders_screen.dart';
+import '../../local_library/presentation/music_folders_screen.dart';
 import '../../lyrics/presentation/lyrics_menu_sheet.dart';
 import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
 import '../../reports/presentation/reports_screen.dart';
@@ -448,6 +450,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
       ],
       // Contenido
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+        SettingOption(
+          section: SettingsSection.storage,
+          title: tx.carpetasDeMusica,
+          subtitle: tx.carpetasDeMusicaDescripcion,
+          keywords: const ['biblioteca', 'carpetas', 'musica', 'library', 'folders', 'ocultar', 'descargas'],
+          builder: (context, ref) => ListTile(
+            key: const Key('settings-music-folders'),
+            leading: const Icon(Icons.folder_special_outlined),
+            title: Text(tx.carpetasDeMusica),
+            subtitle: Text(tx.carpetasDeMusicaDescripcion),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => MusicFoldersScreen.open(context),
+          ),
+        ),
       SettingOption(
         section: SettingsSection.storage,
         title: tx.carpetasExcluidas,
@@ -462,18 +479,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => ExcludedFoldersScreen.open(context),
         ),
       ),
-      SettingOption(
-        section: SettingsSection.storage,
-        title: tx.ocultarAudiosCortos,
-        subtitle: tx.noMostrarEnLaBibliotecaLos,
-        keywords: const ['sonidos', 'notificaciones', 'juegos', 'tonos', 'filtrar'],
-        builder: (context, ref) => SwitchListTile(
-          title: Text(tx.ocultarAudiosCortos),
-          subtitle: Text(tx.noMuestraEnLaBibliotecaLos),
-          value: ref.watch(settingsProvider).hideShortAudios,
-          onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(hideShortAudios: value)),
+      // En Android, lo de menos de 30 s ya queda afuera siempre (ver `filterMusic`).
+      if (kIsWeb || defaultTargetPlatform != TargetPlatform.android)
+        SettingOption(
+          section: SettingsSection.storage,
+          title: tx.ocultarAudiosCortos,
+          subtitle: tx.noMostrarEnLaBibliotecaLos,
+          keywords: const ['sonidos', 'notificaciones', 'juegos', 'tonos', 'filtrar'],
+          builder: (context, ref) => SwitchListTile(
+            title: Text(tx.ocultarAudiosCortos),
+            subtitle: Text(tx.noMuestraEnLaBibliotecaLos),
+            value: ref.watch(settingsProvider).hideShortAudios,
+            onChanged: (value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(hideShortAudios: value)),
+          ),
         ),
-      ),
       // Letras
       SettingOption(
         section: SettingsSection.lyrics,
@@ -1006,6 +1025,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       SettingOption(
         section: SettingsSection.privacy,
+        title: tx.guardarBusquedasRecientes,
+        subtitle: tx.guardarBusquedasRecientesNota,
+        keywords: const ['busqueda', 'historial', 'recientes', 'search', 'history'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-search-history'),
+          secondary: const Icon(Icons.history_rounded),
+          title: Text(tx.guardarBusquedasRecientes),
+          subtitle: Text(tx.guardarBusquedasRecientesNota),
+          value: ref.watch(settingsProvider.select((s) => s.searchHistoryOn)),
+          onChanged: (on) => setSearchHistoryOn(ref, on),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.privacy,
         title: tx.letrasYTraduccion,
         subtitle: tx.queSeEnviaAlBuscarO,
         keywords: const ['letras', 'traduccion', 'gemini', 'clave'],
@@ -1252,6 +1285,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: Text('${isDevBuild ? 'Kiji Dev' : 'Kiji Player'} $kijiVersionLabel'), // l10n-ignore
           subtitle: Text(tx.canalCompiladaElSoftwareLibreGpl(kijiChannel, kijiBuildDateLabel)),
           isThreeLine: true,
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.about,
+        title: tx.paginaOficial,
+        subtitle: tx.paginaOficialDescripcion,
+        keywords: const ['web', 'pagina', 'sitio', 'descargar', 'website', 'page'],
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-official-page'),
+          leading: const Icon(Icons.public_rounded),
+          title: Text(tx.paginaOficial),
+          subtitle: Text(tx.paginaOficialDescripcion),
+          trailing: const Icon(Icons.open_in_new_rounded),
+          onTap: openOfficialPage,
         ),
       ),
       SettingOption(

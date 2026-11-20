@@ -4225,7 +4225,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get seccionDescargasDescripcion =>
-      'Downloads, cache, space, mobile data and short audios';
+      'Downloads, cache, space, mobile data and local music';
 
   @override
   String get seccionPcDescripcion =>
@@ -5244,4 +5244,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sesionIniciadaCorto => 'Signed in';
+
+  @override
+  String get cartelKijiTeatro => 'KIJI  ·  THEATER';
+
+  @override
+  String get letraMenosMedioSegundo => '−0.5 s';
+
+  @override
+  String get letraMasMedioSegundo => '+0.5 s';
+
+  @override
+  String get efectosApagadosPresetElegido =>
+      'Effects are off: the chosen preset will play when you turn them on.';
+
+  @override
+  String get prenderEfectos => 'Turn on';
+
+  @override
+  String get guardarBusquedasRecientes => 'Save recent searches';
+
+  @override
+  String get guardarBusquedasRecientesNota =>
+      'They show up at the top when you search and stay on this device only. Turning it off deletes them.';
+
+  @override
+  String get noGuardarBusquedas => 'Don\'t save searches';
+
+  @override
+  String get carpetasDeMusica => 'Music folders';
+
+  @override
+  String get carpetasDeMusicaDescripcion =>
+      'Choose which phone folders show up in the Library';
+
+  @override
+  String get carpetasDeMusicaNota =>
+      'Hiding a folder doesn\'t delete anything: it just stops showing in the Library, and you can show it again anytime. Folders with mostly untagged audio (recordings, loose files) start hidden.';
+
+  @override
+  String get carpetasDeMusicaVacio =>
+      'There are no music folders on this phone (or the permission is missing).';
+
+  @override
+  String nAudios(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count audios',
+      one: '1 audio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get paginaOficial => 'Official page';
+
+  @override
+  String get paginaOficialDescripcion =>
+      'Kiji\'s downloads and news, in your browser';
+
+  @override
+  String get verQueHayDeNuevo => 'See what\'s new';
 }

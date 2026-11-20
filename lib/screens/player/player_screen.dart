@@ -44,9 +44,11 @@ import '../../features/moments/presentation/moment_marks.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 
-/// De dónde sale la canción, para "REPRODUCIENDO DESDE".
-String playingFromLabel(Track track, {required bool downloaded}) {
-  if (track.source == TrackSource.local) return tx.tuBiblioteca;
+/// De dónde sale la canción, para "REPRODUCIENDO DESDE". Con [origin] (de dónde empezó a sonar),
+/// ese manda: si la canción se descarga sola a mitad, sigue diciendo "YouTube Music".
+String playingFromLabel(Track track, {required bool downloaded, AudioOrigin? origin}) {
+  if (track.source == TrackSource.local || origin == AudioOrigin.local) return tx.tuBiblioteca;
+  if (origin != null) return origin == AudioOrigin.download ? tx.descargadas2 : 'YOUTUBE MUSIC'; // l10n-ignore
   if (downloaded) return tx.descargadas2;
   return 'YOUTUBE MUSIC'; // l10n-ignore
 }
@@ -106,14 +108,16 @@ class PlayerScreen extends ConsumerWidget {
               fit: StackFit.expand,
               children: [
                 // Un fondo propio (el de esta canción o el general) reemplaza al del estilo.
-                if (ref.watch(hasCustomBackgroundProvider))
-                  const CustomBackground()
+                if (ref.watch(playerHasCustomBackgroundProvider))
+                  const CustomBackground(player: true)
                 else
                   PlayerHalo(track: track, playing: playback.isPlaying),
                 // Deslizar hacia arriba abre la letra, salvo que el gesto empiece en la zona de gestos
                 // del sistema (salir de Kiji desde abajo no debe abrir la letra).
+                // Deslizar hacia abajo lo cierra, como en cualquier reproductor.
                 LyricsSwipeDetector(
                   onSwipeUp: () => LyricsScreen.open(context),
+                  onSwipeDown: () => Navigator.of(context).maybePop(),
                   child: SafeArea(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -188,14 +192,14 @@ class PlayerScreen extends ConsumerWidget {
   }
 }
 
-class _TopBar extends StatelessWidget {
+class _TopBar extends ConsumerWidget {
   const _TopBar({required this.track, required this.downloaded});
 
   final Track track;
   final bool downloaded;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Row(
@@ -211,7 +215,11 @@ class _TopBar extends StatelessWidget {
                 Text(tx.reproduciendoDesde, style: KijiText.mono(size: 10)),
                 const SizedBox(height: 2),
                 Text(
-                  playingFromLabel(track, downloaded: downloaded),
+                  playingFromLabel(
+                    track,
+                    downloaded: downloaded,
+                    origin: ref.watch(audioOriginProvider.select((o) => o?.trackId == track.id ? o!.origin : null)),
+                  ),
                   style: KijiText.title(size: 13, weight: FontWeight.w600),
                 ),
               ],
@@ -376,75 +384,93 @@ class _TitleRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final liked = ref.watch(favoritesProvider).containsKey(track.id);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Grafito: entran deslizándose, una línea después de la otra.
-              MuseumLineIn(
-                trackId: track.id,
-                line: 0,
-                child: TrackTitleText(
-                  track,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  // Grafito: grande y fino.
-                  style: KijiLook.museum
-                      ? KijiText.title(
-                          size: compact ? 24 : 38,
-                          weight: FontWeight.w300,
-                        ).copyWith(letterSpacing: compact ? -0.5 : -1, height: 1.05)
-                      : KijiText.title(size: compact ? 20 : 26),
+    // El título nunca se parte a mitad de palabra: se achica hasta un mínimo legible y recién ahí
+    // corta con «…» (antes: «elephan / t cage»).
+    final title = MuseumLineIn(
+      trackId: track.id,
+      line: 0,
+      child: TrackTitleText(
+        track,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        minFontSize: compact ? 16 : (KijiLook.museum ? 24 : 20),
+        // Grafito: grande y fino.
+        style: KijiLook.museum
+            ? KijiText.title(
+                size: compact ? 24 : 38,
+                weight: FontWeight.w300,
+              ).copyWith(letterSpacing: compact ? -0.5 : -1, height: 1.05)
+            : KijiText.title(size: compact ? 20 : 26),
+      ),
+    );
+    final artist = MuseumLineIn(
+      trackId: track.id,
+      line: 1,
+      child: TrackArtistText(
+        track,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        // Grafito: el artista como una etiqueta (versalitas espaciadas).
+        style: KijiLook.museum
+            ? TextStyle(
+                color: KijiColors.muted,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2.2,
+              )
+            : TextStyle(color: KijiColors.muted, fontSize: 16),
+      ),
+    );
+    final actions = <Widget>[
+      // Reacciones de teatro: 🍅 y 🌹 (en el modo compacto no entran al lado de la portada chica;
+      // sacudir el teléfono sigue tirando tomates).
+      if (!compact) TheaterButtons(track: track),
+      if (track.youtubeVideoId != null)
+        downloaded
+            ? Tooltip(
+                message: tx.descargadaSuenaSinConexion,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
                 ),
-              ),
-              const SizedBox(height: 4),
-              MuseumLineIn(
-                trackId: track.id,
-                line: 1,
-                child: TrackArtistText(
-                  track,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  // Grafito: el artista como una etiqueta (versalitas espaciadas).
-                  style: KijiLook.museum
-                      ? TextStyle(
-                          color: KijiColors.muted,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 2.2,
-                        )
-                      : TextStyle(color: KijiColors.muted, fontSize: 16),
-                ),
-              ),
-            ],
+              )
+            : DownloadButton(track: track),
+      // "Agregar a playlist" a un toque.
+      IconButton(
+        tooltip: tx.agregarAPlaylist,
+        onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
+        icon: Icon(Icons.playlist_add_rounded, color: KijiLook.museum ? KijiColors.muted : KijiColors.text),
+      ),
+      IconButton(
+        tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
+        onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
+        icon: LikeHeart(liked: liked),
+      ),
+    ];
+    if (compact) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [title, const SizedBox(height: 4), artist],
+            ),
           ),
-        ),
-        // Reacciones de teatro: 🍅 y 🌹 (en el modo compacto no entran al lado de la portada chica;
-        // sacudir el teléfono sigue tirando tomates).
-        if (!compact) TheaterButtons(track: track),
-        if (track.youtubeVideoId != null)
-          downloaded
-              ? Tooltip(
-                  message: tx.descargadaSuenaSinConexion,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
-                  ),
-                )
-              : DownloadButton(track: track),
-        // "Agregar a playlist" a un toque.
-        IconButton(
-          tooltip: tx.agregarAPlaylist,
-          onPressed: () => showAddToPlaylistSheet(context, ref, [track]),
-          icon: Icon(Icons.playlist_add_rounded, color: KijiLook.museum ? KijiColors.muted : KijiColors.text),
-        ),
-        IconButton(
-          tooltip: liked ? tx.quitarDeMeGusta : tx.meGusta2,
-          onPressed: () => ref.read(favoritesProvider.notifier).toggle(track),
-          icon: LikeHeart(liked: liked),
+          ...actions,
+        ],
+      );
+    }
+    // El título usa todo el ancho; los botones van en la fila del artista.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        title,
+        Row(
+          children: [
+            Expanded(child: artist),
+            ...actions,
+          ],
         ),
       ],
     );

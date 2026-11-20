@@ -4232,7 +4232,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get seccionDescargasDescripcion =>
-      'Descargas, caché, espacio, datos móviles y audios cortos';
+      'Descargas, caché, espacio, datos móviles y música local';
 
   @override
   String get seccionPcDescripcion =>
@@ -5255,4 +5255,66 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sesionIniciadaCorto => 'Sesión iniciada';
+
+  @override
+  String get cartelKijiTeatro => 'KIJI  ·  TEATRO';
+
+  @override
+  String get letraMenosMedioSegundo => '−0,5 s';
+
+  @override
+  String get letraMasMedioSegundo => '+0,5 s';
+
+  @override
+  String get efectosApagadosPresetElegido =>
+      'Los efectos están apagados: el preset elegido va a sonar cuando los prendas.';
+
+  @override
+  String get prenderEfectos => 'Prender';
+
+  @override
+  String get guardarBusquedasRecientes => 'Guardar búsquedas recientes';
+
+  @override
+  String get guardarBusquedasRecientesNota =>
+      'Se muestran arriba al buscar y quedan solo en este dispositivo. Apagarlo borra las que hay.';
+
+  @override
+  String get noGuardarBusquedas => 'No guardar búsquedas';
+
+  @override
+  String get carpetasDeMusica => 'Carpetas de música';
+
+  @override
+  String get carpetasDeMusicaDescripcion =>
+      'Elige qué carpetas del teléfono se ven en la Biblioteca';
+
+  @override
+  String get carpetasDeMusicaNota =>
+      'Ocultar una carpeta no borra nada: solo deja de verse en la Biblioteca, y la puedes volver a mostrar cuando quieras. Las que tienen sobre todo audios sin artista (grabaciones, audios sueltos) empiezan ocultas.';
+
+  @override
+  String get carpetasDeMusicaVacio =>
+      'No hay carpetas con música en este teléfono (o falta el permiso).';
+
+  @override
+  String nAudios(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count audios',
+      one: '1 audio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get paginaOficial => 'Página oficial';
+
+  @override
+  String get paginaOficialDescripcion =>
+      'Descargas y novedades de Kiji, en el navegador';
+
+  @override
+  String get verQueHayDeNuevo => 'Ver qué hay de nuevo';
 }

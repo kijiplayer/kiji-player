@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/app_icon/presentation/app_icon_sync.dart';
@@ -111,6 +113,8 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     ErrorReporter.instance.pending.removeListener(_offerReport);
     _veil.dispose();
+    _veilShot.value?.dispose();
+    _veilShot.dispose();
     super.dispose();
   }
 
@@ -256,10 +260,14 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
     if (!_appearanceReady) return;
     debugPrint('=== APARIENCIA: estilo ${style.name}, tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
-    // Otro estilo: redibujar todo tarda (~0,7 s en el teléfono). Un velo del fondo nuevo tapa ese
-    // cuadro y se desvanece después: se ve un fundido en vez de una pantalla trabada a medias. Con
+    // Otro estilo: redibujar todo tarda (~0,7 s en el teléfono). Una foto de la pantalla de antes la
+    // tapa mientras tanto y se desvanece: un fundido del estilo viejo al nuevo, sin el cuadro negro
+    // que dejaba el velo del color de fondo. Si la foto no se puede sacar, queda ese velo. Con
     // "reducir animaciones", sin velo.
-    if (styleChanged && !calm) _veil.value = true;
+    if (styleChanged && !calm) {
+      _takeVeilShot();
+      _veil.value = true;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _rebuildAll();
       if (_veil.value) WidgetsBinding.instance.addPostFrameCallback((_) => _veil.value = false);
@@ -268,6 +276,31 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
 
   /// El velo del cambio de estilo (ver [_applyAppearance]).
   final _veil = ValueNotifier<bool>(false);
+
+  /// La foto de la pantalla de antes del cambio de estilo (el fundido); null: el velo de color.
+  final _veilShot = ValueNotifier<ui.Image?>(null);
+  final _screenKey = GlobalKey();
+
+  void _takeVeilShot() {
+    try {
+      final boundary = _screenKey.currentContext?.findRenderObject();
+      if (boundary is! RenderRepaintBoundary) return;
+      final ratio = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+      _veilShot.value?.dispose();
+      _veilShot.value = boundary.toImageSync(pixelRatio: ratio);
+    } catch (error) {
+      debugPrint('=== APARIENCIA: sin foto para el fundido (${error.runtimeType}); velo de color ===');
+      _veilShot.value = null;
+    }
+  }
+
+  /// Terminó de desvanecerse: la foto ya no hace falta.
+  void _dropVeilShot() {
+    if (_veil.value) return;
+    final shot = _veilShot.value;
+    _veilShot.value = null;
+    shot?.dispose();
+  }
 
   bool _appearanceReady = false;
 
@@ -320,19 +353,29 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
           child: BackdropGroup(
             child: Stack(
               children: [
-                PlaybackShortcuts(
-                  child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+                RepaintBoundary(
+                  key: _screenKey,
+                  child: PlaybackShortcuts(
+                    child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+                  ),
                 ),
-                // El velo del cambio de estilo: aparece de golpe y se va en 250 ms.
+                // El velo del cambio de estilo: la pantalla de antes, que se desvanece en 300 ms
+                // (o, sin foto, el color de fondo).
                 ValueListenableBuilder<bool>(
                   valueListenable: _veil,
                   builder: (context, on, _) => IgnorePointer(
                     child: AnimatedOpacity(
                       key: const Key('style-veil'),
                       opacity: on ? 1 : 0,
-                      duration: on ? Duration.zero : KijiMotion.normal,
+                      duration: on ? Duration.zero : const Duration(milliseconds: 300),
                       curve: Curves.easeOut,
-                      child: ColoredBox(color: KijiColors.background, child: const SizedBox.expand()),
+                      onEnd: _dropVeilShot,
+                      child: ValueListenableBuilder<ui.Image?>(
+                        valueListenable: _veilShot,
+                        builder: (context, shot, _) => shot == null
+                            ? (on ? ColoredBox(color: KijiColors.background, child: const SizedBox.expand()) : const SizedBox.expand())
+                            : RawImage(key: const Key('style-veil-shot'), image: shot, fit: BoxFit.fill),
+                      ),
                     ),
                   ),
                 ),

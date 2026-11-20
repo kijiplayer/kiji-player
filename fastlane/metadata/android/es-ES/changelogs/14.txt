@@ -1,0 +1,5 @@
+• Los títulos del reproductor ya no se parten, y el reproductor se cierra deslizando hacia abajo.
+• Con Kiji en inglés ya no quedan textos en español.
+• El Teatro entra con su telón; cambiar de estilo es un fundido suave.
+• Búsqueda más rápida, y las búsquedas recientes se pueden dejar de guardar.
+• Arreglos en Momentos, el ecualizador, el estilo de la canción y la Biblioteca.

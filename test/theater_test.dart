@@ -338,6 +338,28 @@ void main() {
     });
   }
 
+  testWidgets('Tu Teatro entra con el telón, que se abre y desaparece', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final c = ProviderContainer(overrides: [
+      theaterProvider.overrideWith(() => TheaterNotifier(directory: () async => dir)),
+      favoritesProvider.overrideWith(_Favorites.new),
+    ]);
+    addTearDown(c.dispose);
+    c.read(theaterProvider.notifier).rose(_t('r'));
+    await tester.pumpWidget(UncontrolledProviderScope(container: c, child: const MaterialApp(home: TheaterScreen())));
+    await tester.pump(const Duration(milliseconds: 100));
+    // Al empezar: el telón tapa la cartelera.
+    final curtain = find.descendant(of: find.byType(TheaterCurtain), matching: find.byType(DecoratedBox));
+    expect(curtain, findsNWidgets(2));
+    await tester.pump(TheaterCurtain.duration);
+    await tester.pumpAndSettle();
+    expect(curtain, findsNothing, reason: 'abierto del todo, no se dibuja');
+    expect(find.text('EN CARTELERA'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   test('El teatro es a color en los tres estilos (tomate rojo, rosa roja, telón rojo)', () {
     final before = KijiLook.style;
     addTearDown(() => KijiLook.style = before);

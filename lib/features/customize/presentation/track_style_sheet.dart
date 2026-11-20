@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/l10n.dart';
 import '../../../models/track.dart';
 import '../../../theme/kiji_tokens.dart';
+import '../../../widgets/album_cover.dart';
 import '../../../widgets/nocturne/kiji_sheet.dart';
 import '../../lyrics/presentation/lyrics_views.dart' show lyricsPanelLabel;
 import '../../style/data/background_store.dart';
@@ -89,7 +90,15 @@ class TrackStyleSheet extends ConsumerWidget {
               // La vista previa en vivo: la miniatura con los colores que suenan ahora.
               SizedBox(
                 width: 86,
-                child: StylePreview(style: KijiLook.style, palette: KijiColors.palette, titleFont: KijiText.titleFamily),
+                // Con la canción que suena (antes, la inventada «Glass Harbor»).
+                child: StylePreview(
+                  style: KijiLook.style,
+                  palette: KijiColors.palette,
+                  titleFont: KijiText.titleFamily,
+                  title: track.title,
+                  artist: track.artist,
+                  cover: TrackArtwork(track: track, size: 160, radius: 0, showDownloadState: false),
+                ),
               ),
             ],
           ),
@@ -129,16 +138,22 @@ class TrackStyleSheet extends ConsumerWidget {
                   await store.removeTrack(old);
                 },
               ),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.image_outlined),
+              // Queda marcado el que está puesto (antes, con un video no se marcaba ninguno). Tocarlo
+              // otra vez elige otro archivo.
+              ChoiceChip(
+                key: const Key('track-style-bg-image'),
+                avatar: const Icon(Icons.image_outlined, size: 18),
                 label: Text(tx.elegirImagen),
-                onPressed: () => _chooseBackground(context, ref, video: false),
+                selected: style.backgroundFile != null && style.backgroundKind != 'video',
+                onSelected: (_) => _chooseBackground(context, ref, video: false),
               ),
               if (BackgroundStore.videoSupported)
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.movie_outlined),
+                ChoiceChip(
+                  key: const Key('track-style-bg-video'),
+                  avatar: const Icon(Icons.movie_outlined, size: 18),
                   label: Text(tx.elegirVideo),
-                  onPressed: () => _chooseBackground(context, ref, video: true),
+                  selected: style.backgroundFile != null && style.backgroundKind == 'video',
+                  onSelected: (_) => _chooseBackground(context, ref, video: true),
                 ),
             ],
           ),

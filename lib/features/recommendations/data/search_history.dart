@@ -6,7 +6,14 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../utils/json_file.dart';
+import '../../settings/data/settings_store.dart';
 
+
+/// «Guardar búsquedas recientes»: apagarlo borra las que hay (y no se guardan más).
+Future<void> setSearchHistoryOn(WidgetRef ref, bool on) async {
+  await ref.read(settingsProvider.notifier).update((s) => s.copyWith(searchHistoryOn: on));
+  if (!on) ref.read(searchHistoryProvider.notifier).clear();
+}
 
 /// Búsquedas recientes. Se guardan solo en este dispositivo
 /// (`<appSupport>/search_history.json`).

@@ -217,13 +217,14 @@ class EqualizerNotifier extends Notifier<EqualizerState> {
     return _change(s.copyWith(perDevice: perDevice, byOutput: byOutput));
   }
 
-  /// Elige un preset de fábrica o uno propio para [output] (o para el perfil general).
+  /// Elige un preset de fábrica o uno propio para [output] (o para el perfil general). No prende los
+  /// efectos (antes sí, sin avisar): si están apagados, queda elegido y la pantalla lo dice.
   Future<void> selectPreset(AudioOutputKind output, String presetId) {
     final user = state.settings.userPresets.where((p) => p.profileId == presetId).firstOrNull;
     final profile = user == null
         ? EqProfile(presetId: presetId)
         : EqProfile(presetId: user.profileId, points: user.points, name: user.name);
-    return _edit(state.settings.withProfile(output, profile));
+    return _change(state.settings.withProfile(output, profile));
   }
 
   /// Mueve una banda a mano: el perfil pasa a "Personalizado".

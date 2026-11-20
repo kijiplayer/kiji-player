@@ -21,6 +21,9 @@ import '../../../utils/json_access.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
+/// Idioma que se le pide a YouTube Music (búsqueda, estados de ánimo, colecciones): el de la app.
+String get ytLanguage => kijiLanguage.startsWith('es') ? 'es' : 'en';
+
 /// Resultado crudo de una búsqueda en YouTube Music, antes de mapearlo
 /// a nuestro modelo de dominio [Track].
 /// Una página de resultados de búsqueda y la marca para pedir la siguiente
@@ -128,9 +131,11 @@ class YtMusicClient {
   /// prácticamente todos los clientes FOSS de YTM.
   static const _apiKey = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL47NlEVNIeM'; // l10n-ignore
 
+  // `hl`: el idioma de la app. YouTube devuelve en ese idioma los estados de ánimo, los géneros y
+  // los subtítulos ("Playlist" / "Lista de reproducción"); antes iba fijo en español.
   Map<String, dynamic> get _context => {
     'context': {
-      'client': {'clientName': 'WEB_REMIX', 'clientVersion': '1.20260213.01.00', 'hl': 'es', 'gl': 'US'},
+      'client': {'clientName': 'WEB_REMIX', 'clientVersion': '1.20260213.01.00', 'hl': ytLanguage, 'gl': 'US'},
     },
   };
 

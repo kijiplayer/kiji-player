@@ -576,10 +576,19 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     }
   }
 
+  void _setOrigin(Track track, AudioOrigin origin) {
+    try {
+      ref.read(audioOriginProvider.notifier).state = (trackId: track.id, origin: origin);
+    } catch (error) {
+      debugPrint('=== REPRODUCCION: no se pudo anotar el origen (${error.runtimeType}) ===');
+    }
+  }
+
   Future<LoadResult> _setSource(Track track, Duration initialPosition, int token, Set<String> skipClients) async {
     final videoId = track.youtubeVideoId;
     if (videoId == null) {
       await _audioPlayer.setFilePath(track.audioUrl, initialPosition: initialPosition);
+      _setOrigin(track, AudioOrigin.local);
       return LoadResult.loaded;
     }
 
@@ -589,6 +598,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     if (downloaded != null) {
       debugPrint('=== REPRODUCCION: "${track.title}" desde la descarga ===');
       await _audioPlayer.setFilePath(downloaded.path, initialPosition: initialPosition);
+      _setOrigin(track, AudioOrigin.download);
       return LoadResult.loaded;
     }
 
@@ -599,6 +609,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
       debugPrint('=== REPRODUCCION: "${track.title}" desde la caché ===');
       unawaited(_cache.touch(cached));
       await _audioPlayer.setFilePath(cached.path, initialPosition: initialPosition);
+      _setOrigin(track, AudioOrigin.cache);
       return LoadResult.loaded;
     }
 
@@ -683,6 +694,7 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
           if (token != _loadToken) return LoadResult.cancelled;
           _currentClient = stream.path;
           _currentStream = stream;
+          _setOrigin(track, AudioOrigin.stream);
           if (sourceId != videoId && known.swap == null) {
             alternatives.remember(videoId, sourceId);
             _notify(PlaybackNotice(tx.elVideoTieneRestriccionOEsta(track.title)));
@@ -1582,3 +1594,10 @@ class RemovedFromQueue {
 }
 
 final playbackProvider = NotifierProvider<PlaybackNotifier, PlaybackState>(PlaybackNotifier.new);
+
+/// De dónde se cargó el audio de la canción que suena.
+enum AudioOrigin { local, download, cache, stream }
+
+/// De dónde empezó a sonar la canción actual ("Reproduciendo desde"). No cambia si la canción se
+/// descarga sola a mitad (antes pasaba de "YouTube Music" a "Descargadas" sin cambiar nada).
+final audioOriginProvider = StateProvider<({String trackId, AudioOrigin origin})?>((ref) => null);

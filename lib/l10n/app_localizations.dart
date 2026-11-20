@@ -6836,7 +6836,7 @@ abstract class AppLocalizations {
   /// No description provided for @seccionDescargasDescripcion.
   ///
   /// In es, this message translates to:
-  /// **'Descargas, caché, espacio, datos móviles y audios cortos'**
+  /// **'Descargas, caché, espacio, datos móviles y música local'**
   String get seccionDescargasDescripcion;
 
   /// No description provided for @seccionPcDescripcion.
@@ -8506,6 +8506,102 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sesión iniciada'**
   String get sesionIniciadaCorto;
+
+  /// Encabezado de la cartelera del Teatro (en mayúsculas, con espacios)
+  ///
+  /// In es, this message translates to:
+  /// **'KIJI  ·  TEATRO'**
+  String get cartelKijiTeatro;
+
+  /// Botón del panel de letras: adelantar la letra medio segundo
+  ///
+  /// In es, this message translates to:
+  /// **'−0,5 s'**
+  String get letraMenosMedioSegundo;
+
+  /// Botón del panel de letras: atrasar la letra medio segundo
+  ///
+  /// In es, this message translates to:
+  /// **'+0,5 s'**
+  String get letraMasMedioSegundo;
+
+  /// Ecualizador: aviso cuando se elige un preset con los efectos apagados
+  ///
+  /// In es, this message translates to:
+  /// **'Los efectos están apagados: el preset elegido va a sonar cuando los prendas.'**
+  String get efectosApagadosPresetElegido;
+
+  /// Botón para prender los efectos desde el aviso
+  ///
+  /// In es, this message translates to:
+  /// **'Prender'**
+  String get prenderEfectos;
+
+  /// Ajuste de privacidad
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar búsquedas recientes'**
+  String get guardarBusquedasRecientes;
+
+  /// Nota del ajuste
+  ///
+  /// In es, this message translates to:
+  /// **'Se muestran arriba al buscar y quedan solo en este dispositivo. Apagarlo borra las que hay.'**
+  String get guardarBusquedasRecientesNota;
+
+  /// Botón en Recientes de la búsqueda
+  ///
+  /// In es, this message translates to:
+  /// **'No guardar búsquedas'**
+  String get noGuardarBusquedas;
+
+  /// Configuración: elegir qué carpetas del teléfono se ven en la Biblioteca
+  ///
+  /// In es, this message translates to:
+  /// **'Carpetas de música'**
+  String get carpetasDeMusica;
+
+  /// Subtítulo del ajuste
+  ///
+  /// In es, this message translates to:
+  /// **'Elige qué carpetas del teléfono se ven en la Biblioteca'**
+  String get carpetasDeMusicaDescripcion;
+
+  /// Explicación arriba de la lista
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar una carpeta no borra nada: solo deja de verse en la Biblioteca, y la puedes volver a mostrar cuando quieras. Las que tienen sobre todo audios sin artista (grabaciones, audios sueltos) empiezan ocultas.'**
+  String get carpetasDeMusicaNota;
+
+  /// Lista vacía
+  ///
+  /// In es, this message translates to:
+  /// **'No hay carpetas con música en este teléfono (o falta el permiso).'**
+  String get carpetasDeMusicaVacio;
+
+  /// Cantidad de audios de una carpeta
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 audio} other{{count} audios}}'**
+  String nAudios(int count);
+
+  /// Acerca de: abre la página de Kiji en el navegador
+  ///
+  /// In es, this message translates to:
+  /// **'Página oficial'**
+  String get paginaOficial;
+
+  /// Subtítulo de la página oficial
+  ///
+  /// In es, this message translates to:
+  /// **'Descargas y novedades de Kiji, en el navegador'**
+  String get paginaOficialDescripcion;
+
+  /// Aviso de actualización: abre la página oficial junto a Actualizar
+  ///
+  /// In es, this message translates to:
+  /// **'Ver qué hay de nuevo'**
+  String get verQueHayDeNuevo;
 }
 
 class _AppLocalizationsDelegate
