@@ -14,6 +14,8 @@
   canción se ve solo en su reproductor; el resto de Kiji usa el fondo general.
 - La onda arranca con color, y «Reproduciendo desde» no cambia a mitad de la canción.
 - La búsqueda muestra resultados antes, y las búsquedas recientes se pueden dejar de guardar.
+- Acerca de tiene «Página oficial», y el aviso de una versión nueva, «Ver qué hay de nuevo»: los dos
+  solo abren la página de Kiji en el navegador.
 - La Biblioteca muestra solo lo que Android marca como música y dura 30 s o más, sin grabaciones,
   tonos ni audios de WhatsApp o Telegram. En Configuración → «Carpetas de música» eliges qué
   carpetas se ven (ocultar no borra nada). Y lee la música del teléfono una sola vez.
