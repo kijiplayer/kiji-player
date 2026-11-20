@@ -6836,7 +6836,7 @@ abstract class AppLocalizations {
   /// No description provided for @seccionDescargasDescripcion.
   ///
   /// In es, this message translates to:
-  /// **'Descargas, caché, espacio, datos móviles y audios cortos'**
+  /// **'Descargas, caché, espacio, datos móviles y música local'**
   String get seccionDescargasDescripcion;
 
   /// No description provided for @seccionPcDescripcion.

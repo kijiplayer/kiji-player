@@ -4232,7 +4232,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get seccionDescargasDescripcion =>
-      'Descargas, caché, espacio, datos móviles y audios cortos';
+      'Descargas, caché, espacio, datos móviles y música local';
 
   @override
   String get seccionPcDescripcion =>
