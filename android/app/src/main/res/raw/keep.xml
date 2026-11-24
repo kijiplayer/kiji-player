@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- audio_service busca el ícono de la notificación por nombre: que la reducción de recursos de la
-     versión publicada no lo borre. -->
+<!-- audio_service busca los íconos de la notificación por nombre (getIdentifier), y esos nombres
+     solo están en el código Dart: la reducción de recursos de la versión publicada no los ve y los
+     borraba. Sin los audio_service_*, los botones anterior / play-pausa / siguiente salían sin ícono
+     (invisibles) en Android 12 y anteriores (0.8.6). -->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/ic_stat_kiji" />
+    tools:keep="@drawable/ic_stat_kiji,@drawable/audio_service_*" />

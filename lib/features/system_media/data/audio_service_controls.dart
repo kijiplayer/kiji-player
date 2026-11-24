@@ -66,23 +66,10 @@ class AudioServiceControls implements SystemMediaControls {
   }) {
     if (playing) _askNotificationPermissionOnce();
     _handler.playbackState.add(
-      PlaybackState(
-        controls: [
-          MediaControl.skipToPrevious,
-          playing ? MediaControl.pause : MediaControl.play,
-          MediaControl.skipToNext,
-        ],
-        systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
-        androidCompactActionIndices: const [0, 1, 2],
-        processingState: switch (processing) {
-          MediaProcessing.idle => AudioProcessingState.idle,
-          MediaProcessing.loading => AudioProcessingState.loading,
-          MediaProcessing.buffering => AudioProcessingState.buffering,
-          MediaProcessing.ready => AudioProcessingState.ready,
-          MediaProcessing.completed => AudioProcessingState.completed,
-        },
+      kijiPlaybackState(
         playing: playing,
-        updatePosition: position,
+        processing: processing,
+        position: position,
         bufferedPosition: bufferedPosition,
       ),
     );
@@ -112,6 +99,54 @@ class AudioServiceControls implements SystemMediaControls {
     }
   }
 }
+
+/// Lo que la sesión de medios y la notificación anuncian en cada cambio.
+///
+/// - Siempre los mismos 3 controles en el mismo orden (anterior, play/pausa, siguiente), también en
+///   la primera o la última canción de la cola, y los 3 marcados como compactos: en Android 12 y
+///   anteriores la notificación cerrada y la de la pantalla de bloqueo solo muestran esos.
+/// - Desde Android 13 los botones del sistema salen de las acciones de la sesión, no de la
+///   notificación: por eso se declaran todas siempre, aunque ya estén en los controles.
+@visibleForTesting
+PlaybackState kijiPlaybackState({
+  required bool playing,
+  required MediaProcessing processing,
+  required Duration position,
+  required Duration bufferedPosition,
+}) {
+  return PlaybackState(
+    controls: [
+      MediaControl.skipToPrevious,
+      playing ? MediaControl.pause : MediaControl.play,
+      MediaControl.skipToNext,
+    ],
+    systemActions: kijiSystemActions,
+    androidCompactActionIndices: const [0, 1, 2],
+    processingState: switch (processing) {
+      MediaProcessing.idle => AudioProcessingState.idle,
+      MediaProcessing.loading => AudioProcessingState.loading,
+      MediaProcessing.buffering => AudioProcessingState.buffering,
+      MediaProcessing.ready => AudioProcessingState.ready,
+      MediaProcessing.completed => AudioProcessingState.completed,
+    },
+    playing: playing,
+    updatePosition: position,
+    bufferedPosition: bufferedPosition,
+  );
+}
+
+/// Acciones que la sesión de medios declara siempre (pantalla de bloqueo, auriculares, Android 13+).
+const kijiSystemActions = {
+  MediaAction.play,
+  MediaAction.pause,
+  MediaAction.playPause,
+  MediaAction.skipToNext,
+  MediaAction.skipToPrevious,
+  MediaAction.seek,
+  MediaAction.seekForward,
+  MediaAction.seekBackward,
+  MediaAction.stop,
+};
 
 class _KijiAudioHandler extends BaseAudioHandler with SeekHandler {
   MediaCommands? _commands;
