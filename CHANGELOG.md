@@ -1,5 +1,12 @@
 # Novedades de Kiji Player
 
+## 0.8.6 — 24 de noviembre de 2026
+
+**Arreglos**
+- En algunos teléfonos (Android 12 y anteriores, como los Infinix con XOS) la notificación de
+  música y la pantalla de bloqueo salían sin botones. Ahora siempre muestran anterior,
+  play/pausa y siguiente, también con Kiji cerrada y desde los auriculares.
+
 ## 0.8.5 — 19 de noviembre de 2026
 
 **Arreglos**

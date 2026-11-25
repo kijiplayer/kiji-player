@@ -1,0 +1,1 @@
+• Fixed missing media controls in the notification on some phones.
