@@ -37,7 +37,7 @@ class DailyQuoteCard extends ConsumerWidget {
                   Text('«${quote.text}»', style: KijiText.title(size: 16)),
                   const SizedBox(height: 6),
                   Text(
-                    '${quote.author} · ${quote.source}',
+                    '${quote.authorText} · ${quote.sourceText}',
                     style: TextStyle(color: KijiColors.muted, fontSize: 12),
                   ),
                 ],
@@ -98,9 +98,9 @@ class QuoteImage extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(quote.author, style: KijiText.title(size: 18).copyWith(color: ink)),
+              Text(quote.authorText, style: KijiText.title(size: 18).copyWith(color: ink)),
               const SizedBox(height: 2),
-              Text(quote.source, style: TextStyle(color: muted, fontSize: 12)),
+              Text(quote.sourceText, style: TextStyle(color: muted, fontSize: 12)),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -145,7 +145,7 @@ class _QuoteShareScreenState extends State<_QuoteShareScreen> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: 'image/png')],
-          text: '«${widget.quote.text}» — ${widget.quote.author}',
+          text: '«${widget.quote.text}» — ${widget.quote.authorText}',
         ),
       );
     } catch (error) {

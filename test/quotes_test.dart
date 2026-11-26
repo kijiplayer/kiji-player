@@ -3,7 +3,9 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:kiji_player/features/quotes/quotes.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 
 void main() {
   final raw = File('assets/quotes/quotes.json').readAsStringSync();
@@ -42,5 +44,15 @@ void main() {
     expect(a!.id, b!.id);
     final days = {for (var d = 1; d <= 10; d++) pickQuote(quotes, QuoteMoment(now: DateTime(2026, 11, d, 9)))!.id};
     expect(days.length, greaterThan(1));
+  });
+
+  test('En inglés, el autor y la fuente no quedan en español', () {
+    final spanish = RegExp(r'\b(acto|escena|capítulo|parte|libro|tomo|estrofa|Cartas|Noche de Reyes|Orgullo)\b');
+    setKijiLocale(const Locale('en'));
+    addTearDown(() => setKijiLocale(const Locale('es')));
+    for (final q in quotes) {
+      expect(spanish.hasMatch(q.sourceText), isFalse, reason: '${q.id}: ${q.sourceText}');
+    }
+    expect(quotes.firstWhere((q) => q.id == 'seneca-tiempo').authorText, 'Seneca');
   });
 }

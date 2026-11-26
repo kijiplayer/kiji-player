@@ -25,6 +25,8 @@ class Quote {
     required this.en,
     this.original,
     this.tags = const {},
+    this.authorEn,
+    this.sourceEn,
   });
 
   final String id;
@@ -35,8 +37,16 @@ class Quote {
   final String en;
   final Set<String> tags;
 
-  /// La frase en el idioma de la app.
-  String get text => kijiLanguage == 'es' ? es : en;
+  /// Autor y fuente en inglés (si cambian: «Séneca» → «Seneca», «Noche de Reyes» → «Twelfth Night»).
+  final String? authorEn;
+  final String? sourceEn;
+
+  static bool get _es => kijiLanguage == 'es';
+
+  /// La frase, el autor y la fuente en el idioma de la app.
+  String get text => _es ? es : en;
+  String get authorText => _es ? author : (authorEn ?? author);
+  String get sourceText => _es ? source : (sourceEn ?? source);
 
   static Quote? fromJson(Object? json) {
     if (json is! Map || json['check'] == true) return null;
@@ -50,6 +60,8 @@ class Quote {
       es: es,
       en: en,
       tags: {for (final t in json['t'] as List? ?? const []) if (t is String) t},
+      authorEn: json['aen'] as String?,
+      sourceEn: json['sen'] as String?,
     );
   }
 }
