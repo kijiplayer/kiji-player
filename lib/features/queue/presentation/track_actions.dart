@@ -10,6 +10,7 @@ import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
 import '../../downloads/presentation/download_button.dart' show confirmDeleteDownload;
 import '../../selection/track_selection.dart' show TrackSelection, downloadSelection;
+import '../../local_library/presentation/tag_editor_sheet.dart';
 import '../../customize/presentation/customize_sheets.dart';
 import '../../playback_extras/data/share_track.dart';
 import '../../playlists/presentation/playlist_screens.dart';
@@ -94,6 +95,17 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
                   downloadSelection(outer, ref, TrackSelection()..toggle(track.id, track));
                 },
               ),
+          // Canciones del dispositivo: editar las etiquetas en el archivo (0.9).
+          if (track.source == TrackSource.local)
+            ListTile(
+              key: const Key('track-action-edit-tags'),
+              leading: const Icon(Icons.sell_outlined),
+              title: Text(tx.editarEtiquetas),
+              onTap: () {
+                Navigator.pop(context);
+                showTagEditorSheet(outer, ref, track);
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.edit_outlined),
             title: Text(tx.personalizar2),

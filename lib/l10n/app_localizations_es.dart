@@ -5380,4 +5380,96 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get calculadasEnTuTelefono => 'Calculadas en tu teléfono';
+
+  @override
+  String get skipSinMusica => 'Partes sin música';
+
+  @override
+  String get skipIntro => 'Intro';
+
+  @override
+  String get skipOutro => 'Final';
+
+  @override
+  String get skipAvance => 'Avance';
+
+  @override
+  String get skipAutopromocion => 'Autopromoción';
+
+  @override
+  String get skipPatrocinio => 'Patrocinio';
+
+  @override
+  String get skipSuscribete => '«Suscríbete»';
+
+  @override
+  String get saltarSinMusica => 'Saltar las partes sin música';
+
+  @override
+  String get saltarSinMusicaNota =>
+      'En los videos musicales salta intros, finales y diálogos con la base pública de SponsorBlock. Apagado de fábrica. Para buscar los tramos se manda a SponsorBlock un trozo del código del video (los primeros 4 caracteres de su hash), nada más.';
+
+  @override
+  String get queSaltar => 'Qué saltar';
+
+  @override
+  String saltadoCategoria(String category) {
+    return 'Saltado: $category';
+  }
+
+  @override
+  String get editarEtiquetas => 'Editar etiquetas';
+
+  @override
+  String get editarEtiquetasNota =>
+      'Cambia el título, el artista, el álbum y la portada en el archivo. Kiji escribe primero en una copia y la comprueba: si algo falla, el archivo queda como estaba.';
+
+  @override
+  String get etiquetasGuardadas => 'Etiquetas guardadas en el archivo.';
+
+  @override
+  String get etiquetasFormatoNoSoportado =>
+      'Kiji todavía no puede escribir etiquetas en este formato (sí en MP3, M4A, FLAC y WAV).';
+
+  @override
+  String get etiquetasNoPermitido =>
+      'El sistema no deja a Kiji cambiar este archivo. Puedes cambiar cómo se ve solo en Kiji.';
+
+  @override
+  String get etiquetasNoSePudo =>
+      'No se pudieron guardar las etiquetas. El archivo quedó como estaba.';
+
+  @override
+  String get portadaElegida => 'Portada elegida';
+
+  @override
+  String get scrobblingListenBrainz => 'Scrobbling a ListenBrainz';
+
+  @override
+  String get scrobblingListenBrainzNota =>
+      'Opcional: guarda lo que escuchas en tu cuenta de ListenBrainz. Apagado.';
+
+  @override
+  String get listenBrainzExplicacion =>
+      'Cada canción que escuches (más de la mitad, o 4 minutos) se manda a tu cuenta de ListenBrainz: artista, título, álbum y la hora. Va directo de este dispositivo a ListenBrainz. Tu token se guarda cifrado solo aquí, y lo puedes desconectar cuando quieras.';
+
+  @override
+  String get tuTokenDeListenBrainz => 'Tu token de ListenBrainz';
+
+  @override
+  String get dondeEstaMiToken => '¿Dónde está mi token?';
+
+  @override
+  String get tokenNoValido => 'ListenBrainz no aceptó ese token.';
+
+  @override
+  String get conectar => 'Conectar';
+
+  @override
+  String get desconectar => 'Desconectar';
+
+  @override
+  String conectadoComo(String user) {
+    return 'Conectado como $user';
+  }
 }

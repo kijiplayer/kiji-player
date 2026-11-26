@@ -8716,6 +8716,168 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Calculadas en tu teléfono'**
   String get calculadasEnTuTelefono;
+
+  /// No description provided for @skipSinMusica.
+  ///
+  /// In es, this message translates to:
+  /// **'Partes sin música'**
+  String get skipSinMusica;
+
+  /// No description provided for @skipIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Intro'**
+  String get skipIntro;
+
+  /// No description provided for @skipOutro.
+  ///
+  /// In es, this message translates to:
+  /// **'Final'**
+  String get skipOutro;
+
+  /// No description provided for @skipAvance.
+  ///
+  /// In es, this message translates to:
+  /// **'Avance'**
+  String get skipAvance;
+
+  /// No description provided for @skipAutopromocion.
+  ///
+  /// In es, this message translates to:
+  /// **'Autopromoción'**
+  String get skipAutopromocion;
+
+  /// No description provided for @skipPatrocinio.
+  ///
+  /// In es, this message translates to:
+  /// **'Patrocinio'**
+  String get skipPatrocinio;
+
+  /// No description provided for @skipSuscribete.
+  ///
+  /// In es, this message translates to:
+  /// **'«Suscríbete»'**
+  String get skipSuscribete;
+
+  /// No description provided for @saltarSinMusica.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar las partes sin música'**
+  String get saltarSinMusica;
+
+  /// No description provided for @saltarSinMusicaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'En los videos musicales salta intros, finales y diálogos con la base pública de SponsorBlock. Apagado de fábrica. Para buscar los tramos se manda a SponsorBlock un trozo del código del video (los primeros 4 caracteres de su hash), nada más.'**
+  String get saltarSinMusicaNota;
+
+  /// No description provided for @queSaltar.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué saltar'**
+  String get queSaltar;
+
+  /// Aviso al saltar un tramo
+  ///
+  /// In es, this message translates to:
+  /// **'Saltado: {category}'**
+  String saltadoCategoria(String category);
+
+  /// No description provided for @editarEtiquetas.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar etiquetas'**
+  String get editarEtiquetas;
+
+  /// No description provided for @editarEtiquetasNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambia el título, el artista, el álbum y la portada en el archivo. Kiji escribe primero en una copia y la comprueba: si algo falla, el archivo queda como estaba.'**
+  String get editarEtiquetasNota;
+
+  /// No description provided for @etiquetasGuardadas.
+  ///
+  /// In es, this message translates to:
+  /// **'Etiquetas guardadas en el archivo.'**
+  String get etiquetasGuardadas;
+
+  /// No description provided for @etiquetasFormatoNoSoportado.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji todavía no puede escribir etiquetas en este formato (sí en MP3, M4A, FLAC y WAV).'**
+  String get etiquetasFormatoNoSoportado;
+
+  /// No description provided for @etiquetasNoPermitido.
+  ///
+  /// In es, this message translates to:
+  /// **'El sistema no deja a Kiji cambiar este archivo. Puedes cambiar cómo se ve solo en Kiji.'**
+  String get etiquetasNoPermitido;
+
+  /// No description provided for @etiquetasNoSePudo.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron guardar las etiquetas. El archivo quedó como estaba.'**
+  String get etiquetasNoSePudo;
+
+  /// No description provided for @portadaElegida.
+  ///
+  /// In es, this message translates to:
+  /// **'Portada elegida'**
+  String get portadaElegida;
+
+  /// No description provided for @scrobblingListenBrainz.
+  ///
+  /// In es, this message translates to:
+  /// **'Scrobbling a ListenBrainz'**
+  String get scrobblingListenBrainz;
+
+  /// No description provided for @scrobblingListenBrainzNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional: guarda lo que escuchas en tu cuenta de ListenBrainz. Apagado.'**
+  String get scrobblingListenBrainzNota;
+
+  /// No description provided for @listenBrainzExplicacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada canción que escuches (más de la mitad, o 4 minutos) se manda a tu cuenta de ListenBrainz: artista, título, álbum y la hora. Va directo de este dispositivo a ListenBrainz. Tu token se guarda cifrado solo aquí, y lo puedes desconectar cuando quieras.'**
+  String get listenBrainzExplicacion;
+
+  /// No description provided for @tuTokenDeListenBrainz.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu token de ListenBrainz'**
+  String get tuTokenDeListenBrainz;
+
+  /// No description provided for @dondeEstaMiToken.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Dónde está mi token?'**
+  String get dondeEstaMiToken;
+
+  /// No description provided for @tokenNoValido.
+  ///
+  /// In es, this message translates to:
+  /// **'ListenBrainz no aceptó ese token.'**
+  String get tokenNoValido;
+
+  /// No description provided for @conectar.
+  ///
+  /// In es, this message translates to:
+  /// **'Conectar'**
+  String get conectar;
+
+  /// No description provided for @desconectar.
+  ///
+  /// In es, this message translates to:
+  /// **'Desconectar'**
+  String get desconectar;
+
+  /// ListenBrainz conectado
+  ///
+  /// In es, this message translates to:
+  /// **'Conectado como {user}'**
+  String conectadoComo(String user);
 }
 
 class _AppLocalizationsDelegate
