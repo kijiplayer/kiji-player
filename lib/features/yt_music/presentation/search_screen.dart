@@ -170,6 +170,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _onChanged(String query) {
     _debounce?.cancel();
+    // Con la primera letra se abren las conexiones: la búsqueda llega antes (sin mandar el texto).
+    if (query.trim().isNotEmpty) _client.warmUp();
     // Una pausa corta mientras se escribe (350 ms; antes 500): no se busca letra por letra.
     _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
     setState(() {}); // refresca el mensaje vacío/placeholder al instante
