@@ -1,6 +1,6 @@
 # Novedades de Kiji Player
 
-## 0.8.6 — 24 de noviembre de 2026
+## 0.8.6 — 26 de noviembre de 2026
 
 **Arreglos**
 - En algunos teléfonos (Android 12 y anteriores, como los Infinix con XOS) la notificación de
