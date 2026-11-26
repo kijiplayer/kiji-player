@@ -104,22 +104,27 @@ class _MarqueeTextState extends State<MarqueeText> with SingleTickerProviderStat
                   final t = ((_controller.value - pauseShare) / moving).clamp(0.0, 1.0);
                   // Los bordes se desvanecen (no letras cortadas en seco): el derecho mientras falte
                   // texto por ver; el izquierdo, cuando el principio ya se fue.
-                  final fade = 16 / box.maxWidth;
+                  const fadeWidth = 16.0;
+                  final fade = fadeWidth / box.maxWidth;
+                  final offset = Curves.easeInOut.transform(t) * distance;
+                  // Gradual: el borde se apaga a medida que el texto pasa por debajo.
+                  final left = 1 - (offset / fadeWidth).clamp(0.0, 1.0);
+                  final right = 1 - ((distance - offset) / fadeWidth).clamp(0.0, 1.0);
                   return ShaderMask(
                     blendMode: BlendMode.dstIn,
                     shaderCallback: (rect) => LinearGradient(
                       colors: [
-                        Colors.white.withValues(alpha: t > 0 ? 0 : 1),
+                        Colors.white.withValues(alpha: left),
                         Colors.white,
                         Colors.white,
-                        Colors.white.withValues(alpha: t < 1 ? 0 : 1),
+                        Colors.white.withValues(alpha: right),
                       ],
                       stops: [0, fade, 1 - fade, 1],
                     ).createShader(rect),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Positioned(left: -Curves.easeInOut.transform(t) * distance, top: 0, child: child!),
+                        Positioned(left: -offset, top: 0, child: child!),
                       ],
                     ),
                   );
