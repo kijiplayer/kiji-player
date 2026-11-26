@@ -3179,5 +3179,22 @@
   "conectar": "Conectar",
   "desconectar": "Desconectar",
   "conectadoComo": "Conectado como {user}",
-  "@conectadoComo": {"description": "ListenBrainz conectado", "placeholders": {"user": {"type": "String"}}}
+  "@conectadoComo": {"description": "ListenBrainz conectado", "placeholders": {"user": {"type": "String"}}},
+  "rachaDias": "{count, plural, =1{1 día seguido escuchando} other{{count} días seguidos escuchando}}",
+  "@rachaDias": {"description": "Racha en Inicio", "placeholders": {"count": {"type": "int"}}},
+  "iniciarConLaPc": "Iniciar Kiji al encender la PC",
+  "iniciarConLaPcNota": "Kiji arranca en la bandeja, sin abrir la ventana y sin sonar. Apagado de fábrica.",
+  "iniciarConLaPcNoSePudo": "Windows no dejó cambiar el inicio de Kiji. Prueba otra vez.",
+  "seguirDondeLoDeje": "Seguir donde lo dejé",
+  "seguirDondeLoDejeNota": "Deja lista la última canción, en pausa.",
+  "tarjetaSonandoAhora": "Sonando ahora",
+  "tarjetaVinilo": "Vinilo",
+  "tarjetaPoster": "Póster",
+  "sonandoAhoraEnKiji": "Sonando en Kiji",
+  "compartirTarjeta": "Compartir tarjeta",
+  "compartirTarjetaNota": "Una imagen con la portada, el título y el artista",
+  "fraseDelDia": "Frase del día",
+  "compartirFrase": "Compartir la frase",
+  "frasesDelDia": "Frase del día en Inicio",
+  "frasesDelDiaNota": "Frases de escritores, músicos y poetas de dominio público, elegidas según la hora y lo que escuchas. Todo en el dispositivo."
 }

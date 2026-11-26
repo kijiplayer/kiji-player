@@ -31,6 +31,9 @@ class AppSettings {
     this.phoneMusic = 'ask',
     this.libraryEntries = defaultLibraryEntries,
     this.sponsorBlock = false,
+    this.startWithWindows = false,
+    this.startupResume = true,
+    this.dailyQuotes = true,
     this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
@@ -200,6 +203,15 @@ class AppSettings {
   /// Saltar las partes sin música con SponsorBlock (0.9). Apagado de fábrica: manda un prefijo
   /// del hash del ID del video a SponsorBlock.
   final bool sponsorBlock;
+
+  /// PC: iniciar Kiji al encender la PC (en la bandeja, sin sonar). Apagado de fábrica.
+  final bool startWithWindows;
+
+  /// Al iniciar con la PC, dejar lista la última canción (en pausa).
+  final bool startupResume;
+
+  /// La frase del día en Inicio (frases de dominio público, en el dispositivo).
+  final bool dailyQuotes;
 
   /// Qué categorías de SponsorBlock saltar (nombres de su API).
   final List<String> sponsorBlockCategories;
@@ -373,6 +385,9 @@ class AppSettings {
     String? phoneMusic,
     List<String>? libraryEntries,
     bool? sponsorBlock,
+    bool? startWithWindows,
+    bool? startupResume,
+    bool? dailyQuotes,
     List<String>? sponsorBlockCategories,
     bool? ytSync,
     bool? theaterReactions,
@@ -445,6 +460,9 @@ class AppSettings {
         phoneMusic: phoneMusic ?? this.phoneMusic,
         libraryEntries: libraryEntries ?? this.libraryEntries,
         sponsorBlock: sponsorBlock ?? this.sponsorBlock,
+        startWithWindows: startWithWindows ?? this.startWithWindows,
+        startupResume: startupResume ?? this.startupResume,
+        dailyQuotes: dailyQuotes ?? this.dailyQuotes,
         sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
@@ -516,6 +534,9 @@ class AppSettings {
         'phoneMusic': phoneMusic,
         'libraryEntries': libraryEntries,
         'sponsorBlock': sponsorBlock,
+        'startWithWindows': startWithWindows,
+        'startupResume': startupResume,
+        'dailyQuotes': dailyQuotes,
         'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
@@ -602,6 +623,9 @@ class AppSettings {
             ]
           : d.libraryEntries,
       sponsorBlock: read('sponsorBlock', d.sponsorBlock),
+      startWithWindows: read('startWithWindows', d.startWithWindows),
+      startupResume: read('startupResume', d.startupResume),
+      dailyQuotes: read('dailyQuotes', d.dailyQuotes),
       sponsorBlockCategories: json['sponsorBlockCategories'] is List
           ? [
               for (final e in json['sponsorBlockCategories'] as List)

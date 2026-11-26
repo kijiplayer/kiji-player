@@ -8,6 +8,7 @@ import '../../theme/kiji_tokens.dart';
 import '../settings/data/settings_store.dart';
 import '../settings/domain/app_settings.dart';
 import 'desktop_hotkeys.dart';
+import 'startup_entry.dart';
 
 /// Configuración → En la PC → Al cerrar la ventana.
 class CloseActionTile extends ConsumerWidget {
@@ -194,6 +195,50 @@ class _HotkeyRecorderDialogState extends State<HotkeyRecorderDialog> {
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: Text(tx.cancelar)),
         FilledButton(onPressed: hotKey == null ? null : () => Navigator.pop(context, hotKey), child: Text(tx.guardar)),
+      ],
+    );
+  }
+}
+
+/// «Iniciar Kiji al encender la PC» (solo Windows): la entrada del registro de este usuario, y
+/// «Seguir donde lo dejé» (la última canción, en pausa).
+final startupEntryProvider = Provider<StartupEntry>((ref) => WindowsStartupEntry());
+
+class StartWithWindowsTile extends ConsumerWidget {
+  const StartWithWindowsTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final on = ref.watch(settingsProvider.select((s) => s.startWithWindows));
+    final resume = ref.watch(settingsProvider.select((s) => s.startupResume));
+    final notifier = ref.read(settingsProvider.notifier);
+    return Column(
+      children: [
+        SwitchListTile(
+          key: const Key('settings-start-with-windows'),
+          secondary: const Icon(Icons.power_settings_new_rounded),
+          title: Text(tx.iniciarConLaPc),
+          subtitle: Text(tx.iniciarConLaPcNota),
+          value: on,
+          onChanged: (value) async {
+            final entry = ref.read(startupEntryProvider);
+            final ok = value ? await entry.enable() : await entry.disable();
+            if (ok) {
+              await notifier.update((s) => s.copyWith(startWithWindows: value));
+            } else if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.iniciarConLaPcNoSePudo)));
+            }
+          },
+        ),
+        if (on)
+          SwitchListTile(
+            key: const Key('settings-startup-resume'),
+            contentPadding: const EdgeInsets.only(left: 72, right: 16),
+            title: Text(tx.seguirDondeLoDeje),
+            subtitle: Text(tx.seguirDondeLoDejeNota),
+            value: resume,
+            onChanged: (value) => notifier.update((s) => s.copyWith(startupResume: value)),
+          ),
       ],
     );
   }

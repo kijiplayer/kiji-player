@@ -8878,6 +8878,102 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Conectado como {user}'**
   String conectadoComo(String user);
+
+  /// Racha en Inicio
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 día seguido escuchando} other{{count} días seguidos escuchando}}'**
+  String rachaDias(int count);
+
+  /// No description provided for @iniciarConLaPc.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar Kiji al encender la PC'**
+  String get iniciarConLaPc;
+
+  /// No description provided for @iniciarConLaPcNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji arranca en la bandeja, sin abrir la ventana y sin sonar. Apagado de fábrica.'**
+  String get iniciarConLaPcNota;
+
+  /// No description provided for @iniciarConLaPcNoSePudo.
+  ///
+  /// In es, this message translates to:
+  /// **'Windows no dejó cambiar el inicio de Kiji. Prueba otra vez.'**
+  String get iniciarConLaPcNoSePudo;
+
+  /// No description provided for @seguirDondeLoDeje.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir donde lo dejé'**
+  String get seguirDondeLoDeje;
+
+  /// No description provided for @seguirDondeLoDejeNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Deja lista la última canción, en pausa.'**
+  String get seguirDondeLoDejeNota;
+
+  /// No description provided for @tarjetaSonandoAhora.
+  ///
+  /// In es, this message translates to:
+  /// **'Sonando ahora'**
+  String get tarjetaSonandoAhora;
+
+  /// No description provided for @tarjetaVinilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Vinilo'**
+  String get tarjetaVinilo;
+
+  /// No description provided for @tarjetaPoster.
+  ///
+  /// In es, this message translates to:
+  /// **'Póster'**
+  String get tarjetaPoster;
+
+  /// No description provided for @sonandoAhoraEnKiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Sonando en Kiji'**
+  String get sonandoAhoraEnKiji;
+
+  /// No description provided for @compartirTarjeta.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir tarjeta'**
+  String get compartirTarjeta;
+
+  /// No description provided for @compartirTarjetaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen con la portada, el título y el artista'**
+  String get compartirTarjetaNota;
+
+  /// No description provided for @fraseDelDia.
+  ///
+  /// In es, this message translates to:
+  /// **'Frase del día'**
+  String get fraseDelDia;
+
+  /// No description provided for @compartirFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir la frase'**
+  String get compartirFrase;
+
+  /// No description provided for @frasesDelDia.
+  ///
+  /// In es, this message translates to:
+  /// **'Frase del día en Inicio'**
+  String get frasesDelDia;
+
+  /// No description provided for @frasesDelDiaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Frases de escritores, músicos y poetas de dominio público, elegidas según la hora y lo que escuchas. Todo en el dispositivo.'**
+  String get frasesDelDiaNota;
 }
 
 class _AppLocalizationsDelegate

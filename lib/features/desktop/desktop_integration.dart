@@ -10,6 +10,7 @@ import '../settings/data/settings_store.dart';
 import 'desktop_hotkeys.dart';
 import 'desktop_tray.dart';
 import 'desktop_window.dart';
+import 'startup_entry.dart';
 
 /// PC: la ✕ (bandeja o salir), el ícono de la bandeja y los atajos globales. Se llama una vez,
 /// desde KijiApp.
@@ -35,6 +36,9 @@ void watchDesktop(WidgetRef ref) {
     await tray.hideToTray();
     return true;
   };
+
+  // Arrancó con la PC: directo a la bandeja (la ventana no se mostró).
+  if (KijiLaunch.atStartup) unawaited(tray.hideToTray());
 
   ref.listenManual(
     playbackProvider.select((p) => (p.isPlaying, p.track?.title, p.track?.artist)),
