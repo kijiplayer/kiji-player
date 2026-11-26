@@ -1,1 +1,2 @@
 • Fixed missing media controls in the notification on some phones.
+• Fixed local music not playing on Android 10.

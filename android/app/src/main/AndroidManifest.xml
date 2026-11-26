@@ -21,7 +21,10 @@
          de Kiji se despierta al encender el teléfono. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
 
+    <!-- requestLegacyExternalStorage: en Android 10 la música local se abre por su ruta, y sin esto el
+         almacenamiento con alcance la bloquea (EACCES). Android 11+ lo ignora (0.8.6). -->
     <application
+        android:requestLegacyExternalStorage="true"
         android:label="${appName}"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"

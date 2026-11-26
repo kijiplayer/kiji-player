@@ -6,6 +6,7 @@
 - En algunos teléfonos (Android 12 y anteriores, como los Infinix con XOS) la notificación de
   música y la pantalla de bloqueo salían sin botones. Ahora siempre muestran anterior,
   play/pausa y siguiente, también con Kiji cerrada y desde los auriculares.
+- En Android 10 la música del teléfono no se reproducía («no se puede reproducir»). Ahora sí.
 
 ## 0.8.5 — 19 de noviembre de 2026
 
