@@ -3118,5 +3118,8 @@
   "verQueHayDeNuevo": "Ver qué hay de nuevo",
   "@verQueHayDeNuevo": {"description": "Aviso de actualización: abre la página oficial junto a Actualizar"},
   "verTusMomentos": "Ver tus momentos",
-  "@verTusMomentos": {"description": "Hoja «Guardar un momento»: abre la lista de Momentos"}
+  "@verTusMomentos": {"description": "Hoja «Guardar un momento»: abre la lista de Momentos"},
+  "politicaDePrivacidad": "Política de privacidad",
+  "@politicaDePrivacidad": {"description": "Configuración → Acerca de: enlace a la política de privacidad"},
+  "politicaDePrivacidadDescripcion": "Qué guarda Kiji y a qué servicios se conecta. Se abre en el navegador."
 }

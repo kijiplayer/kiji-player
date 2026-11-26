@@ -1435,5 +1435,7 @@
   "paginaOficial": "Official page",
   "paginaOficialDescripcion": "Kiji's downloads and news, in your browser",
   "verQueHayDeNuevo": "See what's new",
-  "verTusMomentos": "See your moments"
+  "verTusMomentos": "See your moments",
+  "politicaDePrivacidad": "Privacy policy",
+  "politicaDePrivacidadDescripcion": "What Kiji stores and which services it connects to. Opens in your browser."
 }

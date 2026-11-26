@@ -1301,6 +1301,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: openOfficialPage,
         ),
       ),
+      // La política de privacidad (en la página, en el idioma de la app). Solo abre el enlace.
+      SettingOption(
+        section: SettingsSection.about,
+        title: tx.politicaDePrivacidad,
+        subtitle: tx.politicaDePrivacidadDescripcion,
+        keywords: const ['privacidad', 'privacy', 'datos', 'data', 'politica', 'policy'],
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-privacy-policy'),
+          leading: const Icon(Icons.privacy_tip_outlined),
+          title: Text(tx.politicaDePrivacidad),
+          subtitle: Text(tx.politicaDePrivacidadDescripcion),
+          trailing: const Icon(Icons.open_in_new_rounded),
+          onTap: openPrivacyPolicy,
+        ),
+      ),
       SettingOption(
         section: SettingsSection.about,
         title: tx.queHayDeNuevo,

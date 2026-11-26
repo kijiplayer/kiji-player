@@ -5309,4 +5309,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verTusMomentos => 'See your moments';
+
+  @override
+  String get politicaDePrivacidad => 'Privacy policy';
+
+  @override
+  String get politicaDePrivacidadDescripcion =>
+      'What Kiji stores and which services it connects to. Opens in your browser.';
 }
