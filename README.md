@@ -65,6 +65,13 @@ on Android 7 or newer and on Windows 10/11.
 
 With Obtainium, Kiji updates on Android straight from those releases. If it asks which APK to use, pick `Kiji-Player.apk` (works on every phone) or the one for your architecture (`arm64-v8a` on most phones).
 
+On Windows you can also install it with [Scoop](https://scoop.sh):
+
+```pwsh
+scoop bucket add kiji https://github.com/kijiplayer/scoop-kiji
+scoop install kiji/kiji-player
+```
+
 To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 
 ```bash
