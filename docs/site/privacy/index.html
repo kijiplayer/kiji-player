@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiji Player — Privacy policy / Política de privacidad</title>
+  <meta name="description" content="Kiji Player privacy policy: no account required, no analytics, no ads, no tracking, no data sold. Everything stays on your device.">
+  <link rel="canonical" href="https://kijiplayer.github.io/kiji-player/privacy/">
+  <!-- Sin analíticas, sin cookies y sin nada de terceros: esta página no guarda ni manda datos. -->
+  <style>
+    :root {
+      --bg: #0b0b14; --surface: #16161f; --border: #2a2a3a; --text: #ececf4; --muted: #a9a9c4;
+      --violet: #7c5cff; --cyan: #3df5ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text); line-height: 1.6;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+    }
+    a { color: var(--cyan); }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 0 20px; }
+    header { padding: 28px 0 12px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.5px; text-decoration: none; color: var(--text); }
+    .grad { background: linear-gradient(90deg, var(--violet), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lang { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
+      padding: 8px 14px; font: inherit; cursor: pointer; min-height: 44px; }
+    h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 32px 0 6px; letter-spacing: -1px; }
+    h2 { font-size: 22px; margin: 40px 0 10px; letter-spacing: -0.3px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    .updated { font-size: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 6px 20px; margin: 22px 0; }
+    .card ul { padding-left: 20px; }
+    .services { display: grid; gap: 12px; margin: 18px 0; }
+    .svc { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 4px 18px; }
+    .svc h3 { font-size: 17px; margin: 14px 0 4px; }
+    .svc h3 small { color: var(--muted); font-weight: 500; font-size: 14px; }
+    .svc p { margin: 6px 0 12px; font-size: 15px; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.92em; color: var(--text); overflow-wrap: anywhere; }
+    main { overflow-wrap: break-word; }
+    footer { margin: 60px 0 40px; color: var(--muted); font-size: 13px; text-align: center; }
+    [data-l="en"] { display: none; }
+    html[lang="en"] [data-l="es"] { display: none; }
+    html[lang="en"] [data-l="en"] { display: revert; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="logo" href="../">Kiji <span class="grad">Player</span></a>
+      <button class="lang" id="lang" type="button" aria-label="English / Español">English</button>
+    </header>
+
+    <!-- ============================== ESPAÑOL ============================== -->
+    <main data-l="es">
+      <h1>Política de privacidad</h1>
+      <p class="updated">Última actualización: 26 de noviembre de 2026 · Se aplica a Kiji Player para Android y Windows.</p>
+
+      <div class="card">
+        <p><strong>En pocas palabras:</strong></p>
+        <ul>
+          <li><strong>Kiji no recopila datos personales.</strong> No tiene servidores propios: lo que es tuyo (la cola, tus playlists, el historial, las descargas y los ajustes) se queda en tu dispositivo.</li>
+          <li><strong>No hace falta una cuenta.</strong> Iniciar sesión en YouTube es siempre opcional.</li>
+          <li><strong>Sin analíticas, sin anuncios, sin rastreo y sin vender datos.</strong> Kiji no incluye ningún SDK de publicidad ni de estadísticas.</li>
+          <li>Kiji solo se conecta a otros servicios para hacer lo que le pides (buscar, reproducir, traer una letra…). Esta página explica cuáles son y qué se manda a cada uno.</li>
+        </ul>
+      </div>
+
+      <h2>Qué guarda Kiji y dónde</h2>
+      <p>Todo se guarda <strong>en tu dispositivo</strong>, en la carpeta privada de la app (en Windows, <code>%APPDATA%\com.example\kiji_player</code>):</p>
+      <ul>
+        <li>tus playlists, «Me gusta», el historial de escucha, los Momentos y las reacciones del Teatro;</li>
+        <li>las canciones y letras que descargas, las portadas y los fondos que eliges;</li>
+        <li>los ajustes (estilo, ecualizador, idioma…) y, si lo dejas encendido, las búsquedas recientes (se pueden borrar o dejar de guardar en Configuración → Privacidad);</li>
+        <li>un registro técnico de lo que hizo la app, sin datos personales, que solo sale del dispositivo si tú envías un informe de error (ver abajo).</li>
+      </ul>
+      <p>Las <strong>copias de seguridad</strong> son archivos que se guardan donde tú elijas. Kiji no las sube a ningún lado. Si desinstalas Kiji, el sistema borra sus datos (salvo las copias que guardaste aparte).</p>
+
+      <h2>Permisos</h2>
+      <ul>
+        <li><strong>Internet:</strong> para YouTube Music, las letras y las actualizaciones.</li>
+        <li><strong>Audio del dispositivo:</strong> para mostrar tu música local. Solo se lee en el dispositivo.</li>
+        <li><strong>Notificaciones y reproducción en segundo plano:</strong> para los controles de música.</li>
+        <li><strong>Instalar apps</strong> (Android): solo si tocas «Actualizar», para abrir el instalador de la versión nueva.</li>
+        <li><strong>Optimización de batería</strong> (Android): solo si aceptas el pedido, para que la música no se corte.</li>
+      </ul>
+
+      <h2>A qué servicios se conecta Kiji y qué se manda</h2>
+      <p>Cada conexión va <strong>directo de tu dispositivo al servicio</strong>: Kiji no tiene un servidor en el medio. Como en cualquier conexión a internet, ese servicio ve tu dirección IP y, según el caso, lo que se indica abajo. Cada servicio tiene su propia política de privacidad.</p>
+      <div class="services">
+        <div class="svc"><h3>YouTube / YouTube Music <small>(Google)</small></h3><p><strong>Cuándo:</strong> Al buscar, al abrir Inicio con conexión, al reproducir o descargar una canción de YouTube Music, y al cargar las portadas.</p><p><strong>Qué se manda:</strong> Lo que buscas, el identificador del video y el idioma de la app. Se usa un identificador de visitante anónimo, como el de cualquier navegador sin sesión. Para reproducir, Kiji resuelve la verificación de YouTube en tu dispositivo, con scripts del propio YouTube.</p></div>
+        <div class="svc"><h3>Fuentes de letras <small>(LRCLIB, Better Lyrics, KuGou, PaxSenix, Unison, YouLyPlus y los subtítulos de YouTube)</small></h3><p><strong>Cuándo:</strong> Cuando Kiji tiene que mostrar o guardar la letra de una canción. Cada fuente se puede apagar o reordenar en Configuración → Letras, que además muestra qué recibe cada una.</p><p><strong>Qué se manda:</strong> El título, el artista y, según la fuente, el álbum, la duración o el identificador del video. Nada más.</p></div>
+        <div class="svc"><h3>GitHub</h3><p><strong>Cuándo:</strong> Al abrir Kiji, para ver si hay una versión nueva (se puede apagar en Configuración). Y al descargar una actualización, solo si tocas «Actualizar».</p><p><strong>Qué se manda:</strong> Un pedido de la última versión publicada de Kiji. No se manda nada tuyo.</p></div>
+        <div class="svc"><h3>Mozilla <small>(traducción en el dispositivo)</small></h3><p><strong>Cuándo:</strong> Solo si usas la traducción de letras sin conexión y bajas un idioma.</p><p><strong>Qué se manda:</strong> Se baja el modelo del idioma. La traducción se hace en tu dispositivo: la letra no sale de él.</p></div>
+        <div class="svc"><h3>Google Gemini <small>(opcional)</small></h3><p><strong>Cuándo:</strong> Solo si pones tu propia clave de Gemini y pides traducir una letra con Gemini.</p><p><strong>Qué se manda:</strong> Las líneas de la letra y el idioma de destino, con tu clave. Kiji no ve ni guarda nada de eso fuera de tu dispositivo.</p></div>
+        <div class="svc"><h3>Spotify, Apple Music, SoundCloud</h3><p><strong>Cuándo:</strong> Solo cuando pegas un enlace de una playlist para importarla.</p><p><strong>Qué se manda:</strong> Se abre esa página pública para leer los nombres de las canciones.</p></div>
+        <div class="svc"><h3>yt-dlp (GitHub) <small>(solo en la PC)</small></h3><p><strong>Cuándo:</strong> Solo si aceptas usar el motor yt-dlp. Después, una vez por semana, se revisa si hay una versión nueva.</p><p><strong>Qué se manda:</strong> Se baja el programa oficial y se comprueba su huella. No se manda nada tuyo.</p></div>
+      </div>
+      <p>Si en el futuro Kiji agrega otro servicio (por ejemplo, SponsorBlock para saltar las partes sin música), va a ser opcional, se va a explicar en la app y se va a sumar a esta tabla.</p>
+
+      <h2>Si inicias sesión en YouTube</h2>
+      <ul>
+        <li>Es <strong>opcional</strong>. Sin sesión, Kiji funciona completo.</li>
+        <li>La sesión se guarda <strong>cifrada, solo en tu dispositivo</strong>, y <strong>solo se envía a YouTube</strong>. Nunca se escribe en el registro de Kiji ni en los informes de error.</li>
+        <li>Con la sesión, Kiji lee tus «Me gusta», tu biblioteca y tus playlists de YouTube Music. La sincronización viene apagada y la enciendes tú.</li>
+        <li>Al cerrar sesión, Kiji borra la sesión guardada.</li>
+        <li>Lo que haces en YouTube con tu cuenta se rige por la política de privacidad de Google.</li>
+      </ul>
+
+      <h2>Informes de error</h2>
+      <p>Si algo falla, Kiji puede ofrecerte avisarle al desarrollador. Si aceptas, se abre GitHub con un informe ya escrito: la versión, el sistema, el error y las últimas líneas del registro, <strong>sin tu nombre, tus archivos ni tus cuentas</strong>. Lo puedes leer y cambiar antes de enviarlo, y no se envía nada si no lo publicas tú. También puedes descargarlo como <code>.txt</code> sin enviarlo.</p>
+
+      <h2>Niños</h2>
+      <p>Kiji no pide datos a nadie, de ninguna edad, y no tiene funciones sociales ni de compras.</p>
+
+      <h2>Cambios</h2>
+      <p>Si esta política cambia, se actualiza esta página con su fecha. El historial completo está en el <a href="https://github.com/kijiplayer/kiji-player/commits/master/docs/site/privacy/index.html">repositorio de Kiji</a>, porque Kiji es software libre (GPL-3.0) y cualquiera puede revisar su código.</p>
+
+      <h2>Contacto</h2>
+      <p>Para cualquier pregunta sobre privacidad, abre un <a href="https://github.com/kijiplayer/kiji-player/issues">issue en GitHub</a>.</p>
+      <!-- CORREO DE CONTACTO DE KIJI: agregar aquí, por ejemplo: <p>O escribe a <a href="mailto:CORREO">CORREO</a>.</p> -->
+    </main>
+
+    <!-- ============================== ENGLISH ============================== -->
+    <main data-l="en">
+      <h1>Privacy policy</h1>
+      <p class="updated">Last updated: November 26, 2026 · Applies to Kiji Player for Android and Windows.</p>
+
+      <div class="card">
+        <p><strong>In short:</strong></p>
+        <ul>
+          <li><strong>Kiji does not collect personal data.</strong> It has no servers of its own: everything that is yours (the queue, your playlists, history, downloads and settings) stays on your device.</li>
+          <li><strong>No account is required.</strong> Signing in to YouTube is always optional.</li>
+          <li><strong>No analytics, no ads, no tracking and no selling of data.</strong> Kiji includes no advertising or analytics SDK.</li>
+          <li>Kiji only connects to other services to do what you ask (search, play, fetch lyrics…). This page explains which ones and what is sent to each.</li>
+        </ul>
+      </div>
+
+      <h2>What Kiji stores and where</h2>
+      <p>Everything is stored <strong>on your device</strong>, in the app's private folder (on Windows, <code>%APPDATA%\com.example\kiji_player</code>):</p>
+      <ul>
+        <li>your playlists, likes, listening history, Moments and Theater reactions;</li>
+        <li>the songs and lyrics you download, and the covers and backgrounds you choose;</li>
+        <li>your settings (style, equalizer, language…) and, if you leave it on, your recent searches (you can clear them or stop saving them in Settings → Privacy);</li>
+        <li>a technical log of what the app did, with no personal data, which only leaves the device if you send an error report (see below).</li>
+      </ul>
+      <p><strong>Backups</strong> are files saved wherever you choose. Kiji doesn't upload them anywhere. If you uninstall Kiji, the system deletes its data (except backups you saved elsewhere).</p>
+
+      <h2>Permissions</h2>
+      <ul>
+        <li><strong>Internet:</strong> for YouTube Music, lyrics and updates.</li>
+        <li><strong>Audio on the device:</strong> to show your local music. It's only read on the device.</li>
+        <li><strong>Notifications and background playback:</strong> for the music controls.</li>
+        <li><strong>Install apps</strong> (Android): only if you tap “Update”, to open the installer of the new version.</li>
+        <li><strong>Battery optimization</strong> (Android): only if you accept the request, so music doesn't stop.</li>
+      </ul>
+
+      <h2>Which services Kiji connects to and what is sent</h2>
+      <p>Each connection goes <strong>straight from your device to the service</strong>: there is no Kiji server in between. As with any internet connection, the service sees your IP address and, depending on the case, what is listed below. Each service has its own privacy policy.</p>
+      <div class="services">
+        <div class="svc"><h3>YouTube / YouTube Music <small>(Google)</small></h3><p><strong>When:</strong> When you search, when Home opens while online, when you play or download a YouTube Music song, and when covers load.</p><p><strong>What is sent:</strong> What you search for, the video ID and the app's language. Kiji uses an anonymous visitor ID, like any browser without a signed-in account. To play, Kiji solves YouTube's check on your device, using YouTube's own scripts.</p></div>
+        <div class="svc"><h3>Lyrics sources <small>(LRCLIB, Better Lyrics, KuGou, PaxSenix, Unison, YouLyPlus and YouTube captions)</small></h3><p><strong>When:</strong> When Kiji needs to show or save a song's lyrics. Each source can be turned off or reordered in Settings → Lyrics, which also shows what each one receives.</p><p><strong>What is sent:</strong> The title, the artist and, depending on the source, the album, the duration or the video ID. Nothing else.</p></div>
+        <div class="svc"><h3>GitHub</h3><p><strong>When:</strong> When Kiji opens, to check for a new version (can be turned off in Settings). And when downloading an update, only if you tap “Update”.</p><p><strong>What is sent:</strong> A request for Kiji's latest published version. Nothing of yours is sent.</p></div>
+        <div class="svc"><h3>Mozilla <small>(on-device translation)</small></h3><p><strong>When:</strong> Only if you use offline lyrics translation and download a language.</p><p><strong>What is sent:</strong> The language model is downloaded. Translation happens on your device: the lyrics don't leave it.</p></div>
+        <div class="svc"><h3>Google Gemini <small>(optional)</small></h3><p><strong>When:</strong> Only if you add your own Gemini key and ask to translate lyrics with Gemini.</p><p><strong>What is sent:</strong> The lyric lines and the target language, with your key. Kiji doesn't see or keep any of that outside your device.</p></div>
+        <div class="svc"><h3>Spotify, Apple Music, SoundCloud</h3><p><strong>When:</strong> Only when you paste a playlist link to import it.</p><p><strong>What is sent:</strong> That public page is opened to read the song names.</p></div>
+        <div class="svc"><h3>yt-dlp (GitHub) <small>(PC only)</small></h3><p><strong>When:</strong> Only if you accept the yt-dlp engine. After that, it checks for a new version once a week.</p><p><strong>What is sent:</strong> The official program is downloaded and its fingerprint is checked. Nothing of yours is sent.</p></div>
+      </div>
+      <p>If Kiji adds another service in the future (for example, SponsorBlock to skip non-music parts), it will be optional, explained in the app and added to this table.</p>
+
+      <h2>If you sign in to YouTube</h2>
+      <ul>
+        <li>It's <strong>optional</strong>. Without signing in, Kiji works fully.</li>
+        <li>Your session is stored <strong>encrypted, only on your device</strong>, and <strong>only sent to YouTube</strong>. It's never written to Kiji's log or to error reports.</li>
+        <li>With a session, Kiji reads your likes, library and playlists from YouTube Music. Sync is off by default and you turn it on.</li>
+        <li>Signing out deletes the stored session.</li>
+        <li>What you do on YouTube with your account is covered by Google's privacy policy.</li>
+      </ul>
+
+      <h2>Error reports</h2>
+      <p>If something fails, Kiji may offer to tell the developer. If you accept, GitHub opens with a ready-made report: the version, the system, the error and the last lines of the log, <strong>without your name, files or accounts</strong>. You can read and edit it before sending, and nothing is sent unless you post it yourself. You can also download it as a <code>.txt</code> without sending it.</p>
+
+      <h2>Children</h2>
+      <p>Kiji asks no one for data, of any age, and has no social or purchase features.</p>
+
+      <h2>Changes</h2>
+      <p>If this policy changes, this page is updated with its date. The full history is in <a href="https://github.com/kijiplayer/kiji-player/commits/master/docs/site/privacy/index.html">Kiji's repository</a>, because Kiji is free software (GPL-3.0) and anyone can review its code.</p>
+
+      <h2>Contact</h2>
+      <p>For any privacy question, open an <a href="https://github.com/kijiplayer/kiji-player/issues">issue on GitHub</a>.</p>
+      <!-- KIJI CONTACT EMAIL: add it here, for example: <p>Or write to <a href="mailto:EMAIL">EMAIL</a>.</p> -->
+    </main>
+
+    <footer>
+      Kiji Player · GPL-3.0 · <a href="../">kijiplayer.github.io/kiji-player</a> · <a href="https://github.com/kijiplayer/kiji-player">GitHub</a><br>
+      <span data-l="es">Esta página no usa cookies ni analíticas.</span><span data-l="en">This page uses no cookies or analytics.</span>
+    </footer>
+  </div>
+
+  <script>
+    // Idioma: #es / #en en el enlace (lo usa /privacidad), o el del navegador. No se guarda nada.
+    (function () {
+      var root = document.documentElement;
+      var hash = location.hash.replace('#', '');
+      var lang = hash === 'es' || hash === 'en' ? hash
+        : ((navigator.language || 'es').toLowerCase().indexOf('es') === 0 ? 'es' : 'en');
+      var button = document.getElementById('lang');
+      function setLang(l) {
+        root.lang = l;
+        button.textContent = l === 'es' ? 'English' : 'Español';
+        document.title = l === 'es' ? 'Kiji Player — Política de privacidad' : 'Kiji Player — Privacy policy';
+      }
+      button.addEventListener('click', function () { setLang(root.lang === 'es' ? 'en' : 'es'); });
+      setLang(lang);
+    })();
+  </script>
+</body>
+</html>
