@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiji_player/widgets/fit_text.dart';
+import 'package:kiji_player/widgets/marquee_text.dart';
 
 /// ¿Algún salto de línea cae en mitad de una palabra?
 bool _breaksAWord(String text, TextStyle style, double width, int maxLines) {
@@ -71,6 +72,53 @@ void main() {
       textScaler: TextScaler.noScaling,
     );
     expect(size, 38);
+  });
+
+  Widget fitIn(double width, String title, {bool still = false}) => MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(disableAnimations: still),
+          child: Scaffold(
+            body: Center(
+              child: SizedBox(width: width, child: FitText(title, style: style, minFontSize: 24)),
+            ),
+          ),
+        ),
+      );
+
+  // Nombres largos inventados, en español y en inglés.
+  const longTitles = [
+    'Supercalifragilisticexpialidocious',
+    'Desafortunadamente Inolvidablemente Tuyo',
+    'The Extraordinarily Long Goodbye Under Neon Rain (Extended Version)',
+  ];
+
+  for (final title in longTitles) {
+    testWidgets('«$title» en 200 de ancho: se desplaza, sin «…» ni cortes', (tester) async {
+      await tester.pumpWidget(fitIn(200, title));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(tester.takeException(), isNull);
+      expect(find.byType(MarqueeText), findsOneWidget);
+      // Da sus vueltas y queda quieto (no se mueve para siempre).
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 30));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(tester.hasRunningAnimations, isFalse, reason: 'da sus vueltas y queda quieto');
+    });
+  }
+
+  testWidgets('Con «reducir animaciones», el título largo no se mueve: corta con «…»', (tester) async {
+    await tester.pumpWidget(fitIn(200, longTitles.first, still: true));
+    await tester.pump();
+    final text = tester.widget<Text>(find.text(longTitles.first));
+    expect(text.overflow, TextOverflow.ellipsis);
+    expect(tester.hasRunningAnimations, isFalse);
+  });
+
+  testWidgets('Un título que entra en dos líneas no se desplaza', (tester) async {
+    await tester.pumpWidget(fitIn(300, 'elephant cage'));
+    await tester.pump();
+    expect(find.byType(MarqueeText), findsNothing);
   });
 
   testWidgets('FitText se dibuja sin desbordar', (tester) async {

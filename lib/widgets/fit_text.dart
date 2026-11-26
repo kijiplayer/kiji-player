@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'marquee_text.dart';
+
 /// Texto que nunca parte una palabra: si alguna palabra no entra en el ancho o el texto no entra en
-/// [maxLines] líneas, baja el tamaño de a un punto hasta [minFontSize]. Recién ahí, si sigue sin
-/// entrar, corta con «…» al final. (Los títulos del reproductor se partían: «elephan / t cage».)
+/// [maxLines] líneas, baja el tamaño de a un punto hasta [minFontSize]. Si ni así entra, va en una
+/// sola línea que se desplaza ([MarqueeText]) en vez de cortarse con «…». (Los títulos del
+/// reproductor se partían, «elephan / t cage», o se cortaban, «BAILE INoLVI…».)
 class FitText extends StatelessWidget {
   const FitText(
     this.text, {
@@ -22,6 +25,26 @@ class FitText extends StatelessWidget {
   /// El tamaño más grande (entre el del estilo y [minFontSize]) con el que [text] entra en
   /// [maxWidth] sin partir palabras.
   static double fittingSize({
+    required String text,
+    required TextStyle style,
+    required double maxWidth,
+    required double minFontSize,
+    required int maxLines,
+    required TextScaler textScaler,
+    TextDirection textDirection = TextDirection.ltr,
+  }) => fit(
+    text: text,
+    style: style,
+    maxWidth: maxWidth,
+    minFontSize: minFontSize,
+    maxLines: maxLines,
+    textScaler: textScaler,
+    textDirection: textDirection,
+  ).size;
+
+  /// Como [fittingSize], y además si a ese tamaño el texto entra de verdad (si no, hace falta el
+  /// desplazamiento).
+  static ({double size, bool fits}) fit({
     required String text,
     required TextStyle style,
     required double maxWidth,
@@ -60,7 +83,8 @@ class FitText extends StatelessWidget {
     while (size > minFontSize && !fits(size)) {
       size -= 1;
     }
-    return size < minFontSize ? minFontSize : size;
+    if (size < minFontSize) size = minFontSize;
+    return (size: size, fits: fits(size));
   }
 
   @override
@@ -70,24 +94,22 @@ class FitText extends StatelessWidget {
     final direction = Directionality.of(context);
     return LayoutBuilder(
       builder: (context, box) {
-        final size = box.maxWidth.isFinite
-            ? fittingSize(
-                text: text,
-                style: base,
-                maxWidth: box.maxWidth,
-                minFontSize: minFontSize,
-                maxLines: maxLines,
-                textScaler: scaler,
-                textDirection: direction,
-              )
-            : base.fontSize ?? 14;
-        return Text(
-          text,
-          style: base.copyWith(fontSize: size),
+        if (!box.maxWidth.isFinite) {
+          return Text(text, style: base, maxLines: maxLines, overflow: TextOverflow.ellipsis, textAlign: textAlign);
+        }
+        final result = fit(
+          text: text,
+          style: base,
+          maxWidth: box.maxWidth,
+          minFontSize: minFontSize,
           maxLines: maxLines,
-          overflow: TextOverflow.ellipsis,
-          textAlign: textAlign,
+          textScaler: scaler,
+          textDirection: direction,
         );
+        final sized = base.copyWith(fontSize: result.size);
+        // Ni al mínimo entra (una palabra larguísima o demasiadas): se desplaza, no se corta.
+        if (!result.fits) return MarqueeText(text, style: sized, textAlign: textAlign);
+        return Text(text, style: sized, maxLines: maxLines, overflow: TextOverflow.ellipsis, textAlign: textAlign);
       },
     );
   }
