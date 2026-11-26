@@ -72,6 +72,15 @@ scoop bucket add kiji https://github.com/kijiplayer/scoop-kiji
 scoop install kiji/kiji-player
 ```
 
+También disponible en [SourceForge](https://sourceforge.net/projects/kiji-player/) e [itch.io](https://kijiplayer.itch.io/kiji-player).
+
+<a href="https://alternativeto.net/software/kiji-player/about/?utm_source=badge&utm_medium=referral" target="_blank">
+  <img src="https://alternativeto.net/static/badges/badge-compact-color.svg"
+       alt="Kiji Player | AlternativeTo"
+       width="244" height="79"
+       style="width: 244px; height: 79px;" />
+</a>
+
 Para compilarlo tú mismo necesitas [Flutter](https://flutter.dev) 3.47 o más nuevo:
 
 ```bash
