@@ -1,0 +1,2 @@
+• Arreglado: en algunos teléfonos la notificación de música salía sin botones (anterior, play/pausa, siguiente).
+• Arreglado: en Android 10 la música del teléfono no se reproducía.
