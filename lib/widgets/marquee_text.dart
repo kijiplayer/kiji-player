@@ -102,11 +102,26 @@ class _MarqueeTextState extends State<MarqueeText> with SingleTickerProviderStat
                   final pauseShare = MarqueeText.pause.inMilliseconds / total;
                   final moving = 1 - 2 * pauseShare;
                   final t = ((_controller.value - pauseShare) / moving).clamp(0.0, 1.0);
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(left: -Curves.easeInOut.transform(t) * distance, top: 0, child: child!),
-                    ],
+                  // Los bordes se desvanecen (no letras cortadas en seco): el derecho mientras falte
+                  // texto por ver; el izquierdo, cuando el principio ya se fue.
+                  final fade = 16 / box.maxWidth;
+                  return ShaderMask(
+                    blendMode: BlendMode.dstIn,
+                    shaderCallback: (rect) => LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: t > 0 ? 0 : 1),
+                        Colors.white,
+                        Colors.white,
+                        Colors.white.withValues(alpha: t < 1 ? 0 : 1),
+                      ],
+                      stops: [0, fade, 1 - fade, 1],
+                    ).createShader(rect),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(left: -Curves.easeInOut.transform(t) * distance, top: 0, child: child!),
+                      ],
+                    ),
                   );
                 },
                 child: line,
