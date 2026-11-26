@@ -271,7 +271,8 @@ class PlaylistsView extends ConsumerWidget {
           onTap: () => MomentsScreen.open(context),
         ),
         // Sin sesión: "Conecta tu YouTube Music (opcional)" (se puede cerrar para siempre).
-        const YtConnectCard(),
+        // En la Biblioteca 0.9 (compacta), esta tarjeta va al final, debajo de «Tu música».
+        if (!compact) const YtConnectCard(),
         // Con sesión, si YouTube la rechazó: "Tu sesión venció. Vuelve a iniciarla".
         const SessionExpiredBanner(),
         // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).

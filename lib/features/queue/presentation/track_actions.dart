@@ -2,6 +2,7 @@
 // Archivo de referencia: app/src/main/kotlin/.../ui/menu/QueueMenu.kt ("reproducir a
 // continuación" y "agregar a la cola").
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +12,7 @@ import '../../../providers/playback_provider.dart';
 import '../../downloads/presentation/download_button.dart' show confirmDeleteDownload;
 import '../../selection/track_selection.dart' show TrackSelection, downloadSelection;
 import '../../local_library/presentation/tag_editor_sheet.dart';
+import '../../../widgets/global_mini_player.dart' show kijiNavigatorKey;
 import '../../customize/presentation/customize_sheets.dart';
 import '../../playback_extras/data/share_track.dart';
 import '../../playlists/presentation/playlist_screens.dart';
@@ -25,7 +27,9 @@ import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) {
   final messenger = ScaffoldMessenger.of(context);
   // El de la pantalla de atrás: el de la hoja deja de servir al cerrarla.
-  final outer = context;
+  // Si quien abrió el menú ya no existe (la barra de selección se va al soltarla), el navegador
+  // principal.
+  BuildContext outer() => context.mounted ? context : (kijiNavigatorKey.currentContext ?? context);
   final notifier = ref.read(playbackProvider.notifier);
   // "Pausar al terminar esta" solo tiene sentido si la canción está en la cola.
   final inQueue = ref.read(playbackProvider).queue.any((t) => t.id == track.id);
@@ -82,7 +86,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
                 title: Text(tx.quitarDescarga),
                 onTap: () {
                   Navigator.pop(context);
-                  confirmDeleteDownload(outer, ref, track.title, videoId);
+                  confirmDeleteDownload(outer(), ref, track.title, videoId);
                 },
               )
             else
@@ -92,18 +96,19 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
                 title: Text(tx.descargar),
                 onTap: () {
                   Navigator.pop(context);
-                  downloadSelection(outer, ref, TrackSelection()..toggle(track.id, track));
+                  downloadSelection(outer(), ref, TrackSelection()..toggle(track.id, track));
                 },
               ),
-          // Canciones del dispositivo: editar las etiquetas en el archivo (0.9).
-          if (track.source == TrackSource.local)
+          // Canciones del dispositivo: editar las etiquetas en el archivo (0.9, solo en la PC: en Android
+          // hace falta pedir permiso de escritura por archivo con MediaStore.createWriteRequest; 1.0).
+          if (track.source == TrackSource.local && defaultTargetPlatform != TargetPlatform.android)
             ListTile(
               key: const Key('track-action-edit-tags'),
               leading: const Icon(Icons.sell_outlined),
               title: Text(tx.editarEtiquetas),
               onTap: () {
                 Navigator.pop(context);
-                showTagEditorSheet(outer, ref, track);
+                showTagEditorSheet(outer(), ref, track);
               },
             ),
           ListTile(

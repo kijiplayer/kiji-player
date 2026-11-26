@@ -14,6 +14,9 @@ import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/models/track.dart';
 import 'package:kiji_player/providers/downloads_provider.dart';
 import 'package:kiji_player/providers/playback_provider.dart';
+import 'package:kiji_player/providers/local_library_provider.dart';
+import 'package:kiji_player/features/local_library/domain/local_exclusions.dart';
+import 'package:kiji_player/features/local_library/domain/local_library_source.dart';
 
 class _Settings extends SettingsNotifier {
   _Settings(this.initial);
@@ -54,6 +57,29 @@ class _Idle extends PlaybackNotifier {
   );
 }
 
+class _Source implements LocalLibrarySource {
+  int requests = 0;
+  @override
+  bool get usesFolders => false;
+  @override
+  Future<List<String>> folders() async => const [];
+  @override
+  Future<bool> hasAccess() async => requests > 0;
+  @override
+  Future<bool> requestAccess() async {
+    requests++;
+    return true;
+  }
+
+  @override
+  Future<void> removeFolder(String folder) async {}
+  @override
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async =>
+      const [];
+}
+
+final _source = _Source();
+
 void main() {
   setUp(() => setKijiLocale(const Locale('en')));
   tearDown(() => setKijiLocale(const Locale('es')));
@@ -67,6 +93,7 @@ void main() {
         settingsProvider.overrideWith(() => _Settings(settings)),
         downloadsProvider.overrideWith(_Downloads.new),
         playbackProvider.overrideWith(_Idle.new),
+        localLibrarySourceProvider.overrideWithValue(_source),
       ],
     );
     addTearDown(c.dispose);
@@ -162,5 +189,15 @@ void main() {
     unawaited(showTrackActions(context, saved, other));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('track-action-download')), findsOneWidget);
+  });
+
+  testWidgets('«Sí, mostrarla» pide el permiso en ese momento (sin errores aunque la tarjeta se vaya)', (tester) async {
+    final before = _source.requests;
+    final c = await pump(tester, const AppSettings());
+    await tester.tap(find.byKey(const Key('phone-music-yes')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(c.read(settingsProvider).phoneMusic, 'on');
+    expect(_source.requests, before + 1, reason: 'se pidió el permiso');
   });
 }
