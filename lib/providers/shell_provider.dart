@@ -14,3 +14,16 @@ final searchFocusProvider = Provider<FocusNode>((ref) {
   ref.onDispose(node.dispose);
   return node;
 });
+
+/// Cuántas veces se tocó la pestaña que ya estaba elegida (cada pestaña escucha la suya y sube al
+/// principio, como en todas las apps).
+final shellTabReselectProvider = StateProvider.family<int, ShellTab>((ref, tab) => 0);
+
+/// Tocar una pestaña: la abre o, si ya estaba abierta, le pide que suba al principio.
+void selectShellTab(WidgetRef ref, ShellTab tab) {
+  if (ref.read(shellTabProvider) == tab) {
+    ref.read(shellTabReselectProvider(tab).notifier).state++;
+  } else {
+    ref.read(shellTabProvider.notifier).state = tab;
+  }
+}

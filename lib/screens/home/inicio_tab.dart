@@ -25,6 +25,7 @@ import '../player/player_motion.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/kiji_logo.dart';
 import '../../widgets/nocturne/staggered.dart';
+import '../../widgets/scroll_to_top_on_reselect.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 
@@ -106,34 +107,36 @@ class InicioTab extends ConsumerWidget {
         });
       },
       child: StaggerScope(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
-          // Las secciones entran escalonadas.
-          children: staggered([
-            const _Greeting(),
-            const SizedBox(height: 20),
-            if (playback.track != null) ...[
-              _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
-              const SizedBox(height: 28),
-            ],
-            // Las playlists a la vista, arriba.
-            const _PlaylistsRow(),
-            const SizedBox(height: 28),
-            if (isNew) ...[
-              if (playback.track == null) ...[
-                _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
+        // Tocar «Inicio» estando en Inicio sube al principio.
+        child: ScrollToTopOnReselect(
+          tab: ShellTab.home,
+          builder: (context, controller) => ListView(
+            controller: controller,
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
+            // Las secciones entran escalonadas.
+            children: staggered([
+              const _Greeting(),
+              const SizedBox(height: 20),
+              if (playback.track != null) ...[
+                _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
                 const SizedBox(height: 28),
               ],
-              const StartHereSection(),
-            ] else
-              const RecommendationSections(),
-            TrackShelf(title: tx.escuchadoRecientemente, tracks: recent),
-            if (top.isNotEmpty) ...[
-              TopListened(entries: top),
+              // Las playlists a la vista, arriba.
+              const _PlaylistsRow(),
               const SizedBox(height: 28),
-            ],
-            TrackShelf(title: tx.descargadas, note: tx.sinInternet, tracks: downloaded),
-          ]),
+              if (isNew) ...[
+                if (playback.track == null) ...[
+                  _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
+                  const SizedBox(height: 28),
+                ],
+                const StartHereSection(),
+              ] else
+                const RecommendationSections(),
+              TrackShelf(title: tx.escuchadoRecientemente, tracks: recent),
+              if (top.isNotEmpty) ...[TopListened(entries: top), const SizedBox(height: 28)],
+              TrackShelf(title: tx.descargadas, note: tx.sinInternet, tracks: downloaded),
+            ]),
+          ),
         ),
       ),
     );

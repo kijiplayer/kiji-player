@@ -100,7 +100,7 @@ class _Sidebar extends ConsumerWidget {
                   child: _SidebarItem(
                     destination: destination,
                     selected: destination.tab == current,
-                    onTap: () => ref.read(shellTabProvider.notifier).state = destination.tab,
+                    onTap: () => selectShellTab(ref, destination.tab),
                   ),
                 ),
               const SizedBox(height: 24),
