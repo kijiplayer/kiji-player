@@ -59,6 +59,7 @@ import '../../style/presentation/custom_background.dart';
 import '../../style/presentation/personalize_screen.dart';
 import '../../style/presentation/theme_files.dart';
 import '../../style/presentation/style_parts.dart';
+import '../../local_library/presentation/library_home.dart' show showLibraryEntriesSheet;
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
 /// descripción corta.
@@ -450,6 +451,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
       ],
       // Contenido
+      // 0.9: la música del dispositivo es opcional (se pregunta la primera vez en la Biblioteca).
+      SettingOption(
+        section: SettingsSection.storage,
+        title: tx.musicaDelDispositivo,
+        subtitle: tx.musicaDelDispositivoNota,
+        keywords: const ['biblioteca', 'musica', 'telefono', 'local', 'library', 'phone', 'device', 'carpetas'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-phone-music'),
+          secondary: const Icon(Icons.smartphone_rounded),
+          title: Text(tx.musicaDelDispositivo),
+          subtitle: Text(tx.musicaDelDispositivoNota),
+          value: ref.watch(settingsProvider.select((s) => s.showsPhoneMusic)),
+          onChanged: (on) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(phoneMusic: on ? 'on' : 'off')),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.storage,
+        title: tx.queVerEnLaBiblioteca,
+        subtitle: tx.queVerEnLaBibliotecaNota,
+        keywords: const ['biblioteca', 'pestañas', 'artistas', 'albumes', 'library', 'tabs', 'artists', 'albums'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-library-entries'),
+          leading: const Icon(Icons.tune_rounded),
+          title: Text(tx.queVerEnLaBiblioteca),
+          subtitle: Text(tx.queVerEnLaBibliotecaNota),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => showLibraryEntriesSheet(context),
+        ),
+      ),
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
         SettingOption(
           section: SettingsSection.storage,

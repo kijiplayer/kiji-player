@@ -28,6 +28,8 @@ class AppSettings {
     this.libraryFilter = 'all',
     this.libraryView = 'list',
     this.libraryTab = 'playlists', // l10n-ignore
+    this.phoneMusic = 'ask',
+    this.libraryEntries = defaultLibraryEntries,
     this.ytSync = false,
     this.theaterReactions = true,
     this.theaterVibration = true,
@@ -180,6 +182,18 @@ class AppSettings {
 
   /// La última pestaña de la Biblioteca (se abre ahí).
   final String libraryTab;
+
+  /// Música del teléfono (o de la PC) en la Biblioteca: 'ask' (todavía no se preguntó), 'on' u
+  /// 'off'. Con 'off' no se pide permiso ni se lee nada, y no aparecen Carpetas ni lo local.
+  final String phoneMusic;
+  static const phoneMusicValues = ['ask', 'on', 'off'];
+  bool get showsPhoneMusic => phoneMusic == 'on';
+
+  /// Qué entradas se ven en la Biblioteca (el usuario elige). Artistas y Álbumes, apagadas de
+  /// fábrica; Carpetas, solo con la música del teléfono.
+  final List<String> libraryEntries;
+  static const libraryEntryNames = ['playlists', 'songs', 'downloads', 'artists', 'albums', 'folders']; // l10n-ignore
+  static const defaultLibraryEntries = ['playlists', 'songs', 'downloads', 'folders']; // l10n-ignore
 
   /// Sincronizar con YouTube (solo con sesión iniciada): leer "Me gusta" y las playlists de la
   /// cuenta. Apagado de fábrica; solo lectura.
@@ -347,6 +361,8 @@ class AppSettings {
     String? libraryFilter,
     String? libraryView,
     String? libraryTab,
+    String? phoneMusic,
+    List<String>? libraryEntries,
     bool? ytSync,
     bool? theaterReactions,
     bool? theaterVibration,
@@ -415,6 +431,8 @@ class AppSettings {
         libraryFilter: libraryFilter ?? this.libraryFilter,
         libraryView: libraryView ?? this.libraryView,
         libraryTab: libraryTab ?? this.libraryTab,
+        phoneMusic: phoneMusic ?? this.phoneMusic,
+        libraryEntries: libraryEntries ?? this.libraryEntries,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
         theaterVibration: theaterVibration ?? this.theaterVibration,
@@ -482,6 +500,8 @@ class AppSettings {
         'libraryFilter': libraryFilter,
         'libraryView': libraryView,
         'libraryTab': libraryTab,
+        'phoneMusic': phoneMusic,
+        'libraryEntries': libraryEntries,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
         'theaterVibration': theaterVibration,
@@ -559,6 +579,13 @@ class AppSettings {
       libraryFilter: libraryFilters.contains(json['libraryFilter']) ? json['libraryFilter'] as String : d.libraryFilter,
       libraryView: libraryViews.contains(json['libraryView']) ? json['libraryView'] as String : d.libraryView,
       libraryTab: libraryTabs.contains(json['libraryTab']) ? json['libraryTab'] as String : d.libraryTab,
+      phoneMusic: phoneMusicValues.contains(json['phoneMusic']) ? json['phoneMusic'] as String : d.phoneMusic,
+      libraryEntries: json['libraryEntries'] is List
+          ? [
+              for (final e in json['libraryEntries'] as List)
+                if (e is String && libraryEntryNames.contains(e)) e,
+            ]
+          : d.libraryEntries,
       ytSync: read('ytSync', d.ytSync),
       theaterReactions: read('theaterReactions', d.theaterReactions),
       theaterVibration: read('theaterVibration', d.theaterVibration),

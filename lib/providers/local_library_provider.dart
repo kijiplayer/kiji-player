@@ -29,6 +29,8 @@ final localTracksProvider = FutureProvider<List<Track>>((ref) async {
         (s) => (folders: s.excludedFolders, hideShort: s.hideShortAudios, choices: s.musicFolderChoices),
       ),
     );
+    // Sin la música del dispositivo (0.9: se elige), no se lee nada ni se pide permiso.
+    if (!ref.watch(settingsProvider.select((s) => s.showsPhoneMusic))) return const [];
     if (!await source.hasAccess()) return const [];
     final settings = ref.read(settingsProvider);
     return [

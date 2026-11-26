@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/style/presentation/custom_background.dart';
 import '../../features/downloads/presentation/downloads_screen.dart';
-import '../../features/local_library/presentation/local_library_screen.dart';
+import '../../features/local_library/presentation/library_home.dart';
 import '../../features/updates/update_checker.dart';
 import '../../features/updates/updates_screen.dart';
 import '../../features/yt_music/presentation/search_screen.dart';
@@ -101,7 +101,8 @@ class ShellTabContent extends ConsumerWidget {
     return switch (ref.watch(shellTabProvider)) {
       ShellTab.home => const InicioTab(),
       ShellTab.search => const SearchScreen(),
-      ShellTab.library => const LocalLibraryScreen(),
+      // 0.9: la Biblioteca «una sola lista» (cada entrada abre su pantalla).
+      ShellTab.library => const LibraryHome(),
     };
   }
 }

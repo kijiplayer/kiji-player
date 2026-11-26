@@ -246,8 +246,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Future<void> _search(String query) async {
     final generation = ++_generation;
-    // Otra búsqueda, otros resultados: lo elegido se suelta.
-    _selection.clear();
+    // Multibúsqueda (0.9): lo elegido se mantiene al buscar otra cosa, para juntar canciones de
+    // varias búsquedas y descargarlas (o agregarlas) todas juntas. Se suelta con la ✕ de la barra.
     _continuation = null;
     _loadingMore = false;
     if (query.trim().isEmpty) {
@@ -626,7 +626,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   );
 
   void _switchTo(SearchKind kind) {
-    _selection.clear();
     setState(() => _kind = kind);
     _search(_controller.text);
   }
