@@ -2,13 +2,7 @@ import 'local_exclusions.dart';
 
 /// Un audio del teléfono, con lo que hace falta para decidir si es música.
 class AudioCandidate {
-  const AudioCandidate({
-    required this.path,
-    this.artist,
-    this.isMusic,
-    this.isRecording,
-    this.durationMs,
-  });
+  const AudioCandidate({required this.path, this.artist, this.isMusic, this.isRecording, this.durationMs});
 
   final String path;
   final String? artist;
@@ -42,6 +36,10 @@ enum MusicSkip {
 
   /// Su carpeta está oculta en "Carpetas de música".
   hiddenFolder,
+
+  /// Un audio suelto sin artista en una carpeta de descargas o de otras apps (Download, Documents,
+  /// TikTok…): una voz de ElevenLabs, un audio de TikTok. La música bajada trae su artista.
+  untagged,
 }
 
 /// Una carpeta con audios, para "Carpetas de música".
@@ -85,12 +83,23 @@ const minMusicDurationMs = 30 * 1000;
 /// Carpetas de sonidos del sistema (nunca son música).
 const _systemFolders = {'ringtones', 'notifications', 'alarms'};
 
+/// Carpetas donde cae de todo (descargas, documentos, lo que guardan otras apps): ahí solo cuenta
+/// como música lo que tiene artista, salvo que la persona haya elegido mostrar la carpeta.
+const looseFolders = {
+  'download', 'downloads', 'documents', 'dcim', 'movies', 'pictures', 'bluetooth', // l10n-ignore
+  'tiktok', 'capcut', 'instagram', 'snapchat', 'elevenlabs', 'screenrecorder', // l10n-ignore
+};
+
+bool _isLoose(String folder) => looseFolders.contains(folder.substring(folder.lastIndexOf('/') + 1).toLowerCase());
+
 /// Decide qué audios del teléfono son música:
 /// 1. lo que Android marca como música y dura 30 s o más;
 /// 2. fuera las carpetas que nunca son música ([exclusions]: grabaciones, voz, mensajería, y los
 ///    sonidos del sistema);
 /// 3. cada carpeta que queda, mostrada u oculta según [choices] (o, si no se eligió, según si la
-///    mayoría de sus audios tiene artista).
+///    mayoría de sus audios tiene artista);
+/// 4. en las carpetas de descargas y de otras apps ([looseFolders]) que no se eligieron a mano,
+///    solo los audios con artista.
 /// Ocultar no borra nada.
 MusicFilterResult filterMusic(
   List<AudioCandidate> audios, {
@@ -130,10 +139,13 @@ MusicFilterResult filterMusic(
   final shown = {for (final f in folders) f.path: f.shown};
   final kept = <int>[];
   for (final i in passing) {
-    if (shown[audios[i].folder] ?? true) {
-      kept.add(i);
-    } else {
+    final audio = audios[i];
+    if (!(shown[audio.folder] ?? true)) {
       skipped[MusicSkip.hiddenFolder] = skipped[MusicSkip.hiddenFolder]! + 1;
+    } else if (choices[audio.folder] == null && _isLoose(audio.folder) && !audio.hasArtist) {
+      skipped[MusicSkip.untagged] = skipped[MusicSkip.untagged]! + 1;
+    } else {
+      kept.add(i);
     }
   }
   return MusicFilterResult(kept: kept, skipped: skipped, folders: folders);

@@ -72,6 +72,33 @@ void main() {
     expect(_keptPaths(all, on), hasLength(9));
   });
 
+  test('5. Download con mucha música bajada: las voces y audios sueltos sin artista quedan afuera', () {
+    final all = [
+      // La mayoría con artista: la carpeta se muestra…
+      for (var i = 0; i < 6; i++) _a('Download/cancion$i.mp3'),
+      // …pero una voz generada y un audio de TikTok sin etiquetas no son música.
+      _a('Download/voz-generada.mp3', artist: '<unknown>'),
+      _a('Download/audio-tiktok.m4a', artist: null),
+      _a('TikTok/sonido.m4a', artist: ''),
+      // En una carpeta de música, lo sin artista sí se queda (un disco mal etiquetado).
+      _a('Music/Disco/uno.mp3'),
+      _a('Music/Disco/sin-datos.mp3', artist: '<unknown>'),
+      _a('Music/Disco/dos.mp3'),
+    ];
+    final r = filterMusic(all);
+    expect(_keptPaths(all, r), [
+      for (var i = 0; i < 6; i++) 'Download/cancion$i.mp3',
+      'Music/Disco/uno.mp3',
+      'Music/Disco/sin-datos.mp3',
+      'Music/Disco/dos.mp3',
+    ]);
+    expect(r.skipped[MusicSkip.untagged], 2, reason: 'los dos sueltos de Download');
+    expect(r.skipped[MusicSkip.hiddenFolder], 1, reason: 'TikTok, sin artistas, ya queda oculta entera');
+    // Si la persona elige mostrar Download a mano, se ve todo lo de esa carpeta.
+    final chosen = filterMusic(all, choices: {'$_root/Download': true});
+    expect(_keptPaths(all, chosen), contains('Download/voz-generada.mp3'));
+  });
+
   test('La elección se guarda en los ajustes y cambia la clave (la Biblioteca se vuelve a leer)', () {
     const before = AppSettings();
     final after = before.copyWith(musicFolderChoices: {'$_root/Download': true});
