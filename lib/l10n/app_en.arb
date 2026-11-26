@@ -1434,5 +1434,6 @@
   "nAudios": "{count, plural, =1{1 audio} other{{count} audios}}",
   "paginaOficial": "Official page",
   "paginaOficialDescripcion": "Kiji's downloads and news, in your browser",
-  "verQueHayDeNuevo": "See what's new"
+  "verQueHayDeNuevo": "See what's new",
+  "verTusMomentos": "See your moments"
 }

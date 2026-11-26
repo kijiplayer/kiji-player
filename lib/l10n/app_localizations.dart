@@ -8602,6 +8602,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ver qué hay de nuevo'**
   String get verQueHayDeNuevo;
+
+  /// Hoja «Guardar un momento»: abre la lista de Momentos
+  ///
+  /// In es, this message translates to:
+  /// **'Ver tus momentos'**
+  String get verTusMomentos;
 }
 
 class _AppLocalizationsDelegate

@@ -5306,4 +5306,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verQueHayDeNuevo => 'See what\'s new';
+
+  @override
+  String get verTusMomentos => 'See your moments';
 }

@@ -5317,4 +5317,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get verQueHayDeNuevo => 'Ver qué hay de nuevo';
+
+  @override
+  String get verTusMomentos => 'Ver tus momentos';
 }
