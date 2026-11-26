@@ -63,6 +63,7 @@ on Android 7 or newer and on Windows 10/11.
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/kijiplayer/kiji-player"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a>
   <a href="https://kijiplayer.itch.io/kiji-player"><img src="docs/site/img/itchio.svg" alt="Available on itch.io" height="54"></a>
   <a href="https://alternativeto.net/software/kiji-player/about/?utm_source=badge&utm_medium=referral"><img src="https://alternativeto.net/static/badges/badge-compact-color.svg" alt="Kiji Player | AlternativeTo" height="54"></a>
+  <a href="https://sourceforge.net/p/kiji-player/"><img alt="Download Kiji Player" src="https://sourceforge.net/sflogo.php?type=18&amp;group_id=4178842" width=200></a>
 </p>
 
 With Obtainium, Kiji updates on Android straight from those releases. If it asks which APK to use, pick `Kiji-Player.apk` (works on every phone) or the one for your architecture (`arm64-v8a` on most phones).
