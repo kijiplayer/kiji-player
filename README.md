@@ -61,6 +61,8 @@ on Android 7 or newer and on Windows 10/11.
 
 <p>
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/kijiplayer/kiji-player"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54"></a>
+  <a href="https://kijiplayer.itch.io/kiji-player"><img src="docs/site/img/itchio.svg" alt="Available on itch.io" height="54"></a>
+  <a href="https://alternativeto.net/software/kiji-player/about/?utm_source=badge&utm_medium=referral"><img src="https://alternativeto.net/static/badges/badge-compact-color.svg" alt="Kiji Player | AlternativeTo" height="54"></a>
 </p>
 
 With Obtainium, Kiji updates on Android straight from those releases. If it asks which APK to use, pick `Kiji-Player.apk` (works on every phone) or the one for your architecture (`arm64-v8a` on most phones).
@@ -73,13 +75,6 @@ scoop install kiji/kiji-player
 ```
 
 Also available on [SourceForge](https://sourceforge.net/projects/kiji-player/) and [itch.io](https://kijiplayer.itch.io/kiji-player).
-
-<a href="https://alternativeto.net/software/kiji-player/about/?utm_source=badge&utm_medium=referral" target="_blank">
-  <img src="https://alternativeto.net/static/badges/badge-compact-color.svg"
-       alt="Kiji Player | AlternativeTo"
-       width="244" height="79"
-       style="width: 244px; height: 79px;" />
-</a>
 
 To build it yourself you need [Flutter](https://flutter.dev) 3.47 or newer:
 

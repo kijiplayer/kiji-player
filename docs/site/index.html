@@ -63,6 +63,8 @@
     details { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 18px; margin-bottom: 10px; }
     summary { cursor: pointer; font-weight: 700; min-height: 32px; }
     details p { color: var(--muted); margin: 10px 0 2px; }
+    .badges { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .badges img { display: block; height: 54px; width: auto; }
     footer { margin: 60px 0 40px; color: var(--muted); font-size: 13px; text-align: center; }
     [data-l="en"] { display: none; }
     html[lang="en"] [data-l="es"] { display: none; }
@@ -154,7 +156,11 @@
       <summary><span data-l="es">También disponible en</span><span data-l="en">Also available on</span></summary>
       <p data-l="es">Además de esta página, Obtainium y Scoop, Kiji está en <a href="https://sourceforge.net/projects/kiji-player/">SourceForge</a> e <a href="https://kijiplayer.itch.io/kiji-player">itch.io</a>. También tiene su ficha en AlternativeTo:</p>
       <p data-l="en">Besides this page, Obtainium and Scoop, Kiji is on <a href="https://sourceforge.net/projects/kiji-player/">SourceForge</a> and <a href="https://kijiplayer.itch.io/kiji-player">itch.io</a>. It also has a page on AlternativeTo:</p>
-      <p><a href="https://alternativeto.net/software/kiji-player/about/?utm_source=badge&amp;utm_medium=referral" target="_blank" rel="noopener"><img src="img/alternativeto.svg" alt="Kiji Player | AlternativeTo" width="244" height="79" style="width: 244px; height: 79px;"></a></p>
+      <p class="badges">
+        <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/kijiplayer/kiji-player"><img src="img/obtainium.png" alt="Get it on Obtainium" width="140" height="54"></a>
+        <a href="https://kijiplayer.itch.io/kiji-player"><img src="img/itchio.svg" alt="Available on itch.io" width="175" height="54"></a>
+        <a href="https://alternativeto.net/software/kiji-player/about/?utm_source=badge&amp;utm_medium=referral" target="_blank" rel="noopener"><img src="img/alternativeto.svg" alt="Kiji Player | AlternativeTo" width="167" height="54"></a>
+      </p>
     </details>
     <details>
       <summary><span data-l="es">¿Cómo actualizo?</span><span data-l="en">How do I update?</span></summary>
