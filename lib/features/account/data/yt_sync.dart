@@ -219,7 +219,7 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
   @override
   YtSyncState build() {
     ref.onDispose(() => _disposed = true);
-    unawaited(_load().then((_) => _autoSync()));
+    unawaited(_load().then((_) => _adoptStored()).then((_) => _autoSync()));
     return const YtSyncState();
   }
 
@@ -257,6 +257,32 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
     }
   }
 
+  /// Al pasar a la 0.9: las playlists de la cuenta que ya se habían leído (antes solo se veían)
+  /// pasan a ser playlists de Kiji vinculadas, con lo último que se leyó como base. Así no
+  /// desaparecen de la Biblioteca hasta la próxima lectura. Si es de otra persona, la próxima
+  /// sincronización lo sabe y no le manda nada.
+  Future<void> _adoptStored() async {
+    if (state.playlists.isEmpty) return;
+    try {
+      if (!(await ref.read(settingsProvider.notifier).loaded).ytSync) return;
+      final store = ref.read(playlistsProvider.notifier);
+      await store.loaded.timeout(const Duration(seconds: 5));
+      final have = {
+        for (final pl in ref.read(playlistsProvider)) ?pl.yt?.id,
+      };
+      for (final pl in state.playlists) {
+        if (have.contains(pl.id)) continue;
+        store.putLinked(
+          name: pl.name,
+          tracks: pl.tracks,
+          link: YtLink(id: pl.id, base: [for (final t in pl.tracks) ?t.youtubeVideoId]),
+        );
+      }
+    } catch (error) {
+      debugPrint('=== SINCRONIZAR: no se pudieron pasar las playlists guardadas (${error.runtimeType}) ===');
+    }
+  }
+
   /// Al abrir Kiji: si está prendido, hay sesión y pasó [interval].
   Future<void> syncIfDue({bool push = false}) async {
     final last = state.syncedAt;
@@ -291,15 +317,15 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
         try {
           final pages = await _pages(reader, 'VL${pl.id}', session);
           if (pages.isEmpty) continue;
-          final tracks = _tracks(pages);
+          final setVideoIds = {for (final page in pages) ...parsePlaylistSetVideoIds(page)};
+          // Al pie de las playlists propias YouTube Music agrega «Sugerencias» (cambian en cada
+          // lectura): no son de la playlist. Las canciones de verdad traen su setVideoId.
+          final tracks = [
+            for (final t in _tracks(pages))
+              if (setVideoIds.isEmpty || setVideoIds.containsKey(t.youtubeVideoId)) t,
+          ];
           playlists.add(SyncedPlaylist(id: pl.id, name: pl.name, tracks: tracks));
-          remotes.add(_Remote(
-            pl.id,
-            pl.name,
-            tracks,
-            {for (final page in pages) ...parsePlaylistSetVideoIds(page)},
-            isEditablePlaylist(pages.first),
-          ));
+          remotes.add(_Remote(pl.id, pl.name, tracks, setVideoIds, isEditablePlaylist(pages.first)));
         } catch (error) {
           // La sesión venció: se corta todo (ver abajo). Otra falla: esta playlist queda como
           // estaba y siguen las demás (antes una sola hacía fallar toda la lectura).
@@ -368,6 +394,14 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
           // Sin [push] no se manda nada: lo de Kiji queda pendiente para «Sincronizar».
           editable: remote.editable && push,
         );
+        if (plan.changedInKiji || plan.changedInYouTube) {
+          final baseSet = link.base.toSet(), remoteSet = remoteVideos.toSet();
+          debugPrint(
+            '=== SINCRONIZAR: playlist de ${remoteVideos.length}: en YouTube '
+            '+${remoteSet.difference(baseSet).length} −${baseSet.difference(remoteSet).length}, '
+            'en Kiji +${plan.toAdd.length} −${plan.toRemove.length} ===',
+          );
+        }
         var pushed = !plan.needsPush;
         if (plan.needsPush) {
           final actions = <Map<String, dynamic>>[

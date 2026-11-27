@@ -1,5 +1,6 @@
 // Sincronizar con YouTube Music de ida y vuelta (0.9), con respuestas simuladas: nada sale de la
 // PC. Datos inventados.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -33,6 +34,13 @@ Map<String, dynamic> _row(String id) => {
   },
 };
 
+Map<String, dynamic> _suggestion(String id) => {
+  'musicResponsiveListItemRenderer': {
+    'playlistItemData': {'videoId': id},
+    'flexColumns': [_flex('Sugerida $id'), _flex('Otro Grupo')],
+  },
+};
+
 Map<String, dynamic> _card(String browseId, String title) => {
   'musicTwoRowItemRenderer': {
     'title': {
@@ -53,6 +61,7 @@ class _Account implements YtAccountReader, YtAccountWriter {
   final notMine = <String>{};
   final sent = <(String, List<Map<String, dynamic>>)>[];
   bool failWrites = false;
+  int suggestion = 0;
 
   @override
   Future<Map<String, dynamic>?> browse(String browseId, YtSession session) async {
@@ -65,7 +74,11 @@ class _Account implements YtAccountReader, YtAccountWriter {
       final id = browseId.substring(2);
       return {
         if (!notMine.contains(id)) 'header': {'musicEditablePlaylistDetailHeaderRenderer': {}},
-        'contents': [for (final v in playlists[id]!) _row(v)],
+        'contents': [
+          for (final v in playlists[id]!) _row(v),
+          // Las «Sugerencias» de YouTube Music: sin setVideoId, cambian en cada lectura.
+          if (!notMine.contains(id)) _suggestion('sug${suggestion++}'.padRight(11, 'x')),
+        ],
       };
     }
     return {'contents': []};
@@ -90,6 +103,8 @@ class _Account implements YtAccountReader, YtAccountWriter {
 class _Settings extends SettingsNotifier {
   @override
   AppSettings build() => const AppSettings(ytSync: true);
+  @override
+  Future<AppSettings> get loaded async => state;
 }
 
 Track _t(String id) => Track(
@@ -100,6 +115,8 @@ Track _t(String id) => Track(
   audioUrl: '',
   source: TrackSource.youtube,
 );
+
+String jsonTrack(String id) => jsonEncode(_t(id).toJson());
 
 void main() {
   group('Juntar Kiji y YouTube', () {
@@ -177,6 +194,13 @@ void main() {
       expect(account.sent, isEmpty, reason: 'leer no escribe nada');
     });
 
+    test('Las «Sugerencias» de YouTube Music no se cuentan como canciones de la playlist', () async {
+      await c.read(ytSyncProvider.notifier).syncNow();
+      await c.read(ytSyncProvider.notifier).syncNow();
+      expect(videos(), ['aaaaaaaaaaa', 'bbbbbbbbbbb']);
+      expect(c.read(ytSyncProvider).merged, isEmpty);
+    });
+
     test('Lo que se agrega y quita en Kiji llega a YouTube al sincronizar (y no antes)', () async {
       await c.read(ytSyncProvider.notifier).syncNow();
       final store = c.read(playlistsProvider.notifier);
@@ -252,6 +276,18 @@ void main() {
       await c.read(ytSyncProvider.notifier).forget();
       expect(c.read(playlistsProvider).where((pl) => pl.yt != null), isEmpty);
       expect(c.read(playlistsProvider).where((pl) => pl.name == 'Otra Lista'), hasLength(1));
+    });
+
+    test('Al actualizar a la 0.9, las playlists ya leídas no desaparecen: pasan a ser vinculadas', () async {
+      File('${dir.path}/yt_sync.json').writeAsStringSync(
+        '{"syncedAt":"2026-11-20T10:00:00.000","playlists":[{"id":"PLvieja","name":"Lista Vieja","tracks":[${jsonTrack('ccccccccccc')}]}]}',
+      );
+      c.read(ytSyncProvider);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      final vieja = c.read(playlistsProvider).singleWhere((pl) => pl.yt?.id == 'PLvieja');
+      expect(vieja.name, 'Lista Vieja');
+      expect(vieja.yt!.base, ['ccccccccccc']);
+      expect(account.sent, isEmpty);
     });
 
     test('El vínculo se guarda en el dispositivo y vuelve al abrir', () async {

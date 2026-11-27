@@ -5572,6 +5572,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Guardada de otra persona en YouTube Music: lo que cambies aquí queda solo en Kiji.';
 
   @override
+  String get youtubeMusicNombre => 'YouTube Music';
+
+  @override
   String get frasesDelDia => 'Frase del día en Inicio';
 
   @override

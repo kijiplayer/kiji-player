@@ -1505,6 +1505,7 @@
   "noSePudoSincronizar": "Couldn't sync. Try again in a while.",
   "playlistVinculadaNota": "From your YouTube Music: what you add or remove here is sent to YouTube when you tap “Sync”.",
   "playlistAjenaNota": "Saved from someone else on YouTube Music: what you change here stays only in Kiji.",
+  "youtubeMusicNombre": "YouTube Music",
   "frasesDelDia": "Quote of the day on Home",
   "frasesDelDiaNota": "Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device."
 }

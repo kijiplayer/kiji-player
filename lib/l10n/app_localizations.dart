@@ -9023,6 +9023,12 @@ abstract class AppLocalizations {
   /// **'Guardada de otra persona en YouTube Music: lo que cambies aquí queda solo en Kiji.'**
   String get playlistAjenaNota;
 
+  /// Nombre del servicio (marca)
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube Music'**
+  String get youtubeMusicNombre;
+
   /// No description provided for @frasesDelDia.
   ///
   /// In es, this message translates to:

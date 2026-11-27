@@ -119,11 +119,19 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
                     done(tx.seCreo(created.name));
                   },
                 ),
-                for (final playlist in playlists)
+                // Primero las de Kiji; las de YouTube Music (0.9), marcadas, después.
+                for (final playlist in [...playlists.where((pl) => pl.yt == null), ...playlists.where((pl) => pl.yt != null)])
                   ListTile(
-                    leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                    leading: Icon(
+                      playlist.yt == null ? Icons.queue_music_rounded : Icons.sync_rounded,
+                      color: KijiColors.violet,
+                    ),
                     title: Text(playlist.name),
-                    subtitle: Text(_count(playlist.tracks.length)),
+                    subtitle: Text(
+                      playlist.yt == null
+                          ? _count(playlist.tracks.length)
+                          : '${_count(playlist.tracks.length)} · ${tx.youtubeMusicNombre}',
+                    ),
                     onTap: () {
                       final added = notifier.addTracks(playlist.id, tracks);
                       Navigator.pop(sheetContext);
