@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../utils/json_file.dart';
 import 'domain/update_assets.dart';
 import '../settings/data/settings_store.dart';
+import '../../store_flavor.dart';
 import '../../version.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -155,6 +156,8 @@ class UpdateNotifier extends Notifier<UpdateState> {
 
   /// Al abrir Kiji: consulta solo si está prendido y pasó un día.
   Future<void> checkIfDue() async {
+    // Google Play actualiza la app: el sabor «play» no busca versiones por su cuenta.
+    if (isPlayStore) return;
     // Primero se leen los ajustes: si el usuario lo apagó, no se consulta nunca.
     final settings = await ref.read(settingsProvider.notifier).loaded;
     if (!settings.checkUpdates) return;

@@ -39,6 +39,7 @@ import 'features/moments/presentation/moment_marks.dart';
 import 'features/sponsorblock/sponsorblock_watch.dart';
 import 'features/scrobble/scrobble_provider.dart';
 import 'features/streaks/streaks.dart';
+import 'store_flavor.dart';
 import 'features/account/data/account_store.dart';
 import 'features/account/presentation/account_screens.dart';
 import 'features/welcome/data/welcome_store.dart';
@@ -207,6 +208,13 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && ref.read(settingsProvider).highPerformance) {
       applyHighRefreshRate(true);
+    }
+    // Google Play (sabor «play»): YouTube no suena en segundo plano. La música local, sí.
+    if (isPlayStore && (state == AppLifecycleState.hidden || state == AppLifecycleState.paused)) {
+      final playback = ref.read(playbackProvider);
+      if (playback.isPlaying && playback.track?.youtubeVideoId != null) {
+        unawaited(ref.read(playbackProvider.notifier).togglePlayPause());
+      }
     }
   }
 

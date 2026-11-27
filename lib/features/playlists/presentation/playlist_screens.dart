@@ -38,6 +38,7 @@ import '../../downloads/presentation/download_status.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
+import '../../../store_flavor.dart';
 
 /// Datos de las listas inteligentes, calculados en el teléfono.
 final smartListInputsProvider = Provider<SmartListInputs>(
@@ -642,7 +643,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                 tracks: playlist.tracks,
                 // De un toque: el mismo aviso de antes (cuánto ocupa) y después, la tarjeta con
                 // avance, Pausar/Seguir y Cancelar.
-                onDownload: playlist.tracks.any((t) => t.youtubeVideoId != null)
+                onDownload: !isPlayStore && playlist.tracks.any((t) => t.youtubeVideoId != null)
                     ? () => confirmPlaylistDownload(context, ref, playlist)
                     : null,
                 onMore: () => showPlaylistOptions(

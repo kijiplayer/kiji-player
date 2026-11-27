@@ -22,6 +22,7 @@ import '../../customize/presentation/track_text.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
+import '../../../store_flavor.dart';
 
 /// Menú de una canción (mantener presionado en el celular, clic derecho en la
 /// PC): "Reproducir a continuación" y "Agregar a la cola".
@@ -79,7 +80,7 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
             },
           ),
           // Descargar o, si ya está, «Quitar descarga» (0.9: en el mismo lugar donde se descarga).
-          if (track.youtubeVideoId case final videoId?)
+          if (track.youtubeVideoId case final videoId? when !isPlayStore)
             if (downloaded)
               ListTile(
                 key: const Key('track-action-remove-download'),
