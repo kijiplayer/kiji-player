@@ -151,6 +151,10 @@ class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     // Papel es papel (no vidrio): siempre la superficie de siempre.
     if (KijiLook.style == KijiStyle.paper) return _classic(context);
+    // El vidrio real solo en lo flotante (barra, mini-reproductor, hojas): ahí pasa contenido por
+    // debajo y la refracción se ve. En las tarjetas (decenas por pantalla) cada una copiaría la
+    // pantalla: medido en el teléfono, Inicio pasaba de 2,3 a ~20 ms por cuadro.
+    if (widget.kind != GlassKind.floating) return _classic(context);
     return ValueListenableBuilder<bool>(
       valueListenable: RealGlass.active,
       builder: (context, real, _) => real ? _real(context) : _classic(context),
