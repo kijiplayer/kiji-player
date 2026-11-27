@@ -1495,6 +1495,8 @@
   "compartirTarjetaNota": "An image with the cover, title and artist",
   "fraseDelDia": "Quote of the day",
   "compartirFrase": "Share the quote",
+  "vidrioReal": "Real liquid glass",
+  "vidrioRealNota": "True refraction at the edges, drawn by the GPU. If your phone can't do it or you turn it off, the usual glass stays.",
   "frasesDelDia": "Quote of the day on Home",
   "frasesDelDiaNota": "Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device."
 }

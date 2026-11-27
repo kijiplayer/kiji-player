@@ -53,6 +53,7 @@ import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
 import '../../../widgets/nocturne/kiji_sheet.dart';
+import '../../../widgets/nocturne/real_glass.dart';
 import '../../style/data/background_store.dart';
 import '../../style/presentation/accent_picker.dart';
 import '../../style/presentation/custom_background.dart';
@@ -373,6 +374,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ref.read(settingsProvider.notifier).update((s) => s.copyWith(playerButtonLabels: value)),
         ),
       ),
+      // Vidrio líquido real (0.9): solo donde puede haberlo (Android con Impeller y Flutter GPU).
+      if (RealGlass.platformCanTry)
+        SettingOption(
+          section: SettingsSection.appearance,
+          title: tx.vidrioReal,
+          subtitle: tx.vidrioRealNota,
+          keywords: const ['vidrio', 'glass', 'liquid', 'liquido', 'refraccion', 'gpu', 'rendimiento', 'bateria'], // l10n-ignore
+          builder: (context, ref) => SwitchListTile(
+            key: const Key('settings-real-glass'),
+            secondary: const Icon(Icons.blur_on_rounded),
+            title: Text(tx.vidrioReal),
+            subtitle: Text(tx.vidrioRealNota),
+            value: ref.watch(settingsProvider.select((s) => s.realGlass)),
+            onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(realGlass: v)),
+          ),
+        ),
       // Frase del día en Inicio (0.9): de dominio público, elegida en el dispositivo.
       SettingOption(
         section: SettingsSection.appearance,

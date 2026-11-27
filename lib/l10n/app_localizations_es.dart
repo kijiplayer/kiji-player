@@ -5527,6 +5527,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get compartirFrase => 'Compartir la frase';
 
   @override
+  String get vidrioReal => 'Vidrio líquido real';
+
+  @override
+  String get vidrioRealNota =>
+      'Refracción de verdad en los bordes, dibujada por la GPU. Si tu teléfono no puede o lo apagas, queda el vidrio de siempre.';
+
+  @override
   String get frasesDelDia => 'Frase del día en Inicio';
 
   @override

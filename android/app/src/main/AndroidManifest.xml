@@ -205,6 +205,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Vidrio líquido real (0.9, liquid_glass_renderer): necesita Flutter GPU sobre Impeller.
+             Si el dispositivo no lo tiene, Kiji usa el vidrio de siempre. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableFlutterGPU"
+            android:value="true" />
         <!-- El APK de una actualización se le pasa al instalador del sistema (solo cache/updates). -->
         <provider
             android:name="androidx.core.content.FileProvider"

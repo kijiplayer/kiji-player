@@ -35,6 +35,7 @@ import 'theme/kiji_tokens.dart';
 import 'widgets/global_mini_player.dart';
 import 'utils/clock_format.dart';
 import 'widgets/playback_shortcuts.dart';
+import 'widgets/nocturne/real_glass.dart';
 import 'features/moments/presentation/moment_marks.dart';
 import 'features/sponsorblock/sponsorblock_watch.dart';
 import 'features/scrobble/scrobble_provider.dart';
@@ -63,6 +64,18 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     DesktopWindow.instance.beforeExit = () => ref.read(playbackProvider.notifier).saveNow();
     // PC: bandeja del sistema y atajos globales.
     watchDesktop(ref);
+    // Vidrio líquido real (0.9): el ajuste de Configuración, y la carga de la GPU un segundo
+    // después del primer cuadro (no demora el arranque). Sin soporte o con un error: el de siempre.
+    ref.listenManual(
+      settingsProvider.select((s) => s.realGlass),
+      (_, on) => RealGlass.userOn.value = on,
+      fireImmediately: true,
+    );
+    if (RealGlass.platformCanTry) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => Timer(const Duration(seconds: 1), () => unawaited(RealGlass.start())),
+      );
+    }
     // Modo alto rendimiento: la pantalla a su frecuencia más alta (Android).
     ref.listenManual(
       settingsProvider.select((s) => s.highPerformance),

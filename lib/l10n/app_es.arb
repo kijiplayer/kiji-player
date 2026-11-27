@@ -3195,6 +3195,9 @@
   "compartirTarjetaNota": "Una imagen con la portada, el título y el artista",
   "fraseDelDia": "Frase del día",
   "compartirFrase": "Compartir la frase",
+  "vidrioReal": "Vidrio líquido real",
+  "@vidrioReal": {"description": "Ajuste: vidrio líquido real (0.9)"},
+  "vidrioRealNota": "Refracción de verdad en los bordes, dibujada por la GPU. Si tu teléfono no puede o lo apagas, queda el vidrio de siempre.",
   "frasesDelDia": "Frase del día en Inicio",
   "frasesDelDiaNota": "Frases de escritores, músicos y poetas de dominio público, elegidas según la hora y lo que escuchas. Todo en el dispositivo."
 }

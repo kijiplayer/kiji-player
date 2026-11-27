@@ -5514,6 +5514,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get compartirFrase => 'Share the quote';
 
   @override
+  String get vidrioReal => 'Real liquid glass';
+
+  @override
+  String get vidrioRealNota =>
+      'True refraction at the edges, drawn by the GPU. If your phone can\'t do it or you turn it off, the usual glass stays.';
+
+  @override
   String get frasesDelDia => 'Quote of the day on Home';
 
   @override

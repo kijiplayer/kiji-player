@@ -49,6 +49,9 @@ dependencies:
   # Solver y PO token de YouTube, inicio de sesión y traducción en el teléfono.
   flutter_inappwebview: ^6.2.0-beta.3
   crypto: ^3.0.7
+  # Vidrio líquido real (0.9): refracción con Impeller + Flutter GPU en Android. Versión FIJA (sin ^):
+  # es un prelanzamiento y no se actualiza solo. Apache-2.0 (compatible con GPL-3.0); ver CREDITS.md.
+  liquid_glass_renderer: 1.0.0-dev.3
 
   # Compartir, abrir enlaces y fotos personalizadas.
   share_plus: ^13.3.1

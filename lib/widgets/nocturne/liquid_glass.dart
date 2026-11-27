@@ -5,8 +5,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart' as lgr;
 
 import '../../theme/kiji_tokens.dart';
+import 'real_glass.dart';
 
 /// "Liquid glass" (0.8.3): el vidrio de Kiji sin un desenfoque por tarjeta.
 ///
@@ -147,25 +149,91 @@ class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    // Papel es papel (no vidrio): siempre la superficie de siempre.
+    if (KijiLook.style == KijiStyle.paper) return _classic(context);
+    return ValueListenableBuilder<bool>(
+      valueListenable: RealGlass.active,
+      builder: (context, real, _) => real ? _real(context) : _classic(context),
+    );
+  }
+
+  /// Al apretar se hunde; si el dedo se mueve (está deslizando), vuelve enseguida.
+  Widget _pressable({required bool still, required Widget child}) => Listener(
+    behavior: HitTestBehavior.translucent,
+    onPointerDown: still
+        ? null
+        : (event) {
+            _down = event.position;
+            unawaited(_press.forward());
+          },
+    onPointerMove: (event) {
+      final down = _down;
+      if (down != null && (event.position - down).distance > 10) _release();
+    },
+    onPointerUp: (_) => _release(),
+    onPointerCancel: (_) => _release(),
+    child: child,
+  );
+
+  /// Vidrio real (0.9): transparente, con refracción de verdad en el borde, filo de luz y un poco
+  /// de arcoíris; el tinte del estilo encima. Las tarjetas comparten una sola copia del fondo por
+  /// cuadro (`BackdropGroup` de la app); lo flotante (barra, mini-reproductor, hojas) toma la suya,
+  /// para refractar lo que pasa por debajo.
+  Widget _real(BuildContext context) {
+    final still = KijiEffects.still(context);
+    final floating = widget.kind == GlassKind.floating;
+    final palette = KijiColors.palette;
+    final graphite = KijiLook.style == KijiStyle.graphite;
+    // El mismo tinte del vidrio de siempre (Nocturne: el acento; Grafito: un velo frío).
+    var tint = graphite
+        ? const Color(0x1FF2F4F8)
+        : Color.lerp(palette.violet.withValues(alpha: 0.11), palette.cyan.withValues(alpha: 0.07), 0.5)!;
+    if (widget.fill case final fill?) tint = Color.alphaBlend(fill, tint);
+    // Lo flotante pasa por encima de contenido que se mueve: una base del fondo, para que se lea.
+    if (floating) tint = Color.alphaBlend(tint, palette.background.withValues(alpha: 0.62));
+    final radius = widget.borderRadius.topLeft.x;
+    final glass = lgr.LiquidGlass.withOwnLayer(
+      shape: lgr.LiquidRoundedSuperellipse(borderRadius: radius),
+      useBackdropGroup: !floating,
+      settings: lgr.LiquidGlassSettings(
+        refractionHeight: math.min(18, radius + 6),
+        refractionAmount: 44,
+        refractionFitsShape: true,
+        frost: floating ? 12 : 7,
+        dispersion: 0.35,
+        highlight: 1,
+      ),
+      appearance: lgr.LiquidGlassAppearance(tint: tint),
+      shadows: [
+        BoxShadow(
+          color: Color.fromRGBO(0, 0, 0, graphite ? 0.30 : 0.24),
+          offset: Offset(0, floating ? 6 : 4),
+          blurRadius: floating ? 16 : 12,
+        ),
+      ],
+      child: widget.child,
+    );
+    return _pressable(
+      still: still,
+      child: AnimatedBuilder(
+        animation: _press,
+        builder: (context, child) {
+          final press = still ? 0.0 : _press.value.clamp(0.0, 1.2);
+          return press == 0 ? child! : Transform.scale(scale: 1 - 0.022 * press, child: child);
+        },
+        child: glass,
+      ),
+    );
+  }
+
+  /// El vidrio de siempre (0.8.3): el fondo ya desenfocado, sin copias de la pantalla.
+  Widget _classic(BuildContext context) {
     final backdrop = GlassBackdrop.maybeOf(context);
     final vertical = Scrollable.maybeOf(context, axis: Axis.vertical)?.position;
     final horizontal = Scrollable.maybeOf(context, axis: Axis.horizontal)?.position;
     final still = KijiEffects.still(context);
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: still
-          ? null
-          : (event) {
-              _down = event.position;
-              unawaited(_press.forward());
-            },
-      // Si el dedo se mueve (está deslizando, no tocando), vuelve enseguida.
-      onPointerMove: (event) {
-        final down = _down;
-        if (down != null && (event.position - down).distance > 10) _release();
-      },
-      onPointerUp: (_) => _release(),
-      onPointerCancel: (_) => _release(),
+    return _pressable(
+      still: still,
       child: _LiquidGlassBox(
         borderRadius: widget.borderRadius,
         kind: widget.kind,
