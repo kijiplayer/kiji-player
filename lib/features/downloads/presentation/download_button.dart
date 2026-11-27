@@ -10,6 +10,7 @@ import '../../../utils/byte_formatter.dart';
 import 'download_status.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../store_flavor.dart';
 
 /// Ícono de descarga con 4 estados: descargar / progreso / lista / error.
 /// Solo aparece para canciones de YouTube.
@@ -28,7 +29,8 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
   @override
   Widget build(BuildContext context) {
     final videoId = widget.track.youtubeVideoId;
-    if (videoId == null) return const SizedBox.shrink();
+    // Google Play: sin descargas de YouTube.
+    if (videoId == null || isPlayStore) return const SizedBox.shrink();
 
     // Solo lo de ESTA canción: con varias descargas en curso, los demás botones de la lista no se
     // redibujan con cada avance.

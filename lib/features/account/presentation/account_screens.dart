@@ -18,6 +18,7 @@ import '../data/account_store.dart';
 import '../domain/yt_session.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../store_flavor.dart';
 
 /// Advertencia que se muestra siempre antes de iniciar sesión.
 String get accountWarning => tx.youtubePuedeLimitarOSuspenderCuentas;
@@ -486,7 +487,8 @@ class YtConnectCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ref.watch(accountProvider) != null || ref.watch(settingsProvider.select((s) => s.ytConnectCardHidden))) {
+    // Google Play: sin inicio de sesión de YouTube.
+    if (isPlayStore || ref.watch(accountProvider) != null || ref.watch(settingsProvider.select((s) => s.ytConnectCardHidden))) {
       return const SizedBox.shrink();
     }
     return Padding(

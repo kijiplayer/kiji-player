@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../store_flavor.dart';
+
 import '../../models/track.dart';
 import '../../providers/downloads_provider.dart';
 import '../../providers/playback_provider.dart';
@@ -156,7 +158,9 @@ class SelectionBar extends ConsumerWidget {
               await showAddToPlaylistSheet(context, ref, tracks);
               selection.clear();
             }),
-            _BarAction(Icons.download_rounded, tx.seleccionDescargar, () => downloadSelection(context, ref, selection)),
+            // Google Play: sin descargas de YouTube.
+            if (!isPlayStore)
+              _BarAction(Icons.download_rounded, tx.seleccionDescargar, () => downloadSelection(context, ref, selection)),
             _BarAction(
               Icons.playlist_play_rounded,
               tx.seleccionAContinuacion,

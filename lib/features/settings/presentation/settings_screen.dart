@@ -62,6 +62,7 @@ import '../../style/presentation/style_parts.dart';
 import '../../local_library/presentation/library_home.dart' show showLibraryEntriesSheet;
 import '../../sponsorblock/sponsorblock.dart' show SkipCategory;
 import '../../scrobble/listenbrainz_tile.dart';
+import '../../../store_flavor.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
 /// descripción corta.
@@ -275,7 +276,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// En el sabor «play» (Google Play) no aparecen la cuenta de YouTube, el actualizador propio ni lo
+  /// que lleva a la Kiji completa (la página, sus novedades).
   List<SettingOption> _options() {
+    final all = _allOptions();
+    if (!isPlayStore) return all;
+    final hidden = {tx.buscarActualizaciones, tx.paginaOficial, tx.queHayDeNuevo};
+    return [
+      for (final o in all)
+        if (o.section != SettingsSection.account && !hidden.contains(o.title)) o,
+    ];
+  }
+
+  List<SettingOption> _allOptions() {
     return [
       // Reproductor y audio
       SettingOption(
