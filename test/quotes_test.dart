@@ -23,9 +23,10 @@ void main() {
     expect({for (final q in quotes) q.id}.length, quotes.length, reason: 'sin ids repetidos');
   });
 
-  test('Las marcadas «check» (fuente a confirmar) no aparecen', () {
-    expect(raw, contains('"check":true'));
-    expect(quotes.where((q) => q.id == 'nye-wagner'), isEmpty);
+  test('Las marcadas «check» (fuente a confirmar) no aparecen; las aprobadas, sí', () {
+    final checked = parseQuotes(raw.replaceFirst('{"id":"nye-wagner",', '{"id":"nye-wagner","check":true,'));
+    expect(checked.where((q) => q.id == 'nye-wagner'), isEmpty);
+    expect(quotes.where((q) => q.id == 'nye-wagner'), hasLength(1), reason: 'aprobada por David');
   });
 
   test('Encaja con el momento: tomates, rosas, repetir y la hora', () {
