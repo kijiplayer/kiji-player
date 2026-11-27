@@ -8108,6 +8108,36 @@ abstract class AppLocalizations {
   /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
+  /// **'YouTube Music de ida y vuelta'**
+  String get novedades09YoutubeTitulo;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Tus playlists de YouTube Music en Kiji, con todas las opciones. Lo que cambies se manda a tu cuenta al tocar «Sincronizar». Es opcional.'**
+  String get novedades09YoutubeTexto;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Más rápida'**
+  String get novedades09RapidaTitulo;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'La búsqueda ya no se traba y el vidrio tiene refracción de verdad, sin gastar más.'**
+  String get novedades09RapidaTexto;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Abre en menos de un segundo, se desliza sin saltos y usa la mitad de memoria.'**
+  String get novedades09RapidaPcTexto;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
   /// **'Kiji 0.9: más simple y con más para escuchar. Esto es lo mejor:'**
   String get novedades09Subtitulo;
 
@@ -8122,18 +8152,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Una sola lista: arriba tus playlists, abajo tu música. Tú eliges qué se ve, y la música del teléfono es opcional.'**
   String get novedades09BibliotecaTexto;
-
-  /// Qué hay de nuevo (0.9.0)
-  ///
-  /// In es, this message translates to:
-  /// **'Buscar y elegir en todas las listas'**
-  String get novedades09BuscarTitulo;
-
-  /// Qué hay de nuevo (0.9.0)
-  ///
-  /// In es, this message translates to:
-  /// **'Cada lista tiene su buscador y selección múltiple, y lo elegido se mantiene al buscar otra cosa.'**
-  String get novedades09BuscarTexto;
 
   /// Qué hay de nuevo (0.9.0)
   ///
@@ -8170,18 +8188,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Descárgala con un toque, con pausa y cancelar.'**
   String get novedades09PlaylistTexto;
-
-  /// Qué hay de nuevo (0.9.0)
-  ///
-  /// In es, this message translates to:
-  /// **'ListenBrainz'**
-  String get novedades09ListenBrainzTitulo;
-
-  /// Qué hay de nuevo (0.9.0)
-  ///
-  /// In es, this message translates to:
-  /// **'Guarda lo que escuchas en tu propia cuenta de ListenBrainz, si quieres. Es opcional.'**
-  String get novedades09ListenBrainzTexto;
 
   /// Qué hay de nuevo (0.9.0)
   ///
