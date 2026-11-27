@@ -278,6 +278,27 @@ class YtMusicClient {
     return response.data;
   }
 
+  /// Cambia una playlist de la cuenta (sincronizar de ida y vuelta, 0.9): agregar
+  /// (`ACTION_ADD_VIDEO`) o quitar (`ACTION_REMOVE_VIDEO`) canciones. Solo con la sesión del
+  /// usuario, directo a YouTube; devuelve true si YouTube respondió que se hizo.
+  Future<bool> editPlaylistWithAccount(String playlistId, List<Map<String, dynamic>> actions, YtSession session) async {
+    final context = Map<String, dynamic>.from(_context['context'] as Map);
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/browse/edit_playlist',
+      queryParameters: {'key': _apiKey, 'prettyPrint': false},
+      data: {
+        'context': {
+          ...context,
+          if (session.dataSyncId != null) 'user': {'onBehalfOfUser': session.dataSyncId},
+        },
+        'playlistId': playlistId,
+        'actions': actions,
+      },
+      options: Options(headers: session.authHeaders()),
+    );
+    return response.data?['status'] == 'STATUS_SUCCEEDED';
+  }
+
   /// Página de un artista (anónimo): canciones más escuchadas y álbumes.
   Future<ArtistPage?> artist(String browseId) async {
     final data = await _browse(browseId);

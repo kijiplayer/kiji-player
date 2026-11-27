@@ -22,7 +22,7 @@ import '../../moments/presentation/moments_screen.dart';
 import '../../../widgets/list_search_field.dart';
 import '../../selection/track_selection.dart';
 import '../../account/data/account_store.dart';
-import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard;
+import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard, syncWithYouTube;
 import '../../account/data/yt_sync.dart';
 import '../../local_library/domain/local_groups.dart' show LocalGroup;
 import '../../local_library/presentation/local_group_screen.dart';
@@ -119,11 +119,19 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
                     done(tx.seCreo(created.name));
                   },
                 ),
-                for (final playlist in playlists)
+                // Primero las de Kiji; las de YouTube Music (0.9), marcadas, después.
+                for (final playlist in [...playlists.where((pl) => pl.yt == null), ...playlists.where((pl) => pl.yt != null)])
                   ListTile(
-                    leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                    leading: Icon(
+                      playlist.yt == null ? Icons.queue_music_rounded : Icons.sync_rounded,
+                      color: KijiColors.violet,
+                    ),
                     title: Text(playlist.name),
-                    subtitle: Text(_count(playlist.tracks.length)),
+                    subtitle: Text(
+                      playlist.yt == null
+                          ? _count(playlist.tracks.length)
+                          : '${_count(playlist.tracks.length)} · ${tx.youtubeMusicNombre}',
+                    ),
                     onTap: () {
                       final added = notifier.addTracks(playlist.id, tracks);
                       Navigator.pop(sheetContext);
@@ -190,7 +198,10 @@ class PlaylistsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playlists = ref.watch(playlistsProvider);
+    final all = ref.watch(playlistsProvider);
+    // «Mis playlists» (de Kiji) y, aparte, las de YouTube Music (0.9): no se mezclan.
+    final playlists = [for (final pl in all) if (pl.yt == null) pl];
+    final linked = [for (final pl in all) if (pl.yt != null) pl];
     final inputs = ref.watch(smartListInputsProvider);
 
     return Column(
@@ -200,7 +211,7 @@ class PlaylistsView extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Row(
             children: [
-              Expanded(child: Text(tx.tusPlaylists, style: KijiText.mono(size: 11))),
+              Expanded(child: Text(tx.misPlaylists, style: KijiText.mono(size: 11))),
               TextButton.icon(
                 onPressed: () async {
                   final name = await promptPlaylistName(context);
@@ -276,19 +287,35 @@ class PlaylistsView extends ConsumerWidget {
         if (!compact) const YtConnectCard(),
         // Con sesión, si YouTube la rechazó: "Tu sesión venció. Vuelve a iniciarla".
         const SessionExpiredBanner(),
-        // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
+        // YouTube Music (0.9): «Me gusta» y lo agregado (solo lectura) y las playlists de la cuenta,
+        // que son playlists de Kiji vinculadas: se sincronizan de ida y vuelta con «Sincronizar».
+        // Solo con la sesión iniciada y la sincronización prendida, y solo en el sabor completo.
         ...() {
           final sync = ref.watch(ytSyncProvider);
-          // Solo con la sesión iniciada: al cerrarla, la sección se va al momento.
-          if (sync.isEmpty || ref.watch(accountProvider) == null || !ref.watch(settingsProvider.select((s) => s.ytSync))) {
+          if (isPlayStore ||
+              ref.watch(accountProvider) == null ||
+              !ref.watch(settingsProvider.select((s) => s.ytSync)) ||
+              (sync.isEmpty && linked.isEmpty && !sync.syncing)) {
             return const <Widget>[];
           }
           LocalGroup group(String key, String name, List<Track> tracks) =>
               LocalGroup(key: key, name: name, tracks: tracks);
           return <Widget>[
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-              child: Text(tx.deTuCuentaDeYoutube, style: KijiText.mono(size: 11)),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(child: Text(tx.seccionYoutubeMusic, style: KijiText.mono(size: 11))),
+                  TextButton.icon(
+                    key: const Key('yt-sync-now'),
+                    onPressed: sync.syncing ? null : () => syncWithYouTube(context, ref),
+                    icon: sync.syncing
+                        ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.sync_rounded),
+                    label: Text(tx.sincronizar),
+                  ),
+                ],
+              ),
             ),
             if (sync.liked.isNotEmpty)
               ListTile(
@@ -314,14 +341,14 @@ class PlaylistsView extends ConsumerWidget {
                   LocalGroupKind.playlist,
                 ),
               ),
-            for (final pl in sync.playlists)
+            for (final pl in linked)
               ListTile(
-                leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                key: Key('yt-linked-${pl.id}'),
+                leading: PlaylistCover(playlist: pl),
                 title: Text(pl.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text(_count(pl.tracks.length), style: TextStyle(color: KijiColors.muted)),
-                onTap: pl.tracks.isEmpty
-                    ? null
-                    : () => LocalGroupScreen.open(context, group('yt:${pl.id}', pl.name, pl.tracks), LocalGroupKind.playlist),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => PlaylistScreen.open(context, pl.id),
               ),
           ];
         }(),
@@ -355,6 +382,7 @@ class _ListHeader extends ConsumerWidget {
     this.description,
     this.onMore,
     this.onDownload,
+    this.note,
   });
 
   final String title;
@@ -370,6 +398,9 @@ class _ListHeader extends ConsumerWidget {
 
   /// Descargar toda la playlist de un toque (0.9); null = sin botón.
   final VoidCallback? onDownload;
+
+  /// Una línea de aviso debajo (las de YouTube Music: cuándo se mandan los cambios).
+  final String? note;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -398,6 +429,17 @@ class _ListHeader extends ConsumerWidget {
                 ],
               ),
               if (description != null) ...[const SizedBox(height: 10), Text(description!)],
+              if (note != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.sync_rounded, size: 16, color: KijiColors.muted),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(note!, style: TextStyle(color: KijiColors.muted, fontSize: 13))),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
               // Flexibles: con la letra del sistema grande, los botones se achican y el texto se
               // corta con "…" en vez de salirse de la tarjeta.
@@ -640,6 +682,11 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                 subtitle: playlist.importedFrom == null
                     ? _count(playlist.tracks.length)
                     : tx.importadaDe(_count(playlist.tracks.length), playlist.importedFrom),
+                // De YouTube Music (0.9): qué pasa con lo que se cambie aquí.
+                note: switch (playlist.yt) {
+                  null => null,
+                  final yt => yt.editable ? tx.playlistVinculadaNota : tx.playlistAjenaNota,
+                },
                 tracks: playlist.tracks,
                 // De un toque: el mismo aviso de antes (cuánto ocupa) y después, la tarjeta con
                 // avance, Pausar/Seguir y Cancelar.

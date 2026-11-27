@@ -81,7 +81,8 @@ class _Sidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(shellTabProvider);
-    final playlists = ref.watch(playlistsProvider);
+    // Solo las de Kiji: las de YouTube Music tienen su sección en la Biblioteca (0.9).
+    final playlists = [for (final pl in ref.watch(playlistsProvider)) if (pl.yt == null) pl];
     // Una sola lista que se desplaza: en ventanas bajas, lo de abajo (Configuración, Salud) ya no
     // se sale de la ventana. En las altas, SliverFillRemaining lo deja pegado abajo como antes.
     return Padding(

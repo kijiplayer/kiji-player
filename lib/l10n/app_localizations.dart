@@ -7670,13 +7670,13 @@ abstract class AppLocalizations {
   /// Cuenta: interruptor de la sincronización.
   ///
   /// In es, this message translates to:
-  /// **'Sincronizar con YouTube (solo lectura)'**
+  /// **'Sincronizar con YouTube Music'**
   String get sincronizarConYoutube;
 
   /// Cuenta: qué hace la sincronización (privacidad).
   ///
   /// In es, this message translates to:
-  /// **'Muestra en Kiji tus \"Me gusta\" y tus playlists de YouTube Music. Solo lee: nunca cambia nada en tu cuenta. Lo leído queda solo en este dispositivo; al apagarlo se borra.'**
+  /// **'Muestra en Kiji tus «Me gusta» y tus playlists de YouTube Music. Lo que agregues o quites en esas playlists se manda a tu cuenta solo cuando tocas «Sincronizar». Lo leído queda solo en este dispositivo; al apagarlo se borra.'**
   String get sincronizarConYoutubeNota;
 
   /// Cuenta: sincronización sin leer.
@@ -7994,7 +7994,7 @@ abstract class AppLocalizations {
   /// Qué trae iniciar sesión (tarjeta de la Biblioteca)
   ///
   /// In es, this message translates to:
-  /// **'Tus Me gusta y las playlists de tu biblioteca, para verlos en Kiji. Solo lectura y solo en este dispositivo; Kiji funciona igual sin cuenta.'**
+  /// **'Tus Me gusta y las playlists de tu biblioteca, en Kiji. Solo en este dispositivo; Kiji funciona igual sin cuenta.'**
   String get conectaTuYoutubeMusicNota;
 
   /// Botón para iniciar sesión en YouTube Music
@@ -8090,7 +8090,7 @@ abstract class AppLocalizations {
   /// Explicación de la pregunta de sincronizar
   ///
   /// In es, this message translates to:
-  /// **'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá: solo lectura, como mucho cada 12 horas y guardado solo en este dispositivo. Lo puedes cambiar cuando quieras en Configuración → Cuenta.'**
+  /// **'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá, como mucho cada 12 horas, guardados solo en este dispositivo. Tu cuenta solo cambia cuando tocas «Sincronizar». Lo puedes cambiar cuando quieras en Configuración → Cuenta.'**
   String get activarSincronizacionNota;
 
   /// Botón: activar la sincronización
@@ -8974,6 +8974,60 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Refracción de verdad y un poco de arcoíris en el borde del vidrio. Si lo apagas o tu equipo no puede, queda el vidrio de siempre.'**
   String get vidrioRealNota;
+
+  /// Biblioteca: las playlists de Kiji (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'MIS PLAYLISTS'**
+  String get misPlaylists;
+
+  /// Biblioteca: las playlists de la cuenta de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'YOUTUBE MUSIC'**
+  String get seccionYoutubeMusic;
+
+  /// Botón: sincronizar con YouTube Music de ida y vuelta
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar'**
+  String get sincronizar;
+
+  /// No description provided for @sincronizadoListo.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo: {count, plural, =0{todo estaba al día} =1{1 cambio enviado a YouTube Music} other{{count} cambios enviados a YouTube Music}}.'**
+  String sincronizadoListo(int count);
+
+  /// No description provided for @sincronizadoJuntos.
+  ///
+  /// In es, this message translates to:
+  /// **'En «{names}» había cambios en Kiji y en YouTube Music: se juntaron los dos.'**
+  String sincronizadoJuntos(String names);
+
+  /// No description provided for @noSePudoSincronizar.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo sincronizar. Prueba de nuevo en un rato.'**
+  String get noSePudoSincronizar;
+
+  /// No description provided for @playlistVinculadaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'De tu YouTube Music: lo que agregues o quites aquí se manda a YouTube al tocar «Sincronizar».'**
+  String get playlistVinculadaNota;
+
+  /// No description provided for @playlistAjenaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardada de otra persona en YouTube Music: lo que cambies aquí queda solo en Kiji.'**
+  String get playlistAjenaNota;
+
+  /// Nombre del servicio (marca)
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube Music'**
+  String get youtubeMusicNombre;
 
   /// No description provided for @frasesDelDia.
   ///
