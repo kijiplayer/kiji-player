@@ -1,0 +1,1 @@
+A simpler Library: your playlists up front and phone music optional. 10-band equalizer on Android, skip non-music parts of videos (SponsorBlock, optional), one-tap playlist downloads, ListenBrainz, share cards, a quote of the day and streaks. Long titles scroll instead of being cut off, plus more fixes.

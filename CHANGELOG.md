@@ -1,5 +1,34 @@
 # Novedades de Kiji Player
 
+## 0.9.0 — la actualización grande
+
+**Biblioteca más simple**
+- Una sola lista: arriba tus playlists y «Me gusta»; abajo tu música (Canciones, Descargadas, Carpetas…).
+  Tú eliges qué se ve; Artistas y Álbumes, apagados de fábrica.
+- La música del teléfono es opcional: Kiji pregunta la primera vez. Si dices que no, no lee nada.
+- Buscador y selección múltiple en todas las listas, y lo elegido se mantiene al buscar otra cosa.
+- «Quitar descarga» en el mismo botón con el que se descarga y en el menú de cada canción.
+
+**Sonido y escucha**
+- Ecualizador de 10 bandas también en Android (Android 9 o más nuevo). Tus ajustes se adaptan solos.
+- Saltar las partes sin música de los videos (intros, finales, diálogos) con SponsorBlock. Apagado de fábrica.
+- Descargar una playlist entera con un toque, con pausa y cancelar.
+- Scrobbling a ListenBrainz con tu propia cuenta (opcional).
+- Editar el título, el artista, el álbum y la portada de tu música (en la PC).
+
+**Para compartir y para todos los días**
+- Tarjetas para compartir la canción que suena: Sonando ahora, Vinilo y Póster (Story, Post y Square).
+- Frase del día: frases de escritores, músicos y poetas, según la hora y lo que escuchas.
+- Rachas: los días seguidos escuchando, discretos en Inicio.
+- En la PC: iniciar Kiji al encender la computadora, en la bandeja y sin sonar (apagado de fábrica).
+
+**Arreglos**
+- Los títulos largos ya no se cortan: si no entran, se desplazan.
+- El reproductor se cierra deslizando hacia abajo también en pantallas chicas.
+- El aviso de «Momento guardado» dura más, y tus momentos se abren también desde el reproductor.
+- Tocar «Inicio» estando en Inicio sube al principio.
+- La primera búsqueda es más rápida, y la Biblioteca no muestra grabaciones ni audios sueltos como música.
+- Arreglado un error al elegir la fuente de la letra en Windows.
 ## 0.8.6 — 26 de noviembre de 2026
 
 **Arreglos**

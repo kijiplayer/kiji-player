@@ -1,0 +1,1 @@
+Biblioteca más simple: tus playlists a la vista y la música del teléfono opcional. Ecualizador de 10 bandas en Android, saltar las partes sin música de los videos (SponsorBlock, opcional), descargar playlists de un toque, ListenBrainz, tarjetas para compartir, frase del día y rachas. Los títulos largos se desplazan en vez de cortarse, y más arreglos.
