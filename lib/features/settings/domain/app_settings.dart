@@ -34,6 +34,7 @@ class AppSettings {
     this.startWithWindows = false,
     this.startupResume = true,
     this.dailyQuotes = true,
+    this.realGlass = true,
     this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
@@ -213,6 +214,10 @@ class AppSettings {
   /// La frase del día en Inicio (frases de dominio público, en el dispositivo).
   final bool dailyQuotes;
 
+  /// Vidrio líquido real (0.9): refracción con la GPU donde el dispositivo la soporta (Android con
+  /// Impeller y Flutter GPU). Apagado, o si el dispositivo no puede, queda el vidrio de siempre.
+  final bool realGlass;
+
   /// Qué categorías de SponsorBlock saltar (nombres de su API).
   final List<String> sponsorBlockCategories;
 
@@ -388,6 +393,7 @@ class AppSettings {
     bool? startWithWindows,
     bool? startupResume,
     bool? dailyQuotes,
+    bool? realGlass,
     List<String>? sponsorBlockCategories,
     bool? ytSync,
     bool? theaterReactions,
@@ -463,6 +469,7 @@ class AppSettings {
         startWithWindows: startWithWindows ?? this.startWithWindows,
         startupResume: startupResume ?? this.startupResume,
         dailyQuotes: dailyQuotes ?? this.dailyQuotes,
+        realGlass: realGlass ?? this.realGlass,
         sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
@@ -537,6 +544,7 @@ class AppSettings {
         'startWithWindows': startWithWindows,
         'startupResume': startupResume,
         'dailyQuotes': dailyQuotes,
+        'realGlass': realGlass,
         'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
@@ -626,6 +634,7 @@ class AppSettings {
       startWithWindows: read('startWithWindows', d.startWithWindows),
       startupResume: read('startupResume', d.startupResume),
       dailyQuotes: read('dailyQuotes', d.dailyQuotes),
+      realGlass: read('realGlass', d.realGlass),
       sponsorBlockCategories: json['sponsorBlockCategories'] is List
           ? [
               for (final e in json['sponsorBlockCategories'] as List)

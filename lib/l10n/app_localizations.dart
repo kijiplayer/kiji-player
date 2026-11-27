@@ -8963,6 +8963,18 @@ abstract class AppLocalizations {
   /// **'Compartir la frase'**
   String get compartirFrase;
 
+  /// Ajuste: vidrio líquido real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Vidrio líquido real'**
+  String get vidrioReal;
+
+  /// No description provided for @vidrioRealNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Refracción de verdad y un poco de arcoíris en el borde del vidrio. Si lo apagas o tu equipo no puede, queda el vidrio de siempre.'**
+  String get vidrioRealNota;
+
   /// No description provided for @frasesDelDia.
   ///
   /// In es, this message translates to:
