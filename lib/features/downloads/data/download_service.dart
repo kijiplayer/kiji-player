@@ -14,6 +14,7 @@ import '../../system_media/data/cover_art.dart';
 import '../../yt_music/data/ytm_client.dart';
 import '../domain/download_failure.dart';
 import 'downloads_repository.dart';
+import '../../../utils/cover_trim.dart';
 
 /// Lo que se sabe de una descarga antes de empezarla: la URL de audio ya
 /// resuelta (con la identidad de la forma que la dio) y, si YouTube lo informa,
@@ -224,7 +225,10 @@ class DownloadService {
       // ".hq": guardada en alta calidad (las de antes de la 0.8.0 eran las chicas de la búsqueda).
       final fileName = '$videoId$hqThumbnailSuffix';
       // En alta calidad: es la que se ve sin internet, también en el reproductor.
-      await _dio.download(fullThumbnailUrl(url), await _repository.pathFor(fileName));
+      final path = await _repository.pathFor(fileName);
+      await _dio.download(fullThumbnailUrl(url), path);
+      // Sin las franjas negras (o lisas) de las miniaturas de video (0.9).
+      await trimCoverFile(path);
       return fileName;
     } catch (error) {
       debugPrint('=== DESCARGAS: no se pudo bajar la portada de $videoId: $error ===');
