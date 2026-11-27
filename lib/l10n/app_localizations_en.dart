@@ -4733,11 +4733,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Backup saved. Open it from \"Restore from a file\" on another phone or on your PC.';
 
   @override
-  String get sincronizarConYoutube => 'Sync with YouTube (read-only)';
+  String get sincronizarConYoutube => 'Sync with YouTube Music';
 
   @override
   String get sincronizarConYoutubeNota =>
-      'Shows your YouTube Music likes and playlists in Kiji. Read-only: it never changes anything in your account. What it reads stays only on this device; turning it off deletes it.';
+      'Shows your YouTube Music likes and playlists in Kiji. What you add to or remove from those playlists is sent to your account only when you tap “Sync”. What it reads stays only on this device; turning it off deletes it.';
 
   @override
   String get todaviaNoSeLeyoLaCuenta => 'The account hasn\'t been read yet';
@@ -4942,7 +4942,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get conectaTuYoutubeMusicNota =>
-      'Your likes and the playlists in your library, right in Kiji. Read-only and only on this device; Kiji works the same without an account.';
+      'Your likes and the playlists in your library, right in Kiji. Only on this device; Kiji works the same without an account.';
 
   @override
   String get iniciarSesionBoton => 'Sign in';
@@ -4997,7 +4997,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activarSincronizacionNota =>
-      'Kiji can read your likes and the playlists in your library to show them here: read-only, at most every 12 hours and stored only on this device. You can change it anytime in Settings → Account.';
+      'Kiji can read your likes and the playlists in your library to show them here, at most every 12 hours, stored only on this device. Your account only changes when you tap “Sync”. You can change it anytime in Settings → Account.';
 
   @override
   String get activarSincronizacion => 'Turn on';
@@ -5519,6 +5519,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get vidrioRealNota =>
       'True refraction and a hint of rainbow at the glass edges. If you turn it off or your device can\'t do it, the usual glass stays.';
+
+  @override
+  String get misPlaylists => 'MY PLAYLISTS';
+
+  @override
+  String get seccionYoutubeMusic => 'YOUTUBE MUSIC';
+
+  @override
+  String get sincronizar => 'Sync';
+
+  @override
+  String sincronizadoListo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes sent to YouTube Music',
+      one: '1 change sent to YouTube Music',
+      zero: 'everything was up to date',
+    );
+    return 'Done: $_temp0.';
+  }
+
+  @override
+  String sincronizadoJuntos(String names) {
+    return '“$names” changed in Kiji and in YouTube Music: both sets of changes were kept.';
+  }
+
+  @override
+  String get noSePudoSincronizar => 'Couldn\'t sync. Try again in a while.';
+
+  @override
+  String get playlistVinculadaNota =>
+      'From your YouTube Music: what you add or remove here is sent to YouTube when you tap “Sync”.';
+
+  @override
+  String get playlistAjenaNota =>
+      'Saved from someone else on YouTube Music: what you change here stays only in Kiji.';
 
   @override
   String get frasesDelDia => 'Quote of the day on Home';

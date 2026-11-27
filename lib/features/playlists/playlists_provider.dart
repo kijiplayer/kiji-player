@@ -187,6 +187,42 @@ class PlaylistsNotifier extends Notifier<List<Playlist>> {
     unawaited(_save());
   }
 
+  /// Sincronizar con YouTube Music (0.9): crea (sin [id]) o actualiza la copia vinculada con la
+  /// playlist de la cuenta. Las repetidas se saltean, como en cualquier playlist.
+  Playlist putLinked({String? id, required String name, required List<Track> tracks, required YtLink link}) {
+    final now = _clock();
+    final unique = PlaylistOps.addTracks(
+      Playlist(id: '', name: '', tracks: const [], createdAt: now, updatedAt: now),
+      tracks,
+      now,
+    ).$1.tracks;
+    final existing = id == null ? null : byId(id);
+    if (existing != null) {
+      final updated = existing.copyWith(name: name, tracks: unique, updatedAt: now, yt: link);
+      _replace(updated);
+      return updated;
+    }
+    final playlist = Playlist(
+      id: _newId(),
+      name: name,
+      originalName: name,
+      tracks: unique,
+      createdAt: now,
+      updatedAt: now,
+      yt: link,
+    );
+    state = [...state, playlist];
+    unawaited(_save());
+    return playlist;
+  }
+
+  /// Deja de estar vinculada (sigue en Kiji como una playlist más).
+  void unlink(String id) {
+    final playlist = byId(id);
+    if (playlist?.yt == null) return;
+    _replace(playlist!.copyWith(yt: null));
+  }
+
   /// Borra varias de una vez (deshacer una importación).
   List<(Playlist, int)> deleteMany(Set<String> ids) {
     final removed = <(Playlist, int)>[];

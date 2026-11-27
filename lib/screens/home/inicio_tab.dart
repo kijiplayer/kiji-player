@@ -317,7 +317,8 @@ class _PlaylistsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final all = ref.watch(playlistsProvider);
+    // Solo las de Kiji: las de YouTube Music tienen su sección en la Biblioteca (0.9).
+    final all = [for (final pl in ref.watch(playlistsProvider)) if (pl.yt == null) pl];
     final playlists = PlaylistOps.pinnedFirst([...all]..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -4743,11 +4743,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Copia guardada. Ábrela desde \"Restaurar desde un archivo\" en otro teléfono o en la PC.';
 
   @override
-  String get sincronizarConYoutube => 'Sincronizar con YouTube (solo lectura)';
+  String get sincronizarConYoutube => 'Sincronizar con YouTube Music';
 
   @override
   String get sincronizarConYoutubeNota =>
-      'Muestra en Kiji tus \"Me gusta\" y tus playlists de YouTube Music. Solo lee: nunca cambia nada en tu cuenta. Lo leído queda solo en este dispositivo; al apagarlo se borra.';
+      'Muestra en Kiji tus «Me gusta» y tus playlists de YouTube Music. Lo que agregues o quites en esas playlists se manda a tu cuenta solo cuando tocas «Sincronizar». Lo leído queda solo en este dispositivo; al apagarlo se borra.';
 
   @override
   String get todaviaNoSeLeyoLaCuenta => 'Todavía no se leyó la cuenta';
@@ -4952,7 +4952,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get conectaTuYoutubeMusicNota =>
-      'Tus Me gusta y las playlists de tu biblioteca, para verlos en Kiji. Solo lectura y solo en este dispositivo; Kiji funciona igual sin cuenta.';
+      'Tus Me gusta y las playlists de tu biblioteca, en Kiji. Solo en este dispositivo; Kiji funciona igual sin cuenta.';
 
   @override
   String get iniciarSesionBoton => 'Iniciar sesión';
@@ -5008,7 +5008,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get activarSincronizacionNota =>
-      'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá: solo lectura, como mucho cada 12 horas y guardado solo en este dispositivo. Lo puedes cambiar cuando quieras en Configuración → Cuenta.';
+      'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá, como mucho cada 12 horas, guardados solo en este dispositivo. Tu cuenta solo cambia cuando tocas «Sincronizar». Lo puedes cambiar cuando quieras en Configuración → Cuenta.';
 
   @override
   String get activarSincronizacion => 'Activar';
@@ -5532,6 +5532,44 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get vidrioRealNota =>
       'Refracción de verdad y un poco de arcoíris en el borde del vidrio. Si lo apagas o tu equipo no puede, queda el vidrio de siempre.';
+
+  @override
+  String get misPlaylists => 'MIS PLAYLISTS';
+
+  @override
+  String get seccionYoutubeMusic => 'YOUTUBE MUSIC';
+
+  @override
+  String get sincronizar => 'Sincronizar';
+
+  @override
+  String sincronizadoListo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cambios enviados a YouTube Music',
+      one: '1 cambio enviado a YouTube Music',
+      zero: 'todo estaba al día',
+    );
+    return 'Listo: $_temp0.';
+  }
+
+  @override
+  String sincronizadoJuntos(String names) {
+    return 'En «$names» había cambios en Kiji y en YouTube Music: se juntaron los dos.';
+  }
+
+  @override
+  String get noSePudoSincronizar =>
+      'No se pudo sincronizar. Prueba de nuevo en un rato.';
+
+  @override
+  String get playlistVinculadaNota =>
+      'De tu YouTube Music: lo que agregues o quites aquí se manda a YouTube al tocar «Sincronizar».';
+
+  @override
+  String get playlistAjenaNota =>
+      'Guardada de otra persona en YouTube Music: lo que cambies aquí queda solo en Kiji.';
 
   @override
   String get frasesDelDia => 'Frase del día en Inicio';
