@@ -3,7 +3,7 @@ description: "Free, open-source music player for Android and Windows. No ads, no
 publish_to: 'none'
 
 # La escribe tool/version.dart (versión + número de compilación).
-version: 0.8.6+15
+version: 0.9.0+16
 
 environment:
   sdk: ^3.13.0
