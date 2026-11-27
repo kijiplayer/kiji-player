@@ -29,6 +29,7 @@ import '../../settings/data/settings_store.dart';
 import '../../recommendations/presentation/home_sections.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../utils/image_decode.dart';
 
 /// Qué se busca.
 enum SearchKind {
@@ -757,7 +758,12 @@ class _Thumbnail extends StatelessWidget {
         width: 44,
         height: 44,
         child: url != null
-            ? Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const _FallbackThumb())
+            ? Image.network(
+                url!,
+                fit: BoxFit.cover,
+                cacheHeight: decodeSize(context, 44),
+                errorBuilder: (_, _, _) => const _FallbackThumb(),
+              )
             : const _FallbackThumb(),
       ),
     );

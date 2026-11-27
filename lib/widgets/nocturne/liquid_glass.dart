@@ -615,9 +615,11 @@ class RenderLiquidGlass extends RenderProxyBox {
         final matrix = Matrix4.identity()
           ..translateByDouble(rect.left - global.left + layer.rect.left, rect.top - global.top + layer.rect.top, 0, 1)
           ..scaleByDouble(1 / sx, 1 / sy, 1, 1);
+        // El centro se superpone 1 px con el anillo: si se tocaran justo, el suavizado de los dos
+        // bordes dejaría una línea fina (en ese punto el anillo no desvía: se ve lo mismo).
         canvas
           ..drawRRect(
-            inner,
+            inner.inflate(1),
             Paint()
               ..shader = ImageShader(layer.image, TileMode.clamp, TileMode.clamp, matrix.storage,
                   filterQuality: FilterQuality.medium),
