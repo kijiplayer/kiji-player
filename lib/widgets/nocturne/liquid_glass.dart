@@ -190,7 +190,7 @@ class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStat
         : Color.lerp(palette.violet.withValues(alpha: 0.11), palette.cyan.withValues(alpha: 0.07), 0.5)!;
     if (widget.fill case final fill?) tint = Color.alphaBlend(fill, tint);
     // Lo flotante pasa por encima de contenido que se mueve: una base del fondo, para que se lea.
-    if (floating) tint = Color.alphaBlend(tint, palette.background.withValues(alpha: 0.62));
+    if (floating) tint = Color.alphaBlend(tint, palette.background.withValues(alpha: 0.45));
     final radius = widget.borderRadius.topLeft.x;
     final glass = lgr.LiquidGlass.withOwnLayer(
       shape: lgr.LiquidRoundedSuperellipse(borderRadius: radius),
@@ -200,7 +200,7 @@ class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStat
         refractionAmount: 44,
         refractionFitsShape: true,
         frost: floating ? 12 : 7,
-        dispersion: 0.35,
+        dispersion: 0.5,
         highlight: 1,
       ),
       appearance: lgr.LiquidGlassAppearance(tint: tint),
@@ -213,6 +213,16 @@ class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStat
       ],
       child: widget.child,
     );
+    final vertical = Scrollable.maybeOf(context, axis: Axis.vertical)?.position;
+    final horizontal = Scrollable.maybeOf(context, axis: Axis.horizontal)?.position;
+    final rimmed = _RealGlassRim(
+      borderRadius: widget.borderRadius,
+      edge: RenderLiquidGlass.glassLook(KijiLook.style, palette).edge,
+      border: widget.border,
+      still: still,
+      repaint: Listenable.merge([?vertical, ?horizontal]),
+      child: glass,
+    );
     return _pressable(
       still: still,
       child: AnimatedBuilder(
@@ -221,7 +231,7 @@ class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStat
           final press = still ? 0.0 : _press.value.clamp(0.0, 1.2);
           return press == 0 ? child! : Transform.scale(scale: 1 - 0.022 * press, child: child);
         },
-        child: glass,
+        child: rimmed,
       ),
     );
   }
@@ -411,17 +421,23 @@ class RenderLiquidGlass extends RenderProxyBox {
     markNeedsPaint();
   }
 
+  ({List<Color> tint, List<Color> edge, Color spec, Color shadow, double shadowAlpha}) get _look =>
+      glassLook(_style, _palette);
+
   /// Los colores del vidrio según el estilo (y el acento, en Nocturne).
-  ({List<Color> tint, List<Color> edge, Color spec, Color shadow, double shadowAlpha}) get _look {
-    switch (_style) {
+  static ({List<Color> tint, List<Color> edge, Color spec, Color shadow, double shadowAlpha}) glassLook(
+    KijiStyle style,
+    KijiPalette palette,
+  ) {
+    switch (style) {
       case KijiStyle.nocturne:
         // El vidrio toma el acento: violeta → cian de fábrica, o el que se haya elegido.
         return (
-          tint: [_palette.violet.withValues(alpha: 0.11), _palette.cyan.withValues(alpha: 0.07)],
+          tint: [palette.violet.withValues(alpha: 0.11), palette.cyan.withValues(alpha: 0.07)],
           edge: [
             const Color(0xCCFFFFFF),
-            _palette.violet.withValues(alpha: 0.55),
-            _palette.cyan.withValues(alpha: 0.45),
+            palette.violet.withValues(alpha: 0.55),
+            palette.cyan.withValues(alpha: 0.45),
             const Color(0x1FFFFFFF),
           ],
           spec: const Color(0x30FFFFFF),
@@ -565,31 +581,7 @@ class RenderLiquidGlass extends RenderProxyBox {
     }
     canvas.restore();
 
-    // Borde de luz: el ángulo de la luz gira con la posición en la pantalla (al deslizar cambia).
-    final angle = -math.pi * 0.75 + math.pi * 0.5 * t;
-    final radius = rect.longestSide / 2;
-    final dir = Offset(math.cos(angle), math.sin(angle)) * radius;
-    final edge = _border;
-    canvas.drawRRect(
-      rrect.deflate(0.5),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = paper ? 1 : 1.2
-        ..shader = edge != null
-            ? null
-            : ui.Gradient.linear(rect.center + dir, rect.center - dir, look.edge, const [0, 0.35, 0.7, 1])
-        ..color = edge ?? const Color(0xFFFFFFFF),
-    );
-    // Un filo interior arriba: el grosor del vidrio.
-    if (!paper) {
-      canvas.drawRRect(
-        rrect.deflate(1.6),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1
-          ..shader = ui.Gradient.linear(rect.topCenter, rect.center, [const Color(0x29FFFFFF), const Color(0x00FFFFFF)]),
-      );
-    }
+    paintGlassRim(canvas, rect, rrect, edge: look.edge, t: t, border: _border, paper: paper);
     canvas.restore();
     // El contenido, hundido igual que el vidrio (con su propia transformación: al pintarlo, el
     // lienzo puede cambiar, así que no se toca el de arriba).
@@ -645,3 +637,137 @@ class RenderLiquidGlass extends RenderProxyBox {
   @override
   Rect get paintBounds => (Offset.zero & size).inflate(16);
 }
+
+/// El borde de luz del vidrio (el mismo en el de siempre y en el real): el ángulo de la luz gira
+/// con la posición en la pantalla ([t]: 0 arriba, 1 abajo) y un filo interior arriba.
+void paintGlassRim(
+  Canvas canvas,
+  Rect rect,
+  RRect rrect, {
+  required List<Color> edge,
+  required double t,
+  Color? border,
+  bool paper = false,
+}) {
+  final angle = -math.pi * 0.75 + math.pi * 0.5 * t;
+  final radius = rect.longestSide / 2;
+  final dir = Offset(math.cos(angle), math.sin(angle)) * radius;
+  canvas.drawRRect(
+    rrect.deflate(0.5),
+    Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = paper ? 1 : 1.2
+      ..shader = border != null
+          ? null
+          : ui.Gradient.linear(rect.center + dir, rect.center - dir, edge, const [0, 0.35, 0.7, 1])
+      ..color = border ?? const Color(0xFFFFFFFF),
+  );
+  if (!paper) {
+    canvas.drawRRect(
+      rrect.deflate(1.6),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..shader = ui.Gradient.linear(rect.topCenter, rect.center, [const Color(0x29FFFFFF), const Color(0x00FFFFFF)]),
+    );
+  }
+}
+
+/// Encima del vidrio real: el mismo borde de luz del vidrio de siempre (el diseño no cambia).
+class _RealGlassRim extends SingleChildRenderObjectWidget {
+  const _RealGlassRim({
+    required this.borderRadius,
+    required this.edge,
+    required this.border,
+    required this.still,
+    required this.repaint,
+    super.child,
+  });
+
+  final BorderRadius borderRadius;
+  final List<Color> edge;
+  final Color? border;
+  final bool still;
+  final Listenable repaint;
+
+  @override
+  _RenderRealGlassRim createRenderObject(BuildContext context) =>
+      _RenderRealGlassRim(borderRadius, edge, border, still, repaint);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderRealGlassRim renderObject) {
+    renderObject
+      ..borderRadius = borderRadius
+      ..edge = edge
+      ..border = border
+      ..still = still
+      ..repaint = repaint;
+  }
+}
+
+class _RenderRealGlassRim extends RenderProxyBox {
+  _RenderRealGlassRim(this._borderRadius, this._edge, this._border, this._still, this._repaint);
+
+  BorderRadius _borderRadius;
+  set borderRadius(BorderRadius v) {
+    if (v == _borderRadius) return;
+    _borderRadius = v;
+    markNeedsPaint();
+  }
+
+  List<Color> _edge;
+  set edge(List<Color> v) {
+    if (listEquals(v, _edge)) return;
+    _edge = v;
+    markNeedsPaint();
+  }
+
+  Color? _border;
+  set border(Color? v) {
+    if (v == _border) return;
+    _border = v;
+    markNeedsPaint();
+  }
+
+  bool _still;
+  set still(bool v) {
+    if (v == _still) return;
+    _still = v;
+    markNeedsPaint();
+  }
+
+  Listenable _repaint;
+  set repaint(Listenable v) {
+    if (identical(v, _repaint)) return;
+    if (attached) {
+      _repaint.removeListener(markNeedsPaint);
+      v.addListener(markNeedsPaint);
+    }
+    _repaint = v;
+    markNeedsPaint();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _repaint.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _repaint.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    super.paint(context, offset);
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    final screen = views.isEmpty ? 0.0 : views.first.physicalSize.height / views.first.devicePixelRatio;
+    final global = localToGlobal(Offset.zero) & size;
+    final t = _still || screen <= 0 ? 0.3 : (global.center.dy / screen).clamp(0.0, 1.0);
+    final rect = offset & size;
+    paintGlassRim(context.canvas, rect, _borderRadius.toRRect(rect), edge: _edge, t: t, border: _border);
+  }
+}
+
