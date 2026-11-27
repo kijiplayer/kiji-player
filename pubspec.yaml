@@ -80,6 +80,10 @@ flutter:
   generate: true
   uses-material-design: true
 
+  # Vidrio líquido (0.9): refracción real del fondo de Kiji en el borde de cada vidrio.
+  shaders:
+    - shaders/glass_refraction.frag
+
   assets:
     # Créditos que se muestran en Configuración → Acerca de.
     - CREDITS.md

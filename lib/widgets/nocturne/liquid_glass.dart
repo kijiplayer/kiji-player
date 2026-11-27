@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../theme/kiji_tokens.dart';
+import 'real_glass.dart';
 
 /// "Liquid glass" (0.8.3): el vidrio de Kiji sin un desenfoque por tarjeta.
 ///
@@ -176,7 +177,7 @@ class _LiquidGlassState extends State<LiquidGlass> with SingleTickerProviderStat
         still: still,
         backdrop: backdrop,
         press: _press,
-        repaint: Listenable.merge([?backdrop, ?vertical, ?horizontal, _press]),
+        repaint: Listenable.merge([?backdrop, ?vertical, ?horizontal, _press, RealGlass.active]),
         child: widget.child,
       ),
     );
@@ -424,8 +425,14 @@ class RenderLiquidGlass extends RenderProxyBox {
     // Lo de detrás, ya desenfocado (sin desenfocar nada en este cuadro).
     final layers = _backdrop?.layers ?? const <GlassLayer>[];
     const layerAlpha = 1.0;
-    for (final layer in layers) {
-      _drawLayer(canvas, layer, global, offset, global, layerAlpha);
+    // Vidrio real (0.9): el fondo con refracción de verdad en el borde y el arcoíris, en un solo
+    // dibujo por capa. Si no hay shader (apagado o sin soporte), el de siempre.
+    final program = paper ? null : RealGlass.program;
+    final refracted = program != null && layers.isNotEmpty && _paintRefraction(canvas, program, layers, rect, global);
+    if (!refracted) {
+      for (final layer in layers) {
+        _drawLayer(canvas, layer, global, offset, global, layerAlpha);
+      }
     }
 
     // Refracción en los bordes: el fondo, un poco ampliado (como una lente), en un anillo fino.
@@ -433,7 +440,7 @@ class RenderLiquidGlass extends RenderProxyBox {
     // caminos, que en Impeller cuestan.
     final rim = (size.shortestSide * 0.16).clamp(6.0, 14.0);
     final inner = rrect.deflate(rim);
-    if (layers.isNotEmpty) {
+    if (layers.isNotEmpty && !refracted) {
       // La lente: lo que hay detrás del centro del vidrio, estirado hasta el borde.
       const zoom = 1.09;
       for (final layer in layers) {
@@ -564,6 +571,74 @@ class RenderLiquidGlass extends RenderProxyBox {
         ..filterQuality = FilterQuality.medium
         ..color = Color.fromRGBO(0, 0, 0, alpha),
     );
+  }
+
+  /// Un shader por capa del fondo (cada uno con su imagen); se reusan cuadro a cuadro.
+  final _shaders = <ui.FragmentShader>[];
+
+  /// Dibuja las capas del fondo con la refracción del borde. El centro del vidrio es plano (no
+  /// desvía la luz): se dibuja como siempre, con la imagen; el shader corre solo en el anillo del
+  /// bisel, así cuesta lo mismo un botón que una hoja entera. false si no se pudo (queda el de siempre).
+  bool _paintRefraction(Canvas canvas, ui.FragmentProgram program, List<GlassLayer> layers, Rect rect, Rect global) {
+    try {
+      final rrect = _borderRadius.toRRect(rect);
+      final radius = _borderRadius.topLeft.x;
+      final bevel = math.min(math.min(18.0, radius + 6), size.shortestSide / 2 - 1);
+      final inner = bevel > 1 ? rrect.deflate(bevel) : null;
+      final ring = inner != null && inner.width > 0 && inner.height > 0;
+      for (final (i, layer) in layers.indexed) {
+        if (i >= _shaders.length) _shaders.add(program.fragmentShader());
+        final shader = _shaders[i]
+          ..setFloat(0, rect.width)
+          ..setFloat(1, rect.height)
+          ..setFloat(2, rect.left)
+          ..setFloat(3, rect.top)
+          ..setFloat(4, global.left)
+          ..setFloat(5, global.top)
+          ..setFloat(6, layer.rect.left)
+          ..setFloat(7, layer.rect.top)
+          ..setFloat(8, layer.rect.width)
+          ..setFloat(9, layer.rect.height)
+          ..setFloat(10, radius)
+          ..setFloat(11, math.max(bevel, 1))
+          ..setFloat(12, math.min(22, size.shortestSide * 0.3))
+          ..setFloat(13, 0.5)
+          ..setFloat(14, 1)
+          ..setImageSampler(0, layer.image, filterQuality: FilterQuality.medium);
+        if (!ring) {
+          canvas.drawRect(rect, Paint()..shader = shader);
+          continue;
+        }
+        // El centro: la imagen tal cual (píxel de la imagen → punto de la pantalla → lienzo).
+        final sx = layer.image.width / layer.rect.width;
+        final sy = layer.image.height / layer.rect.height;
+        final matrix = Matrix4.identity()
+          ..translateByDouble(rect.left - global.left + layer.rect.left, rect.top - global.top + layer.rect.top, 0, 1)
+          ..scaleByDouble(1 / sx, 1 / sy, 1, 1);
+        canvas
+          ..drawRRect(
+            inner,
+            Paint()
+              ..shader = ImageShader(layer.image, TileMode.clamp, TileMode.clamp, matrix.storage,
+                  filterQuality: FilterQuality.medium),
+          )
+          // El borde: la refracción de verdad, con el arcoíris.
+          ..drawDRRect(rrect, inner, Paint()..shader = shader);
+      }
+      return true;
+    } catch (error) {
+      RealGlass.fail('${error.runtimeType}');
+      return false;
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final shader in _shaders) {
+      shader.dispose();
+    }
+    _shaders.clear();
+    super.dispose();
   }
 
   double get _screenHeight {
