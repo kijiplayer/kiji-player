@@ -532,11 +532,13 @@ class PlaybackControlsRow extends ConsumerWidget {
           child: IconButton(
             tooltip: playback.shuffleEnabled ? tx.aleatorioActivado : tx.aleatorioApagado,
             onPressed: notifier.toggleShuffle,
+            isSelected: playback.shuffleEnabled,
             icon: PopSwitcher(
-              child: Icon(
+              child: PlayerModeIcon(
                 Icons.shuffle_rounded,
                 key: ValueKey(playback.shuffleEnabled),
-                color: playback.shuffleEnabled ? KijiColors.cyan : KijiColors.muted,
+                on: playback.shuffleEnabled,
+                size: iconSize * 0.85,
               ),
             ),
             iconSize: iconSize * 0.85,
@@ -574,16 +576,75 @@ class PlaybackControlsRow extends ConsumerWidget {
           child: IconButton(
             tooltip: repeatTooltip,
             onPressed: notifier.toggleRepeatMode,
+            isSelected: playback.repeatMode != PlaybackRepeatMode.off,
             icon: PopSwitcher(
-              child: Icon(
+              child: PlayerModeIcon(
                 repeatIcon,
                 key: ValueKey(playback.repeatMode),
-                color: playback.repeatMode == PlaybackRepeatMode.off ? KijiColors.muted : KijiColors.cyan,
+                on: playback.repeatMode != PlaybackRepeatMode.off,
+                size: iconSize * 0.85,
               ),
             ),
             iconSize: iconSize * 0.85,
             visualDensity: VisualDensity.compact,
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Ícono de aleatorio o repetir. Prendido: con el acento, sobre un círculo suave del color del texto
+/// y con un punto debajo, para que se note sin depender del color (con un acento gris, o en Grafito
+/// y Papel, el acento y el gris de «apagado» se parecen). Apagado: en gris, sin círculo ni punto,
+/// con el mismo lugar reservado para que el ícono no salte. Contraste de 3:1 o más en todos los
+/// estilos y acentos (test/player_mode_icon_test.dart).
+class PlayerModeIcon extends StatelessWidget {
+  const PlayerModeIcon(this.icon, {super.key, required this.on, required this.size});
+
+  final IconData icon;
+  final bool on;
+  final double size;
+
+  static const dotSize = 4.0;
+  static const _pad = 6.0;
+
+  static Color colorFor({required bool on}) => on ? KijiColors.cyan : KijiColors.muted;
+
+  /// El círculo detrás del ícono prendido (sobre [background]).
+  static Color backdropOn(Color background) => Color.alphaBlend(KijiColors.text.withValues(alpha: 0.12), background);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = colorFor(on: on);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: dotSize + 2),
+        // El círculo se dibuja alrededor sin ocupar lugar: la fila mide lo mismo que antes.
+        Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            if (on)
+              Positioned(
+                left: -_pad,
+                top: -_pad,
+                right: -_pad,
+                bottom: -_pad,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: KijiColors.text.withValues(alpha: 0.12)),
+                ),
+              ),
+            Icon(icon, color: color, size: size),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Container(
+          key: on ? const Key('player-mode-dot') : null,
+          width: dotSize,
+          height: dotSize,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: on ? color : Colors.transparent),
         ),
       ],
     );
