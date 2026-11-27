@@ -5007,71 +5007,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'You\'re signed in: turn on «Sync» in Settings → Account.';
 
   @override
-  String get novedades08Subtitulo =>
-      'Kiji 0.8, the biggest one yet. Here\'s the good stuff:';
+  String get novedades09Subtitulo =>
+      'Kiji 0.9: simpler, with more to listen to. Here\'s the good stuff:';
 
   @override
-  String get novedades08ReproductorTitulo => 'A new player, your way';
+  String get novedades09BibliotecaTitulo => 'A simpler Library';
 
   @override
-  String get novedades08ReproductorTexto =>
-      'Play inside a ring with the wave, compact and full screen modes. Pick your color, font and style, even one per song.';
+  String get novedades09BibliotecaTexto =>
+      'One list: your playlists on top, your music below. You choose what shows, and your phone\'s music is optional.';
 
   @override
-  String get novedades08FondoTitulo => 'Your background, your stage';
+  String get novedades09BuscarTitulo => 'Search and select in every list';
 
   @override
-  String get novedades08FondoTexto =>
-      'Use a photo, a GIF or a video as background. Kiji tunes the veil so everything stays readable.';
+  String get novedades09BuscarTexto =>
+      'Every list has its own search and multi-select, and your selection stays when you search for something else.';
 
   @override
-  String get novedades08SonidoTitulo => 'Sound your way';
+  String get novedades09EcualizadorTitulo => '10-band equalizer';
 
   @override
-  String get novedades08SonidoTexto =>
-      'Equalizer with presets, bass, speed, pitch, effects and crossfade.';
+  String get novedades09EcualizadorTexto =>
+      'Now on Android too (Android 9 or newer). Your settings adapt on their own.';
 
   @override
-  String get novedades08LetrasTitulo => 'Karaoke lyrics';
+  String get novedades09SponsorTitulo => 'Just the music';
 
   @override
-  String get novedades08LetrasTexto =>
-      'Word by word, full screen and saved with the song, so you can sing along offline.';
+  String get novedades09SponsorTexto =>
+      'Skip intros, outros and talking in videos with SponsorBlock. Off by default.';
 
   @override
-  String get novedades08BibliotecaTitulo => 'A new Library';
+  String get novedades09PlaylistTitulo => 'A whole playlist, offline';
 
   @override
-  String get novedades08BibliotecaTexto =>
-      'Artists, albums and folders with your covers, faster music from your phone and batch downloads.';
+  String get novedades09PlaylistTexto =>
+      'Download it with one tap, with pause and cancel.';
 
   @override
-  String get novedades08ImportarTitulo => 'Bring your playlists';
+  String get novedades09ListenBrainzTitulo => 'ListenBrainz';
 
   @override
-  String get novedades08ImportarTexto =>
-      'Paste a Spotify, Apple Music, SoundCloud or YouTube playlist link, or connect your YouTube Music if you like (it\'s optional).';
+  String get novedades09ListenBrainzTexto =>
+      'Save what you listen to in your own ListenBrainz account, if you want. It\'s optional.';
 
   @override
-  String get novedades08TeatroTitulo => 'Theater reactions 🍅🌹';
+  String get novedades09TarjetasTitulo => 'Cards to share';
 
   @override
-  String get novedades08TeatroTexto =>
-      'Throw tomatoes until the curtain falls or roses until the standing ovation. And in «Your Theater», the audience awards.';
+  String get novedades09TarjetasTexto =>
+      'Share the song that\'s playing: Now Playing, Vinyl or Poster.';
 
   @override
-  String get novedades08WidgetsTitulo => 'Widgets (beta)';
+  String get novedades09FrasesTitulo => 'Quote of the day and streaks';
 
   @override
-  String get novedades08WidgetsTexto =>
-      'Five for your home screen: Ring, Now playing, Lyrics, Theater and Bar. They\'re in beta: tell us how they work for you.';
+  String get novedades09FrasesTexto =>
+      'Quotes from writers, musicians and poets, and how many days in a row you\'ve been listening, quietly on Home.';
 
   @override
-  String get novedades08PcTitulo => 'On PC';
+  String get novedades09PcTitulo => 'On your PC';
 
   @override
-  String get novedades08PcTexto =>
-      'Background video, equalizer with effects and Ctrl/Shift + click to pick several songs.';
+  String get novedades09PcTexto =>
+      'Kiji can open when your computer starts, in the tray and silent. And you can edit your music\'s title, artist, album and cover.';
 
   @override
   String get ecualizadorNoDisponibleAhora =>
