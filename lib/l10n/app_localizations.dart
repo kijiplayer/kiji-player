@@ -8602,6 +8602,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ver qué hay de nuevo'**
   String get verQueHayDeNuevo;
+
+  /// Hoja «Guardar un momento»: abre la lista de Momentos
+  ///
+  /// In es, this message translates to:
+  /// **'Ver tus momentos'**
+  String get verTusMomentos;
+
+  /// Configuración → Acerca de: enlace a la política de privacidad
+  ///
+  /// In es, this message translates to:
+  /// **'Política de privacidad'**
+  String get politicaDePrivacidad;
+
+  /// No description provided for @politicaDePrivacidadDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué guarda Kiji y a qué servicios se conecta. Se abre en el navegador.'**
+  String get politicaDePrivacidadDescripcion;
 }
 
 class _AppLocalizationsDelegate

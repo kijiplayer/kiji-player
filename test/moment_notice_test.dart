@@ -86,11 +86,24 @@ void main() {
     expect(notice, findsNothing);
   });
 
-  testWidgets('Se va solo en 2,5 s', (tester) async {
+  testWidgets('Dura lo suficiente para tocar «View» (6 s) y después se va solo', (tester) async {
     await openAndSave(tester);
     expect(find.byKey(const Key('top-notice')), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 2600));
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.byKey(const Key('top-notice')), findsOneWidget, reason: 'a los 3 s sigue ahí');
+    await tester.pump(const Duration(seconds: 3, milliseconds: 100));
     expect(find.byKey(const Key('top-notice')), findsNothing);
+  });
+
+  testWidgets('Con momentos guardados, la hoja del reproductor los abre («See your moments»)', (tester) async {
+    await openAndSave(tester);
+    await tester.pump(const Duration(seconds: 7)); // el aviso ya se fue
+    await tester.tap(find.text('momento'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-moments')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(MomentsScreen), findsOneWidget);
   });
 
   testWidgets('Se cierra deslizándolo a un costado', (tester) async {

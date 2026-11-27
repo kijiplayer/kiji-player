@@ -5317,4 +5317,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get verQueHayDeNuevo => 'Ver qué hay de nuevo';
+
+  @override
+  String get verTusMomentos => 'Ver tus momentos';
+
+  @override
+  String get politicaDePrivacidad => 'Política de privacidad';
+
+  @override
+  String get politicaDePrivacidadDescripcion =>
+      'Qué guarda Kiji y a qué servicios se conecta. Se abre en el navegador.';
 }

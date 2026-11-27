@@ -78,9 +78,15 @@ class _SourcesSheetState extends ConsumerState<_SourcesSheet> {
   Future<void> _choose(LyricsProbe probe) async {
     final lyrics = probe.lyrics;
     if (lyrics == null) return;
-    await ref.read(lyricsRepositoryProvider).choose(widget.request.id, lyrics);
-    ref.invalidate(lyricsProvider(widget.request));
-    ref.invalidate(lyricsOffsetProvider(widget.request.id));
+    // Lo de Riverpod se toma antes de esperar: si la hoja se cierra mientras se guarda, `ref` ya no
+    // sirve («Cannot use "ref" after the widget was disposed», issue #20), pero la letra elegida
+    // igual tiene que verse.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final request = widget.request;
+    await container.read(lyricsRepositoryProvider).choose(request.id, lyrics);
+    container
+      ..invalidate(lyricsProvider(request))
+      ..invalidate(lyricsOffsetProvider(request.id));
     if (mounted) setState(() => _current = probe.source);
   }
 

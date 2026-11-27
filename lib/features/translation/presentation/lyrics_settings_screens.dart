@@ -57,25 +57,29 @@ class LyricsSourcesScreen extends ConsumerWidget {
         },
         children: [
           for (final (index, source) in order.indexed)
-            ListTile(
+            // Un solo nodo para los lectores de pantalla: el interruptor se lee con el nombre de la
+            // fuente (si no, TalkBack decía solo «interruptor, activado»).
+            MergeSemantics(
               key: ValueKey(source),
-              contentPadding: const EdgeInsets.only(left: 4),
-              leading: ReorderableDragStartListener(
-                index: index,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Icon(Icons.drag_indicator_rounded, semanticLabel: tx.arrastrarParaCambiarElOrden),
+              child: ListTile(
+                contentPadding: const EdgeInsets.only(left: 4),
+                leading: ReorderableDragStartListener(
+                  index: index,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(Icons.drag_indicator_rounded, semanticLabel: tx.arrastrarParaCambiarElOrden),
+                  ),
                 ),
-              ),
-              title: Text('${index + 1}. ${source.label}'),
-              subtitle: Text(tx.recibe(_sends[source] ?? '—')),
-              trailing: Switch(
-                value: !disabled.contains(source),
-                onChanged: (on) => notifier.update(
-                  (s) => s.copyWith(
-                    disabledLyricsSources: on
-                        ? ({...s.disabledLyricsSources}..remove(source))
-                        : {...s.disabledLyricsSources, source},
+                title: Text('${index + 1}. ${source.label}'),
+                subtitle: Text(tx.recibe(_sends[source] ?? '—')),
+                trailing: Switch(
+                  value: !disabled.contains(source),
+                  onChanged: (on) => notifier.update(
+                    (s) => s.copyWith(
+                      disabledLyricsSources: on
+                          ? ({...s.disabledLyricsSources}..remove(source))
+                          : {...s.disabledLyricsSources, source},
+                    ),
                   ),
                 ),
               ),
@@ -136,7 +140,10 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
               Wrap(
                 spacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
-                children: [Text(title, style: KijiText.title(size: 17)), ?badge],
+                children: [
+                  Text(title, style: KijiText.title(size: 17)),
+                  ?badge,
+                ],
               ),
               const SizedBox(height: 8),
               ...children,
@@ -168,10 +175,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
           section(tx.n1EnTuTelefonoAnonimo, [
             Text(localTranslationNotice),
             const SizedBox(height: 8),
-            Text(
-              tx.motorYModelosDeFirefox,
-              style: TextStyle(color: KijiColors.muted, fontSize: 12),
-            ),
+            Text(tx.motorYModelosDeFirefox, style: TextStyle(color: KijiColors.muted, fontSize: 12)),
             const SizedBox(height: 8),
             Text(tx.idiomasBajados, style: KijiText.mono(size: 11)),
             if (_installed == null)
@@ -198,11 +202,7 @@ class _TranslationSettingsScreenState extends ConsumerState<TranslationSettingsS
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(tx.traducirConGemini),
-              subtitle: Text(
-                settings.geminiEnabled
-                    ? tx.activadoPierdesAnonimato
-                    : tx.apagadoAntesDeActivarloVasA,
-              ),
+              subtitle: Text(settings.geminiEnabled ? tx.activadoPierdesAnonimato : tx.apagadoAntesDeActivarloVasA),
               value: settings.geminiEnabled,
               onChanged: (on) async {
                 if (!on) {

@@ -19,7 +19,6 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
   final LocalLibraryService _service;
   final LocalScanStore _store;
 
-
   @override
   bool get usesFolders => false;
 
@@ -52,17 +51,50 @@ class AndroidMediaStoreSource implements LocalLibrarySource {
   /// Las carpetas con audios y si se muestran (lee el MediaStore; no cambia nada).
   Future<List<MusicFolder>> musicFolders({LocalExclusions exclusions = LocalExclusions.defaults}) async {
     final songs = await _service.fetchSongs();
-    return lastFolders = filterMusic([for (final s in songs) _candidate(s)], exclusions: exclusions, choices: exclusions.choices).folders;
+    return lastFolders = filterMusic(
+      [for (final s in songs) _candidate(s)],
+      exclusions: exclusions,
+      choices: exclusions.choices,
+    ).folders;
   }
 
+  /// La última lectura: otra igual (mismas carpetas) en los próximos segundos usa la misma, en
+  /// vez de volver a leer y filtrar todo el MediaStore (al abrir Kiji la pedían la Biblioteca y
+  /// «Mis archivos» a la vez).
+  static ({String key, DateTime at, Future<List<Track>> tracks})? _recent;
+  static const _reuseFor = Duration(seconds: 5);
+
   @override
-  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) async {
+  Future<List<Track>> loadTracks({bool force = false, LocalExclusions exclusions = LocalExclusions.defaults}) {
+    final recent = _recent;
+    final now = DateTime.now();
+    if (!force && recent != null && recent.key == exclusions.key && now.difference(recent.at) < _reuseFor) {
+      return recent.tracks.then((t) => [...t]); // una copia: quien la recibe puede ordenarla
+    }
+    final tracks = _load(force: force, exclusions: exclusions);
+    _recent = (key: exclusions.key, at: now, tracks: tracks);
+    // Si falla, la próxima vez se vuelve a leer.
+    tracks.then<void>(
+      (_) {},
+      onError: (Object error) {
+        if (identical(_recent?.tracks, tracks)) _recent = null;
+      },
+    );
+    return tracks.then((t) => [...t]);
+  }
+
+  Future<List<Track>> _load({required bool force, required LocalExclusions exclusions}) async {
     final songs = await _service.fetchSongs();
-    final result = filterMusic([for (final s in songs) _candidate(s)], exclusions: exclusions, choices: exclusions.choices);
+    final result = filterMusic(
+      [for (final s in songs) _candidate(s)],
+      exclusions: exclusions,
+      choices: exclusions.choices,
+    );
     lastFolders = result.folders;
     // Una vez (y otra solo si cambia): cuántos quedaron afuera y por qué. Sin nombres de archivos.
-    final summary = '${result.totalSkipped} audios afuera (sistema ${result.skipped[MusicSkip.system]}, '  // l10n-ignore (registro)
-        'voz ${result.skipped[MusicSkip.voice]}, carpeta oculta ${result.skipped[MusicSkip.hiddenFolder]})';  // l10n-ignore (registro)
+    final summary =
+        '${result.totalSkipped} audios afuera (sistema ${result.skipped[MusicSkip.system]}, ' // l10n-ignore (registro)
+        'voz ${result.skipped[MusicSkip.voice]}, carpeta oculta ${result.skipped[MusicSkip.hiddenFolder]}, sueltos sin artista ${result.skipped[MusicSkip.untagged]})'; // l10n-ignore (registro)
     if (result.totalSkipped > 0 && summary != _lastSummary) debugPrint('=== BIBLIOTECA: $summary ===');
     _lastSummary = summary;
     final entries = <ScanEntry>[];

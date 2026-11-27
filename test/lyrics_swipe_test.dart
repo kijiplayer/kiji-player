@@ -103,4 +103,35 @@ void main() {
       expect(await swipe(tester, const Offset(200, 600), const Offset(0, -300)), (1, 0));
     });
   });
+
+  group('Reproductor más alto que la pantalla (la columna se desplaza)', () {
+    Future<int> pull(WidgetTester tester, {bool scrollFirst = false}) async {
+      var closed = 0;
+      tester.view.physicalSize = const Size(400, 600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(platform: TargetPlatform.android),
+        home: PullDownToClose(
+          onClose: () => closed++,
+          child: const SingleChildScrollView(child: SizedBox(height: 1400, width: 400)),
+        ),
+      ));
+      if (scrollFirst) {
+        await tester.dragFrom(const Offset(200, 400), const Offset(0, -300));
+        await tester.pumpAndSettle();
+      }
+      await tester.dragFrom(const Offset(200, 150), const Offset(0, 250));
+      await tester.pumpAndSettle();
+      return closed;
+    }
+
+    testWidgets('arriba de todo, tirar hacia abajo lo cierra', (tester) async {
+      expect(await pull(tester), 1);
+    });
+
+    testWidgets('a mitad de la columna, bajar solo desplaza', (tester) async {
+      expect(await pull(tester, scrollFirst: true), 0);
+    });
+  });
 }

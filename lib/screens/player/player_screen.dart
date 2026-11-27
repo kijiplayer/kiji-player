@@ -136,44 +136,50 @@ class PlayerScreen extends ConsumerWidget {
                         final cover = RepaintBoundary(
                           child: _Cover(track: track, size: coverSize, playing: playback.isPlaying),
                         );
-                        return SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Center(
-                            child: ConstrainedBox(
-                              key: const Key('player-column'),
-                              constraints: BoxConstraints(minHeight: constraints.maxHeight, maxWidth: width),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  HideWhenIdle(
-                                    child: _TopBar(track: track, downloaded: downloaded),
-                                  ),
-                                  SizedBox(height: compact ? 8 : 16),
-                                  // Capas propias: la sombra grande de la carátula no se vuelve a
-                                  // rasterizar con cada avance de la posición.
-                                  if (compact)
-                                    Row(
-                                      children: [
-                                        cover,
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _TitleRow(track: track, downloaded: downloaded, compact: true),
-                                        ),
-                                      ],
-                                    )
-                                  else ...[
-                                    cover,
-                                    SizedBox(height: KijiLook.museum ? 36 : 24),
-                                    _TitleRow(track: track, downloaded: downloaded),
+                        // Si el reproductor no entra (teléfono chico, horizontal), la columna se
+                        // desplaza y se queda con el gesto: tirar hacia abajo estando arriba de todo
+                        // también lo cierra.
+                        return PullDownToClose(
+                          onClose: () => Navigator.of(context).maybePop(),
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Center(
+                              child: ConstrainedBox(
+                                key: const Key('player-column'),
+                                constraints: BoxConstraints(minHeight: constraints.maxHeight, maxWidth: width),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    HideWhenIdle(
+                                      child: _TopBar(track: track, downloaded: downloaded),
+                                    ),
+                                    SizedBox(height: compact ? 8 : 16),
+                                    // Capas propias: la sombra grande de la carátula no se vuelve a
+                                    // rasterizar con cada avance de la posición.
+                                    if (compact)
+                                      Row(
+                                        children: [
+                                          cover,
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: _TitleRow(track: track, downloaded: downloaded, compact: true),
+                                          ),
+                                        ],
+                                      )
+                                    else ...[
+                                      cover,
+                                      SizedBox(height: KijiLook.museum ? 36 : 24),
+                                      _TitleRow(track: track, downloaded: downloaded),
+                                    ],
+                                    SizedBox(height: compact ? 12 : (KijiLook.museum ? 28 : 20)),
+                                    const RepaintBoundary(child: _Progress()),
+                                    SizedBox(height: compact ? 4 : (KijiLook.museum ? 20 : 12)),
+                                    PlaybackControlsRow(playSize: compact ? 60 : KijiSizes.playButton),
+                                    SizedBox(height: compact ? 8 : 20),
+                                    const HideWhenIdle(child: _BottomActions()),
+                                    SizedBox(height: compact ? 8 : 16),
                                   ],
-                                  SizedBox(height: compact ? 12 : (KijiLook.museum ? 28 : 20)),
-                                  const RepaintBoundary(child: _Progress()),
-                                  SizedBox(height: compact ? 4 : (KijiLook.museum ? 20 : 12)),
-                                  PlaybackControlsRow(playSize: compact ? 60 : KijiSizes.playButton),
-                                  SizedBox(height: compact ? 8 : 20),
-                                  const HideWhenIdle(child: _BottomActions()),
-                                  SizedBox(height: compact ? 8 : 16),
-                                ],
+                                ),
                               ),
                             ),
                           ),
@@ -254,66 +260,66 @@ class _TopBar extends ConsumerWidget {
       builder: (context) => SafeArea(
         child: SingleChildScrollView(
           child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (track.youtubeVideoId != null)
-              ListTile(
-                leading: const Icon(Icons.download_for_offline_outlined),
-                title: Text(tx.escucharSinConexion),
-                subtitle: Text(tx.descargarDentroDeKiji),
-                trailing: DownloadButton(track: track),
-              )
-            else
-              ListTile(
-                leading: const Icon(Icons.phone_android_rounded),
-                title: Text(tx.cancionGuardadaEnElDispositivo),
-                subtitle: Text(tx.yaSuenaSinConexion),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (track.youtubeVideoId != null)
+                ListTile(
+                  leading: const Icon(Icons.download_for_offline_outlined),
+                  title: Text(tx.escucharSinConexion),
+                  subtitle: Text(tx.descargarDentroDeKiji),
+                  trailing: DownloadButton(track: track),
+                )
+              else
+                ListTile(
+                  leading: const Icon(Icons.phone_android_rounded),
+                  title: Text(tx.cancionGuardadaEnElDispositivo),
+                  subtitle: Text(tx.yaSuenaSinConexion),
+                ),
+              Consumer(
+                builder: (context, ref, _) => ListTile(
+                  leading: const Icon(Icons.palette_outlined),
+                  title: Text(tx.estiloDeEstaCancion),
+                  subtitle: Text(tx.estiloDeEstaCancionNota),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showTrackStyleSheet(navigator.context, ref, track);
+                  },
+                ),
               ),
-            Consumer(
-              builder: (context, ref, _) => ListTile(
-                leading: const Icon(Icons.palette_outlined),
-                title: Text(tx.estiloDeEstaCancion),
-                subtitle: Text(tx.estiloDeEstaCancionNota),
-                onTap: () {
-                  Navigator.pop(context);
-                  showTrackStyleSheet(navigator.context, ref, track);
-                },
+              Consumer(
+                builder: (context, ref, _) => SwitchListTile(
+                  secondary: const Icon(Icons.view_compact_alt_outlined),
+                  title: Text(tx.modoCompacto),
+                  subtitle: Text(tx.modoCompactoNota),
+                  value: ref.watch(settingsProvider.select((s) => s.playerMode)) == 'compact',
+                  onChanged: (on) => ref
+                      .read(settingsProvider.notifier)
+                      .update((s) => s.copyWith(playerMode: on ? 'compact' : 'normal')),
+                ),
               ),
-            ),
-            Consumer(
-              builder: (context, ref, _) => SwitchListTile(
-                secondary: const Icon(Icons.view_compact_alt_outlined),
-                title: Text(tx.modoCompacto),
-                subtitle: Text(tx.modoCompactoNota),
-                value: ref.watch(settingsProvider.select((s) => s.playerMode)) == 'compact',
-                onChanged: (on) => ref
-                    .read(settingsProvider.notifier)
-                    .update((s) => s.copyWith(playerMode: on ? 'compact' : 'normal')),
+              Consumer(
+                builder: (context, ref, _) => ListTile(
+                  key: const Key('player-fullscreen'),
+                  leading: const Icon(Icons.fullscreen_rounded),
+                  title: Text(tx.pantallaCompleta),
+                  subtitle: Text(tx.pantallaCompletaNota),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ref.read(playerFullscreenProvider.notifier).state = true;
+                  },
+                ),
               ),
-            ),
-            Consumer(
-              builder: (context, ref, _) => ListTile(
-                key: const Key('player-fullscreen'),
-                leading: const Icon(Icons.fullscreen_rounded),
-                title: Text(tx.pantallaCompleta),
-                subtitle: Text(tx.pantallaCompletaNota),
-                onTap: () {
-                  Navigator.pop(context);
-                  ref.read(playerFullscreenProvider.notifier).state = true;
-                },
-              ),
-            ),
-            if (track.youtubeVideoId != null)
-              ListTile(
-                leading: const Icon(Icons.health_and_safety_outlined),
-                title: Text(tx.saludDelExtractor),
-                subtitle: Text(tx.comoEstaFuncionandoYoutubeHoy2),
-                onTap: () {
-                  Navigator.pop(context);
-                  navigator.push(MaterialPageRoute<void>(builder: (_) => const ExtractorHealthScreen()));
-                },
-              ),
-          ],
+              if (track.youtubeVideoId != null)
+                ListTile(
+                  leading: const Icon(Icons.health_and_safety_outlined),
+                  title: Text(tx.saludDelExtractor),
+                  subtitle: Text(tx.comoEstaFuncionandoYoutubeHoy2),
+                  onTap: () {
+                    Navigator.pop(context);
+                    navigator.push(MaterialPageRoute<void>(builder: (_) => const ExtractorHealthScreen()));
+                  },
+                ),
+            ],
           ),
         ),
       ),
@@ -384,8 +390,8 @@ class _TitleRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final liked = ref.watch(favoritesProvider).containsKey(track.id);
-    // El título nunca se parte a mitad de palabra: se achica hasta un mínimo legible y recién ahí
-    // corta con «…» (antes: «elephan / t cage»).
+    // El título nunca se parte a mitad de palabra: se achica hasta un mínimo legible y, si ni así
+    // entra, se desplaza en una línea (antes: «elephan / t cage», «BAILE INoLVI…»).
     final title = MuseumLineIn(
       trackId: track.id,
       line: 0,
@@ -412,12 +418,7 @@ class _TitleRow extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
         // Grafito: el artista como una etiqueta (versalitas espaciadas).
         style: KijiLook.museum
-            ? TextStyle(
-                color: KijiColors.muted,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 2.2,
-              )
+            ? TextStyle(color: KijiColors.muted, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 2.2)
             : TextStyle(color: KijiColors.muted, fontSize: 16),
       ),
     );

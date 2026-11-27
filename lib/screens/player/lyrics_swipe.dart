@@ -7,11 +7,7 @@ import 'package:flutter/material.dart';
 /// deslizar hacia arriba. Para no confundirlos, se ignora todo arrastre que empieza en la zona de
 /// gestos del sistema y se pide un recorrido y una velocidad claros.
 class LyricsSwipeRule {
-  const LyricsSwipeRule({
-    this.minDistance = 120,
-    this.minVelocity = 700,
-    this.edgeMargin = 24,
-  });
+  const LyricsSwipeRule({this.minDistance = 120, this.minVelocity = 700, this.edgeMargin = 24});
 
   /// Recorrido mínimo hacia arriba, en píxeles lógicos.
   final double minDistance;
@@ -146,10 +142,7 @@ class _LyricsSwipeDetectorState extends State<LyricsSwipeDetector>
       return;
     }
     _settleBack();
-    final accepted = widget.rule.accepts(
-      upwardDistance: start.dy - last.dy,
-      upwardVelocity: -velocity,
-    );
+    final accepted = widget.rule.accepts(upwardDistance: start.dy - last.dy, upwardVelocity: -velocity);
     if (accepted) widget.onSwipeUp();
   }
 
@@ -169,10 +162,46 @@ class _LyricsSwipeDetectorState extends State<LyricsSwipeDetector>
           ? widget.child
           : AnimatedBuilder(
               animation: _drag,
-              builder: (context, child) =>
-                  Transform.translate(offset: Offset(0, _drag.value), child: child),
+              builder: (context, child) => Transform.translate(offset: Offset(0, _drag.value), child: child),
               child: widget.child,
             ),
     );
   }
+}
+
+/// Cierra con [onClose] cuando, con la lista arriba de todo, el dedo sigue tirando hacia abajo al
+/// menos [distance] píxeles (el sobre-desplazamiento de una lista que no puede subir más).
+class PullDownToClose extends StatefulWidget {
+  const PullDownToClose({super.key, required this.onClose, required this.child, this.distance = 90});
+
+  final VoidCallback onClose;
+  final Widget child;
+  final double distance;
+
+  @override
+  State<PullDownToClose> createState() => _PullDownToCloseState();
+}
+
+class _PullDownToCloseState extends State<PullDownToClose> {
+  double _pulled = 0;
+
+  bool _onNotification(ScrollNotification n) {
+    if (n.depth != 0) return false;
+    if (n is ScrollStartNotification) {
+      _pulled = 0;
+    } else if (n is OverscrollNotification && n.dragDetails != null && n.overscroll < 0) {
+      _pulled -= n.overscroll;
+    } else if (n is ScrollUpdateNotification && n.dragDetails != null && n.metrics.pixels > n.metrics.minScrollExtent) {
+      _pulled = 0;
+    } else if (n is ScrollEndNotification) {
+      final close = _pulled >= widget.distance;
+      _pulled = 0;
+      if (close) widget.onClose();
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      NotificationListener<ScrollNotification>(onNotification: _onNotification, child: widget.child);
 }
