@@ -17,6 +17,8 @@ import 'download_button.dart';
 import '../../customize/presentation/track_text.dart';
 import 'download_status.dart';
 
+import '../../../widgets/list_search_field.dart';
+
 import 'package:kiji_player/l10n/l10n.dart';
 
 /// Sección "Descargadas" de la Biblioteca: lo que se puede escuchar sin
@@ -59,6 +61,9 @@ class DownloadsView extends ConsumerStatefulWidget {
 }
 
 class _DownloadsViewState extends ConsumerState<DownloadsView> {
+  /// Lo escrito en el buscador (normalizado).
+  String _query = '';
+
   /// Selección múltiple de las descargadas (mantener presionada una).
   final _selection = TrackSelection();
 
@@ -81,7 +86,10 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
   @override
   Widget build(BuildContext context) {
     final downloads = ref.watch(downloadsProvider);
-    final completed = downloads.completed.values.toList()..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
+    final completed = [
+      for (final d in downloads.completed.values.toList()..sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt)))
+        if (trackMatches(d.toTrack(), _query)) d,
+    ];
     final active = downloads.active.values.toList();
     final selecting = _selection.active;
 
@@ -134,7 +142,13 @@ class _DownloadsViewState extends ConsumerState<DownloadsView> {
                         ? tx.todaviaNoDescargasteNada
                         : '${tx.nCanciones(completed.length)} · ${formatBytes(downloads.usedBytes)}',
                   ),
-                  if (completed.isEmpty)
+                  // Buscador (0.9): con varias descargadas; lo elegido se mantiene al buscar.
+                  if (downloads.completed.length > 1)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                      child: ListSearchField(onChanged: (q) => setState(() => _query = q)),
+                    ),
+                  if (completed.isEmpty && _query.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(tx.buscaUnaCancionYTocaEl, style: TextStyle(color: AppColors.onSurfaceMuted)),

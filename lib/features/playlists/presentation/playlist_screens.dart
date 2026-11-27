@@ -19,7 +19,7 @@ import '../../favorites/favorites.dart';
 import '../../history/listening_history.dart';
 import '../../moments/data/moments_store.dart';
 import '../../moments/presentation/moments_screen.dart';
-import '../../queue/presentation/track_actions.dart';
+import '../../../widgets/list_search_field.dart';
 import '../../selection/track_selection.dart';
 import '../../account/data/account_store.dart';
 import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard;
@@ -143,9 +143,13 @@ String _count(int n) => tx.nCanciones(n);
 /// Pestaña Playlists de la Biblioteca: listas inteligentes y tus playlists (con [grid], tus
 /// playlists como tarjetas con su portada).
 class PlaylistsView extends ConsumerWidget {
-  const PlaylistsView({super.key, this.grid = false});
+  const PlaylistsView({super.key, this.grid = false, this.compact = false});
 
   final bool grid;
+
+  /// Biblioteca 0.9: solo tus playlists y «Me gusta» (las demás listas inteligentes tienen su
+  /// propia entrada), para que lo de abajo no quede lejos.
+  final bool compact;
 
   Widget _card(BuildContext context, Playlist playlist, double width) => SizedBox(
     width: width,
@@ -207,7 +211,17 @@ class PlaylistsView extends ConsumerWidget {
             ],
           ),
         ),
-        if (playlists.isEmpty)
+        // Compacta: «Me gusta» primero, siempre a mano.
+        if (compact)
+          ListTile(
+            key: const Key('library-liked'),
+            leading: Icon(Icons.favorite_rounded, color: KijiColors.violet),
+            title: Text(SmartList.liked.title),
+            subtitle: Text(_count(SmartList.liked.compute(inputs).length), style: TextStyle(color: KijiColors.muted)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => SmartListScreen.open(context, SmartList.liked),
+          ),
+        if (playlists.isEmpty && !compact)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(tx.todaviaNoCreasteNingunaMantenPresionada, style: TextStyle(color: KijiColors.muted)),
@@ -309,11 +323,12 @@ class PlaylistsView extends ConsumerWidget {
               ),
           ];
         }(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-          child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
-        ),
-        for (final list in SmartList.values)
+        if (!compact)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+            child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
+          ),
+        for (final list in compact ? const <SmartList>[] : SmartList.values)
           ListTile(
             leading: Icon(Icons.auto_awesome_rounded, color: KijiColors.cyan),
             title: Text(list.title),
@@ -782,7 +797,7 @@ class _DownloadFilterBar extends StatelessWidget {
 }
 
 /// Una lista inteligente: se calcula sola con su regla, siempre visible.
-class SmartListScreen extends ConsumerWidget {
+class SmartListScreen extends ConsumerStatefulWidget {
   const SmartListScreen({super.key, required this.list});
 
   final SmartList list;
@@ -791,30 +806,132 @@ class SmartListScreen extends ConsumerWidget {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => SmartListScreen(list: list)));
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tracks = list.compute(ref.watch(smartListInputsProvider));
+  ConsumerState<SmartListScreen> createState() => _SmartListScreenState();
+}
+
+/// Lista inteligente (Me gusta, Más escuchadas…), con buscador y selección múltiple (0.9).
+class _SmartListScreenState extends ConsumerState<SmartListScreen> {
+  final _selection = TrackSelection();
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _selection.addListener(_changed);
+  }
+
+  void _changed() => setState(() {});
+
+  @override
+  void dispose() {
+    _selection
+      ..removeListener(_changed)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final list = widget.list;
+    final all = list.compute(ref.watch(smartListInputsProvider));
+    final tracks = [
+      for (final t in all)
+        if (trackMatches(t, _query)) t,
+    ];
     return Scaffold(
       appBar: AppBar(),
+      body: Stack(
+        children: [
+          ListView(
+            padding: const EdgeInsets.only(bottom: 120),
+            children: [
+              _ListHeader(title: list.title, subtitle: tx.regla(list.rule), tracks: all),
+              if (all.length > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                  child: ListSearchField(onChanged: (q) => setState(() => _query = q)),
+                ),
+              if (all.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    tx.porAhoraNoHayCancionesQue,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: KijiColors.muted),
+                  ),
+                ),
+              for (final (index, track) in tracks.indexed)
+                ListTile(
+                  key: Key('smart-${track.id}'),
+                  selected: _selection.contains(track.id),
+                  selectedTileColor: KijiSelected.tile,
+                  leading: _selection.active
+                      ? SelectionCheck(selected: _selection.contains(track.id))
+                      : TrackArtwork(track: track, size: 44, radius: 8),
+                  title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  onTap: () {
+                    if (_selection.tapWithKeys(track.id, track, [for (final t in tracks) MapEntry(t.id, t)])) return;
+                    _selection.active
+                        ? _selection.toggle(track.id, track)
+                        : ref.read(playbackProvider.notifier).playQueue(tracks, startIndex: index);
+                  },
+                  // Mantener presionada: empieza a elegir (con una sola, «Más» trae el menú de siempre).
+                  onLongPress: () => _selection.toggle(track.id, track),
+                ),
+            ],
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SelectionBar(
+              selection: _selection,
+              all: {for (final t in tracks) t.id: t},
+              remove: list == SmartList.liked
+                  ? SelectionRemoveAction(
+                      label: tx.quitarDeMeGusta,
+                      icon: Icons.heart_broken_outlined,
+                      onRemove: (keys, _) async => ref.read(favoritesProvider.notifier).removeIds(keys),
+                    )
+                  : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Todas las listas inteligentes (Biblioteca 0.9: su propia entrada en «Tu música»).
+class SmartListsScreen extends ConsumerWidget {
+  const SmartListsScreen({super.key});
+
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SmartListsScreen()));
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inputs = ref.watch(smartListInputsProvider);
+    return Scaffold(
+      appBar: AppBar(title: Text(tx.listasInteligentes)),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 120),
         children: [
-          _ListHeader(title: list.title, subtitle: tx.regla(list.rule), tracks: tracks),
-          if (tracks.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                tx.porAhoraNoHayCancionesQue,
-                textAlign: TextAlign.center,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
+          ),
+          for (final list in SmartList.values)
+            ListTile(
+              key: Key('smart-list-${list.name}'),
+              leading: Icon(Icons.auto_awesome_rounded, color: KijiColors.cyan),
+              title: Text(list.title),
+              subtitle: Text(
+                '${list.rule.replaceFirst(RegExp(r'\.$'), '')} · ${_count(list.compute(inputs).length)}',
                 style: TextStyle(color: KijiColors.muted),
               ),
-            ),
-          for (final (index, track) in tracks.indexed)
-            ListTile(
-              leading: TrackArtwork(track: track, size: 44, radius: 8),
-              title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-              subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-              onTap: () => ref.read(playbackProvider.notifier).playQueue(tracks, startIndex: index),
-              onLongPress: () => showTrackActions(context, ref, track),
+              onTap: () => SmartListScreen.open(context, list),
             ),
         ],
       ),

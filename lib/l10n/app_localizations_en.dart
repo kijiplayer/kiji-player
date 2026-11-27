@@ -5316,4 +5316,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get politicaDePrivacidadDescripcion =>
       'What Kiji stores and which services it connects to. Opens in your browser.';
+
+  @override
+  String get buscarEnEstaLista => 'Search this list';
+
+  @override
+  String get buscarEnTuBiblioteca => 'Search your library';
+
+  @override
+  String get tuMusica => 'YOUR MUSIC';
+
+  @override
+  String get queVerEnLaBiblioteca => 'What to show in your Library';
+
+  @override
+  String get queVerEnLaBibliotecaNota =>
+      'Choose what shows up. Hiding something doesn\'t delete it.';
+
+  @override
+  String get musicaDelDispositivo => 'Music on this device';
+
+  @override
+  String get musicaDelDispositivoNota =>
+      'Songs saved on your phone or PC show up in your Library, next to your downloads.';
+
+  @override
+  String get musicaDelDispositivoPregunta => 'Show the music on this device?';
+
+  @override
+  String get musicaDelDispositivoPreguntaNota =>
+      'Kiji can show the songs you already have saved, next to the ones you download. If you\'d rather see only Kiji\'s, choose “No”: you can change it in Settings.';
+
+  @override
+  String get siMostrarla => 'Yes, show it';
+
+  @override
+  String get noSoloKiji => 'No, only Kiji\'s';
+
+  @override
+  String get nadaEnTuBiblioteca => 'Nothing by that name in your Library.';
+
+  @override
+  String get necesitaMusicaDelDispositivo => 'With the music on this device';
+
+  @override
+  String get quitarDescarga => 'Remove download';
+
+  @override
+  String get listasInteligentes => 'Smart lists';
+
+  @override
+  String get calculadasEnTuTelefono => 'Calculated on your phone';
 }

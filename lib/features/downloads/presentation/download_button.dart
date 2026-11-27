@@ -51,7 +51,8 @@ class _DownloadButtonState extends ConsumerState<DownloadButton> {
       return IconButton(
         key: const ValueKey('done'),
         icon: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
-        tooltip: tx.descargada,
+        // Tocarla la quita (con confirmación): el botón de descargar es también «Quitar descarga».
+        tooltip: tx.quitarDescarga,
         onPressed: () => confirmDeleteDownload(context, ref, widget.track.title, videoId),
       );
     }

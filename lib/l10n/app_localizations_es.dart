@@ -5327,4 +5327,57 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get politicaDePrivacidadDescripcion =>
       'Qué guarda Kiji y a qué servicios se conecta. Se abre en el navegador.';
+
+  @override
+  String get buscarEnEstaLista => 'Buscar en esta lista';
+
+  @override
+  String get buscarEnTuBiblioteca => 'Buscar en tu biblioteca';
+
+  @override
+  String get tuMusica => 'TU MÚSICA';
+
+  @override
+  String get queVerEnLaBiblioteca => 'Qué ver en la Biblioteca';
+
+  @override
+  String get queVerEnLaBibliotecaNota =>
+      'Elige qué aparece. Lo que ocultes no se borra.';
+
+  @override
+  String get musicaDelDispositivo => 'Música de este dispositivo';
+
+  @override
+  String get musicaDelDispositivoNota =>
+      'Las canciones guardadas en el teléfono o la PC aparecen en la Biblioteca, junto a las descargadas.';
+
+  @override
+  String get musicaDelDispositivoPregunta =>
+      '¿Quieres ver la música de este dispositivo?';
+
+  @override
+  String get musicaDelDispositivoPreguntaNota =>
+      'Kiji puede mostrar las canciones que ya tienes guardadas, junto a las que bajes. Si prefieres solo lo de Kiji, elige «No»: se puede cambiar en Configuración.';
+
+  @override
+  String get siMostrarla => 'Sí, mostrarla';
+
+  @override
+  String get noSoloKiji => 'No, solo lo de Kiji';
+
+  @override
+  String get nadaEnTuBiblioteca => 'Nada con ese nombre en tu biblioteca.';
+
+  @override
+  String get necesitaMusicaDelDispositivo =>
+      'Con la música de este dispositivo';
+
+  @override
+  String get quitarDescarga => 'Quitar descarga';
+
+  @override
+  String get listasInteligentes => 'Listas inteligentes';
+
+  @override
+  String get calculadasEnTuTelefono => 'Calculadas en tu teléfono';
 }

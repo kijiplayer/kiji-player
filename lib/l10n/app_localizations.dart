@@ -8620,6 +8620,102 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Qué guarda Kiji y a qué servicios se conecta. Se abre en el navegador.'**
   String get politicaDePrivacidadDescripcion;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en esta lista'**
+  String get buscarEnEstaLista;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en tu biblioteca'**
+  String get buscarEnTuBiblioteca;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'TU MÚSICA'**
+  String get tuMusica;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Qué ver en la Biblioteca'**
+  String get queVerEnLaBiblioteca;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Elige qué aparece. Lo que ocultes no se borra.'**
+  String get queVerEnLaBibliotecaNota;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Música de este dispositivo'**
+  String get musicaDelDispositivo;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Las canciones guardadas en el teléfono o la PC aparecen en la Biblioteca, junto a las descargadas.'**
+  String get musicaDelDispositivoNota;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'¿Quieres ver la música de este dispositivo?'**
+  String get musicaDelDispositivoPregunta;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede mostrar las canciones que ya tienes guardadas, junto a las que bajes. Si prefieres solo lo de Kiji, elige «No»: se puede cambiar en Configuración.'**
+  String get musicaDelDispositivoPreguntaNota;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Sí, mostrarla'**
+  String get siMostrarla;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'No, solo lo de Kiji'**
+  String get noSoloKiji;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Nada con ese nombre en tu biblioteca.'**
+  String get nadaEnTuBiblioteca;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Con la música de este dispositivo'**
+  String get necesitaMusicaDelDispositivo;
+
+  /// No description provided for @quitarDescarga.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar descarga'**
+  String get quitarDescarga;
+
+  /// No description provided for @listasInteligentes.
+  ///
+  /// In es, this message translates to:
+  /// **'Listas inteligentes'**
+  String get listasInteligentes;
+
+  /// No description provided for @calculadasEnTuTelefono.
+  ///
+  /// In es, this message translates to:
+  /// **'Calculadas en tu teléfono'**
+  String get calculadasEnTuTelefono;
 }
 
 class _AppLocalizationsDelegate

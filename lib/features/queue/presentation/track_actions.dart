@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/track.dart';
+import '../../../providers/downloads_provider.dart';
 import '../../../providers/playback_provider.dart';
+import '../../downloads/presentation/download_button.dart' show confirmDeleteDownload;
+import '../../selection/track_selection.dart' show TrackSelection, downloadSelection;
 import '../../customize/presentation/customize_sheets.dart';
 import '../../playback_extras/data/share_track.dart';
 import '../../playlists/presentation/playlist_screens.dart';
@@ -20,9 +23,12 @@ import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
 /// PC): "Reproducir a continuación" y "Agregar a la cola".
 Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) {
   final messenger = ScaffoldMessenger.of(context);
+  // El de la pantalla de atrás: el de la hoja deja de servir al cerrarla.
+  final outer = context;
   final notifier = ref.read(playbackProvider.notifier);
   // "Pausar al terminar esta" solo tiene sentido si la canción está en la cola.
   final inQueue = ref.read(playbackProvider).queue.any((t) => t.id == track.id);
+  final downloaded = ref.read(downloadsProvider).completed.containsKey(track.youtubeVideoId);
 
   void done(String message) => messenger
     ..hideCurrentSnackBar()
@@ -66,6 +72,28 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
               showAddToPlaylistSheet(context, ref, [track]);
             },
           ),
+          // Descargar o, si ya está, «Quitar descarga» (0.9: en el mismo lugar donde se descarga).
+          if (track.youtubeVideoId case final videoId?)
+            if (downloaded)
+              ListTile(
+                key: const Key('track-action-remove-download'),
+                leading: const Icon(Icons.file_download_off_outlined),
+                title: Text(tx.quitarDescarga),
+                onTap: () {
+                  Navigator.pop(context);
+                  confirmDeleteDownload(outer, ref, track.title, videoId);
+                },
+              )
+            else
+              ListTile(
+                key: const Key('track-action-download'),
+                leading: const Icon(Icons.download_rounded),
+                title: Text(tx.descargar),
+                onTap: () {
+                  Navigator.pop(context);
+                  downloadSelection(outer, ref, TrackSelection()..toggle(track.id, track));
+                },
+              ),
           ListTile(
             leading: const Icon(Icons.edit_outlined),
             title: Text(tx.personalizar2),

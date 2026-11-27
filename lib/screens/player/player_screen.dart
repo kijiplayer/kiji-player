@@ -426,16 +426,8 @@ class _TitleRow extends ConsumerWidget {
       // Reacciones de teatro: 🍅 y 🌹 (en el modo compacto no entran al lado de la portada chica;
       // sacudir el teléfono sigue tirando tomates).
       if (!compact) TheaterButtons(track: track),
-      if (track.youtubeVideoId != null)
-        downloaded
-            ? Tooltip(
-                message: tx.descargadaSuenaSinConexion,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Icon(Icons.download_done_rounded, color: KijiColors.cyan),
-                ),
-              )
-            : DownloadButton(track: track),
+      // Descargada: el mismo botón la quita (0.9: «Quitar descarga», con confirmación).
+      if (track.youtubeVideoId != null) DownloadButton(track: track),
       // "Agregar a playlist" a un toque.
       IconButton(
         tooltip: tx.agregarAPlaylist,
