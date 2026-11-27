@@ -16,19 +16,25 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// Una novedad: ícono, título y una línea.
 typedef WhatsNewItem = ({IconData icon, String title, String text});
 
-/// Lo nuevo de la 0.9, en tarjetas cortas. El ecualizador de 10 bandas es lo nuevo de Android
-/// (la PC ya lo tenía); lo de la PC va al final y solo en la PC. Sin descargas en el sabor «play».
+/// Lo nuevo de la 0.9, en tarjetas cortas y con lo más importante primero. El ecualizador de 10
+/// bandas es lo nuevo de Android (la PC ya lo tenía); lo de la PC va al final y solo en la PC. En el
+/// sabor «play», sin YouTube Music ni descargas.
 List<WhatsNewItem> whatsNewItems({required bool desktop}) => [
   (icon: Icons.library_music_outlined, title: tx.novedades09BibliotecaTitulo, text: tx.novedades09BibliotecaTexto),
-  (icon: Icons.manage_search_rounded, title: tx.novedades09BuscarTitulo, text: tx.novedades09BuscarTexto),
+  if (!isPlayStore)
+    (icon: Icons.sync_rounded, title: tx.novedades09YoutubeTitulo, text: tx.novedades09YoutubeTexto),
   if (!desktop)
     (icon: Icons.equalizer_rounded, title: tx.novedades09EcualizadorTitulo, text: tx.novedades09EcualizadorTexto),
-  (icon: Icons.fast_forward_rounded, title: tx.novedades09SponsorTitulo, text: tx.novedades09SponsorTexto),
-  if (!isPlayStore)
-    (icon: Icons.download_for_offline_outlined, title: tx.novedades09PlaylistTitulo, text: tx.novedades09PlaylistTexto),
-  (icon: Icons.podcasts_rounded, title: tx.novedades09ListenBrainzTitulo, text: tx.novedades09ListenBrainzTexto),
+  (
+    icon: Icons.speed_rounded,
+    title: tx.novedades09RapidaTitulo,
+    text: desktop ? tx.novedades09RapidaPcTexto : tx.novedades09RapidaTexto,
+  ),
   (icon: Icons.ios_share_rounded, title: tx.novedades09TarjetasTitulo, text: tx.novedades09TarjetasTexto),
   (icon: Icons.format_quote_rounded, title: tx.novedades09FrasesTitulo, text: tx.novedades09FrasesTexto),
+  (icon: Icons.fast_forward_rounded, title: tx.novedades09SponsorTitulo, text: tx.novedades09SponsorTexto),
+  if (!isPlayStore && !desktop)
+    (icon: Icons.download_for_offline_outlined, title: tx.novedades09PlaylistTitulo, text: tx.novedades09PlaylistTexto),
   if (desktop) (icon: Icons.desktop_windows_outlined, title: tx.novedades09PcTitulo, text: tx.novedades09PcTexto),
 ];
 

@@ -5018,6 +5018,24 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ya tienes la sesión: activa «Sincronizar» en Configuración → Cuenta.';
 
   @override
+  String get novedades09YoutubeTitulo => 'YouTube Music de ida y vuelta';
+
+  @override
+  String get novedades09YoutubeTexto =>
+      'Tus playlists de YouTube Music en Kiji, con todas las opciones. Lo que cambies se manda a tu cuenta al tocar «Sincronizar». Es opcional.';
+
+  @override
+  String get novedades09RapidaTitulo => 'Más rápida';
+
+  @override
+  String get novedades09RapidaTexto =>
+      'La búsqueda ya no se traba y el vidrio tiene refracción de verdad, sin gastar más.';
+
+  @override
+  String get novedades09RapidaPcTexto =>
+      'Abre en menos de un segundo, se desliza sin saltos y usa la mitad de memoria.';
+
+  @override
   String get novedades09Subtitulo =>
       'Kiji 0.9: más simple y con más para escuchar. Esto es lo mejor:';
 
@@ -5027,13 +5045,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get novedades09BibliotecaTexto =>
       'Una sola lista: arriba tus playlists, abajo tu música. Tú eliges qué se ve, y la música del teléfono es opcional.';
-
-  @override
-  String get novedades09BuscarTitulo => 'Buscar y elegir en todas las listas';
-
-  @override
-  String get novedades09BuscarTexto =>
-      'Cada lista tiene su buscador y selección múltiple, y lo elegido se mantiene al buscar otra cosa.';
 
   @override
   String get novedades09EcualizadorTitulo => 'Ecualizador de 10 bandas';
@@ -5055,13 +5066,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get novedades09PlaylistTexto =>
       'Descárgala con un toque, con pausa y cancelar.';
-
-  @override
-  String get novedades09ListenBrainzTitulo => 'ListenBrainz';
-
-  @override
-  String get novedades09ListenBrainzTexto =>
-      'Guarda lo que escuchas en tu propia cuenta de ListenBrainz, si quieres. Es opcional.';
 
   @override
   String get novedades09TarjetasTitulo => 'Tarjetas para compartir';
