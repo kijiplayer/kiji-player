@@ -20,6 +20,7 @@ import '../../selection/track_selection.dart';
 import '../../settings/data/settings_store.dart';
 import '../../settings/domain/app_settings.dart';
 import '../../settings/domain/setting_search.dart' show normalizeForSearch;
+import '../../account/presentation/account_screens.dart' show YtConnectCard;
 import 'local_library_screen.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -133,6 +134,8 @@ class _LibraryHomeState extends ConsumerState<LibraryHome> {
             Text(tx.tuMusica, style: KijiText.mono(size: 11)),
             const SizedBox(height: 8),
             _MusicCard(settings: settings, songCount: songs.length),
+            // «Conecta tu YouTube Music (opcional)», al final: no tapa lo de arriba.
+            const Padding(padding: EdgeInsets.only(top: 12), child: YtConnectCard()),
           ],
         ],
       ),
@@ -200,11 +203,11 @@ class _MusicCard extends ConsumerWidget {
     final entries = settings.libraryEntries;
     final phone = settings.showsPhoneMusic;
     final downloads = ref.watch(downloadsProvider.select((d) => d.completed.length));
-    Widget entry(LibraryTab tab, IconData icon, String subtitle) => ListTile(
+    Widget entry(LibraryTab tab, IconData icon, [String? subtitle]) => ListTile(
       key: Key('library-entry-${tab.name}'),
       leading: Icon(icon, color: KijiColors.cyan),
       title: Text(tab.label),
-      subtitle: Text(subtitle, style: TextStyle(color: KijiColors.muted)),
+      subtitle: subtitle == null ? null : Text(subtitle, style: TextStyle(color: KijiColors.muted)),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () => LocalLibraryScreen.openSection(context, tab),
     );
@@ -213,9 +216,9 @@ class _MusicCard extends ConsumerWidget {
       if (entries.contains('downloads'))
         entry(LibraryTab.downloads, Icons.download_done_rounded, '${tx.nCanciones(downloads)} · ${tx.sinInternet}'),
       // Artistas, Álbumes y Carpetas salen de la música del dispositivo.
-      if (phone && entries.contains('artists')) entry(LibraryTab.artists, Icons.person_outline_rounded, tx.artistas),
-      if (phone && entries.contains('albums')) entry(LibraryTab.albums, Icons.album_outlined, tx.albumes),
-      if (phone && entries.contains('folders')) entry(LibraryTab.folders, Icons.folder_outlined, tx.carpetas),
+      if (phone && entries.contains('artists')) entry(LibraryTab.artists, Icons.person_outline_rounded),
+      if (phone && entries.contains('albums')) entry(LibraryTab.albums, Icons.album_outlined),
+      if (phone && entries.contains('folders')) entry(LibraryTab.folders, Icons.folder_outlined),
       // Las listas inteligentes (Más escuchadas, Recientes…), juntas en su pantalla.
       ListTile(
         key: const Key('library-entry-smart'),
@@ -244,7 +247,16 @@ class PhoneMusicQuestion extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void choose(String value) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(phoneMusic: value));
+    Future<void> choose(String value) async {
+      // La tarjeta se va al elegir: lo de Riverpod se toma antes (su `ref` deja de servir).
+      final container = ProviderScope.containerOf(context, listen: false);
+      await container.read(settingsProvider.notifier).update((s) => s.copyWith(phoneMusic: value));
+      if (value != 'on') return;
+      // «Sí»: el permiso se pide ahora (en Android; en la PC se elige la carpeta al abrir Canciones).
+      final source = container.read(localLibrarySourceProvider);
+      if (!source.usesFolders && !await source.hasAccess()) await source.requestAccess();
+      container.invalidate(localTracksProvider);
+    }
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: Glass(

@@ -30,6 +30,8 @@ class AppSettings {
     this.libraryTab = 'playlists', // l10n-ignore
     this.phoneMusic = 'ask',
     this.libraryEntries = defaultLibraryEntries,
+    this.sponsorBlock = false,
+    this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
     this.theaterVibration = true,
@@ -194,6 +196,13 @@ class AppSettings {
   final List<String> libraryEntries;
   static const libraryEntryNames = ['playlists', 'songs', 'downloads', 'artists', 'albums', 'folders']; // l10n-ignore
   static const defaultLibraryEntries = ['playlists', 'songs', 'downloads', 'folders']; // l10n-ignore
+
+  /// Saltar las partes sin música con SponsorBlock (0.9). Apagado de fábrica: manda un prefijo
+  /// del hash del ID del video a SponsorBlock.
+  final bool sponsorBlock;
+
+  /// Qué categorías de SponsorBlock saltar (nombres de su API).
+  final List<String> sponsorBlockCategories;
 
   /// Sincronizar con YouTube (solo con sesión iniciada): leer "Me gusta" y las playlists de la
   /// cuenta. Apagado de fábrica; solo lectura.
@@ -363,6 +372,8 @@ class AppSettings {
     String? libraryTab,
     String? phoneMusic,
     List<String>? libraryEntries,
+    bool? sponsorBlock,
+    List<String>? sponsorBlockCategories,
     bool? ytSync,
     bool? theaterReactions,
     bool? theaterVibration,
@@ -433,6 +444,8 @@ class AppSettings {
         libraryTab: libraryTab ?? this.libraryTab,
         phoneMusic: phoneMusic ?? this.phoneMusic,
         libraryEntries: libraryEntries ?? this.libraryEntries,
+        sponsorBlock: sponsorBlock ?? this.sponsorBlock,
+        sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
         theaterVibration: theaterVibration ?? this.theaterVibration,
@@ -502,6 +515,8 @@ class AppSettings {
         'libraryTab': libraryTab,
         'phoneMusic': phoneMusic,
         'libraryEntries': libraryEntries,
+        'sponsorBlock': sponsorBlock,
+        'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
         'theaterVibration': theaterVibration,
@@ -586,6 +601,13 @@ class AppSettings {
                 if (e is String && libraryEntryNames.contains(e)) e,
             ]
           : d.libraryEntries,
+      sponsorBlock: read('sponsorBlock', d.sponsorBlock),
+      sponsorBlockCategories: json['sponsorBlockCategories'] is List
+          ? [
+              for (final e in json['sponsorBlockCategories'] as List)
+                if (e is String) e,
+            ]
+          : d.sponsorBlockCategories,
       ytSync: read('ytSync', d.ytSync),
       theaterReactions: read('theaterReactions', d.theaterReactions),
       theaterVibration: read('theaterVibration', d.theaterVibration),

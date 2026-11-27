@@ -60,6 +60,8 @@ import '../../style/presentation/personalize_screen.dart';
 import '../../style/presentation/theme_files.dart';
 import '../../style/presentation/style_parts.dart';
 import '../../local_library/presentation/library_home.dart' show showLibraryEntriesSheet;
+import '../../sponsorblock/sponsorblock.dart' show SkipCategory;
+import '../../scrobble/listenbrainz_tile.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
 /// descripción corta.
@@ -291,6 +293,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             if (!value) await ref.read(playbackProvider.notifier).forgetSavedQueue();
           },
         ),
+      ),
+      // Saltar las partes sin música (SponsorBlock, 0.9): apagado de fábrica y explicado.
+      SettingOption(
+        section: SettingsSection.player,
+        title: tx.saltarSinMusica,
+        subtitle: tx.saltarSinMusicaNota,
+        keywords: const ['sponsorblock', 'intro', 'saltar', 'skip', 'outro', 'dialogo', 'videos'], // l10n-ignore
+        builder: (context, ref) {
+          final on = ref.watch(settingsProvider.select((s) => s.sponsorBlock));
+          final chosen = ref.watch(settingsProvider.select((s) => s.sponsorBlockCategories));
+          final notifier = ref.read(settingsProvider.notifier);
+          return Column(
+            children: [
+              SwitchListTile(
+                key: const Key('settings-sponsorblock'),
+                secondary: const Icon(Icons.fast_forward_outlined),
+                title: Text(tx.saltarSinMusica),
+                subtitle: Text(tx.saltarSinMusicaNota),
+                isThreeLine: true,
+                value: on,
+                onChanged: (v) => notifier.update((s) => s.copyWith(sponsorBlock: v)),
+              ),
+              if (on)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        for (final c in SkipCategory.values)
+                          FilterChip(
+                            key: Key('sponsorblock-${c.apiName}'),
+                            label: Text(c.label),
+                            selected: chosen.contains(c.apiName),
+                            onSelected: (v) => notifier.update(
+                              (s) => s.copyWith(
+                                sponsorBlockCategories: [
+                                  for (final k in SkipCategory.values)
+                                    if (k == c ? v : s.sponsorBlockCategories.contains(k.apiName)) k.apiName,
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
       SettingOption(
         section: SettingsSection.player,
@@ -1181,6 +1235,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: tx.cuentaOpcionalNota,
         keywords: ['cuenta', 'account', 'google', 'youtube', 'login', tx.iniciarSesion2, tx.cerrarSesion, 'edad'], // l10n-ignore
         builder: (context, ref) => const AccountStatusTile(),
+      ),
+      // Scrobbling a ListenBrainz (0.9): opcional, con el token del usuario.
+      SettingOption(
+        section: SettingsSection.account,
+        title: tx.scrobblingListenBrainz,
+        subtitle: tx.scrobblingListenBrainzNota,
+        keywords: const ['scrobble', 'scrobbling', 'listenbrainz', 'lastfm', 'historial', 'history'], // l10n-ignore
+        builder: (context, ref) => const ListenBrainzTile(),
       ),
       SettingOption(
         section: SettingsSection.account,

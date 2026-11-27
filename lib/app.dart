@@ -36,6 +36,8 @@ import 'widgets/global_mini_player.dart';
 import 'utils/clock_format.dart';
 import 'widgets/playback_shortcuts.dart';
 import 'features/moments/presentation/moment_marks.dart';
+import 'features/sponsorblock/sponsorblock_watch.dart';
+import 'features/scrobble/scrobble_provider.dart';
 import 'features/account/data/account_store.dart';
 import 'features/account/presentation/account_screens.dart';
 import 'features/welcome/data/welcome_store.dart';
@@ -88,6 +90,10 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     ErrorReporter.instance.pending.addListener(_offerReport);
     // Repetir un tramo (Momentos): vuelve al principio al llegar al final.
     watchMomentLoop(ref);
+    // Saltar las partes sin música (SponsorBlock): solo si se prendió.
+    watchSponsorBlock(ref);
+    // Scrobbling a ListenBrainz: solo si el usuario conectó su cuenta.
+    watchScrobble(ref);
     // Cuenta opcional: se carga la sesión guardada (si hay) y se ofrece cuando una canción la necesita.
     ref.read(accountProvider);
     ref.listenManual(accountOfferProvider, (_, offer) {

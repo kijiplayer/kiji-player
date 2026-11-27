@@ -271,7 +271,8 @@ class PlaylistsView extends ConsumerWidget {
           onTap: () => MomentsScreen.open(context),
         ),
         // Sin sesión: "Conecta tu YouTube Music (opcional)" (se puede cerrar para siempre).
-        const YtConnectCard(),
+        // En la Biblioteca 0.9 (compacta), esta tarjeta va al final, debajo de «Tu música».
+        if (!compact) const YtConnectCard(),
         // Con sesión, si YouTube la rechazó: "Tu sesión venció. Vuelve a iniciarla".
         const SessionExpiredBanner(),
         // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
@@ -352,6 +353,7 @@ class _ListHeader extends ConsumerWidget {
     this.cover,
     this.description,
     this.onMore,
+    this.onDownload,
   });
 
   final String title;
@@ -364,6 +366,9 @@ class _ListHeader extends ConsumerWidget {
 
   /// El ⋯ grande con todas las opciones; null = sin botón.
   final VoidCallback? onMore;
+
+  /// Descargar toda la playlist de un toque (0.9); null = sin botón.
+  final VoidCallback? onDownload;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -412,8 +417,15 @@ class _ListHeader extends ConsumerWidget {
                       label: Text(tx.aleatorio, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                   ),
+                  if (onMore != null || onDownload != null) const Spacer(),
+                  if (onDownload != null)
+                    IconButton.filledTonal(
+                      key: const Key('playlist-download-all'),
+                      tooltip: tx.descargarTodaLaPlaylist,
+                      onPressed: onDownload,
+                      icon: const Icon(Icons.download_for_offline_outlined),
+                    ),
                   if (onMore != null) ...[
-                    const Spacer(),
                     IconButton.filledTonal(
                       tooltip: tx.masOpciones,
                       iconSize: 28,
@@ -628,6 +640,11 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                     ? _count(playlist.tracks.length)
                     : tx.importadaDe(_count(playlist.tracks.length), playlist.importedFrom),
                 tracks: playlist.tracks,
+                // De un toque: el mismo aviso de antes (cuánto ocupa) y después, la tarjeta con
+                // avance, Pausar/Seguir y Cancelar.
+                onDownload: playlist.tracks.any((t) => t.youtubeVideoId != null)
+                    ? () => confirmPlaylistDownload(context, ref, playlist)
+                    : null,
                 onMore: () => showPlaylistOptions(
                   context,
                   ref,

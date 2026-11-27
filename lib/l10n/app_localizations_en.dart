@@ -5367,4 +5367,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calculadasEnTuTelefono => 'Calculated on your phone';
+
+  @override
+  String get skipSinMusica => 'Non-music parts';
+
+  @override
+  String get skipIntro => 'Intro';
+
+  @override
+  String get skipOutro => 'Outro';
+
+  @override
+  String get skipAvance => 'Preview';
+
+  @override
+  String get skipAutopromocion => 'Self-promotion';
+
+  @override
+  String get skipPatrocinio => 'Sponsor';
+
+  @override
+  String get skipSuscribete => '“Subscribe”';
+
+  @override
+  String get saltarSinMusica => 'Skip non-music parts';
+
+  @override
+  String get saltarSinMusicaNota =>
+      'In music videos, skips intros, outros and dialogue using the public SponsorBlock database. Off by default. To find the parts, SponsorBlock receives a piece of the video\'s code (the first 4 characters of its hash), nothing else.';
+
+  @override
+  String get queSaltar => 'What to skip';
+
+  @override
+  String saltadoCategoria(String category) {
+    return 'Skipped: $category';
+  }
+
+  @override
+  String get editarEtiquetas => 'Edit tags';
+
+  @override
+  String get editarEtiquetasNota =>
+      'Changes the title, artist, album and cover in the file. Kiji writes to a copy first and checks it: if anything fails, the file stays as it was.';
+
+  @override
+  String get etiquetasGuardadas => 'Tags saved to the file.';
+
+  @override
+  String get etiquetasFormatoNoSoportado =>
+      'Kiji can\'t write tags in this format yet (it can in MP3, M4A, FLAC and WAV).';
+
+  @override
+  String get etiquetasNoPermitido =>
+      'The system doesn\'t let Kiji change this file. You can change how it looks just in Kiji.';
+
+  @override
+  String get etiquetasNoSePudo =>
+      'The tags couldn\'t be saved. The file stayed as it was.';
+
+  @override
+  String get portadaElegida => 'Cover chosen';
+
+  @override
+  String get scrobblingListenBrainz => 'Scrobbling to ListenBrainz';
+
+  @override
+  String get scrobblingListenBrainzNota =>
+      'Optional: saves what you listen to in your ListenBrainz account. Off.';
+
+  @override
+  String get listenBrainzExplicacion =>
+      'Every song you listen to (more than half, or 4 minutes) is sent to your ListenBrainz account: artist, title, album and the time. It goes straight from this device to ListenBrainz. Your token is stored encrypted only here, and you can disconnect anytime.';
+
+  @override
+  String get tuTokenDeListenBrainz => 'Your ListenBrainz token';
+
+  @override
+  String get dondeEstaMiToken => 'Where\'s my token?';
+
+  @override
+  String get tokenNoValido => 'ListenBrainz didn\'t accept that token.';
+
+  @override
+  String get conectar => 'Connect';
+
+  @override
+  String get desconectar => 'Disconnect';
+
+  @override
+  String conectadoComo(String user) {
+    return 'Connected as $user';
+  }
 }
