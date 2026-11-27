@@ -95,8 +95,10 @@
         <div class="svc"><h3>Google Gemini <small>(opcional)</small></h3><p><strong>Cuándo:</strong> Solo si pones tu propia clave de Gemini y pides traducir una letra con Gemini.</p><p><strong>Qué se manda:</strong> Las líneas de la letra y el idioma de destino, con tu clave. Kiji no ve ni guarda nada de eso fuera de tu dispositivo.</p></div>
         <div class="svc"><h3>Spotify, Apple Music, SoundCloud</h3><p><strong>Cuándo:</strong> Solo cuando pegas un enlace de una playlist para importarla.</p><p><strong>Qué se manda:</strong> Se abre esa página pública para leer los nombres de las canciones.</p></div>
         <div class="svc"><h3>yt-dlp (GitHub) <small>(solo en la PC)</small></h3><p><strong>Cuándo:</strong> Solo si aceptas usar el motor yt-dlp. Después, una vez por semana, se revisa si hay una versión nueva.</p><p><strong>Qué se manda:</strong> Se baja el programa oficial y se comprueba su huella. No se manda nada tuyo.</p></div>
+        <div class="svc"><h3>SponsorBlock <small>(opcional, desde la 0.9)</small></h3><p><strong>Cuándo:</strong> Solo si prendes «Saltar las partes sin música» (Configuración → Reproductor; apagado de fábrica), al empezar una canción de YouTube.</p><p><strong>Qué se manda:</strong> Los primeros 4 caracteres del hash SHA-256 del identificador del video, y las categorías que elegiste. No se manda el identificador del video: SponsorBlock devuelve los tramos de muchos videos y Kiji elige el suyo en tu dispositivo.</p></div>
+        <div class="svc"><h3>ListenBrainz <small>(opcional, desde la 0.9)</small></h3><p><strong>Cuándo:</strong> Solo si conectas tu cuenta con tu token (Configuración → Cuenta). Cada vez que escuchas más de la mitad de una canción (o 4 minutos).</p><p><strong>Qué se manda:</strong> Artista, título, álbum, duración y la hora en que la escuchaste, con tu token. Tu token se guarda cifrado solo en tu dispositivo; al desconectar, se borra.</p></div>
       </div>
-      <p>Si en el futuro Kiji agrega otro servicio (por ejemplo, SponsorBlock para saltar las partes sin música), va a ser opcional, se va a explicar en la app y se va a sumar a esta tabla.</p>
+      <p>Si en el futuro Kiji agrega otro servicio, va a ser opcional, se va a explicar en la app y se va a sumar a esta lista.</p>
 
       <h2>Si inicias sesión en YouTube</h2>
       <ul>
@@ -165,8 +167,10 @@
         <div class="svc"><h3>Google Gemini <small>(optional)</small></h3><p><strong>When:</strong> Only if you add your own Gemini key and ask to translate lyrics with Gemini.</p><p><strong>What is sent:</strong> The lyric lines and the target language, with your key. Kiji doesn't see or keep any of that outside your device.</p></div>
         <div class="svc"><h3>Spotify, Apple Music, SoundCloud</h3><p><strong>When:</strong> Only when you paste a playlist link to import it.</p><p><strong>What is sent:</strong> That public page is opened to read the song names.</p></div>
         <div class="svc"><h3>yt-dlp (GitHub) <small>(PC only)</small></h3><p><strong>When:</strong> Only if you accept the yt-dlp engine. After that, it checks for a new version once a week.</p><p><strong>What is sent:</strong> The official program is downloaded and its fingerprint is checked. Nothing of yours is sent.</p></div>
+        <div class="svc"><h3>SponsorBlock <small>(optional, since 0.9)</small></h3><p><strong>When:</strong> Only if you turn on “Skip non-music parts” (Settings → Player; off by default), when a YouTube song starts.</p><p><strong>What is sent:</strong> The first 4 characters of the SHA-256 hash of the video ID, and the categories you chose. The video ID itself is not sent: SponsorBlock returns the segments of many videos and Kiji picks its own on your device.</p></div>
+        <div class="svc"><h3>ListenBrainz <small>(optional, since 0.9)</small></h3><p><strong>When:</strong> Only if you connect your account with your token (Settings → Account). Each time you listen to more than half of a song (or 4 minutes).</p><p><strong>What is sent:</strong> Artist, title, album, duration and the time you listened, with your token. Your token is stored encrypted only on your device; disconnecting deletes it.</p></div>
       </div>
-      <p>If Kiji adds another service in the future (for example, SponsorBlock to skip non-music parts), it will be optional, explained in the app and added to this table.</p>
+      <p>If Kiji adds another service in the future, it will be optional, explained in the app and added to this list.</p>
 
       <h2>If you sign in to YouTube</h2>
       <ul>
