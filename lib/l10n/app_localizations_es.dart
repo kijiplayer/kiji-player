@@ -5472,4 +5472,64 @@ class AppLocalizationsEs extends AppLocalizations {
   String conectadoComo(String user) {
     return 'Conectado como $user';
   }
+
+  @override
+  String rachaDias(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count días seguidos escuchando',
+      one: '1 día seguido escuchando',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iniciarConLaPc => 'Iniciar Kiji al encender la PC';
+
+  @override
+  String get iniciarConLaPcNota =>
+      'Kiji arranca en la bandeja, sin abrir la ventana y sin sonar. Apagado de fábrica.';
+
+  @override
+  String get iniciarConLaPcNoSePudo =>
+      'Windows no dejó cambiar el inicio de Kiji. Prueba otra vez.';
+
+  @override
+  String get seguirDondeLoDeje => 'Seguir donde lo dejé';
+
+  @override
+  String get seguirDondeLoDejeNota => 'Deja lista la última canción, en pausa.';
+
+  @override
+  String get tarjetaSonandoAhora => 'Sonando ahora';
+
+  @override
+  String get tarjetaVinilo => 'Vinilo';
+
+  @override
+  String get tarjetaPoster => 'Póster';
+
+  @override
+  String get sonandoAhoraEnKiji => 'Sonando en Kiji';
+
+  @override
+  String get compartirTarjeta => 'Compartir tarjeta';
+
+  @override
+  String get compartirTarjetaNota =>
+      'Una imagen con la portada, el título y el artista';
+
+  @override
+  String get fraseDelDia => 'Frase del día';
+
+  @override
+  String get compartirFrase => 'Compartir la frase';
+
+  @override
+  String get frasesDelDia => 'Frase del día en Inicio';
+
+  @override
+  String get frasesDelDiaNota =>
+      'Frases de escritores, músicos y poetas de dominio público, elegidas según la hora y lo que escuchas. Todo en el dispositivo.';
 }

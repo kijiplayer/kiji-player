@@ -16,9 +16,12 @@ import 'features/system_media/data/system_media_controls_factory.dart';
 import 'providers/system_media_provider.dart';
 import 'utils/app_log.dart';
 import 'utils/startup_log.dart';
+import 'features/desktop/startup_entry.dart' show KijiLaunch;
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  // PC: arrancó con Windows (--startup): a la bandeja, sin ventana y sin sonar.
+  KijiLaunch.atStartup = args.contains(KijiLaunch.startupFlag);
   // Caché de imágenes decodificadas: las carátulas ya se decodifican al tamaño en pantalla
   // (album_cover.dart), así que 64 MB y 300 imágenes alcanzan (de fábrica: 100 MB y 1000).
   PaintingBinding.instance.imageCache

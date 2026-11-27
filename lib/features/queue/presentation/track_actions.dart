@@ -12,6 +12,7 @@ import '../../../providers/playback_provider.dart';
 import '../../downloads/presentation/download_button.dart' show confirmDeleteDownload;
 import '../../selection/track_selection.dart' show TrackSelection, downloadSelection;
 import '../../local_library/presentation/tag_editor_sheet.dart';
+import '../../share_cards/now_playing_card.dart' show showShareCardScreen;
 import '../../../widgets/global_mini_player.dart' show kijiNavigatorKey;
 import '../../customize/presentation/customize_sheets.dart';
 import '../../playback_extras/data/share_track.dart';
@@ -131,6 +132,17 @@ Future<void> showTrackActions(BuildContext context, WidgetRef ref, Track track) 
             onTap: () {
               Navigator.pop(context);
               shareTrack(track);
+            },
+          ),
+          // Tarjeta para historias o publicaciones (0.9): portada, título y artista; sin letras.
+          ListTile(
+            key: const Key('track-action-share-card'),
+            leading: const Icon(Icons.style_outlined),
+            title: Text(tx.compartirTarjeta),
+            subtitle: Text(tx.compartirTarjetaNota),
+            onTap: () {
+              Navigator.pop(context);
+              showShareCardScreen(outer(), track);
             },
           ),
           if (inQueue)

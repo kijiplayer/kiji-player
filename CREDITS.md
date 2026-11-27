@@ -55,6 +55,8 @@ personas que los construyen y mantienen.
 | [YouTube Music](https://music.youtube.com) | Letra sin sincronizar de la pestaña "Letra" | Id del video. |
 | [Mozilla Remote Settings](https://firefox.settings.services.mozilla.com) | Bajar una sola vez el motor y el modelo de un idioma para traducir en el teléfono | Nada de la canción: solo qué archivos de idioma se bajan. |
 | [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) (GitHub) | Tabla `player_configs.json` para descifrar el audio (motores A y B), como mucho cada 6 h | Nada tuyo: GitHub ve una consulta a un archivo público. |
+| [SponsorBlock](https://sponsor.ajay.app) (datos bajo [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)) | Saltar las partes sin música de los videos musicales (opcional, apagado de fábrica) | Los primeros 4 caracteres del hash SHA-256 del id del video, y las categorías elegidas. |
+| [ListenBrainz](https://listenbrainz.org) | Scrobbling (opcional, con tu propio token) | Artista, título, álbum, duración y la hora de cada canción escuchada. |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) (releases de GitHub, solo PC y a pedido) | Motor C de extracción, si el usuario lo acepta | Se baja el programa oficial y se verifica su huella; después le pide a YouTube el audio de la canción, como Kiji. |
 | [Google Gemini API](https://ai.google.dev) (opcional, apagado de fábrica) | Traducir letras con IA, con la clave del propio usuario | Solo las líneas de la letra y el idioma de destino, con la clave del usuario (cifrada en el dispositivo). |
 | [song.link / Odesli](https://odesli.co) | Enlace universal al compartir una canción | Nada desde Kiji: solo se arma el enlace con el id del video; lo abre quien lo recibe. |

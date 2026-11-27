@@ -1480,5 +1480,21 @@
   "tokenNoValido": "ListenBrainz didn't accept that token.",
   "conectar": "Connect",
   "desconectar": "Disconnect",
-  "conectadoComo": "Connected as {user}"
+  "conectadoComo": "Connected as {user}",
+  "rachaDias": "{count, plural, =1{1 day in a row listening} other{{count} days in a row listening}}",
+  "iniciarConLaPc": "Start Kiji when the PC turns on",
+  "iniciarConLaPcNota": "Kiji starts in the tray, without opening the window or playing. Off by default.",
+  "iniciarConLaPcNoSePudo": "Windows didn't let Kiji change its startup. Try again.",
+  "seguirDondeLoDeje": "Continue where I left off",
+  "seguirDondeLoDejeNota": "Has the last song ready, paused.",
+  "tarjetaSonandoAhora": "Now playing",
+  "tarjetaVinilo": "Vinyl",
+  "tarjetaPoster": "Poster",
+  "sonandoAhoraEnKiji": "Playing on Kiji",
+  "compartirTarjeta": "Share card",
+  "compartirTarjetaNota": "An image with the cover, title and artist",
+  "fraseDelDia": "Quote of the day",
+  "compartirFrase": "Share the quote",
+  "frasesDelDia": "Quote of the day on Home",
+  "frasesDelDiaNota": "Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device."
 }

@@ -360,6 +360,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ref.read(settingsProvider.notifier).update((s) => s.copyWith(playerButtonLabels: value)),
         ),
       ),
+      // Frase del día en Inicio (0.9): de dominio público, elegida en el dispositivo.
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.frasesDelDia,
+        subtitle: tx.frasesDelDiaNota,
+        keywords: const ['frase', 'cita', 'quote', 'inicio', 'home', 'poeta', 'escritor'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-daily-quotes'),
+          secondary: const Icon(Icons.format_quote_rounded),
+          title: Text(tx.frasesDelDia),
+          subtitle: Text(tx.frasesDelDiaNota),
+          value: ref.watch(settingsProvider.select((s) => s.dailyQuotes)),
+          onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(dailyQuotes: v)),
+        ),
+      ),
       SettingOption(
         section: SettingsSection.player,
         title: tx.reaccionesDeTeatro,
@@ -457,6 +472,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       // En la PC (bandeja, atajos globales, controles de Windows)
       if (DesktopWindow.isDesktop) ...[
+        // Iniciar con Windows (0.9): apagado de fábrica; en la bandeja, sin sonar.
+        if (defaultTargetPlatform == TargetPlatform.windows)
+          SettingOption(
+            section: SettingsSection.desktop,
+            title: tx.iniciarConLaPc,
+            subtitle: tx.iniciarConLaPcNota,
+            keywords: const ['inicio', 'startup', 'arrancar', 'encender', 'windows', 'boot', 'bandeja'],
+            builder: (context, ref) => const StartWithWindowsTile(),
+          ),
         SettingOption(
           section: SettingsSection.desktop,
           title: tx.alCerrarLaVentana,

@@ -5459,4 +5459,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String conectadoComo(String user) {
     return 'Connected as $user';
   }
+
+  @override
+  String rachaDias(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days in a row listening',
+      one: '1 day in a row listening',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iniciarConLaPc => 'Start Kiji when the PC turns on';
+
+  @override
+  String get iniciarConLaPcNota =>
+      'Kiji starts in the tray, without opening the window or playing. Off by default.';
+
+  @override
+  String get iniciarConLaPcNoSePudo =>
+      'Windows didn\'t let Kiji change its startup. Try again.';
+
+  @override
+  String get seguirDondeLoDeje => 'Continue where I left off';
+
+  @override
+  String get seguirDondeLoDejeNota => 'Has the last song ready, paused.';
+
+  @override
+  String get tarjetaSonandoAhora => 'Now playing';
+
+  @override
+  String get tarjetaVinilo => 'Vinyl';
+
+  @override
+  String get tarjetaPoster => 'Poster';
+
+  @override
+  String get sonandoAhoraEnKiji => 'Playing on Kiji';
+
+  @override
+  String get compartirTarjeta => 'Share card';
+
+  @override
+  String get compartirTarjetaNota =>
+      'An image with the cover, title and artist';
+
+  @override
+  String get fraseDelDia => 'Quote of the day';
+
+  @override
+  String get compartirFrase => 'Share the quote';
+
+  @override
+  String get frasesDelDia => 'Quote of the day on Home';
+
+  @override
+  String get frasesDelDiaNota =>
+      'Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device.';
 }

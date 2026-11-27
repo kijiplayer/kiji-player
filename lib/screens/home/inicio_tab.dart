@@ -30,6 +30,8 @@ import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 
 import 'top_listened.dart';
+import '../../features/streaks/streaks.dart';
+import '../../features/quotes/quote_card.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
@@ -116,6 +118,9 @@ class InicioTab extends ConsumerWidget {
             // Las secciones entran escalonadas.
             children: staggered([
               const _Greeting(),
+              const SizedBox(height: 14),
+              // La frase del día (0.9): según la hora y lo que pasa en Kiji; se puede apagar.
+              const DailyQuoteCard(),
               const SizedBox(height: 20),
               if (playback.track != null) ...[
                 _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
@@ -182,6 +187,8 @@ class _GreetingState extends State<_Greeting> {
                   const KijiLogo(size: 22),
                   const SizedBox(width: 8),
                   Text(time, style: KijiText.mono(size: 13, color: KijiColors.cyan)),
+                  // Racha (0.9): discreta, desde 2 días seguidos. Sin avisos ni notificaciones.
+                  const _StreakBadge(),
                 ],
               ),
               const SizedBox(height: 4),
@@ -415,6 +422,36 @@ class _NewPlaylistCard extends ConsumerWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// «🔥 5» junto a la hora: días seguidos escuchando (desde 2). Con su nombre para TalkBack.
+class _StreakBadge extends ConsumerWidget {
+  const _StreakBadge();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final days = ref.watch(currentStreakProvider);
+    if (days < 2) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(left: 10),
+      child: Tooltip(
+        message: tx.rachaDias(days),
+        child: Semantics(
+          label: tx.rachaDias(days),
+          excludeSemantics: true,
+          child: Row(
+            key: const Key('streak-badge'),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.local_fire_department_rounded, size: 16, color: KijiColors.violet),
+              const SizedBox(width: 2),
+              Text('$days', style: KijiText.mono(size: 13, color: KijiColors.muted)),
+            ],
+          ),
         ),
       ),
     );

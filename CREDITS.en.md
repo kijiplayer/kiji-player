@@ -55,6 +55,8 @@ maintains them.
 | [YouTube Music](https://music.youtube.com) | Unsynced lyrics from the "Lyrics" tab | Video id. |
 | [Mozilla Remote Settings](https://firefox.settings.services.mozilla.com) | Download, only once, the engine and the model of a language to translate on the device | Nothing about the song: only which language files are downloaded. |
 | [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) (GitHub) | The `player_configs.json` table to decipher the audio (engines A and B), at most every 6 h | Nothing of yours: GitHub sees a request for a public file. |
+| [SponsorBlock](https://sponsor.ajay.app) (data under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)) | Skip non-music parts of music videos (optional, off by default) | The first 4 characters of the SHA-256 hash of the video id, and the chosen categories. |
+| [ListenBrainz](https://listenbrainz.org) | Scrobbling (optional, with your own token) | Artist, title, album, duration and the time of each song you listen to. |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) (GitHub releases, PC only and on request) | Extraction engine C, if the user accepts it | The official program is downloaded and its fingerprint verified; then it asks YouTube for the song's audio, like Kiji. |
 | [Google Gemini API](https://ai.google.dev) (optional, off by default) | Translate lyrics with AI, with the user's own key | Only the lyric lines and the target language, with the user's key (encrypted on the device). |
 | [song.link / Odesli](https://odesli.co) | Universal link when sharing a song | Nothing from Kiji: the link is just built with the video id; whoever receives it opens it. |

@@ -29,6 +29,7 @@ import '../features/stream_cache/data/stream_cache.dart';
 import '../utils/app_visible.dart';
 import '../utils/duration_formatter.dart';
 import '../utils/startup_log.dart';
+import '../features/desktop/startup_entry.dart' show KijiLaunch;
 import '../features/system_media/data/device_cover.dart';
 import '../features/system_media/domain/system_media_controls.dart';
 import '../features/yt_music/data/ytm_client.dart';
@@ -1078,6 +1079,11 @@ class PlaybackNotifier extends Notifier<PlaybackState> {
     final settings = await ref.read(settingsProvider.notifier).loaded;
     if (!settings.rememberQueue) {
       debugPrint('=== MEMORIA: "recordar la cola" está apagado, se arranca vacío ===');
+      return;
+    }
+    // Arrancó con la PC y se eligió no seguir donde se dejó: vacío (lo guardado no se borra).
+    if (KijiLaunch.atStartup && !settings.startupResume) {
+      debugPrint('=== MEMORIA: arrancó con la PC sin «Seguir donde lo dejé», se arranca vacío ===');
       return;
     }
     final snapshot = await _memory.load();

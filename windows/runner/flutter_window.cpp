@@ -4,6 +4,13 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+// Kiji arrancó con Windows (`--startup`): la ventana no se muestra; Dart deja el ícono en la
+// bandeja. Abrir Kiji otra vez (o tocar el ícono) la muestra.
+static bool StartedWithWindows() {
+  const wchar_t* command_line = ::GetCommandLineW();
+  return command_line != nullptr && ::wcsstr(command_line, L"--startup") != nullptr;
+}
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
@@ -30,7 +37,7 @@ bool FlutterWindow::OnCreate() {
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
-    this->Show();
+    if (!StartedWithWindows()) this->Show();
     // Avisa a otra instancia que esta ya dibujó su primer cuadro (no está trabada).
     HANDLE ready = ::CreateEventW(nullptr, TRUE, FALSE, kFirstFrameEvent);
     if (ready) ::SetEvent(ready);
@@ -38,7 +45,7 @@ bool FlutterWindow::OnCreate() {
 
   // Si el primer cuadro tarda (algo se trabó antes de dibujar), la ventana igual aparece a los
   // 1,5 s con el fondo oscuro de Kiji, en vez de quedar un proceso invisible.
-  ::SetTimer(GetHandle(), kShowTimerId, 1500, nullptr);
+  if (!StartedWithWindows()) ::SetTimer(GetHandle(), kShowTimerId, 1500, nullptr);
 
   // Flutter can complete the first frame before the "show window" callback is
   // registered. The following call ensures a frame is pending to ensure the
