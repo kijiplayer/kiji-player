@@ -8105,119 +8105,119 @@ abstract class AppLocalizations {
   /// **'Ya tienes la sesión: activa «Sincronizar» en Configuración → Cuenta.'**
   String get conSesionActivaSincronizar;
 
-  /// Subtítulo de Qué hay de nuevo (0.8.0)
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Kiji 0.8, la más grande hasta ahora. Esto es lo mejor:'**
-  String get novedades08Subtitulo;
+  /// **'Kiji 0.9: más simple y con más para escuchar. Esto es lo mejor:'**
+  String get novedades09Subtitulo;
 
-  /// Novedad 0.8: reproductor y estilos
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Reproductor nuevo, a tu manera'**
-  String get novedades08ReproductorTitulo;
+  /// **'Biblioteca más simple'**
+  String get novedades09BibliotecaTitulo;
 
-  /// Novedad 0.8: reproductor y estilos
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'El play en un anillo con la onda, modo compacto y pantalla completa. Elige color, letra y estilo, y hasta un estilo para cada canción.'**
-  String get novedades08ReproductorTexto;
+  /// **'Una sola lista: arriba tus playlists, abajo tu música. Tú eliges qué se ve, y la música del teléfono es opcional.'**
+  String get novedades09BibliotecaTexto;
 
-  /// Novedad 0.8: fondo propio
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Tu fondo, tu escenario'**
-  String get novedades08FondoTitulo;
+  /// **'Buscar y elegir en todas las listas'**
+  String get novedades09BuscarTitulo;
 
-  /// Novedad 0.8: fondo propio
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Pon una foto, un GIF o un video de fondo. Kiji ajusta el velo para que todo se siga leyendo.'**
-  String get novedades08FondoTexto;
+  /// **'Cada lista tiene su buscador y selección múltiple, y lo elegido se mantiene al buscar otra cosa.'**
+  String get novedades09BuscarTexto;
 
-  /// Novedad 0.8: sonido
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Sonido a tu gusto'**
-  String get novedades08SonidoTitulo;
+  /// **'Ecualizador de 10 bandas'**
+  String get novedades09EcualizadorTitulo;
 
-  /// Novedad 0.8: sonido
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Ecualizador con presets, bajos, velocidad, tono, efectos y mezcla entre canciones.'**
-  String get novedades08SonidoTexto;
+  /// **'Ahora también en Android (Android 9 o más nuevo). Tus ajustes se adaptan solos.'**
+  String get novedades09EcualizadorTexto;
 
-  /// Novedad 0.8: letras
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Letras karaoke'**
-  String get novedades08LetrasTitulo;
+  /// **'Solo la música'**
+  String get novedades09SponsorTitulo;
 
-  /// Novedad 0.8: letras
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Palabra por palabra, en pantalla completa y guardadas con la canción para cantarlas sin internet.'**
-  String get novedades08LetrasTexto;
+  /// **'Salta intros, finales y diálogos de los videos con SponsorBlock. Apagado de fábrica.'**
+  String get novedades09SponsorTexto;
 
-  /// Novedad 0.8: biblioteca y música local
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Biblioteca nueva'**
-  String get novedades08BibliotecaTitulo;
+  /// **'Una playlist entera, sin conexión'**
+  String get novedades09PlaylistTitulo;
 
-  /// Novedad 0.8: biblioteca y música local
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Artistas, álbumes y carpetas con tus portadas, tu música del teléfono más rápida y descarga de varias de una vez.'**
-  String get novedades08BibliotecaTexto;
+  /// **'Descárgala con un toque, con pausa y cancelar.'**
+  String get novedades09PlaylistTexto;
 
-  /// Novedad 0.8: importar y sincronizar
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Trae tus playlists'**
-  String get novedades08ImportarTitulo;
+  /// **'ListenBrainz'**
+  String get novedades09ListenBrainzTitulo;
 
-  /// Novedad 0.8: importar y sincronizar
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Pega el enlace de una playlist de Spotify, Apple Music, SoundCloud o YouTube, o conecta tu YouTube Music si quieres (es opcional).'**
-  String get novedades08ImportarTexto;
+  /// **'Guarda lo que escuchas en tu propia cuenta de ListenBrainz, si quieres. Es opcional.'**
+  String get novedades09ListenBrainzTexto;
 
-  /// Novedad 0.8: teatro
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Reacciones de teatro 🍅🌹'**
-  String get novedades08TeatroTitulo;
+  /// **'Tarjetas para compartir'**
+  String get novedades09TarjetasTitulo;
 
-  /// Novedad 0.8: teatro
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Tira tomates hasta que caiga el telón o rosas hasta la ovación de pie. Y en «Tu Teatro», los premios del público.'**
-  String get novedades08TeatroTexto;
+  /// **'Comparte la canción que suena: Sonando ahora, Vinilo o Póster.'**
+  String get novedades09TarjetasTexto;
 
-  /// Novedad 0.8: widgets, en beta
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Widgets (beta)'**
-  String get novedades08WidgetsTitulo;
+  /// **'Frase del día y rachas'**
+  String get novedades09FrasesTitulo;
 
-  /// Novedad 0.8: widgets, en beta
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Cinco para la pantalla de inicio: Anillo, Ahora suena, Letra, Teatro y Barra. Están en beta: cuéntanos qué tal.'**
-  String get novedades08WidgetsTexto;
+  /// **'Frases de escritores, músicos y poetas, y los días seguidos que llevas escuchando, discretos en Inicio.'**
+  String get novedades09FrasesTexto;
 
-  /// Novedad 0.8 solo para la PC
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
   /// **'En la PC'**
-  String get novedades08PcTitulo;
+  String get novedades09PcTitulo;
 
-  /// Novedad 0.8 solo para la PC
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Video de fondo, ecualizador con efectos y Ctrl/Shift + clic para elegir varias canciones.'**
-  String get novedades08PcTexto;
+  /// **'Kiji puede abrirse al encender la computadora, en la bandeja y sin sonar. Y puedes editar el título, el artista, el álbum y la portada de tu música.'**
+  String get novedades09PcTexto;
 
   /// Sonido: Android no pudo crear el ecualizador (aviso suave)
   ///

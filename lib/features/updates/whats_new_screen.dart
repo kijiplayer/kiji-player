@@ -8,6 +8,7 @@ import '../../theme/kiji_tokens.dart';
 import '../../widgets/global_mini_player.dart';
 import '../../widgets/nocturne/aurora_background.dart';
 import '../../widgets/nocturne/glass.dart';
+import '../../store_flavor.dart';
 import '../desktop/desktop_window.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
@@ -15,17 +16,20 @@ import 'package:kiji_player/l10n/l10n.dart';
 /// Una novedad: ícono, título y una línea.
 typedef WhatsNewItem = ({IconData icon, String title, String text});
 
-/// Lo nuevo de la 0.8, en tarjetas cortas. Lo de la PC va al final y solo en la PC.
+/// Lo nuevo de la 0.9, en tarjetas cortas. El ecualizador de 10 bandas es lo nuevo de Android
+/// (la PC ya lo tenía); lo de la PC va al final y solo en la PC. Sin descargas en el sabor «play».
 List<WhatsNewItem> whatsNewItems({required bool desktop}) => [
-  (icon: Icons.palette_outlined, title: tx.novedades08ReproductorTitulo, text: tx.novedades08ReproductorTexto),
-  (icon: Icons.wallpaper_rounded, title: tx.novedades08FondoTitulo, text: tx.novedades08FondoTexto),
-  (icon: Icons.equalizer_rounded, title: tx.novedades08SonidoTitulo, text: tx.novedades08SonidoTexto),
-  (icon: Icons.lyrics_outlined, title: tx.novedades08LetrasTitulo, text: tx.novedades08LetrasTexto),
-  (icon: Icons.library_music_outlined, title: tx.novedades08BibliotecaTitulo, text: tx.novedades08BibliotecaTexto),
-  (icon: Icons.playlist_add_rounded, title: tx.novedades08ImportarTitulo, text: tx.novedades08ImportarTexto),
-  (icon: Icons.theater_comedy_outlined, title: tx.novedades08TeatroTitulo, text: tx.novedades08TeatroTexto),
-  (icon: Icons.widgets_outlined, title: tx.novedades08WidgetsTitulo, text: tx.novedades08WidgetsTexto),
-  if (desktop) (icon: Icons.desktop_windows_outlined, title: tx.novedades08PcTitulo, text: tx.novedades08PcTexto),
+  (icon: Icons.library_music_outlined, title: tx.novedades09BibliotecaTitulo, text: tx.novedades09BibliotecaTexto),
+  (icon: Icons.manage_search_rounded, title: tx.novedades09BuscarTitulo, text: tx.novedades09BuscarTexto),
+  if (!desktop)
+    (icon: Icons.equalizer_rounded, title: tx.novedades09EcualizadorTitulo, text: tx.novedades09EcualizadorTexto),
+  (icon: Icons.fast_forward_rounded, title: tx.novedades09SponsorTitulo, text: tx.novedades09SponsorTexto),
+  if (!isPlayStore)
+    (icon: Icons.download_for_offline_outlined, title: tx.novedades09PlaylistTitulo, text: tx.novedades09PlaylistTexto),
+  (icon: Icons.podcasts_rounded, title: tx.novedades09ListenBrainzTitulo, text: tx.novedades09ListenBrainzTexto),
+  (icon: Icons.ios_share_rounded, title: tx.novedades09TarjetasTitulo, text: tx.novedades09TarjetasTexto),
+  (icon: Icons.format_quote_rounded, title: tx.novedades09FrasesTitulo, text: tx.novedades09FrasesTexto),
+  if (desktop) (icon: Icons.desktop_windows_outlined, title: tx.novedades09PcTitulo, text: tx.novedades09PcTexto),
 ];
 
 /// "Qué hay de nuevo": una sola vez después de actualizar (nunca en una instalación nueva, que
@@ -93,7 +97,7 @@ class WhatsNewScreen extends ConsumerWidget {
                               index: 0,
                               calm: calm,
                               child: Text(
-                                tx.novedades08Subtitulo,
+                                tx.novedades09Subtitulo,
                                 style: TextStyle(color: KijiColors.muted, fontSize: 16),
                               ),
                             ),
