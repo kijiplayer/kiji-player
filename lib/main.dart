@@ -76,7 +76,8 @@ Future<void> main(List<String> args) async {
           limit: const Duration(seconds: 5)) ??
       const NoSystemMediaControls();
   // Kiji Dev: medidor de cuadros en el registro (rendimiento).
-  if (isDevBuild) FrameStats.start();
+  // También con --dart-define=KIJI_FRAME_STATS=true (para medir en la PC); de fábrica, solo Kiji Dev.
+  if (isDevBuild || const bool.fromEnvironment('KIJI_FRAME_STATS')) FrameStats.start();
   StartupLog.mark('runApp');
 
   runApp(

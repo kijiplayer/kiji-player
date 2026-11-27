@@ -14,6 +14,7 @@ import '../../yt_music/data/ytm_browse_parser.dart';
 import '../data/home_feed_provider.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../utils/image_decode.dart';
 
 void _playAll(WidgetRef ref, List<Track> tracks, {int index = 0, bool shuffle = false}) {
   if (tracks.isEmpty) return;
@@ -302,6 +303,8 @@ class _PlaylistCard extends StatelessWidget {
                     : Image.network(
                         card.thumbnailUrl!,
                         fit: BoxFit.cover,
+                        // Decodificada al tamaño en que se ve (no a la resolución completa).
+                        cacheHeight: decodeSize(context, 140),
                         errorBuilder: (_, _, _) =>
                             ColoredBox(color: KijiColors.surfaceHigh, child: const Icon(Icons.queue_music_rounded)),
                       ),
