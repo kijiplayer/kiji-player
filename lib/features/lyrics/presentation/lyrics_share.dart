@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../models/track.dart';
@@ -17,6 +16,7 @@ import '../../../widgets/global_mini_player.dart';
 import '../../../widgets/kiji_logo.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../utils/share_image.dart';
 
 /// Texto para compartir unas líneas: entre comillas y con la canción.
 String lyricsShareText(List<String> lines, Track track) =>
@@ -329,17 +329,8 @@ class _ShareCardScreenState extends State<_ShareCardScreen> {
     final file = await renderToPng(_key, 'kiji-letra');
     if (!mounted) return;
     setState(() => _sharing = false);
-    if (file == null) return;
-    try {
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: 'image/png')],
-          text: '${widget.track.title} — ${widget.track.artist}',
-        ),
-      );
-    } catch (error) {
-      debugPrint('=== LETRAS: no se pudo compartir la imagen: $error ===');
-    }
+    // Teléfono: el panel de compartir. PC sin panel: se guarda la imagen y se avisa dónde (0.9).
+    await KijiShare.shareImage(context, file, name: 'kiji-letra', text: '${widget.track.title} — ${widget.track.artist}');
   }
 
   Widget _chips<T>(String title, List<T> values, T selected, String Function(T) label, ValueChanged<T> onPick) =>
@@ -441,7 +432,7 @@ Future<File?> renderToPng(GlobalKey key, String name) async {
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     if (bytes == null) return null;
     final file = File(
-      p.join((await getTemporaryDirectory()).path, '$name-${DateTime.now().millisecondsSinceEpoch}.png'),
+      p.join((await KijiShare.tempFolder()).path, '$name-${DateTime.now().millisecondsSinceEpoch}.png'),
     );
     await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
     return file;

@@ -5703,6 +5703,27 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este teléfono no puede: es de 32 bits. Queda el vidrio de siempre.';
 
   @override
+  String get noSePudoPrepararLaImagen =>
+      'No se pudo preparar la imagen. Prueba de nuevo.';
+
+  @override
+  String get noSePudoCompartir => 'No se pudo compartir. Prueba de nuevo.';
+
+  @override
+  String imagenGuardadaEn(String path) {
+    return 'Imagen guardada en $path';
+  }
+
+  @override
+  String get abrirCarpeta => 'Abrir carpeta';
+
+  @override
+  String get rachaCompartirLogro => 'Compartir el logro';
+
+  @override
+  String get rachaLogroTitulo => 'Logro de racha en Kiji';
+
+  @override
   String get frasesDelDia => 'Frase del día en Inicio';
 
   @override
