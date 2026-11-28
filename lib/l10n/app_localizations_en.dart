@@ -5689,6 +5689,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'This phone can\'t: it\'s 32-bit. The usual glass stays.';
 
   @override
+  String get cambiosSinSubirTitulo =>
+      'There are changes not sent to YouTube Music';
+
+  @override
+  String cambiosSinSubirTexto(String names) {
+    return 'In “$names” you added or removed songs that aren\'t in your account yet. If you delete the copies without syncing, those changes are lost.';
+  }
+
+  @override
+  String get borrarIgual => 'Delete anyway';
+
+  @override
   String get frasesDelDia => 'Quote of the day on Home';
 
   @override
