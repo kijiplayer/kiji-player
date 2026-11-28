@@ -183,10 +183,14 @@ class _LiquidGlassShell extends ConsumerWidget {
         onTabSelected: (i) => selectShellTab(ref, ShellDestination.all[i].tab),
         // El accesorio va en su propia cápsula de vidrio (como el mini-reproductor de iOS 26).
         bottomAccessory: hasTrack
-            ? const lgw.GlassContainer(
-                useOwnLayer: true,
-                shape: lgw.LiquidRoundedSuperellipse(borderRadius: KijiRadii.miniPlayer),
-                child: MiniPlayer(bare: true),
+            ? const Padding(
+                // El mismo margen que la barra (horizontalPadding de fábrica: 20).
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: lgw.GlassContainer(
+                  useOwnLayer: true,
+                  shape: lgw.LiquidRoundedSuperellipse(borderRadius: KijiRadii.miniPlayer),
+                  child: MiniPlayer(bare: true),
+                ),
               )
             : null,
         bottomAccessoryEnabled: hasTrack,
