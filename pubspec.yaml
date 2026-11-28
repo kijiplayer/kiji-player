@@ -49,6 +49,11 @@ dependencies:
   # Solver y PO token de YouTube, inicio de sesión y traducción en el teléfono.
   flutter_inappwebview: ^6.2.0-beta.3
   crypto: ^3.0.7
+  # «Liquid Glass real» (0.9, opcional): barra, mini-reproductor y botones flotantes con el vidrio de
+  # liquid_glass_widgets tal como viene (MIT). Versión fija: no se actualiza sola.
+  liquid_glass_widgets: 1.22.0
+  # Lo pide liquid_glass_widgets (sus íconos internos).
+  cupertino_icons: ^1.0.8
 
   # Compartir, abrir enlaces y fotos personalizadas.
   share_plus: ^13.3.1

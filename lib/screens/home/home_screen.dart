@@ -18,6 +18,8 @@ import '../shell/pill_nav_bar.dart';
 import 'inicio_tab.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import '../../widgets/nocturne/liquid_glass_pro.dart';
 
 /// Pantalla principal. Adaptable: en pantallas angostas,
 /// píldora flotante abajo con el mini-reproductor encima; desde 1000 px
@@ -116,6 +118,19 @@ class _MobileShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final short = MediaQuery.sizeOf(context).height < shortHeight;
+    // «Liquid Glass real» (0.9): la barra de liquid_glass_widgets tal como viene, con el
+    // mini-reproductor como accesorio encima (como en iOS 26). En horizontal, la de siempre.
+    if (!short) {
+      return ValueListenableBuilder<bool>(
+        valueListenable: LiquidGlassPro.active,
+        builder: (context, pro, classic) => pro ? const _LiquidGlassShell() : classic!,
+        child: _classic(context, ref, short),
+      );
+    }
+    return _classic(context, ref, short);
+  }
+
+  Widget _classic(BuildContext context, WidgetRef ref, bool short) {
     return Scaffold(
       extendBody: true,
       backgroundColor: ref.watch(hasCustomBackgroundProvider) ? Colors.transparent : null,
@@ -146,3 +161,31 @@ class _MobileShell extends ConsumerWidget {
     );
   }
 }
+
+/// La barra de pestañas y el mini-reproductor con «Liquid Glass real» (0.9).
+class _LiquidGlassShell extends ConsumerWidget {
+  const _LiquidGlassShell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(shellTabProvider);
+    final hasTrack = ref.watch(playbackProvider.select((p) => p.track != null));
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: ref.watch(hasCustomBackgroundProvider) ? Colors.transparent : null,
+      body: const SafeArea(bottom: false, child: ShellTabContent()),
+      bottomNavigationBar: lgw.GlassTabBar.bottom(
+        key: const Key('liquid-glass-tab-bar'),
+        tabs: [
+          for (final d in ShellDestination.all) lgw.GlassTab(icon: Icon(d.icon), label: d.labelOf(context)),
+        ],
+        selectedIndex: ShellDestination.all.indexWhere((d) => d.tab == current),
+        onTabSelected: (i) => selectShellTab(ref, ShellDestination.all[i].tab),
+        bottomAccessory: hasTrack ? const MiniPlayer(bare: true) : null,
+        bottomAccessoryEnabled: hasTrack,
+        bottomAccessoryHeight: hasTrack ? miniPlayerHeight : null,
+      ),
+    );
+  }
+}
+

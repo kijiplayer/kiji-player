@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../theme/kiji_tokens.dart';
 import 'liquid_glass.dart';
 import 'micro_motion.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import 'liquid_glass_pro.dart';
 
 /// Superficie de "vidrio líquido" (0.8.3, ver [LiquidGlass]): deja ver el fondo ya desenfocado,
 /// con un borde de luz fino, un reflejo que se corre al deslizar y profundidad, sin desenfocar
@@ -124,6 +126,25 @@ class GlassIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // «Liquid Glass real» (0.9): los redondos, con el botón del paquete tal como viene.
+    if (label != null || foreground != null) return _classic(context);
+    return ValueListenableBuilder<bool>(
+      valueListenable: LiquidGlassPro.active,
+      builder: (context, pro, _) => !pro
+          ? _classic(context)
+          : Tooltip(
+              message: tooltip,
+              child: lgw.GlassIconButton(
+                icon: Icon(icon, color: active ? KijiColors.cyan : null),
+                onPressed: onPressed,
+                size: size,
+                semanticLabel: tooltip,
+              ),
+            ),
+    );
+  }
+
+  Widget _classic(BuildContext context) {
     final color = onPressed == null
         ? KijiColors.muted.withValues(alpha: 0.4)
         : (active ? KijiColors.cyan : foreground ?? KijiColors.text);
