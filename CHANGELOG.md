@@ -1,5 +1,42 @@
 # Novedades de Kiji Player
 
+## 0.9.0 — la actualización grande
+
+**Lo más importante**
+- **Biblioteca nueva:** una sola lista, arriba tus playlists y «Me gusta», abajo tu música. Tú eliges qué se ve,
+  y la música del teléfono es opcional: Kiji pregunta la primera vez y, si dices que no, no lee nada.
+- **YouTube Music de ida y vuelta (opcional, con tu sesión):** tus playlists de YouTube Music son playlists de
+  Kiji, con todas sus opciones. Lo que agregues o quites se manda a tu cuenta al tocar «Sincronizar» (en
+  todas a la vez o en cada playlist, que muestra si está al día o tiene cambios sin subir). Si cambió en los
+  dos lados, se juntan los cambios y te avisa. Todo va directo entre tu equipo y YouTube.
+- **Ecualizador de 10 bandas** también en Android (Android 9 o más nuevo). Tus ajustes se adaptan solos.
+- **Más rápida:** en la PC abre en menos de un segundo, se desliza sin saltos y usa la mitad de memoria;
+  en el teléfono, la búsqueda ya no se traba al aparecer los resultados.
+- **Rachas:** una tarjeta arriba de Inicio con tus días seguidos, tu mejor racha y la semana; el calendario del
+  mes, logros de 3 a 365 días con insignias, un festejo corto al ganarlos y una tarjeta para compartirla.
+- **Liquid Glass real (opcional):** la barra, el mini-reproductor y los botones de vidrio líquido, transparentes y
+  con animaciones tipo agua. Pensado para teléfonos de gama alta; se prende en Configuración → Apariencia.
+- **Tarjetas para compartir** la canción que suena (Sonando ahora, Vinilo y Póster) y **frase del día**.
+- **En la PC:** Kiji puede abrirse al encender la computadora, en la bandeja y sin sonar (apagado de fábrica).
+
+**También**
+- Vidrio líquido con refracción de verdad y un poco de arcoíris en el borde (se puede apagar en Apariencia).
+- Saltar las partes sin música de los videos con SponsorBlock (apagado de fábrica).
+- Descargar una playlist entera con un toque, con pausa y cancelar; lo ya descargado se saltea.
+- Buscador y selección múltiple en todas las listas.
+- ListenBrainz con tu propia cuenta (opcional).
+- Editar el título, el artista, el álbum y la portada de tu música (en la PC).
+- Aleatorio y repetir se distinguen mejor cuando están prendidos, en todos los estilos.
+
+**Arreglos**
+- Las «Sugerencias» que YouTube Music agrega al pie de tus playlists ya no se cuentan como canciones.
+- Los títulos largos ya no se cortan: si no entran, se desplazan.
+- El reproductor se cierra deslizando hacia abajo también en pantallas chicas.
+- El aviso de «Momento guardado» dura más, y tus momentos se abren también desde el reproductor.
+- Tocar «Inicio» estando en Inicio sube al principio.
+- La primera búsqueda es más rápida, y la Biblioteca no muestra grabaciones ni audios sueltos como música.
+- Arreglado un error al elegir la fuente de la letra en Windows.
+
 ## 0.8.6 — 26 de noviembre de 2026
 
 **Arreglos**

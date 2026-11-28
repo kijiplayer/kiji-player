@@ -16,6 +16,7 @@ import '../domain/yt_track_mapper.dart';
 import '../../customize/presentation/track_text.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../utils/image_decode.dart';
 
 /// Cliente compartido para las páginas de artista y álbum.
 final ytMusicClientProvider = Provider<YtMusicClient>((ref) => YtMusicClient());
@@ -65,6 +66,7 @@ class CollectionTile extends StatelessWidget {
         : Image.network(
             largerThumbnailUrl(thumb),
             fit: BoxFit.cover,
+            cacheHeight: decodeSize(context, 52),
             errorBuilder: (_, _, _) => const Icon(Icons.music_note_rounded),
           );
     return ListTile(
@@ -136,6 +138,7 @@ class _Art extends StatelessWidget {
             : Image.network(
                 largerThumbnailUrl(url),
                 fit: BoxFit.cover,
+                cacheHeight: decodeSize(context, 44),
                 errorBuilder: (_, _, _) => ColoredBox(color: track.coverColor),
               ),
       ),
@@ -177,6 +180,7 @@ class _Header extends ConsumerWidget {
                     width: 96,
                     height: 96,
                     fit: BoxFit.cover,
+                    cacheHeight: decodeSize(context, 96),
                     errorBuilder: (_, _, _) => const SizedBox(width: 96, height: 96),
                   ),
                 ),

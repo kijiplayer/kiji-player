@@ -31,6 +31,12 @@ const kijiOfficialPage = 'https://kijiplayer.github.io/kiji-player'; // l10n-ign
 /// Abre la página oficial de Kiji en el navegador. Solo abre el enlace: no manda nada.
 Future<void> openOfficialPage() => openReleasePage(kijiOfficialPage);
 
+/// La política de privacidad, en el idioma de la app (`#es` / `#en`). Solo abre el enlace.
+String get kijiPrivacyPolicyUrl => '$kijiOfficialPage/privacy/#${kijiLanguage == 'es' ? 'es' : 'en'}'; // l10n-ignore
+
+/// Abre la política de privacidad en el navegador.
+Future<void> openPrivacyPolicy() => openReleasePage(kijiPrivacyPolicyUrl);
+
 /// Abre la página oficial de la versión (en el navegador).
 Future<void> openReleasePage(String url) async {
   try {

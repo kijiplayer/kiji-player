@@ -31,6 +31,7 @@ import 'local_group_screen.dart';
 import '../domain/local_library_source.dart';
 import '../../playlists/playlists_provider.dart';
 import '../../customize/presentation/track_text.dart';
+import '../../../widgets/list_search_field.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 
@@ -61,7 +62,17 @@ enum LibraryTab {
 /// Canciones, qué se muestra y en qué orden, en lista o en cuadrícula (se recuerda), y cada
 /// canción con su etiqueta (YT ↓ o LOCAL) y su tamaño.
 class LocalLibraryScreen extends ConsumerStatefulWidget {
-  const LocalLibraryScreen({super.key});
+  const LocalLibraryScreen({super.key, this.section});
+
+  /// Una sola sección (Canciones, Descargadas, Artistas…), abierta desde la Biblioteca (0.9): con
+  /// su barra de título y sin las pestañas ni la tarjeta de espacio. null: la Biblioteca con
+  /// pestañas de antes.
+  final LibraryTab? section;
+
+  /// Abre una sección de la Biblioteca en su propia pantalla.
+  static Future<void> openSection(BuildContext context, LibraryTab section) => Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => LocalLibraryScreen(section: section)),
+  );
 
   @override
   ConsumerState<LocalLibraryScreen> createState() => _LocalLibraryScreenState();
@@ -74,10 +85,17 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   List<Track> _local = const [];
 
   /// Abre en la última pestaña que se usó (de fábrica, Playlists).
-  late LibraryTab _tab = LibraryTab.values.asNameMap()[ref.read(settingsProvider).libraryTab] ?? LibraryTab.playlists;
+  late LibraryTab _tab =
+      widget.section ?? LibraryTab.values.asNameMap()[ref.read(settingsProvider).libraryTab] ?? LibraryTab.playlists;
+
+  /// La música del teléfono está apagada (o todavía no se preguntó): no se pide permiso ni se lee.
+  bool get _phoneMusicOff => widget.section != null && !ref.read(settingsProvider).showsPhoneMusic;
 
   /// "Volver a escanear" en curso.
   bool _rescanning = false;
+
+  /// Lo escrito en el buscador de la sección (normalizado).
+  String _query = '';
 
   /// Selección múltiple (mantener presionada una canción).
   final _selection = TrackSelection();
@@ -102,6 +120,13 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   /// Lee la música del equipo. Lo ya leído sale de la caché (solo se leen los archivos nuevos o
   /// cambiados: así Kiji nota lo nuevo cada vez que se abre); [force] vuelve a leer todo.
   Future<void> _load({bool force = false}) async {
+    if (_phoneMusicOff) {
+      setState(() {
+        _local = const [];
+        _status = _LibraryStatus.ready;
+      });
+      return;
+    }
     setState(() => _status = _local.isEmpty ? _LibraryStatus.loading : _status);
 
     // En PC no se abre el selector de carpetas solo: se espera a que el
@@ -169,9 +194,14 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
   Widget build(BuildContext context) {
     // Otras "Carpetas excluidas": se vuelve a leer la música (lo ya leído sale de la caché).
     ref.listen(settingsProvider.select((s) => s.localExclusions.key), (_, _) => unawaited(_load()));
+    ref.listen(settingsProvider.select((s) => s.phoneMusic), (_, _) => unawaited(_load()));
+    final section = widget.section;
     final all = _allSongs();
     final settings = ref.watch(settingsProvider);
-    final songs = arrangeLibrarySongs(all, sort: settings.librarySort, filter: settings.libraryFilter);
+    final songs = [
+      for (final t in arrangeLibrarySongs(all, sort: settings.librarySort, filter: settings.libraryFilter))
+        if (trackMatches(t, _query)) t,
+    ];
     final grid = settings.libraryView == 'grid';
     final visibleLocal = [
       for (final t in _local)
@@ -201,7 +231,9 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text(tx.navLibrary, style: KijiText.title(size: 28))),
+                      Expanded(
+                        child: Text(section?.label ?? tx.navLibrary, style: KijiText.title(size: section == null ? 28 : 24)),
+                      ),
                       // Volver a leer todos los archivos de música del equipo.
                       if (_tab.local && _status != _LibraryStatus.denied)
                         IconButton(
@@ -225,15 +257,20 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  _StorageCard(
-                    songCount: all.length,
-                    onPlayAll: songs.isEmpty ? null : () => ref.read(playbackProvider.notifier).playQueue(songs),
-                  ),
+                  // Sección sola (0.9): sin la tarjeta de espacio ni las pestañas; el espacio queda
+                  // en Descargadas, donde sirve.
+                  if (section == null || section == LibraryTab.downloads)
+                    _StorageCard(
+                      songCount: all.length,
+                      onPlayAll: songs.isEmpty ? null : () => ref.read(playbackProvider.notifier).playQueue(songs),
+                    ),
                   // Varias bajando a la vez: el avance de todas juntas (en Descargadas ya va arriba).
                   if (_tab != LibraryTab.downloads) const BatchDownloadProgress(padding: EdgeInsets.only(top: 10)),
                   const SizedBox(height: 14),
-                  LibraryTabs(selected: _tab, counts: counts, onChanged: _setTab),
+                  if (section == null) LibraryTabs(selected: _tab, counts: counts, onChanged: _setTab),
                   if (_tab == LibraryTab.songs) ...[
+                    // Sección sola: con buscador (lo elegido se mantiene al buscar).
+                    if (section != null) ListSearchField(onChanged: (q) => setState(() => _query = q)),
                     const SizedBox(height: 10),
                     _SongsToolbar(sort: settings.librarySort, filter: settings.libraryFilter),
                   ],
@@ -254,7 +291,7 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
       ),
     );
     // La barra de la selección queda fija arriba mientras se elige.
-    return Stack(
+    final body = Stack(
       children: [
         list,
         if (_tab == LibraryTab.songs && _selection.active)
@@ -278,6 +315,11 @@ class _LocalLibraryScreenState extends ConsumerState<LocalLibraryScreen> {
             ),
           ),
       ],
+    );
+    if (section == null) return body;
+    return Scaffold(
+      appBar: AppBar(backgroundColor: Colors.transparent, surfaceTintColor: Colors.transparent),
+      body: body,
     );
   }
 

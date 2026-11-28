@@ -18,6 +18,8 @@ import '../data/account_store.dart';
 import '../domain/yt_session.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../store_flavor.dart';
+import '../../../widgets/top_notice.dart';
 
 /// Advertencia que se muestra siempre antes de iniciar sesión.
 String get accountWarning => tx.youtubePuedeLimitarOSuspenderCuentas;
@@ -138,8 +140,8 @@ class AccountScreen extends ConsumerWidget {
                     trailing: sync.syncing
                         ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
                         : TextButton(
-                            onPressed: () => ref.read(ytSyncProvider.notifier).syncNow(),
-                            child: Text(tx.leerAhora),
+                            onPressed: () => syncWithYouTube(context, ref),
+                            child: Text(tx.sincronizar),
                           ),
                   );
                 },
@@ -486,7 +488,8 @@ class YtConnectCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ref.watch(accountProvider) != null || ref.watch(settingsProvider.select((s) => s.ytConnectCardHidden))) {
+    // Google Play: sin inicio de sesión de YouTube.
+    if (isPlayStore || ref.watch(accountProvider) != null || ref.watch(settingsProvider.select((s) => s.ytConnectCardHidden))) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -651,5 +654,46 @@ class SyncNowTile extends ConsumerWidget {
             ),
     );
   }
+}
+
+/// «Sincronizar» (0.9): lee la cuenta, junta cada playlist con su copia de Kiji y manda a YouTube
+/// Music lo que se agregó o quitó en Kiji. Avisa cuántos cambios se mandaron y si alguna playlist
+/// cambió en los dos lados (se juntaron los cambios).
+Future<void> syncWithYouTube(BuildContext context, WidgetRef ref) async {
+  final ok = await ref.read(ytSyncProvider.notifier).syncNow();
+  if (!context.mounted) return;
+  final after = ref.read(ytSyncProvider);
+  if (!ok) {
+    // La sesión vencida ya tiene su propio aviso en la Biblioteca.
+    if (after.problem != SyncProblem.sessionRejected) showTopNotice(context, message: tx.noSePudoSincronizar);
+    return;
+  }
+  showTopNotice(
+    context,
+    message: [
+      tx.sincronizadoListo(after.sent),
+      if (after.merged.isNotEmpty) tx.sincronizadoJuntos(after.merged.join('», «')),
+    ].join(' '),
+    duration: after.merged.isEmpty ? null : const Duration(seconds: 6),
+  );
+}
+
+/// «Sincronizar» de una sola playlist de YouTube Music (0.9), con el mismo aviso que la general.
+Future<void> syncOneYouTubePlaylist(BuildContext context, WidgetRef ref, String ytId) async {
+  final ok = await ref.read(ytSyncProvider.notifier).syncPlaylist(ytId);
+  if (!context.mounted) return;
+  final after = ref.read(ytSyncProvider);
+  if (!ok) {
+    if (after.problem != SyncProblem.sessionRejected) showTopNotice(context, message: tx.noSePudoSincronizar);
+    return;
+  }
+  showTopNotice(
+    context,
+    message: [
+      tx.sincronizadoListo(after.sent),
+      if (after.merged.isNotEmpty) tx.sincronizadoJuntos(after.merged.join('», «')),
+    ].join(' '),
+    duration: after.merged.isEmpty ? null : const Duration(seconds: 6),
+  );
 }
 

@@ -4733,11 +4733,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Backup saved. Open it from \"Restore from a file\" on another phone or on your PC.';
 
   @override
-  String get sincronizarConYoutube => 'Sync with YouTube (read-only)';
+  String get sincronizarConYoutube => 'Sync with YouTube Music';
 
   @override
   String get sincronizarConYoutubeNota =>
-      'Shows your YouTube Music likes and playlists in Kiji. Read-only: it never changes anything in your account. What it reads stays only on this device; turning it off deletes it.';
+      'Shows your YouTube Music likes and playlists in Kiji. What you add to or remove from those playlists is sent to your account only when you tap “Sync”. What it reads stays only on this device; turning it off deletes it.';
 
   @override
   String get todaviaNoSeLeyoLaCuenta => 'The account hasn\'t been read yet';
@@ -4942,7 +4942,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get conectaTuYoutubeMusicNota =>
-      'Your likes and the playlists in your library, right in Kiji. Read-only and only on this device; Kiji works the same without an account.';
+      'Your likes and the playlists in your library, right in Kiji. Only on this device; Kiji works the same without an account.';
 
   @override
   String get iniciarSesionBoton => 'Sign in';
@@ -4997,7 +4997,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activarSincronizacionNota =>
-      'Kiji can read your likes and the playlists in your library to show them here: read-only, at most every 12 hours and stored only on this device. You can change it anytime in Settings → Account.';
+      'Kiji can read your likes and the playlists in your library to show them here, at most every 12 hours, stored only on this device. Your account only changes when you tap “Sync”. You can change it anytime in Settings → Account.';
 
   @override
   String get activarSincronizacion => 'Turn on';
@@ -5007,71 +5007,82 @@ class AppLocalizationsEn extends AppLocalizations {
       'You\'re signed in: turn on «Sync» in Settings → Account.';
 
   @override
-  String get novedades08Subtitulo =>
-      'Kiji 0.8, the biggest one yet. Here\'s the good stuff:';
+  String get novedades09YoutubeTitulo => 'YouTube Music, both ways';
 
   @override
-  String get novedades08ReproductorTitulo => 'A new player, your way';
+  String get novedades09YoutubeTexto =>
+      'Your YouTube Music playlists in Kiji, with every option. What you change is sent to your account when you tap “Sync”, for all of them or each one. It\'s optional.';
 
   @override
-  String get novedades08ReproductorTexto =>
-      'Play inside a ring with the wave, compact and full screen modes. Pick your color, font and style, even one per song.';
+  String get novedades09RapidaTitulo => 'Faster';
 
   @override
-  String get novedades08FondoTitulo => 'Your background, your stage';
+  String get novedades09RapidaTexto =>
+      'Search no longer stutters, and the glass has real refraction without using more.';
 
   @override
-  String get novedades08FondoTexto =>
-      'Use a photo, a GIF or a video as background. Kiji tunes the veil so everything stays readable.';
+  String get novedades09RapidaPcTexto =>
+      'Opens in under a second, scrolls smoothly and uses half the memory.';
 
   @override
-  String get novedades08SonidoTitulo => 'Sound your way';
+  String get novedades09RachasTitulo => 'Streaks with achievements';
 
   @override
-  String get novedades08SonidoTexto =>
-      'Equalizer with presets, bass, speed, pitch, effects and crossfade.';
+  String get novedades09RachasTexto =>
+      'Your days in a row listening, your best streak and achievements from 3 to 365 days, at the top of Home.';
 
   @override
-  String get novedades08LetrasTitulo => 'Karaoke lyrics';
+  String get novedades09LiquidTitulo => 'Real Liquid Glass';
 
   @override
-  String get novedades08LetrasTexto =>
-      'Word by word, full screen and saved with the song, so you can sing along offline.';
+  String get novedades09LiquidTexto =>
+      'Give it a try: a liquid glass tab bar and mini player, clear and with water-like animations. Turn it on in Settings → Appearance.';
 
   @override
-  String get novedades08BibliotecaTitulo => 'A new Library';
+  String get novedades09Subtitulo =>
+      'Kiji 0.9: simpler, with more to listen to. Here\'s the good stuff:';
 
   @override
-  String get novedades08BibliotecaTexto =>
-      'Artists, albums and folders with your covers, faster music from your phone and batch downloads.';
+  String get novedades09BibliotecaTitulo => 'A simpler Library';
 
   @override
-  String get novedades08ImportarTitulo => 'Bring your playlists';
+  String get novedades09BibliotecaTexto =>
+      'One list: your playlists on top, your music below. You choose what shows, and your phone\'s music is optional.';
 
   @override
-  String get novedades08ImportarTexto =>
-      'Paste a Spotify, Apple Music, SoundCloud or YouTube playlist link, or connect your YouTube Music if you like (it\'s optional).';
+  String get novedades09EcualizadorTitulo => '10-band equalizer';
 
   @override
-  String get novedades08TeatroTitulo => 'Theater reactions 🍅🌹';
+  String get novedades09EcualizadorTexto =>
+      'Now on Android too (Android 9 or newer). Your settings adapt on their own.';
 
   @override
-  String get novedades08TeatroTexto =>
-      'Throw tomatoes until the curtain falls or roses until the standing ovation. And in «Your Theater», the audience awards.';
+  String get novedades09SponsorTitulo => 'Just the music';
 
   @override
-  String get novedades08WidgetsTitulo => 'Widgets (beta)';
+  String get novedades09SponsorTexto =>
+      'Skip intros, outros and talking in videos with SponsorBlock. Off by default.';
 
   @override
-  String get novedades08WidgetsTexto =>
-      'Five for your home screen: Ring, Now playing, Lyrics, Theater and Bar. They\'re in beta: tell us how they work for you.';
+  String get novedades09PlaylistTitulo => 'A whole playlist, offline';
 
   @override
-  String get novedades08PcTitulo => 'On PC';
+  String get novedades09PlaylistTexto =>
+      'Download it with one tap, with pause and cancel.';
 
   @override
-  String get novedades08PcTexto =>
-      'Background video, equalizer with effects and Ctrl/Shift + click to pick several songs.';
+  String get novedades09TarjetasTitulo => 'Cards and a quote of the day';
+
+  @override
+  String get novedades09TarjetasTexto =>
+      'Share the song that\'s playing (Now Playing, Vinyl or Poster) and read a quote from writers, musicians and poets every day.';
+
+  @override
+  String get novedades09PcTitulo => 'On your PC';
+
+  @override
+  String get novedades09PcTexto =>
+      'Kiji can open when your computer starts, in the tray and silent. And you can edit your music\'s title, artist, album and cover.';
 
   @override
   String get ecualizadorNoDisponibleAhora =>
@@ -5306,4 +5317,381 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verQueHayDeNuevo => 'See what\'s new';
+
+  @override
+  String get verTusMomentos => 'See your moments';
+
+  @override
+  String get politicaDePrivacidad => 'Privacy policy';
+
+  @override
+  String get politicaDePrivacidadDescripcion =>
+      'What Kiji stores and which services it connects to. Opens in your browser.';
+
+  @override
+  String get buscarEnEstaLista => 'Search this list';
+
+  @override
+  String get buscarEnTuBiblioteca => 'Search your library';
+
+  @override
+  String get tuMusica => 'YOUR MUSIC';
+
+  @override
+  String get queVerEnLaBiblioteca => 'What to show in your Library';
+
+  @override
+  String get queVerEnLaBibliotecaNota =>
+      'Choose what shows up. Hiding something doesn\'t delete it.';
+
+  @override
+  String get musicaDelDispositivo => 'Music on this device';
+
+  @override
+  String get musicaDelDispositivoNota =>
+      'Songs saved on your phone or PC show up in your Library, next to your downloads.';
+
+  @override
+  String get musicaDelDispositivoPregunta => 'Show the music on this device?';
+
+  @override
+  String get musicaDelDispositivoPreguntaNota =>
+      'Kiji can show the songs you already have saved, next to the ones you download. If you\'d rather see only Kiji\'s, choose “No”: you can change it in Settings.';
+
+  @override
+  String get siMostrarla => 'Yes, show it';
+
+  @override
+  String get noSoloKiji => 'No, only Kiji\'s';
+
+  @override
+  String get nadaEnTuBiblioteca => 'Nothing by that name in your Library.';
+
+  @override
+  String get necesitaMusicaDelDispositivo => 'With the music on this device';
+
+  @override
+  String get quitarDescarga => 'Remove download';
+
+  @override
+  String get listasInteligentes => 'Smart lists';
+
+  @override
+  String get calculadasEnTuTelefono => 'Calculated on your phone';
+
+  @override
+  String get skipSinMusica => 'Non-music parts';
+
+  @override
+  String get skipIntro => 'Intro';
+
+  @override
+  String get skipOutro => 'Outro';
+
+  @override
+  String get skipAvance => 'Preview';
+
+  @override
+  String get skipAutopromocion => 'Self-promotion';
+
+  @override
+  String get skipPatrocinio => 'Sponsor';
+
+  @override
+  String get skipSuscribete => '“Subscribe”';
+
+  @override
+  String get saltarSinMusica => 'Skip non-music parts';
+
+  @override
+  String get saltarSinMusicaNota =>
+      'In music videos, skips intros, outros and dialogue using the public SponsorBlock database. Off by default. To find the parts, SponsorBlock receives a piece of the video\'s code (the first 4 characters of its hash), nothing else.';
+
+  @override
+  String get queSaltar => 'What to skip';
+
+  @override
+  String saltadoCategoria(String category) {
+    return 'Skipped: $category';
+  }
+
+  @override
+  String get editarEtiquetas => 'Edit tags';
+
+  @override
+  String get editarEtiquetasNota =>
+      'Changes the title, artist, album and cover in the file. Kiji writes to a copy first and checks it: if anything fails, the file stays as it was.';
+
+  @override
+  String get etiquetasGuardadas => 'Tags saved to the file.';
+
+  @override
+  String get etiquetasFormatoNoSoportado =>
+      'Kiji can\'t write tags in this format yet (it can in MP3, M4A, FLAC and WAV).';
+
+  @override
+  String get etiquetasNoPermitido =>
+      'The system doesn\'t let Kiji change this file. You can change how it looks just in Kiji.';
+
+  @override
+  String get etiquetasNoSePudo =>
+      'The tags couldn\'t be saved. The file stayed as it was.';
+
+  @override
+  String get portadaElegida => 'Cover chosen';
+
+  @override
+  String get scrobblingListenBrainz => 'Scrobbling to ListenBrainz';
+
+  @override
+  String get scrobblingListenBrainzNota =>
+      'Optional: saves what you listen to in your ListenBrainz account. Off.';
+
+  @override
+  String get listenBrainzExplicacion =>
+      'Every song you listen to (more than half, or 4 minutes) is sent to your ListenBrainz account: artist, title, album and the time. It goes straight from this device to ListenBrainz. Your token is stored encrypted only here, and you can disconnect anytime.';
+
+  @override
+  String get tuTokenDeListenBrainz => 'Your ListenBrainz token';
+
+  @override
+  String get dondeEstaMiToken => 'Where\'s my token?';
+
+  @override
+  String get tokenNoValido => 'ListenBrainz didn\'t accept that token.';
+
+  @override
+  String get conectar => 'Connect';
+
+  @override
+  String get desconectar => 'Disconnect';
+
+  @override
+  String conectadoComo(String user) {
+    return 'Connected as $user';
+  }
+
+  @override
+  String rachaDias(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days in a row listening',
+      one: '1 day in a row listening',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iniciarConLaPc => 'Start Kiji when the PC turns on';
+
+  @override
+  String get iniciarConLaPcNota =>
+      'Kiji starts in the tray, without opening the window or playing. Off by default.';
+
+  @override
+  String get iniciarConLaPcNoSePudo =>
+      'Windows didn\'t let Kiji change its startup. Try again.';
+
+  @override
+  String get seguirDondeLoDeje => 'Continue where I left off';
+
+  @override
+  String get seguirDondeLoDejeNota => 'Has the last song ready, paused.';
+
+  @override
+  String get tarjetaSonandoAhora => 'Now playing';
+
+  @override
+  String get tarjetaVinilo => 'Vinyl';
+
+  @override
+  String get tarjetaPoster => 'Poster';
+
+  @override
+  String get sonandoAhoraEnKiji => 'Playing on Kiji';
+
+  @override
+  String get compartirTarjeta => 'Share card';
+
+  @override
+  String get compartirTarjetaNota =>
+      'An image with the cover, title and artist';
+
+  @override
+  String get fraseDelDia => 'Quote of the day';
+
+  @override
+  String get compartirFrase => 'Share the quote';
+
+  @override
+  String get vidrioReal => 'Refraction at the glass edge';
+
+  @override
+  String get vidrioRealNota =>
+      'True refraction and a hint of rainbow at the glass edges. If you turn it off or your device can\'t do it, the usual glass stays.';
+
+  @override
+  String get misPlaylists => 'MY PLAYLISTS';
+
+  @override
+  String get seccionYoutubeMusic => 'YOUTUBE MUSIC';
+
+  @override
+  String get sincronizar => 'Sync';
+
+  @override
+  String sincronizadoListo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes sent to YouTube Music',
+      one: '1 change sent to YouTube Music',
+      zero: 'everything was up to date',
+    );
+    return 'Done: $_temp0.';
+  }
+
+  @override
+  String sincronizadoJuntos(String names) {
+    return '“$names” changed in Kiji and in YouTube Music: both sets of changes were kept.';
+  }
+
+  @override
+  String get noSePudoSincronizar => 'Couldn\'t sync. Try again in a while.';
+
+  @override
+  String get playlistAjenaNota =>
+      'Saved from someone else on YouTube Music: what you change here stays only in Kiji.';
+
+  @override
+  String get youtubeMusicNombre => 'YouTube Music';
+
+  @override
+  String get rachaTitulo => 'Your streak';
+
+  @override
+  String rachaDiasSeguidos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'days in a row',
+      one: 'day in a row',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaMejor(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return 'Best streak: $_temp0';
+  }
+
+  @override
+  String get rachaMejorTitulo => 'best streak';
+
+  @override
+  String get rachaEmpezar => 'Listen to something today and start your streak';
+
+  @override
+  String rachaSemana(int count) {
+    return 'This week: $count of 7 days';
+  }
+
+  @override
+  String get rachaOcultar => 'Hide the streak card';
+
+  @override
+  String get rachaOcultada =>
+      'Streak card hidden. Show it again in Settings → Appearance.';
+
+  @override
+  String get rachaTarjetaAjuste => 'Streak card on Home';
+
+  @override
+  String get rachaTarjetaAjusteNota =>
+      'Days in a row listening, your best streak and the week. Everything stays on this device.';
+
+  @override
+  String get rachaLogros => 'Achievements';
+
+  @override
+  String rachaLogroDias(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaLogroGanado(String date) {
+    return 'Earned $date';
+  }
+
+  @override
+  String rachaLogroFalta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days to go',
+      one: '1 day to go',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaLogroNuevo(int count) {
+    return 'New achievement: $count days in a row!';
+  }
+
+  @override
+  String get rachaCompartir => 'Share your streak';
+
+  @override
+  String get rachaDiaEscuchado => 'you listened to music';
+
+  @override
+  String get mesAnterior => 'Previous month';
+
+  @override
+  String get mesSiguiente => 'Next month';
+
+  @override
+  String get ytSincronizada => 'Synced with YouTube Music';
+
+  @override
+  String get ytCambiosSinSubir => 'Changes not sent to YouTube Music yet';
+
+  @override
+  String get ytSincronizando => 'Syncing…';
+
+  @override
+  String get liquidGlassReal => 'Real Liquid Glass';
+
+  @override
+  String get liquidGlassRealNota =>
+      'Clear glass with refraction and water-like animations on the tab bar, the mini player and the buttons. Made for high-end phones. It may use more battery and feel less smooth on other phones.';
+
+  @override
+  String get liquidGlassRealSinShaders =>
+      'This phone can\'t: its graphics engine lacks the effects it needs. The usual glass stays.';
+
+  @override
+  String get liquidGlassReal32Bits =>
+      'This phone can\'t: it\'s 32-bit. The usual glass stays.';
+
+  @override
+  String get frasesDelDia => 'Quote of the day on Home';
+
+  @override
+  String get frasesDelDiaNota =>
+      'Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device.';
 }

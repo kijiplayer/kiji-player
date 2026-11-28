@@ -3,7 +3,7 @@ description: "Free, open-source music player for Android and Windows. No ads, no
 publish_to: 'none'
 
 # La escribe tool/version.dart (versión + número de compilación).
-version: 0.8.6+15
+version: 0.9.0+16
 
 environment:
   sdk: ^3.13.0
@@ -49,6 +49,11 @@ dependencies:
   # Solver y PO token de YouTube, inicio de sesión y traducción en el teléfono.
   flutter_inappwebview: ^6.2.0-beta.3
   crypto: ^3.0.7
+  # «Liquid Glass real» (0.9, opcional): barra, mini-reproductor y botones flotantes con el vidrio de
+  # liquid_glass_widgets tal como viene (MIT). Versión fija: no se actualiza sola.
+  liquid_glass_widgets: 1.22.0
+  # Lo pide liquid_glass_widgets (sus íconos internos).
+  cupertino_icons: ^1.0.8
 
   # Compartir, abrir enlaces y fotos personalizadas.
   share_plus: ^13.3.1
@@ -80,6 +85,10 @@ flutter:
   generate: true
   uses-material-design: true
 
+  # Vidrio líquido (0.9): refracción real del fondo de Kiji en el borde de cada vidrio.
+  shaders:
+    - shaders/glass_refraction.frag
+
   assets:
     # Créditos que se muestran en Configuración → Acerca de.
     - CREDITS.md
@@ -105,6 +114,7 @@ flutter:
     - assets/sounds/curtain.wav
     # Ícono de la bandeja del sistema (PC).
     - assets/tray/
+    - assets/quotes/
     # Ícono de la ventana a juego con el estilo (Windows; tool/make_style_icons.py).
     - assets/icons/windows/
     # "Novedades de esta versión": las mismas notas de la tienda de apps (una por compilación).

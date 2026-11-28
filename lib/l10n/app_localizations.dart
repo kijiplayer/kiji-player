@@ -7670,13 +7670,13 @@ abstract class AppLocalizations {
   /// Cuenta: interruptor de la sincronización.
   ///
   /// In es, this message translates to:
-  /// **'Sincronizar con YouTube (solo lectura)'**
+  /// **'Sincronizar con YouTube Music'**
   String get sincronizarConYoutube;
 
   /// Cuenta: qué hace la sincronización (privacidad).
   ///
   /// In es, this message translates to:
-  /// **'Muestra en Kiji tus \"Me gusta\" y tus playlists de YouTube Music. Solo lee: nunca cambia nada en tu cuenta. Lo leído queda solo en este dispositivo; al apagarlo se borra.'**
+  /// **'Muestra en Kiji tus «Me gusta» y tus playlists de YouTube Music. Lo que agregues o quites en esas playlists se manda a tu cuenta solo cuando tocas «Sincronizar». Lo leído queda solo en este dispositivo; al apagarlo se borra.'**
   String get sincronizarConYoutubeNota;
 
   /// Cuenta: sincronización sin leer.
@@ -7994,7 +7994,7 @@ abstract class AppLocalizations {
   /// Qué trae iniciar sesión (tarjeta de la Biblioteca)
   ///
   /// In es, this message translates to:
-  /// **'Tus Me gusta y las playlists de tu biblioteca, para verlos en Kiji. Solo lectura y solo en este dispositivo; Kiji funciona igual sin cuenta.'**
+  /// **'Tus Me gusta y las playlists de tu biblioteca, en Kiji. Solo en este dispositivo; Kiji funciona igual sin cuenta.'**
   String get conectaTuYoutubeMusicNota;
 
   /// Botón para iniciar sesión en YouTube Music
@@ -8090,7 +8090,7 @@ abstract class AppLocalizations {
   /// Explicación de la pregunta de sincronizar
   ///
   /// In es, this message translates to:
-  /// **'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá: solo lectura, como mucho cada 12 horas y guardado solo en este dispositivo. Lo puedes cambiar cuando quieras en Configuración → Cuenta.'**
+  /// **'Kiji puede leer tus Me gusta y las playlists de tu biblioteca para mostrarlos acá, como mucho cada 12 horas, guardados solo en este dispositivo. Tu cuenta solo cambia cuando tocas «Sincronizar». Lo puedes cambiar cuando quieras en Configuración → Cuenta.'**
   String get activarSincronizacionNota;
 
   /// Botón: activar la sincronización
@@ -8105,119 +8105,137 @@ abstract class AppLocalizations {
   /// **'Ya tienes la sesión: activa «Sincronizar» en Configuración → Cuenta.'**
   String get conSesionActivaSincronizar;
 
-  /// Subtítulo de Qué hay de nuevo (0.8.0)
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Kiji 0.8, la más grande hasta ahora. Esto es lo mejor:'**
-  String get novedades08Subtitulo;
+  /// **'YouTube Music de ida y vuelta'**
+  String get novedades09YoutubeTitulo;
 
-  /// Novedad 0.8: reproductor y estilos
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Reproductor nuevo, a tu manera'**
-  String get novedades08ReproductorTitulo;
+  /// **'Tus playlists de YouTube Music en Kiji, con todas las opciones. Lo que cambies se manda a tu cuenta al tocar «Sincronizar», en todas o en cada una. Es opcional.'**
+  String get novedades09YoutubeTexto;
 
-  /// Novedad 0.8: reproductor y estilos
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'El play en un anillo con la onda, modo compacto y pantalla completa. Elige color, letra y estilo, y hasta un estilo para cada canción.'**
-  String get novedades08ReproductorTexto;
+  /// **'Más rápida'**
+  String get novedades09RapidaTitulo;
 
-  /// Novedad 0.8: fondo propio
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Tu fondo, tu escenario'**
-  String get novedades08FondoTitulo;
+  /// **'La búsqueda ya no se traba y el vidrio tiene refracción de verdad, sin gastar más.'**
+  String get novedades09RapidaTexto;
 
-  /// Novedad 0.8: fondo propio
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Pon una foto, un GIF o un video de fondo. Kiji ajusta el velo para que todo se siga leyendo.'**
-  String get novedades08FondoTexto;
+  /// **'Abre en menos de un segundo, se desliza sin saltos y usa la mitad de memoria.'**
+  String get novedades09RapidaPcTexto;
 
-  /// Novedad 0.8: sonido
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Sonido a tu gusto'**
-  String get novedades08SonidoTitulo;
+  /// **'Rachas con logros'**
+  String get novedades09RachasTitulo;
 
-  /// Novedad 0.8: sonido
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Ecualizador con presets, bajos, velocidad, tono, efectos y mezcla entre canciones.'**
-  String get novedades08SonidoTexto;
+  /// **'Tus días seguidos escuchando, tu mejor racha y logros de 3 a 365 días, arriba de Inicio.'**
+  String get novedades09RachasTexto;
 
-  /// Novedad 0.8: letras
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Letras karaoke'**
-  String get novedades08LetrasTitulo;
+  /// **'Liquid Glass real'**
+  String get novedades09LiquidTitulo;
 
-  /// Novedad 0.8: letras
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Palabra por palabra, en pantalla completa y guardadas con la canción para cantarlas sin internet.'**
-  String get novedades08LetrasTexto;
+  /// **'Pruébalo: la barra y el mini-reproductor de vidrio líquido, transparentes y con animaciones tipo agua. Se prende en Configuración → Apariencia.'**
+  String get novedades09LiquidTexto;
 
-  /// Novedad 0.8: biblioteca y música local
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Biblioteca nueva'**
-  String get novedades08BibliotecaTitulo;
+  /// **'Kiji 0.9: más simple y con más para escuchar. Esto es lo mejor:'**
+  String get novedades09Subtitulo;
 
-  /// Novedad 0.8: biblioteca y música local
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Artistas, álbumes y carpetas con tus portadas, tu música del teléfono más rápida y descarga de varias de una vez.'**
-  String get novedades08BibliotecaTexto;
+  /// **'Biblioteca más simple'**
+  String get novedades09BibliotecaTitulo;
 
-  /// Novedad 0.8: importar y sincronizar
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Trae tus playlists'**
-  String get novedades08ImportarTitulo;
+  /// **'Una sola lista: arriba tus playlists, abajo tu música. Tú eliges qué se ve, y la música del teléfono es opcional.'**
+  String get novedades09BibliotecaTexto;
 
-  /// Novedad 0.8: importar y sincronizar
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Pega el enlace de una playlist de Spotify, Apple Music, SoundCloud o YouTube, o conecta tu YouTube Music si quieres (es opcional).'**
-  String get novedades08ImportarTexto;
+  /// **'Ecualizador de 10 bandas'**
+  String get novedades09EcualizadorTitulo;
 
-  /// Novedad 0.8: teatro
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Reacciones de teatro 🍅🌹'**
-  String get novedades08TeatroTitulo;
+  /// **'Ahora también en Android (Android 9 o más nuevo). Tus ajustes se adaptan solos.'**
+  String get novedades09EcualizadorTexto;
 
-  /// Novedad 0.8: teatro
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Tira tomates hasta que caiga el telón o rosas hasta la ovación de pie. Y en «Tu Teatro», los premios del público.'**
-  String get novedades08TeatroTexto;
+  /// **'Solo la música'**
+  String get novedades09SponsorTitulo;
 
-  /// Novedad 0.8: widgets, en beta
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Widgets (beta)'**
-  String get novedades08WidgetsTitulo;
+  /// **'Salta intros, finales y diálogos de los videos con SponsorBlock. Apagado de fábrica.'**
+  String get novedades09SponsorTexto;
 
-  /// Novedad 0.8: widgets, en beta
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Cinco para la pantalla de inicio: Anillo, Ahora suena, Letra, Teatro y Barra. Están en beta: cuéntanos qué tal.'**
-  String get novedades08WidgetsTexto;
+  /// **'Una playlist entera, sin conexión'**
+  String get novedades09PlaylistTitulo;
 
-  /// Novedad 0.8 solo para la PC
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Descárgala con un toque, con pausa y cancelar.'**
+  String get novedades09PlaylistTexto;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Tarjetas y frase del día'**
+  String get novedades09TarjetasTitulo;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Comparte la canción que suena (Sonando ahora, Vinilo o Póster) y lee una frase de escritores, músicos y poetas cada día.'**
+  String get novedades09TarjetasTexto;
+
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
   /// **'En la PC'**
-  String get novedades08PcTitulo;
+  String get novedades09PcTitulo;
 
-  /// Novedad 0.8 solo para la PC
+  /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Video de fondo, ecualizador con efectos y Ctrl/Shift + clic para elegir varias canciones.'**
-  String get novedades08PcTexto;
+  /// **'Kiji puede abrirse al encender la computadora, en la bandeja y sin sonar. Y puedes editar el título, el artista, el álbum y la portada de tu música.'**
+  String get novedades09PcTexto;
 
   /// Sonido: Android no pudo crear el ecualizador (aviso suave)
   ///
@@ -8602,6 +8620,594 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ver qué hay de nuevo'**
   String get verQueHayDeNuevo;
+
+  /// Hoja «Guardar un momento»: abre la lista de Momentos
+  ///
+  /// In es, this message translates to:
+  /// **'Ver tus momentos'**
+  String get verTusMomentos;
+
+  /// Configuración → Acerca de: enlace a la política de privacidad
+  ///
+  /// In es, this message translates to:
+  /// **'Política de privacidad'**
+  String get politicaDePrivacidad;
+
+  /// No description provided for @politicaDePrivacidadDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué guarda Kiji y a qué servicios se conecta. Se abre en el navegador.'**
+  String get politicaDePrivacidadDescripcion;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en esta lista'**
+  String get buscarEnEstaLista;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en tu biblioteca'**
+  String get buscarEnTuBiblioteca;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'TU MÚSICA'**
+  String get tuMusica;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Qué ver en la Biblioteca'**
+  String get queVerEnLaBiblioteca;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Elige qué aparece. Lo que ocultes no se borra.'**
+  String get queVerEnLaBibliotecaNota;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Música de este dispositivo'**
+  String get musicaDelDispositivo;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Las canciones guardadas en el teléfono o la PC aparecen en la Biblioteca, junto a las descargadas.'**
+  String get musicaDelDispositivoNota;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'¿Quieres ver la música de este dispositivo?'**
+  String get musicaDelDispositivoPregunta;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji puede mostrar las canciones que ya tienes guardadas, junto a las que bajes. Si prefieres solo lo de Kiji, elige «No»: se puede cambiar en Configuración.'**
+  String get musicaDelDispositivoPreguntaNota;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Sí, mostrarla'**
+  String get siMostrarla;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'No, solo lo de Kiji'**
+  String get noSoloKiji;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Nada con ese nombre en tu biblioteca.'**
+  String get nadaEnTuBiblioteca;
+
+  /// Biblioteca 0.9
+  ///
+  /// In es, this message translates to:
+  /// **'Con la música de este dispositivo'**
+  String get necesitaMusicaDelDispositivo;
+
+  /// No description provided for @quitarDescarga.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar descarga'**
+  String get quitarDescarga;
+
+  /// No description provided for @listasInteligentes.
+  ///
+  /// In es, this message translates to:
+  /// **'Listas inteligentes'**
+  String get listasInteligentes;
+
+  /// No description provided for @calculadasEnTuTelefono.
+  ///
+  /// In es, this message translates to:
+  /// **'Calculadas en tu teléfono'**
+  String get calculadasEnTuTelefono;
+
+  /// No description provided for @skipSinMusica.
+  ///
+  /// In es, this message translates to:
+  /// **'Partes sin música'**
+  String get skipSinMusica;
+
+  /// No description provided for @skipIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Intro'**
+  String get skipIntro;
+
+  /// No description provided for @skipOutro.
+  ///
+  /// In es, this message translates to:
+  /// **'Final'**
+  String get skipOutro;
+
+  /// No description provided for @skipAvance.
+  ///
+  /// In es, this message translates to:
+  /// **'Avance'**
+  String get skipAvance;
+
+  /// No description provided for @skipAutopromocion.
+  ///
+  /// In es, this message translates to:
+  /// **'Autopromoción'**
+  String get skipAutopromocion;
+
+  /// No description provided for @skipPatrocinio.
+  ///
+  /// In es, this message translates to:
+  /// **'Patrocinio'**
+  String get skipPatrocinio;
+
+  /// No description provided for @skipSuscribete.
+  ///
+  /// In es, this message translates to:
+  /// **'«Suscríbete»'**
+  String get skipSuscribete;
+
+  /// No description provided for @saltarSinMusica.
+  ///
+  /// In es, this message translates to:
+  /// **'Saltar las partes sin música'**
+  String get saltarSinMusica;
+
+  /// No description provided for @saltarSinMusicaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'En los videos musicales salta intros, finales y diálogos con la base pública de SponsorBlock. Apagado de fábrica. Para buscar los tramos se manda a SponsorBlock un trozo del código del video (los primeros 4 caracteres de su hash), nada más.'**
+  String get saltarSinMusicaNota;
+
+  /// No description provided for @queSaltar.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué saltar'**
+  String get queSaltar;
+
+  /// Aviso al saltar un tramo
+  ///
+  /// In es, this message translates to:
+  /// **'Saltado: {category}'**
+  String saltadoCategoria(String category);
+
+  /// No description provided for @editarEtiquetas.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar etiquetas'**
+  String get editarEtiquetas;
+
+  /// No description provided for @editarEtiquetasNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambia el título, el artista, el álbum y la portada en el archivo. Kiji escribe primero en una copia y la comprueba: si algo falla, el archivo queda como estaba.'**
+  String get editarEtiquetasNota;
+
+  /// No description provided for @etiquetasGuardadas.
+  ///
+  /// In es, this message translates to:
+  /// **'Etiquetas guardadas en el archivo.'**
+  String get etiquetasGuardadas;
+
+  /// No description provided for @etiquetasFormatoNoSoportado.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji todavía no puede escribir etiquetas en este formato (sí en MP3, M4A, FLAC y WAV).'**
+  String get etiquetasFormatoNoSoportado;
+
+  /// No description provided for @etiquetasNoPermitido.
+  ///
+  /// In es, this message translates to:
+  /// **'El sistema no deja a Kiji cambiar este archivo. Puedes cambiar cómo se ve solo en Kiji.'**
+  String get etiquetasNoPermitido;
+
+  /// No description provided for @etiquetasNoSePudo.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron guardar las etiquetas. El archivo quedó como estaba.'**
+  String get etiquetasNoSePudo;
+
+  /// No description provided for @portadaElegida.
+  ///
+  /// In es, this message translates to:
+  /// **'Portada elegida'**
+  String get portadaElegida;
+
+  /// No description provided for @scrobblingListenBrainz.
+  ///
+  /// In es, this message translates to:
+  /// **'Scrobbling a ListenBrainz'**
+  String get scrobblingListenBrainz;
+
+  /// No description provided for @scrobblingListenBrainzNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional: guarda lo que escuchas en tu cuenta de ListenBrainz. Apagado.'**
+  String get scrobblingListenBrainzNota;
+
+  /// No description provided for @listenBrainzExplicacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada canción que escuches (más de la mitad, o 4 minutos) se manda a tu cuenta de ListenBrainz: artista, título, álbum y la hora. Va directo de este dispositivo a ListenBrainz. Tu token se guarda cifrado solo aquí, y lo puedes desconectar cuando quieras.'**
+  String get listenBrainzExplicacion;
+
+  /// No description provided for @tuTokenDeListenBrainz.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu token de ListenBrainz'**
+  String get tuTokenDeListenBrainz;
+
+  /// No description provided for @dondeEstaMiToken.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Dónde está mi token?'**
+  String get dondeEstaMiToken;
+
+  /// No description provided for @tokenNoValido.
+  ///
+  /// In es, this message translates to:
+  /// **'ListenBrainz no aceptó ese token.'**
+  String get tokenNoValido;
+
+  /// No description provided for @conectar.
+  ///
+  /// In es, this message translates to:
+  /// **'Conectar'**
+  String get conectar;
+
+  /// No description provided for @desconectar.
+  ///
+  /// In es, this message translates to:
+  /// **'Desconectar'**
+  String get desconectar;
+
+  /// ListenBrainz conectado
+  ///
+  /// In es, this message translates to:
+  /// **'Conectado como {user}'**
+  String conectadoComo(String user);
+
+  /// Racha en Inicio
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 día seguido escuchando} other{{count} días seguidos escuchando}}'**
+  String rachaDias(int count);
+
+  /// No description provided for @iniciarConLaPc.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar Kiji al encender la PC'**
+  String get iniciarConLaPc;
+
+  /// No description provided for @iniciarConLaPcNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Kiji arranca en la bandeja, sin abrir la ventana y sin sonar. Apagado de fábrica.'**
+  String get iniciarConLaPcNota;
+
+  /// No description provided for @iniciarConLaPcNoSePudo.
+  ///
+  /// In es, this message translates to:
+  /// **'Windows no dejó cambiar el inicio de Kiji. Prueba otra vez.'**
+  String get iniciarConLaPcNoSePudo;
+
+  /// No description provided for @seguirDondeLoDeje.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguir donde lo dejé'**
+  String get seguirDondeLoDeje;
+
+  /// No description provided for @seguirDondeLoDejeNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Deja lista la última canción, en pausa.'**
+  String get seguirDondeLoDejeNota;
+
+  /// No description provided for @tarjetaSonandoAhora.
+  ///
+  /// In es, this message translates to:
+  /// **'Sonando ahora'**
+  String get tarjetaSonandoAhora;
+
+  /// No description provided for @tarjetaVinilo.
+  ///
+  /// In es, this message translates to:
+  /// **'Vinilo'**
+  String get tarjetaVinilo;
+
+  /// No description provided for @tarjetaPoster.
+  ///
+  /// In es, this message translates to:
+  /// **'Póster'**
+  String get tarjetaPoster;
+
+  /// No description provided for @sonandoAhoraEnKiji.
+  ///
+  /// In es, this message translates to:
+  /// **'Sonando en Kiji'**
+  String get sonandoAhoraEnKiji;
+
+  /// No description provided for @compartirTarjeta.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir tarjeta'**
+  String get compartirTarjeta;
+
+  /// No description provided for @compartirTarjetaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Una imagen con la portada, el título y el artista'**
+  String get compartirTarjetaNota;
+
+  /// No description provided for @fraseDelDia.
+  ///
+  /// In es, this message translates to:
+  /// **'Frase del día'**
+  String get fraseDelDia;
+
+  /// No description provided for @compartirFrase.
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir la frase'**
+  String get compartirFrase;
+
+  /// Ajuste: vidrio líquido real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Refracción en el borde del vidrio'**
+  String get vidrioReal;
+
+  /// No description provided for @vidrioRealNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Refracción de verdad y un poco de arcoíris en el borde del vidrio. Si lo apagas o tu equipo no puede, queda el vidrio de siempre.'**
+  String get vidrioRealNota;
+
+  /// Biblioteca: las playlists de Kiji (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'MIS PLAYLISTS'**
+  String get misPlaylists;
+
+  /// Biblioteca: las playlists de la cuenta de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'YOUTUBE MUSIC'**
+  String get seccionYoutubeMusic;
+
+  /// Botón: sincronizar con YouTube Music de ida y vuelta
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar'**
+  String get sincronizar;
+
+  /// No description provided for @sincronizadoListo.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo: {count, plural, =0{todo estaba al día} =1{1 cambio enviado a YouTube Music} other{{count} cambios enviados a YouTube Music}}.'**
+  String sincronizadoListo(int count);
+
+  /// No description provided for @sincronizadoJuntos.
+  ///
+  /// In es, this message translates to:
+  /// **'En «{names}» había cambios en Kiji y en YouTube Music: se juntaron los dos.'**
+  String sincronizadoJuntos(String names);
+
+  /// No description provided for @noSePudoSincronizar.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo sincronizar. Prueba de nuevo en un rato.'**
+  String get noSePudoSincronizar;
+
+  /// No description provided for @playlistAjenaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardada de otra persona en YouTube Music: lo que cambies aquí queda solo en Kiji.'**
+  String get playlistAjenaNota;
+
+  /// Nombre del servicio (marca)
+  ///
+  /// In es, this message translates to:
+  /// **'YouTube Music'**
+  String get youtubeMusicNombre;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Tu racha'**
+  String get rachaTitulo;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{día seguido} other{días seguidos}}'**
+  String rachaDiasSeguidos(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Mejor racha: {count, plural, =1{1 día} other{{count} días}}'**
+  String rachaMejor(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'mejor racha'**
+  String get rachaMejorTitulo;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Escucha algo hoy y empieza tu racha'**
+  String get rachaEmpezar;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Esta semana: {count} de 7 días'**
+  String rachaSemana(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar la tarjeta de racha'**
+  String get rachaOcultar;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Tarjeta de racha oculta. La vuelves a mostrar en Configuración → Apariencia.'**
+  String get rachaOcultada;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Tarjeta de racha en Inicio'**
+  String get rachaTarjetaAjuste;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Días seguidos escuchando, tu mejor racha y la semana. Todo queda en este dispositivo.'**
+  String get rachaTarjetaAjusteNota;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Logros'**
+  String get rachaLogros;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 día} other{{count} días}}'**
+  String rachaLogroDias(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Ganado el {date}'**
+  String rachaLogroGanado(String date);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{Te falta 1 día} other{Te faltan {count} días}}'**
+  String rachaLogroFalta(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'¡Logro nuevo: {count} días seguidos!'**
+  String rachaLogroNuevo(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir tu racha'**
+  String get rachaCompartir;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'escuchaste música'**
+  String get rachaDiaEscuchado;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Mes anterior'**
+  String get mesAnterior;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Mes siguiente'**
+  String get mesSiguiente;
+
+  /// Estado de una playlist de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizada con YouTube Music'**
+  String get ytSincronizada;
+
+  /// Estado de una playlist de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Cambios sin subir a YouTube Music'**
+  String get ytCambiosSinSubir;
+
+  /// Estado de una playlist de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizando…'**
+  String get ytSincronizando;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Liquid Glass real'**
+  String get liquidGlassReal;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Vidrio transparente con refracción y animaciones tipo agua en la barra, el mini-reproductor y los botones. Pensado para teléfonos de gama alta. Puede gastar más batería y verse menos fluido en otros teléfonos.'**
+  String get liquidGlassRealNota;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Este teléfono no puede: su motor de dibujo no tiene los efectos que hacen falta. Queda el vidrio de siempre.'**
+  String get liquidGlassRealSinShaders;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Este teléfono no puede: es de 32 bits. Queda el vidrio de siempre.'**
+  String get liquidGlassReal32Bits;
+
+  /// No description provided for @frasesDelDia.
+  ///
+  /// In es, this message translates to:
+  /// **'Frase del día en Inicio'**
+  String get frasesDelDia;
+
+  /// No description provided for @frasesDelDiaNota.
+  ///
+  /// In es, this message translates to:
+  /// **'Frases de escritores, músicos y poetas de dominio público, elegidas según la hora y lo que escuchas. Todo en el dispositivo.'**
+  String get frasesDelDiaNota;
 }
 
 class _AppLocalizationsDelegate

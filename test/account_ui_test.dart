@@ -30,7 +30,7 @@ class _NoSync extends YtSyncNotifier {
   @override
   YtSyncState build() => const YtSyncState();
   @override
-  Future<bool> syncNow() async {
+  Future<bool> syncNow({bool push = true}) async {
     syncs++;
     return true;
   }

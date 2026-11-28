@@ -579,3 +579,48 @@ List<({String id, String name})> parseLibraryPlaylists(Map<String, dynamic> json
   walk(json);
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Playlists de la cuenta (sincronizar de ida y vuelta, 0.9)
+// ---------------------------------------------------------------------------
+
+/// En una página de playlist de la cuenta: de cada canción, su `setVideoId` (el que YouTube pide
+/// para quitarla de esa playlist). videoId → setVideoId.
+Map<String, String> parsePlaylistSetVideoIds(Object? root) {
+  final ids = <String, String>{};
+  void walk(Object? n) {
+    if (n is Map) {
+      final data = (n['musicResponsiveListItemRenderer'] as Map?)?['playlistItemData'];
+      if (data is Map && data['videoId'] is String && data['playlistSetVideoId'] is String) {
+        ids.putIfAbsent(data['videoId'] as String, () => data['playlistSetVideoId'] as String);
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(root);
+  return ids;
+}
+
+/// ¿La playlist es del usuario (se puede editar)? YouTube Music lo marca con la cabecera editable;
+/// las guardadas de otros no la traen.
+bool isEditablePlaylist(Object? root) {
+  var found = false;
+  void walk(Object? n) {
+    if (found) return;
+    if (n is Map) {
+      if (n.containsKey('musicEditablePlaylistDetailHeaderRenderer')) {
+        found = true;
+        return;
+      }
+      n.values.forEach(walk);
+    } else if (n is List) {
+      n.forEach(walk);
+    }
+  }
+
+  walk(root);
+  return found;
+}

@@ -34,6 +34,9 @@ jobs:
         run: flutter analyze
       - name: Pruebas
         run: flutter test
+      # Sabor «play» (Google Play, base de la 1.0): lo apagado no aparece.
+      - name: Pruebas del sabor play
+        run: flutter test --dart-define=KIJI_STORE=play test/store_flavor_test.dart
 
   android:
     name: Compilar Android
@@ -68,6 +71,20 @@ jobs:
         run: flutter build apk --release --flavor prod
       - name: APK de Kiji Dev
         run: flutter build apk --debug --flavor dev
+      # Sabor «play» (Google Play, todavía sin publicar): compila y NO lleva el permiso de instalar
+      # apps ni el canal del actualizador (kiji/update). La Kiji completa («full») sí los lleva.
+      - name: APK del sabor play (sin publicar)
+        run: |
+          flutter build apk --release --flavor prod --android-project-arg=kiji.store=play --dart-define=KIJI_STORE=play
+          apk=build/app/outputs/flutter-apk/app-prod-release.apk
+          aapt2=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          if "$aapt2" dump permissions "$apk" | grep -q REQUEST_INSTALL_PACKAGES; then
+            echo "::error::El APK play tiene el permiso de instalar apps."; exit 1
+          fi
+          if unzip -p "$apk" 'classes*.dex' | grep -aq 'kiji/update'; then
+            echo "::error::El APK play tiene el actualizador propio."; exit 1
+          fi
+          echo "APK play: sin permiso de instalar apps y sin actualizador."
 
   windows:
     name: Compilar Windows

@@ -61,6 +61,10 @@ Source: "{#VcRuntime}\vcruntime140_1.dll"; DestDir: "{app}"; Flags: ignoreversio
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
+[Registry]
+; «Iniciar Kiji al encender la PC» (0.9): la entrada la crea Kiji solo si el usuario lo prende.
+; El instalador no la crea; al desinstalar se borra (ValueType none + dontcreatekey: no se escribe nada).
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "KijiPlayer"; Flags: uninsdeletevalue dontcreatekey
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
 ; "Actualizar" desde Kiji (0.8.4): Kiji abre este instalador en silencio con /KIJIUPDATE=1 y se

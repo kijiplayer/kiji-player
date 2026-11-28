@@ -74,6 +74,19 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // Sabor de tienda (0.9, base de la 1.0). "full" es la Kiji de siempre (GitHub y tiendas) y no
+    // cambia en nada. "play" (Google Play, todavía sin publicar) se compila con
+    // `--android-project-arg=kiji.store=play --dart-define=KIJI_STORE=play`: sin el actualizador
+    // propio ni el permiso de instalar apps. Ver kiji-interno\SABORES.md.
+    val kijiStore = (project.findProperty("kiji.store") as String?) ?: "full"
+    sourceSets.getByName("main").java.srcDir(if (kijiStore == "play") "src/storePlay/kotlin" else "src/storeFull/kotlin")
+    if (kijiStore == "play") {
+        // El manifiesto de cada tipo de compilación se aplica último: quita lo del actualizador.
+        for (buildType in listOf("debug", "profile", "release")) {
+            sourceSets.maybeCreate(buildType).manifest.srcFile("src/storePlay/AndroidManifest.xml")
+        }
+    }
 }
 
 kotlin {

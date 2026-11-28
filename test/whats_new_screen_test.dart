@@ -16,17 +16,22 @@ void main() {
     KijiColors.palette = KijiPalette.nocturne;
   });
 
-  test('las novedades de la 0.8: lo de la PC solo en la PC, y los widgets en beta', () {
+  test('las novedades de la 0.9: el ecualizador solo en el teléfono y lo de la PC solo en la PC', () {
     final phone = whatsNewItems(desktop: false);
     final pc = whatsNewItems(desktop: true);
-    expect(phone, hasLength(8));
-    expect(pc, hasLength(9));
+    expect(phone, hasLength(9));
+    expect(pc, hasLength(8));
     expect(pc.last.title, 'En la PC');
     final titles = [for (final i in phone) i.title];
-    expect(titles, contains('Reacciones de teatro 🍅🌹'));
-    expect(titles, contains('Widgets (beta)'));
-    // Linux todavía no: no se nombra.
-    expect([for (final i in pc) '${i.title} ${i.text}'].join(' ').toLowerCase(), isNot(contains('linux')));
+    expect(titles, contains('Biblioteca más simple'));
+    expect(titles, contains('Ecualizador de 10 bandas'));
+    expect(titles, containsAll(['Rachas con logros', 'Liquid Glass real']));
+    expect(titles[1], 'YouTube Music de ida y vuelta', reason: 'lo más importante primero');
+    expect([for (final i in pc) i.title], isNot(contains('Ecualizador de 10 bandas')));
+    // Lo que la 0.9 no trae no se nombra: ni Last.fm ni Linux.
+    final all = [for (final i in [...phone, ...pc]) '${i.title} ${i.text}'].join(' ').toLowerCase();
+    expect(all, isNot(contains('last.fm')));
+    expect(all, isNot(contains('linux')));
   });
 
   for (final style in KijiStyle.values) {
@@ -65,7 +70,7 @@ void main() {
         await tester.pump(const Duration(seconds: 2));
         expect(tester.takeException(), isNull);
         expect(find.text('Qué hay de nuevo'), findsOneWidget);
-        expect(find.text('Reproductor nuevo, a tu manera'), findsOneWidget);
+        expect(find.text('Biblioteca más simple'), findsOneWidget);
         await tester.tap(find.byKey(const Key('whats-new-start')));
         await tester.pump(const Duration(milliseconds: 500));
         await tester.pump(const Duration(seconds: 1));
@@ -87,6 +92,6 @@ void main() {
     // Sin un solo cuadro de animación, todas las tarjetas ya están del todo visibles.
     final opacities = tester.widgetList<Opacity>(find.byType(Opacity)).map((o) => o.opacity);
     expect(opacities.every((o) => o == 1), isTrue);
-    expect(find.text('Reproductor nuevo, a tu manera'), findsOneWidget);
+    expect(find.text('Biblioteca más simple'), findsOneWidget);
   });
 }

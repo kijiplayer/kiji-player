@@ -145,6 +145,24 @@ class YtMusicClient {
   /// `params` que manda la web al tocar el chip "Canciones").
   static const songsFilter = 'EgWKAQIIAWoKEAkQBRAKEAMQBA=='; // l10n-ignore
 
+  DateTime? _warmedAt;
+
+  /// Abre de antemano dos conexiones con YouTube Music (DNS y TLS) mientras la persona escribe, para
+  /// que la primera búsqueda no las espere: ~140 ms menos (medido en la PC, 690 → 550 ms). Manda
+  /// un pedido de sugerencias **vacío**: no adelanta lo que se está escribiendo. Las conexiones
+  /// quedan abiertas ~15 s; antes de eso no se repite.
+  void warmUp() {
+    final now = DateTime.now();
+    final last = _warmedAt;
+    if (last != null && now.difference(last) < const Duration(seconds: 10)) return;
+    _warmedAt = now;
+    for (var i = 0; i < 2; i++) {
+      _dio
+          .post<void>('/music/get_search_suggestions', queryParameters: {'key': _apiKey}, data: {..._context, 'input': ''})
+          .then<void>((_) {}, onError: (Object error) => debugPrint('=== YTM: precalentar falló: ${error.runtimeType} ==='));
+    }
+  }
+
   /// Busca de forma anónima. Con [songsOnly], solo canciones (sin videos).
   Future<List<YtMusicSearchResult>> search(String query, {bool songsOnly = false}) async =>
       (await searchSongsPage(query, songsOnly: songsOnly)).items;
@@ -258,6 +276,27 @@ class YtMusicClient {
       options: Options(headers: session.authHeaders()),
     );
     return response.data;
+  }
+
+  /// Cambia una playlist de la cuenta (sincronizar de ida y vuelta, 0.9): agregar
+  /// (`ACTION_ADD_VIDEO`) o quitar (`ACTION_REMOVE_VIDEO`) canciones. Solo con la sesión del
+  /// usuario, directo a YouTube; devuelve true si YouTube respondió que se hizo.
+  Future<bool> editPlaylistWithAccount(String playlistId, List<Map<String, dynamic>> actions, YtSession session) async {
+    final context = Map<String, dynamic>.from(_context['context'] as Map);
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/browse/edit_playlist',
+      queryParameters: {'key': _apiKey, 'prettyPrint': false},
+      data: {
+        'context': {
+          ...context,
+          if (session.dataSyncId != null) 'user': {'onBehalfOfUser': session.dataSyncId},
+        },
+        'playlistId': playlistId,
+        'actions': actions,
+      },
+      options: Options(headers: session.authHeaders()),
+    );
+    return response.data?['status'] == 'STATUS_SUCCEEDED';
   }
 
   /// Página de un artista (anónimo): canciones más escuchadas y álbumes.

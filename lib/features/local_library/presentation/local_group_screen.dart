@@ -15,6 +15,7 @@ import '../../queue/presentation/track_actions.dart';
 import '../../selection/track_selection.dart';
 import '../domain/local_groups.dart';
 
+import '../../../widgets/list_search_field.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
 /// Qué es un grupo de la música del equipo (cambia la cabecera y si se ven los números de pista).
@@ -57,7 +58,14 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
     super.dispose();
   }
 
-  List<Track> get _tracks => widget.group.tracks;
+  /// Lo escrito en el buscador (normalizado).
+  String _query = '';
+
+  /// Las canciones del grupo que coinciden con el buscador.
+  List<Track> get _tracks => [
+    for (final t in widget.group.tracks)
+      if (trackMatches(t, _query)) t,
+  ];
 
   /// "Elegir portada" (o quitar la elegida) para este álbum o carpeta.
   Future<void> _chooseCover() async {
@@ -141,7 +149,9 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
             itemCount: _tracks.length + 1,
             itemBuilder: (context, i) {
               if (i == 0) {
-                return Padding(
+                return Column(
+                  children: [
+                Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                   child: Row(
                     children: [
@@ -190,6 +200,14 @@ class _LocalGroupScreenState extends ConsumerState<LocalGroupScreen> {
                       ),
                     ],
                   ),
+                ),
+                    // Buscador (0.9): lo elegido se mantiene al buscar.
+                    if (widget.group.tracks.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: ListSearchField(onChanged: (q) => setState(() => _query = q)),
+                      ),
+                  ],
                 );
               }
               final index = i - 1;

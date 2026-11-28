@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -24,6 +25,7 @@ import '../features/downloads/domain/storage_info.dart';
 import '../models/track.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../utils/cover_trim.dart';
 
 final downloadsRepositoryProvider = Provider<DownloadsRepository>((ref) => DownloadsRepository());
 
@@ -300,6 +302,7 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
   /// Con "solo con WiFi" o el ahorro de datos, solo con WiFi (o cable): si no, nada por datos
   /// móviles (se retoma la próxima vez que se abra Kiji).
   Future<void> _upgradeCovers() async {
+    await _trimOldCovers();
     if (!await _lyricsNetworkOk()) {
       debugPrint('=== DESCARGAS: portadas viejas, se esperan al WiFi (ahorro de datos o solo WiFi) ===');
       return;
@@ -316,6 +319,29 @@ class DownloadsNotifier extends Notifier<DownloadsState> {
       },
     ).run(state.completed.values.toList());
     await _lyricsForOldDownloads();
+  }
+
+  /// Portadas con franjas (0.9): las ya guardadas se recortan una vez, de a una y en segundo
+  /// plano (sin internet). Las recortadas quedan anotadas en `covers_trimmed.txt`.
+  Future<void> _trimOldCovers() async {
+    try {
+      final marks = File(await _repository.pathFor('covers_trimmed.txt'));
+      final done = await marks.exists() ? (await marks.readAsLines()).toSet() : <String>{};
+      final pending = [
+        for (final t in state.completed.values)
+          if (t.thumbnailFileName case final name? when !done.contains(name)) name,
+      ];
+      if (pending.isEmpty) return;
+      var trimmed = 0;
+      for (final name in pending) {
+        if (await trimCoverFile(await _repository.pathFor(name))) trimmed++;
+        done.add(name);
+      }
+      await marks.writeAsString(done.join('\n'), flush: true);
+      debugPrint('=== DESCARGAS: portadas revisadas: ${pending.length}, sin franjas: $trimmed ===');
+    } catch (error) {
+      debugPrint('=== DESCARGAS: no se pudieron revisar las portadas (${error.runtimeType}) ===');
+    }
   }
 
   /// Letras y portadas se bajan solo si no hay que cuidar los datos: con "solo con WiFi" o el

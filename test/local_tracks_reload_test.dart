@@ -32,7 +32,7 @@ class _CountingSource implements LocalLibrarySource {
 
 class _Settings extends SettingsNotifier {
   @override
-  AppSettings build() => const AppSettings();
+  AppSettings build() => const AppSettings(phoneMusic: 'on');
   @override
   Future<void> update(AppSettings Function(AppSettings) change) async => state = change(state);
 }
@@ -67,4 +67,24 @@ void main() {
     await c.read(localTracksProvider.future);
     expect(source.loads, 2);
   });
+
+  test('Sin la música del dispositivo (0.9) no se lee nada ni se pide permiso', () async {
+    final source = _CountingSource();
+    final c = ProviderContainer(
+      overrides: [
+        localLibrarySourceProvider.overrideWithValue(source),
+        settingsProvider.overrideWith(_Off.new),
+      ],
+    );
+    addTearDown(c.dispose);
+    expect(await c.read(localTracksProvider.future), isEmpty);
+    expect(source.loads, 0);
+  });
+}
+
+class _Off extends SettingsNotifier {
+  @override
+  AppSettings build() => const AppSettings(phoneMusic: 'off');
+  @override
+  Future<void> update(AppSettings Function(AppSettings) change) async => state = change(state);
 }

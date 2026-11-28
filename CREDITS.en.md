@@ -55,6 +55,8 @@ maintains them.
 | [YouTube Music](https://music.youtube.com) | Unsynced lyrics from the "Lyrics" tab | Video id. |
 | [Mozilla Remote Settings](https://firefox.settings.services.mozilla.com) | Download, only once, the engine and the model of a language to translate on the device | Nothing about the song: only which language files are downloaded. |
 | [zemer-cipher](https://github.com/ZemerTeam/zemer-cipher) (GitHub) | The `player_configs.json` table to decipher the audio (engines A and B), at most every 6 h | Nothing of yours: GitHub sees a request for a public file. |
+| [SponsorBlock](https://sponsor.ajay.app) (data under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)) | Skip non-music parts of music videos (optional, off by default) | The first 4 characters of the SHA-256 hash of the video id, and the chosen categories. |
+| [ListenBrainz](https://listenbrainz.org) | Scrobbling (optional, with your own token) | Artist, title, album, duration and the time of each song you listen to. |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) (GitHub releases, PC only and on request) | Extraction engine C, if the user accepts it | The official program is downloaded and its fingerprint verified; then it asks YouTube for the song's audio, like Kiji. |
 | [Google Gemini API](https://ai.google.dev) (optional, off by default) | Translate lyrics with AI, with the user's own key | Only the lyric lines and the target language, with the user's key (encrypted on the device). |
 | [song.link / Odesli](https://odesli.co) | Universal link when sharing a song | Nothing from Kiji: the link is just built with the video id; whoever receives it opens it. |
@@ -91,6 +93,7 @@ maintains them.
 | [libmpv](https://mpv.io) (build from [media-kit/libmpv-win32-video-build](https://github.com/media-kit/libmpv-win32-video-build)) | GPL-2.0 or later / LGPL | PC: the audio and video engine (includes FFmpeg). |
 | [ANGLE](https://chromium.googlesource.com/angle/angle) (`libGLESv2.dll`, `libEGL.dll`) | BSD-3-Clause | PC: draws the background video (comes with media_kit). |
 | [video_player](https://pub.dev/packages/video_player) (Flutter) | BSD-3-Clause | Phone: the video of your own background. |
+| [liquid_glass_widgets](https://pub.dev/packages/liquid_glass_widgets) 1.22.0 (Sebastian Degenaar) | MIT | “Real Liquid Glass” (optional): the tab bar, the mini player and the floating buttons. |
 | [sensors_plus](https://pub.dev/packages/sensors_plus) (Flutter Community, plus_plugins) | BSD-3-Clause | Phone: shake it to throw a tomato (only with the player on screen and music playing). |
 
 ## How to maintain this file

@@ -98,7 +98,7 @@ class PillNavBar extends ConsumerWidget {
                         selected: destination.tab == current,
                         width: widths[i],
                         duration: duration,
-                        onTap: () => ref.read(shellTabProvider.notifier).state = destination.tab,
+                        onTap: () => selectShellTab(ref, destination.tab),
                       ),
                   ],
                 ),

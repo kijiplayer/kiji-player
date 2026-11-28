@@ -19,10 +19,10 @@ import '../../favorites/favorites.dart';
 import '../../history/listening_history.dart';
 import '../../moments/data/moments_store.dart';
 import '../../moments/presentation/moments_screen.dart';
-import '../../queue/presentation/track_actions.dart';
+import '../../../widgets/list_search_field.dart';
 import '../../selection/track_selection.dart';
 import '../../account/data/account_store.dart';
-import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard;
+import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard, syncOneYouTubePlaylist, syncWithYouTube;
 import '../../account/data/yt_sync.dart';
 import '../../local_library/domain/local_groups.dart' show LocalGroup;
 import '../../local_library/presentation/local_group_screen.dart';
@@ -38,6 +38,7 @@ import '../../downloads/presentation/download_status.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
 import 'package:kiji_player/widgets/nocturne/kiji_sheet.dart';
+import '../../../store_flavor.dart';
 
 /// Datos de las listas inteligentes, calculados en el teléfono.
 final smartListInputsProvider = Provider<SmartListInputs>(
@@ -118,11 +119,19 @@ Future<void> showAddToPlaylistSheet(BuildContext context, WidgetRef ref, List<Tr
                     done(tx.seCreo(created.name));
                   },
                 ),
-                for (final playlist in playlists)
+                // Primero las de Kiji; las de YouTube Music (0.9), marcadas, después.
+                for (final playlist in [...playlists.where((pl) => pl.yt == null), ...playlists.where((pl) => pl.yt != null)])
                   ListTile(
-                    leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                    leading: Icon(
+                      playlist.yt == null ? Icons.queue_music_rounded : Icons.sync_rounded,
+                      color: KijiColors.violet,
+                    ),
                     title: Text(playlist.name),
-                    subtitle: Text(_count(playlist.tracks.length)),
+                    subtitle: Text(
+                      playlist.yt == null
+                          ? _count(playlist.tracks.length)
+                          : '${_count(playlist.tracks.length)} · ${tx.youtubeMusicNombre}',
+                    ),
                     onTap: () {
                       final added = notifier.addTracks(playlist.id, tracks);
                       Navigator.pop(sheetContext);
@@ -143,9 +152,13 @@ String _count(int n) => tx.nCanciones(n);
 /// Pestaña Playlists de la Biblioteca: listas inteligentes y tus playlists (con [grid], tus
 /// playlists como tarjetas con su portada).
 class PlaylistsView extends ConsumerWidget {
-  const PlaylistsView({super.key, this.grid = false});
+  const PlaylistsView({super.key, this.grid = false, this.compact = false});
 
   final bool grid;
+
+  /// Biblioteca 0.9: solo tus playlists y «Me gusta» (las demás listas inteligentes tienen su
+  /// propia entrada), para que lo de abajo no quede lejos.
+  final bool compact;
 
   Widget _card(BuildContext context, Playlist playlist, double width) => SizedBox(
     width: width,
@@ -185,7 +198,10 @@ class PlaylistsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playlists = ref.watch(playlistsProvider);
+    final all = ref.watch(playlistsProvider);
+    // «Mis playlists» (de Kiji) y, aparte, las de YouTube Music (0.9): no se mezclan.
+    final playlists = [for (final pl in all) if (pl.yt == null) pl];
+    final linked = [for (final pl in all) if (pl.yt != null) pl];
     final inputs = ref.watch(smartListInputsProvider);
 
     return Column(
@@ -195,7 +211,7 @@ class PlaylistsView extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Row(
             children: [
-              Expanded(child: Text(tx.tusPlaylists, style: KijiText.mono(size: 11))),
+              Expanded(child: Text(tx.misPlaylists, style: KijiText.mono(size: 11))),
               TextButton.icon(
                 onPressed: () async {
                   final name = await promptPlaylistName(context);
@@ -207,7 +223,17 @@ class PlaylistsView extends ConsumerWidget {
             ],
           ),
         ),
-        if (playlists.isEmpty)
+        // Compacta: «Me gusta» primero, siempre a mano.
+        if (compact)
+          ListTile(
+            key: const Key('library-liked'),
+            leading: Icon(Icons.favorite_rounded, color: KijiColors.violet),
+            title: Text(SmartList.liked.title),
+            subtitle: Text(_count(SmartList.liked.compute(inputs).length), style: TextStyle(color: KijiColors.muted)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => SmartListScreen.open(context, SmartList.liked),
+          ),
+        if (playlists.isEmpty && !compact)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(tx.todaviaNoCreasteNingunaMantenPresionada, style: TextStyle(color: KijiColors.muted)),
@@ -257,22 +283,39 @@ class PlaylistsView extends ConsumerWidget {
           onTap: () => MomentsScreen.open(context),
         ),
         // Sin sesión: "Conecta tu YouTube Music (opcional)" (se puede cerrar para siempre).
-        const YtConnectCard(),
+        // En la Biblioteca 0.9 (compacta), esta tarjeta va al final, debajo de «Tu música».
+        if (!compact) const YtConnectCard(),
         // Con sesión, si YouTube la rechazó: "Tu sesión venció. Vuelve a iniciarla".
         const SessionExpiredBanner(),
-        // Lo leído de la cuenta de YouTube (solo con la sincronización prendida; solo lectura).
+        // YouTube Music (0.9): «Me gusta» y lo agregado (solo lectura) y las playlists de la cuenta,
+        // que son playlists de Kiji vinculadas: se sincronizan de ida y vuelta con «Sincronizar».
+        // Solo con la sesión iniciada y la sincronización prendida, y solo en el sabor completo.
         ...() {
           final sync = ref.watch(ytSyncProvider);
-          // Solo con la sesión iniciada: al cerrarla, la sección se va al momento.
-          if (sync.isEmpty || ref.watch(accountProvider) == null || !ref.watch(settingsProvider.select((s) => s.ytSync))) {
+          if (isPlayStore ||
+              ref.watch(accountProvider) == null ||
+              !ref.watch(settingsProvider.select((s) => s.ytSync)) ||
+              (sync.isEmpty && linked.isEmpty && !sync.syncing)) {
             return const <Widget>[];
           }
           LocalGroup group(String key, String name, List<Track> tracks) =>
               LocalGroup(key: key, name: name, tracks: tracks);
           return <Widget>[
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-              child: Text(tx.deTuCuentaDeYoutube, style: KijiText.mono(size: 11)),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(child: Text(tx.seccionYoutubeMusic, style: KijiText.mono(size: 11))),
+                  TextButton.icon(
+                    key: const Key('yt-sync-now'),
+                    onPressed: sync.syncing ? null : () => syncWithYouTube(context, ref),
+                    icon: sync.syncing
+                        ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.sync_rounded),
+                    label: Text(tx.sincronizar),
+                  ),
+                ],
+              ),
             ),
             if (sync.liked.isNotEmpty)
               ListTile(
@@ -298,22 +341,23 @@ class PlaylistsView extends ConsumerWidget {
                   LocalGroupKind.playlist,
                 ),
               ),
-            for (final pl in sync.playlists)
+            for (final pl in linked)
               ListTile(
-                leading: Icon(Icons.queue_music_rounded, color: KijiColors.violet),
+                key: Key('yt-linked-${pl.id}'),
+                leading: PlaylistCover(playlist: pl),
                 title: Text(pl.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text(_count(pl.tracks.length), style: TextStyle(color: KijiColors.muted)),
-                onTap: pl.tracks.isEmpty
-                    ? null
-                    : () => LocalGroupScreen.open(context, group('yt:${pl.id}', pl.name, pl.tracks), LocalGroupKind.playlist),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => PlaylistScreen.open(context, pl.id),
               ),
           ];
         }(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-          child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
-        ),
-        for (final list in SmartList.values)
+        if (!compact)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+            child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
+          ),
+        for (final list in compact ? const <SmartList>[] : SmartList.values)
           ListTile(
             leading: Icon(Icons.auto_awesome_rounded, color: KijiColors.cyan),
             title: Text(list.title),
@@ -337,6 +381,8 @@ class _ListHeader extends ConsumerWidget {
     this.cover,
     this.description,
     this.onMore,
+    this.onDownload,
+    this.footer,
   });
 
   final String title;
@@ -349,6 +395,12 @@ class _ListHeader extends ConsumerWidget {
 
   /// El ⋯ grande con todas las opciones; null = sin botón.
   final VoidCallback? onMore;
+
+  /// Descargar toda la playlist de un toque (0.9); null = sin botón.
+  final VoidCallback? onDownload;
+
+  /// Algo más al pie de la cabecera (las de YouTube Music: estado y «Sincronizar»).
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -377,6 +429,7 @@ class _ListHeader extends ConsumerWidget {
                 ],
               ),
               if (description != null) ...[const SizedBox(height: 10), Text(description!)],
+              if (footer != null) ...[const SizedBox(height: 8), footer!],
               const SizedBox(height: 12),
               // Flexibles: con la letra del sistema grande, los botones se achican y el texto se
               // corta con "…" en vez de salirse de la tarjeta.
@@ -397,8 +450,15 @@ class _ListHeader extends ConsumerWidget {
                       label: Text(tx.aleatorio, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                   ),
+                  if (onMore != null || onDownload != null) const Spacer(),
+                  if (onDownload != null)
+                    IconButton.filledTonal(
+                      key: const Key('playlist-download-all'),
+                      tooltip: tx.descargarTodaLaPlaylist,
+                      onPressed: onDownload,
+                      icon: const Icon(Icons.download_for_offline_outlined),
+                    ),
                   if (onMore != null) ...[
-                    const Spacer(),
                     IconButton.filledTonal(
                       tooltip: tx.masOpciones,
                       iconSize: 28,
@@ -612,7 +672,14 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                 subtitle: playlist.importedFrom == null
                     ? _count(playlist.tracks.length)
                     : tx.importadaDe(_count(playlist.tracks.length), playlist.importedFrom),
+                // De YouTube Music (0.9): su estado y su propio «Sincronizar».
+                footer: playlist.yt == null ? null : YtPlaylistSyncRow(playlist: playlist),
                 tracks: playlist.tracks,
+                // De un toque: el mismo aviso de antes (cuánto ocupa) y después, la tarjeta con
+                // avance, Pausar/Seguir y Cancelar.
+                onDownload: !isPlayStore && playlist.tracks.any((t) => t.youtubeVideoId != null)
+                    ? () => confirmPlaylistDownload(context, ref, playlist)
+                    : null,
                 onMore: () => showPlaylistOptions(
                   context,
                   ref,
@@ -782,7 +849,7 @@ class _DownloadFilterBar extends StatelessWidget {
 }
 
 /// Una lista inteligente: se calcula sola con su regla, siempre visible.
-class SmartListScreen extends ConsumerWidget {
+class SmartListScreen extends ConsumerStatefulWidget {
   const SmartListScreen({super.key, required this.list});
 
   final SmartList list;
@@ -791,33 +858,175 @@ class SmartListScreen extends ConsumerWidget {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => SmartListScreen(list: list)));
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tracks = list.compute(ref.watch(smartListInputsProvider));
+  ConsumerState<SmartListScreen> createState() => _SmartListScreenState();
+}
+
+/// Lista inteligente (Me gusta, Más escuchadas…), con buscador y selección múltiple (0.9).
+class _SmartListScreenState extends ConsumerState<SmartListScreen> {
+  final _selection = TrackSelection();
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _selection.addListener(_changed);
+  }
+
+  void _changed() => setState(() {});
+
+  @override
+  void dispose() {
+    _selection
+      ..removeListener(_changed)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final list = widget.list;
+    final all = list.compute(ref.watch(smartListInputsProvider));
+    final tracks = [
+      for (final t in all)
+        if (trackMatches(t, _query)) t,
+    ];
     return Scaffold(
       appBar: AppBar(),
+      body: Stack(
+        children: [
+          ListView(
+            padding: const EdgeInsets.only(bottom: 120),
+            children: [
+              _ListHeader(title: list.title, subtitle: tx.regla(list.rule), tracks: all),
+              if (all.length > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                  child: ListSearchField(onChanged: (q) => setState(() => _query = q)),
+                ),
+              if (all.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    tx.porAhoraNoHayCancionesQue,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: KijiColors.muted),
+                  ),
+                ),
+              for (final (index, track) in tracks.indexed)
+                ListTile(
+                  key: Key('smart-${track.id}'),
+                  selected: _selection.contains(track.id),
+                  selectedTileColor: KijiSelected.tile,
+                  leading: _selection.active
+                      ? SelectionCheck(selected: _selection.contains(track.id))
+                      : TrackArtwork(track: track, size: 44, radius: 8),
+                  title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  onTap: () {
+                    if (_selection.tapWithKeys(track.id, track, [for (final t in tracks) MapEntry(t.id, t)])) return;
+                    _selection.active
+                        ? _selection.toggle(track.id, track)
+                        : ref.read(playbackProvider.notifier).playQueue(tracks, startIndex: index);
+                  },
+                  // Mantener presionada: empieza a elegir (con una sola, «Más» trae el menú de siempre).
+                  onLongPress: () => _selection.toggle(track.id, track),
+                ),
+            ],
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SelectionBar(
+              selection: _selection,
+              all: {for (final t in tracks) t.id: t},
+              remove: list == SmartList.liked
+                  ? SelectionRemoveAction(
+                      label: tx.quitarDeMeGusta,
+                      icon: Icons.heart_broken_outlined,
+                      onRemove: (keys, _) async => ref.read(favoritesProvider.notifier).removeIds(keys),
+                    )
+                  : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Todas las listas inteligentes (Biblioteca 0.9: su propia entrada en «Tu música»).
+class SmartListsScreen extends ConsumerWidget {
+  const SmartListsScreen({super.key});
+
+  static Future<void> open(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SmartListsScreen()));
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inputs = ref.watch(smartListInputsProvider);
+    return Scaffold(
+      appBar: AppBar(title: Text(tx.listasInteligentes)),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 120),
         children: [
-          _ListHeader(title: list.title, subtitle: tx.regla(list.rule), tracks: tracks),
-          if (tracks.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                tx.porAhoraNoHayCancionesQue,
-                textAlign: TextAlign.center,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Text(tx.listasInteligentesCalculadasEnTuTelefono, style: KijiText.mono(size: 11)),
+          ),
+          for (final list in SmartList.values)
+            ListTile(
+              key: Key('smart-list-${list.name}'),
+              leading: Icon(Icons.auto_awesome_rounded, color: KijiColors.cyan),
+              title: Text(list.title),
+              subtitle: Text(
+                '${list.rule.replaceFirst(RegExp(r'\.$'), '')} · ${_count(list.compute(inputs).length)}',
                 style: TextStyle(color: KijiColors.muted),
               ),
-            ),
-          for (final (index, track) in tracks.indexed)
-            ListTile(
-              leading: TrackArtwork(track: track, size: 44, radius: 8),
-              title: TrackTitleText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-              subtitle: TrackArtistText(track, maxLines: 1, overflow: TextOverflow.ellipsis),
-              onTap: () => ref.read(playbackProvider.notifier).playQueue(tracks, startIndex: index),
-              onLongPress: () => showTrackActions(context, ref, track),
+              onTap: () => SmartListScreen.open(context, list),
             ),
         ],
       ),
     );
   }
 }
+
+/// En la cabecera de una playlist de YouTube Music (0.9): cómo está respecto de la cuenta
+/// (sincronizada, cambios sin subir o sincronizando) y su propio «Sincronizar», que sincroniza
+/// solo esta playlist.
+class YtPlaylistSyncRow extends ConsumerWidget {
+  const YtPlaylistSyncRow({super.key, required this.playlist});
+
+  final Playlist playlist;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final link = playlist.yt!;
+    final syncing = ref.watch(ytSyncProvider.select((s) => s.syncing || s.syncingIds.contains(link.id)));
+    final status = ytPlaylistSyncStatus(playlist, syncing: syncing);
+    final (icon, text) = !link.editable && !syncing
+        ? (Icons.lock_outline_rounded, tx.playlistAjenaNota)
+        : switch (status) {
+            YtPlaylistSyncStatus.synced => (Icons.cloud_done_outlined, tx.ytSincronizada),
+            YtPlaylistSyncStatus.pending => (Icons.cloud_upload_outlined, tx.ytCambiosSinSubir),
+            YtPlaylistSyncStatus.syncing => (Icons.sync_rounded, tx.ytSincronizando),
+          };
+    return Row(
+      key: Key('yt-playlist-sync-${status.name}'),
+      children: [
+        Icon(icon, size: 18, color: status == YtPlaylistSyncStatus.pending ? KijiColors.cyan : KijiColors.muted),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, style: TextStyle(color: KijiColors.muted, fontSize: 13))),
+        TextButton.icon(
+          key: const Key('yt-playlist-sync-now'),
+          onPressed: syncing ? null : () => syncOneYouTubePlaylist(context, ref, link.id),
+          icon: syncing
+              ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.sync_rounded),
+          label: Text(tx.sincronizar),
+        ),
+      ],
+    );
+  }
+}
+

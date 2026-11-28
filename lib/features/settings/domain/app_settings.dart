@@ -28,6 +28,16 @@ class AppSettings {
     this.libraryFilter = 'all',
     this.libraryView = 'list',
     this.libraryTab = 'playlists', // l10n-ignore
+    this.phoneMusic = 'ask',
+    this.libraryEntries = defaultLibraryEntries,
+    this.sponsorBlock = false,
+    this.startWithWindows = false,
+    this.startupResume = true,
+    this.dailyQuotes = true,
+    this.realGlass = true,
+    this.streakCard = true,
+    this.liquidGlassPro = false,
+    this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
     this.theaterVibration = true,
@@ -180,6 +190,45 @@ class AppSettings {
 
   /// La última pestaña de la Biblioteca (se abre ahí).
   final String libraryTab;
+
+  /// Música del teléfono (o de la PC) en la Biblioteca: 'ask' (todavía no se preguntó), 'on' u
+  /// 'off'. Con 'off' no se pide permiso ni se lee nada, y no aparecen Carpetas ni lo local.
+  final String phoneMusic;
+  static const phoneMusicValues = ['ask', 'on', 'off'];
+  bool get showsPhoneMusic => phoneMusic == 'on';
+
+  /// Qué entradas se ven en la Biblioteca (el usuario elige). Artistas y Álbumes, apagadas de
+  /// fábrica; Carpetas, solo con la música del teléfono.
+  final List<String> libraryEntries;
+  static const libraryEntryNames = ['playlists', 'songs', 'downloads', 'artists', 'albums', 'folders']; // l10n-ignore
+  static const defaultLibraryEntries = ['playlists', 'songs', 'downloads', 'folders']; // l10n-ignore
+
+  /// Saltar las partes sin música con SponsorBlock (0.9). Apagado de fábrica: manda un prefijo
+  /// del hash del ID del video a SponsorBlock.
+  final bool sponsorBlock;
+
+  /// PC: iniciar Kiji al encender la PC (en la bandeja, sin sonar). Apagado de fábrica.
+  final bool startWithWindows;
+
+  /// Al iniciar con la PC, dejar lista la última canción (en pausa).
+  final bool startupResume;
+
+  /// La frase del día en Inicio (frases de dominio público, en el dispositivo).
+  final bool dailyQuotes;
+
+  /// Vidrio líquido real (0.9): refracción con la GPU donde el dispositivo la soporta (Android con
+  /// Impeller y Flutter GPU). Apagado, o si el dispositivo no puede, queda el vidrio de siempre.
+  final bool realGlass;
+
+  /// La tarjeta de racha arriba de Inicio (0.9); se puede ocultar.
+  final bool streakCard;
+
+  /// «Liquid Glass real» (0.9): barra, mini-reproductor y botones con liquid_glass_widgets.
+  /// Apagado de fábrica: pensado para teléfonos de gama alta.
+  final bool liquidGlassPro;
+
+  /// Qué categorías de SponsorBlock saltar (nombres de su API).
+  final List<String> sponsorBlockCategories;
 
   /// Sincronizar con YouTube (solo con sesión iniciada): leer "Me gusta" y las playlists de la
   /// cuenta. Apagado de fábrica; solo lectura.
@@ -347,6 +396,16 @@ class AppSettings {
     String? libraryFilter,
     String? libraryView,
     String? libraryTab,
+    String? phoneMusic,
+    List<String>? libraryEntries,
+    bool? sponsorBlock,
+    bool? startWithWindows,
+    bool? startupResume,
+    bool? dailyQuotes,
+    bool? realGlass,
+    bool? streakCard,
+    bool? liquidGlassPro,
+    List<String>? sponsorBlockCategories,
     bool? ytSync,
     bool? theaterReactions,
     bool? theaterVibration,
@@ -415,6 +474,16 @@ class AppSettings {
         libraryFilter: libraryFilter ?? this.libraryFilter,
         libraryView: libraryView ?? this.libraryView,
         libraryTab: libraryTab ?? this.libraryTab,
+        phoneMusic: phoneMusic ?? this.phoneMusic,
+        libraryEntries: libraryEntries ?? this.libraryEntries,
+        sponsorBlock: sponsorBlock ?? this.sponsorBlock,
+        startWithWindows: startWithWindows ?? this.startWithWindows,
+        startupResume: startupResume ?? this.startupResume,
+        dailyQuotes: dailyQuotes ?? this.dailyQuotes,
+        realGlass: realGlass ?? this.realGlass,
+        streakCard: streakCard ?? this.streakCard,
+        liquidGlassPro: liquidGlassPro ?? this.liquidGlassPro,
+        sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
         theaterVibration: theaterVibration ?? this.theaterVibration,
@@ -482,6 +551,16 @@ class AppSettings {
         'libraryFilter': libraryFilter,
         'libraryView': libraryView,
         'libraryTab': libraryTab,
+        'phoneMusic': phoneMusic,
+        'libraryEntries': libraryEntries,
+        'sponsorBlock': sponsorBlock,
+        'startWithWindows': startWithWindows,
+        'startupResume': startupResume,
+        'dailyQuotes': dailyQuotes,
+        'realGlass': realGlass,
+        'streakCard': streakCard,
+        'liquidGlassPro': liquidGlassPro,
+        'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
         'theaterVibration': theaterVibration,
@@ -559,6 +638,26 @@ class AppSettings {
       libraryFilter: libraryFilters.contains(json['libraryFilter']) ? json['libraryFilter'] as String : d.libraryFilter,
       libraryView: libraryViews.contains(json['libraryView']) ? json['libraryView'] as String : d.libraryView,
       libraryTab: libraryTabs.contains(json['libraryTab']) ? json['libraryTab'] as String : d.libraryTab,
+      phoneMusic: phoneMusicValues.contains(json['phoneMusic']) ? json['phoneMusic'] as String : d.phoneMusic,
+      libraryEntries: json['libraryEntries'] is List
+          ? [
+              for (final e in json['libraryEntries'] as List)
+                if (e is String && libraryEntryNames.contains(e)) e,
+            ]
+          : d.libraryEntries,
+      sponsorBlock: read('sponsorBlock', d.sponsorBlock),
+      startWithWindows: read('startWithWindows', d.startWithWindows),
+      startupResume: read('startupResume', d.startupResume),
+      dailyQuotes: read('dailyQuotes', d.dailyQuotes),
+      realGlass: read('realGlass', d.realGlass),
+      streakCard: read('streakCard', d.streakCard),
+      liquidGlassPro: read('liquidGlassPro', d.liquidGlassPro),
+      sponsorBlockCategories: json['sponsorBlockCategories'] is List
+          ? [
+              for (final e in json['sponsorBlockCategories'] as List)
+                if (e is String) e,
+            ]
+          : d.sponsorBlockCategories,
       ytSync: read('ytSync', d.ytSync),
       theaterReactions: read('theaterReactions', d.theaterReactions),
       theaterVibration: read('theaterVibration', d.theaterVibration),

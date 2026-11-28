@@ -10,6 +10,7 @@ import 'package:kiji_player/features/recommendations/data/search_history.dart';
 import 'package:kiji_player/features/settings/data/settings_store.dart';
 import 'package:kiji_player/features/settings/domain/app_settings.dart';
 import 'package:kiji_player/features/yt_music/presentation/search_screen.dart';
+import 'package:kiji_player/l10n/l10n.dart';
 
 /// YouTube Music de mentira: páginas de [pageSize] canciones inventadas, con marca para la siguiente.
 class _FakeClient extends YtMusicClient {
@@ -153,5 +154,27 @@ void main() {
     }
     expect(client.requested, [null]);
     await tester.pumpAndSettle();
+  });
+
+  // Multibúsqueda (0.9): lo elegido se mantiene al buscar otra cosa.
+  testWidgets('Lo elegido se mantiene al buscar otra cosa', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [settingsProvider.overrideWith(_Settings.new)],
+      child: MaterialApp(home: Scaffold(body: SearchScreen(client: _FakeClient()))),
+    ));
+    await tester.enterText(find.byType(TextField), 'primera búsqueda');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    await tester.longPress(find.text('Canción 1.1'));
+    await tester.pumpAndSettle();
+    expect(find.text(tx.nSeleccionadas(1)), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, 'segunda búsqueda');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    expect(find.text(tx.nSeleccionadas(1)), findsOneWidget, reason: 'sigue elegida');
   });
 }

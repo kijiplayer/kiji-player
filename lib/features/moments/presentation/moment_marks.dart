@@ -320,6 +320,18 @@ class _NewMomentSheetState extends ConsumerState<_NewMomentSheet> {
             ],
             const SizedBox(height: 12),
             FilledButton.icon(icon: const Icon(Icons.bookmark_add_rounded), label: Text(tx.guardar), onPressed: _save),
+            // Tus Momentos también desde el reproductor (no solo desde el aviso, que se va solo).
+            if (ref.watch(momentsProvider).isNotEmpty)
+              TextButton.icon(
+                key: const Key('open-moments'),
+                icon: const Icon(Icons.bookmarks_outlined),
+                label: Text(tx.verTusMomentos),
+                onPressed: () {
+                  final navigator = Navigator.of(context);
+                  navigator.pop();
+                  MomentsScreen.openWith(navigator);
+                },
+              ),
           ],
         )),
       ),

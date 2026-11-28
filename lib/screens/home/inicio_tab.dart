@@ -25,12 +25,17 @@ import '../player/player_motion.dart';
 import '../../widgets/album_cover.dart';
 import '../../widgets/kiji_logo.dart';
 import '../../widgets/nocturne/staggered.dart';
+import '../../widgets/scroll_to_top_on_reselect.dart';
 import '../../widgets/nocturne/glass.dart';
 import '../../features/customize/presentation/track_text.dart';
 
 import 'top_listened.dart';
+import '../../features/streaks/streaks.dart';
+import '../../features/quotes/quote_card.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../features/streaks/streak_widgets.dart';
+import '../../features/settings/data/settings_store.dart';
 
 /// Saludo según la hora (5–12 mañana, 12–20 tarde, resto noche).
 String greetingFor(DateTime now) {
@@ -46,6 +51,12 @@ class InicioTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Racha (0.9): un logro recién ganado se festeja una vez (sin sonido ni notificaciones).
+    ref.listen(streaksProvider.select((s) => s.celebrate), (_, days) {
+      if (days == null) return;
+      ref.read(streaksProvider.notifier).celebrated();
+      unawaited(showStreakCelebration(context, days, calm: reduceMotion(context, ref)));
+    });
     // Solo canción y play/pausa: la posición cambia varias veces por segundo y no hace falta
     // redibujar todo Inicio por eso.
     final playback = ref.watch(playbackProvider.select((s) => (track: s.track, isPlaying: s.isPlaying)));
@@ -106,34 +117,44 @@ class InicioTab extends ConsumerWidget {
         });
       },
       child: StaggerScope(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
-          // Las secciones entran escalonadas.
-          children: staggered([
-            const _Greeting(),
-            const SizedBox(height: 20),
-            if (playback.track != null) ...[
-              _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
-              const SizedBox(height: 28),
-            ],
-            // Las playlists a la vista, arriba.
-            const _PlaylistsRow(),
-            const SizedBox(height: 28),
-            if (isNew) ...[
-              if (playback.track == null) ...[
-                _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
+        // Tocar «Inicio» estando en Inicio sube al principio.
+        child: ScrollToTopOnReselect(
+          tab: ShellTab.home,
+          builder: (context, controller) => ListView(
+            controller: controller,
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 160),
+            // Las secciones entran escalonadas.
+            children: staggered([
+              const _Greeting(),
+              const SizedBox(height: 14),
+              // La racha (0.9): tarjeta arriba de Inicio, que se puede ocultar.
+              if (ref.watch(settingsProvider.select((s) => s.streakCard))) ...[
+                const StreakCard(),
+                const SizedBox(height: 14),
+              ],
+              // La frase del día (0.9): según la hora y lo que pasa en Kiji; se puede apagar.
+              const DailyQuoteCard(),
+              const SizedBox(height: 20),
+              if (playback.track != null) ...[
+                _ContinueCard(track: playback.track!, isPlaying: playback.isPlaying),
                 const SizedBox(height: 28),
               ],
-              const StartHereSection(),
-            ] else
-              const RecommendationSections(),
-            TrackShelf(title: tx.escuchadoRecientemente, tracks: recent),
-            if (top.isNotEmpty) ...[
-              TopListened(entries: top),
+              // Las playlists a la vista, arriba.
+              const _PlaylistsRow(),
               const SizedBox(height: 28),
-            ],
-            TrackShelf(title: tx.descargadas, note: tx.sinInternet, tracks: downloaded),
-          ]),
+              if (isNew) ...[
+                if (playback.track == null) ...[
+                  _EmptyHome(onSearch: () => ref.read(shellTabProvider.notifier).state = ShellTab.search),
+                  const SizedBox(height: 28),
+                ],
+                const StartHereSection(),
+              ] else
+                const RecommendationSections(),
+              TrackShelf(title: tx.escuchadoRecientemente, tracks: recent),
+              if (top.isNotEmpty) ...[TopListened(entries: top), const SizedBox(height: 28)],
+              TrackShelf(title: tx.descargadas, note: tx.sinInternet, tracks: downloaded),
+            ]),
+          ),
         ),
       ),
     );
@@ -179,6 +200,8 @@ class _GreetingState extends State<_Greeting> {
                   const KijiLogo(size: 22),
                   const SizedBox(width: 8),
                   Text(time, style: KijiText.mono(size: 13, color: KijiColors.cyan)),
+                  // Racha (0.9): discreta, desde 2 días seguidos. Sin avisos ni notificaciones.
+                  const _StreakBadge(),
                 ],
               ),
               const SizedBox(height: 4),
@@ -307,7 +330,8 @@ class _PlaylistsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final all = ref.watch(playlistsProvider);
+    // Solo las de Kiji: las de YouTube Music tienen su sección en la Biblioteca (0.9).
+    final all = [for (final pl in ref.watch(playlistsProvider)) if (pl.yt == null) pl];
     final playlists = PlaylistOps.pinnedFirst([...all]..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,6 +436,37 @@ class _NewPlaylistCard extends ConsumerWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// «🔥 5» junto a la hora: días seguidos escuchando (desde 2). Con su nombre para TalkBack.
+class _StreakBadge extends ConsumerWidget {
+  const _StreakBadge();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final days = ref.watch(currentStreakProvider);
+    // Con la tarjeta de racha a la vista, el 🔥 chico sobra.
+    if (days < 2 || ref.watch(settingsProvider.select((s) => s.streakCard))) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(left: 10),
+      child: Tooltip(
+        message: tx.rachaDias(days),
+        child: Semantics(
+          label: tx.rachaDias(days),
+          excludeSemantics: true,
+          child: Row(
+            key: const Key('streak-badge'),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.local_fire_department_rounded, size: 16, color: KijiColors.violet),
+              const SizedBox(width: 2),
+              Text('$days', style: KijiText.mono(size: 13, color: KijiColors.muted)),
+            ],
+          ),
         ),
       ),
     );

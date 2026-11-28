@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -121,4 +122,62 @@ void main() {
     }
     expect(find.text('Es la que ves ahora'), findsOneWidget);
   });
+
+  // Issue #20 (Windows): elegir una fuente y cerrar la hoja antes de que termine de guardarse daba
+  // «Cannot use "ref" after the widget was disposed» en _SourcesSheetState._choose.
+  testWidgets('Elegir una fuente y cerrar la hoja enseguida no da error', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    final saving = Completer<void>();
+    final repo = _SlowChoose(
+      saving,
+      fetchers: [for (final s in LyricsSource.online) _Fake(s, () => s == LyricsSource.kugou ? _synced(s) : null)],
+      baseDirectory: () async => dir,
+    );
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        lyricsRepositoryProvider.overrideWithValue(repo),
+        settingsProvider.overrideWith(() => SettingsNotifier(directory: () async => dir)),
+      ],
+      child: MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showLyricsSourcesSheet(
+              context,
+              _req,
+              current: LyricsSource.lrclib,
+              onSearchByHand: () {},
+              onImport: () {},
+            ),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(LyricsSource.kugou.label));
+    await tester.pump();
+    expect(repo.chosen, 1);
+    // La hoja se cierra mientras se guarda.
+    Navigator.of(tester.element(find.text(LyricsSource.kugou.label))).pop();
+    await tester.pumpAndSettle();
+    saving.complete();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+}
+
+class _SlowChoose extends LyricsRepository {
+  _SlowChoose(this.saving, {required super.fetchers, required super.baseDirectory});
+
+  final Completer<void> saving;
+  int chosen = 0;
+
+  @override
+  Future<void> choose(String id, Lyrics lyrics) {
+    chosen++;
+    return saving.future;
+  }
 }

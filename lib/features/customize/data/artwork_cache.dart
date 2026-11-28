@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../system_media/data/cover_art.dart';
+import '../../../utils/cover_trim.dart';
 
 /// Nombre de archivo estable para una URL (FNV-1a de 64 bits en hex).
 String artworkCacheName(String url) {
@@ -69,6 +70,8 @@ class ArtworkCache {
             final temp = File('${target.path}.part');
             await temp.writeAsBytes(bytes, flush: true);
             await temp.rename(target.path);
+            // Sin las franjas negras (o lisas) de las miniaturas de video (0.9).
+            await trimCoverFile(target.path);
             done++;
           }
         } catch (error) {

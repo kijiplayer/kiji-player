@@ -4,11 +4,16 @@ import 'package:flutter/material.dart';
 
 import '../theme/kiji_tokens.dart';
 
+/// Cuánto se ve un aviso sin botón, y uno con botón.
+const plainDuration = Duration(milliseconds: 2500);
+const withActionDuration = Duration(seconds: 6);
+
 OverlayEntry? _current;
 Timer? _hide;
 
 /// Un aviso corto arriba de la pantalla (debajo de la barra de estado), para no tapar los
-/// controles de abajo del reproductor como un SnackBar. Dura [duration], se cierra deslizándolo
+/// controles de abajo del reproductor como un SnackBar. Dura [duration] (o 2,5 s; 6 s si tiene un
+/// botón), se cierra deslizándolo
 /// hacia arriba o a los costados, y [onAction] se llama con el Navigator raíz guardado antes (no
 /// depende del `context` de quien lo mostró, que puede ya no existir).
 void showTopNotice(
@@ -16,8 +21,10 @@ void showTopNotice(
   required String message,
   String? actionLabel,
   void Function(NavigatorState navigator)? onAction,
-  Duration duration = const Duration(milliseconds: 2500),
+  Duration? duration,
 }) {
+  // Con un botón («Ver»), más tiempo para alcanzar a tocarlo (2,5 s no alcanzaban).
+  final shownFor = duration ?? (actionLabel != null ? withActionDuration : plainDuration);
   final overlay = Overlay.of(context, rootOverlay: true);
   final navigator = Navigator.of(context, rootNavigator: true);
   hideTopNotice();
@@ -39,7 +46,7 @@ void showTopNotice(
   );
   _current = entry;
   overlay.insert(entry);
-  _hide = Timer(duration, hideTopNotice);
+  _hide = Timer(shownFor, hideTopNotice);
 }
 
 /// Quita el aviso que esté a la vista.

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/track.dart';
 import '../../downloads/data/auto_downloads.dart' show connectivityChangesProvider;
 import '../../favorites/favorites.dart';
+import '../../settings/data/settings_store.dart';
 import '../../history/listening_history.dart';
 import '../../theater/data/theater_store.dart';
 import '../../yt_music/data/ytm_browse_parser.dart';
@@ -35,15 +36,17 @@ final _relatedFailedAt = <String, DateTime>{};
 const relatedRetryAfter = Duration(minutes: 2);
 
 /// ¿Hay conexión? (se cambia en las pruebas).
-final homeOnlineCheckProvider = Provider<Future<bool> Function()>((ref) => () async {
-  try {
-    final result = await Connectivity().checkConnectivity();
-    return !result.every((r) => r == ConnectivityResult.none);
-  } catch (error) {
-    debugPrint('=== INICIO: no se pudo saber si hay conexión: ${error.runtimeType} ===');
-    return true;
-  }
-});
+final homeOnlineCheckProvider = Provider<Future<bool> Function()>(
+  (ref) => () async {
+    try {
+      final result = await Connectivity().checkConnectivity();
+      return !result.every((r) => r == ConnectivityResult.none);
+    } catch (error) {
+      debugPrint('=== INICIO: no se pudo saber si hay conexión: ${error.runtimeType} ===');
+      return true;
+    }
+  },
+);
 
 /// Inicio con recomendaciones. Sin conexión, Inicio sigue con lo local (más escuchadas,
 /// descargadas, playlists), no pide nada a YouTube y, al volver la conexión, se completa solo.
@@ -61,16 +64,21 @@ final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
   ];
   if (missing.isNotEmpty) {
     if (await ref.read(homeOnlineCheckProvider)()) {
-      await Future.wait([for (final seed in missing) _relatedInFlight.putIfAbsent(seed.id, () => _fetchRelated(client, seed))]);
+      await Future.wait([
+        for (final seed in missing) _relatedInFlight.putIfAbsent(seed.id, () => _fetchRelated(client, seed)),
+      ]);
     } else {
       debugPrint('=== INICIO: sin conexión; las recomendaciones esperan a que vuelva ===');
       // Cuando vuelve la conexión, Inicio se arma de nuevo (una sola vez).
       StreamSubscription<List<ConnectivityResult>>? waiting;
-      waiting = ref.read(connectivityChangesProvider).listen((result) {
-        if (result.every((r) => r == ConnectivityResult.none)) return;
-        unawaited(waiting?.cancel());
-        ref.invalidateSelf();
-      }, onError: (Object error) => debugPrint('=== INICIO: no se puede seguir la conexión (${error.runtimeType}) ==='));
+      waiting = ref.read(connectivityChangesProvider).listen(
+        (result) {
+          if (result.every((r) => r == ConnectivityResult.none)) return;
+          unawaited(waiting?.cancel());
+          ref.invalidateSelf();
+        },
+        onError: (Object error) => debugPrint('=== INICIO: no se puede seguir la conexión (${error.runtimeType}) ==='),
+      );
       ref.onDispose(() => waiting?.cancel());
     }
   }
@@ -109,11 +117,17 @@ void refreshHomeFeed(WidgetRef ref) {
 }
 
 /// "Para empezar": géneros y estados de ánimo de YouTube Music (anónimo).
-final moodsProvider = FutureProvider<List<YtMood>>((ref) => ref.read(ytMusicClientProvider).moods());
+/// Vienen de YouTube en el idioma de la app: al cambiar de idioma se vuelven a pedir (si no, con
+/// Kiji en inglés quedaban los de antes, en español).
+final moodsProvider = FutureProvider<List<YtMood>>((ref) {
+  ref.watch(settingsProvider.select((s) => s.language));
+  return ref.read(ytMusicClientProvider).moods();
+});
 
-final moodCategoryProvider = FutureProvider.family<List<YtShelf>, String>(
-  (ref, params) => ref.read(ytMusicClientProvider).moodCategory(params),
-);
+final moodCategoryProvider = FutureProvider.family<List<YtShelf>, String>((ref, params) {
+  ref.watch(settingsProvider.select((s) => s.language));
+  return ref.read(ytMusicClientProvider).moodCategory(params);
+});
 
 final ytPlaylistTracksProvider = FutureProvider.family<List<Track>, String>((ref, playlistId) async {
   final results = await ref.read(ytMusicClientProvider).playlistTracks(playlistId);

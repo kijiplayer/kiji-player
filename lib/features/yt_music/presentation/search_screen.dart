@@ -29,6 +29,7 @@ import '../../settings/data/settings_store.dart';
 import '../../recommendations/presentation/home_sections.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../../utils/image_decode.dart';
 
 /// Qué se busca.
 enum SearchKind {
@@ -170,6 +171,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _onChanged(String query) {
     _debounce?.cancel();
+    // Con la primera letra se abren las conexiones: la búsqueda llega antes (sin mandar el texto).
+    if (query.trim().isNotEmpty) _client.warmUp();
     // Una pausa corta mientras se escribe (350 ms; antes 500): no se busca letra por letra.
     _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
     setState(() {}); // refresca el mensaje vacío/placeholder al instante
@@ -244,8 +247,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Future<void> _search(String query) async {
     final generation = ++_generation;
-    // Otra búsqueda, otros resultados: lo elegido se suelta.
-    _selection.clear();
+    // Multibúsqueda (0.9): lo elegido se mantiene al buscar otra cosa, para juntar canciones de
+    // varias búsquedas y descargarlas (o agregarlas) todas juntas. Se suelta con la ✕ de la barra.
     _continuation = null;
     _loadingMore = false;
     if (query.trim().isEmpty) {
@@ -624,7 +627,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   );
 
   void _switchTo(SearchKind kind) {
-    _selection.clear();
     setState(() => _kind = kind);
     _search(_controller.text);
   }
@@ -756,7 +758,12 @@ class _Thumbnail extends StatelessWidget {
         width: 44,
         height: 44,
         child: url != null
-            ? Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const _FallbackThumb())
+            ? Image.network(
+                url!,
+                fit: BoxFit.cover,
+                cacheHeight: decodeSize(context, 44),
+                errorBuilder: (_, _, _) => const _FallbackThumb(),
+              )
             : const _FallbackThumb(),
       ),
     );

@@ -53,12 +53,18 @@ import '../../../version_label.dart';
 import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
 import '../../../widgets/nocturne/kiji_sheet.dart';
+import '../../../widgets/nocturne/real_glass.dart';
+import '../../../widgets/nocturne/liquid_glass_pro.dart';
 import '../../style/data/background_store.dart';
 import '../../style/presentation/accent_picker.dart';
 import '../../style/presentation/custom_background.dart';
 import '../../style/presentation/personalize_screen.dart';
 import '../../style/presentation/theme_files.dart';
 import '../../style/presentation/style_parts.dart';
+import '../../local_library/presentation/library_home.dart' show showLibraryEntriesSheet;
+import '../../sponsorblock/sponsorblock.dart' show SkipCategory;
+import '../../scrobble/listenbrainz_tile.dart';
+import '../../../store_flavor.dart';
 
 /// Secciones de Configuración, en el orden en que se muestran, cada una con su ícono y una
 /// descripción corta.
@@ -272,7 +278,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// En el sabor «play» (Google Play) no aparecen la cuenta de YouTube, el actualizador propio ni lo
+  /// que lleva a la Kiji completa (la página, sus novedades).
   List<SettingOption> _options() {
+    final all = _allOptions();
+    if (!isPlayStore) return all;
+    final hidden = {tx.buscarActualizaciones, tx.paginaOficial, tx.queHayDeNuevo};
+    return [
+      for (final o in all)
+        if (o.section != SettingsSection.account && !hidden.contains(o.title)) o,
+    ];
+  }
+
+  List<SettingOption> _allOptions() {
     return [
       // Reproductor y audio
       SettingOption(
@@ -291,6 +309,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           },
         ),
       ),
+      // Saltar las partes sin música (SponsorBlock, 0.9): apagado de fábrica y explicado.
+      SettingOption(
+        section: SettingsSection.player,
+        title: tx.saltarSinMusica,
+        subtitle: tx.saltarSinMusicaNota,
+        keywords: const ['sponsorblock', 'intro', 'saltar', 'skip', 'outro', 'dialogo', 'videos'], // l10n-ignore
+        builder: (context, ref) {
+          final on = ref.watch(settingsProvider.select((s) => s.sponsorBlock));
+          final chosen = ref.watch(settingsProvider.select((s) => s.sponsorBlockCategories));
+          final notifier = ref.read(settingsProvider.notifier);
+          return Column(
+            children: [
+              SwitchListTile(
+                key: const Key('settings-sponsorblock'),
+                secondary: const Icon(Icons.fast_forward_outlined),
+                title: Text(tx.saltarSinMusica),
+                subtitle: Text(tx.saltarSinMusicaNota),
+                isThreeLine: true,
+                value: on,
+                onChanged: (v) => notifier.update((s) => s.copyWith(sponsorBlock: v)),
+              ),
+              if (on)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        for (final c in SkipCategory.values)
+                          FilterChip(
+                            key: Key('sponsorblock-${c.apiName}'),
+                            label: Text(c.label),
+                            selected: chosen.contains(c.apiName),
+                            onSelected: (v) => notifier.update(
+                              (s) => s.copyWith(
+                                sponsorBlockCategories: [
+                                  for (final k in SkipCategory.values)
+                                    if (k == c ? v : s.sponsorBlockCategories.contains(k.apiName)) k.apiName,
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
       SettingOption(
         section: SettingsSection.player,
         title: tx.mostrarNombresDeLosBotones,
@@ -303,6 +373,77 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           value: ref.watch(settingsProvider.select((s) => s.playerButtonLabels)),
           onChanged: (value) =>
               ref.read(settingsProvider.notifier).update((s) => s.copyWith(playerButtonLabels: value)),
+        ),
+      ),
+      // «Liquid Glass real» (0.9): liquid_glass_widgets en la barra, el mini-reproductor y los
+      // botones flotantes. Apagado de fábrica; si el equipo no puede, apagado con el motivo.
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.liquidGlassReal,
+        subtitle: tx.liquidGlassRealNota,
+        keywords: const ['liquid', 'glass', 'vidrio', 'liquido', 'ios', 'apple', 'barra', 'gama alta'], // l10n-ignore
+        builder: (context, ref) {
+          final block = LiquidGlassPro.block;
+          return SwitchListTile(
+            key: const Key('settings-liquid-glass-pro'),
+            secondary: const Icon(Icons.water_drop_outlined),
+            title: Text(tx.liquidGlassReal),
+            subtitle: Text(switch (block) {
+              LiquidGlassProBlock.none => tx.liquidGlassRealNota,
+              LiquidGlassProBlock.noShaders => tx.liquidGlassRealSinShaders,
+              LiquidGlassProBlock.arm32 => tx.liquidGlassReal32Bits,
+            }),
+            value: block == LiquidGlassProBlock.none && ref.watch(settingsProvider.select((s) => s.liquidGlassPro)),
+            onChanged: block != LiquidGlassProBlock.none
+                ? null
+                : (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(liquidGlassPro: v)),
+          );
+        },
+      ),
+      // Vidrio líquido real (0.9): refracción del fondo en el borde (shader propio).
+      if (RealGlass.platformCanTry)
+        SettingOption(
+          section: SettingsSection.appearance,
+          title: tx.vidrioReal,
+          subtitle: tx.vidrioRealNota,
+          keywords: const ['vidrio', 'glass', 'liquid', 'liquido', 'refraccion', 'gpu', 'rendimiento', 'bateria'], // l10n-ignore
+          builder: (context, ref) => SwitchListTile(
+            key: const Key('settings-real-glass'),
+            secondary: const Icon(Icons.blur_on_rounded),
+            title: Text(tx.vidrioReal),
+            subtitle: Text(tx.vidrioRealNota),
+            value: ref.watch(settingsProvider.select((s) => s.realGlass)),
+            onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(realGlass: v)),
+          ),
+        ),
+      // Tarjeta de racha en Inicio (0.9).
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.rachaTarjetaAjuste,
+        subtitle: tx.rachaTarjetaAjusteNota,
+        keywords: const ['racha', 'streak', 'fuego', 'dias', 'logros', 'inicio'], // l10n-ignore
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-streak-card'),
+          secondary: const Icon(Icons.local_fire_department_outlined),
+          title: Text(tx.rachaTarjetaAjuste),
+          subtitle: Text(tx.rachaTarjetaAjusteNota),
+          value: ref.watch(settingsProvider.select((s) => s.streakCard)),
+          onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(streakCard: v)),
+        ),
+      ),
+      // Frase del día en Inicio (0.9): de dominio público, elegida en el dispositivo.
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.frasesDelDia,
+        subtitle: tx.frasesDelDiaNota,
+        keywords: const ['frase', 'cita', 'quote', 'inicio', 'home', 'poeta', 'escritor'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-daily-quotes'),
+          secondary: const Icon(Icons.format_quote_rounded),
+          title: Text(tx.frasesDelDia),
+          subtitle: Text(tx.frasesDelDiaNota),
+          value: ref.watch(settingsProvider.select((s) => s.dailyQuotes)),
+          onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(dailyQuotes: v)),
         ),
       ),
       SettingOption(
@@ -402,6 +543,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       // En la PC (bandeja, atajos globales, controles de Windows)
       if (DesktopWindow.isDesktop) ...[
+        // Iniciar con Windows (0.9): apagado de fábrica; en la bandeja, sin sonar.
+        if (defaultTargetPlatform == TargetPlatform.windows)
+          SettingOption(
+            section: SettingsSection.desktop,
+            title: tx.iniciarConLaPc,
+            subtitle: tx.iniciarConLaPcNota,
+            keywords: const ['inicio', 'startup', 'arrancar', 'encender', 'windows', 'boot', 'bandeja'],
+            builder: (context, ref) => const StartWithWindowsTile(),
+          ),
         SettingOption(
           section: SettingsSection.desktop,
           title: tx.alCerrarLaVentana,
@@ -450,6 +600,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
       ],
       // Contenido
+      // 0.9: la música del dispositivo es opcional (se pregunta la primera vez en la Biblioteca).
+      SettingOption(
+        section: SettingsSection.storage,
+        title: tx.musicaDelDispositivo,
+        subtitle: tx.musicaDelDispositivoNota,
+        keywords: const ['biblioteca', 'musica', 'telefono', 'local', 'library', 'phone', 'device', 'carpetas'],
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-phone-music'),
+          secondary: const Icon(Icons.smartphone_rounded),
+          title: Text(tx.musicaDelDispositivo),
+          subtitle: Text(tx.musicaDelDispositivoNota),
+          value: ref.watch(settingsProvider.select((s) => s.showsPhoneMusic)),
+          onChanged: (on) =>
+              ref.read(settingsProvider.notifier).update((s) => s.copyWith(phoneMusic: on ? 'on' : 'off')),
+        ),
+      ),
+      SettingOption(
+        section: SettingsSection.storage,
+        title: tx.queVerEnLaBiblioteca,
+        subtitle: tx.queVerEnLaBibliotecaNota,
+        keywords: const ['biblioteca', 'pestañas', 'artistas', 'albumes', 'library', 'tabs', 'artists', 'albums'], // l10n-ignore
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-library-entries'),
+          leading: const Icon(Icons.tune_rounded),
+          title: Text(tx.queVerEnLaBiblioteca),
+          subtitle: Text(tx.queVerEnLaBibliotecaNota),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => showLibraryEntriesSheet(context),
+        ),
+      ),
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
         SettingOption(
           section: SettingsSection.storage,
@@ -1151,6 +1331,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         keywords: ['cuenta', 'account', 'google', 'youtube', 'login', tx.iniciarSesion2, tx.cerrarSesion, 'edad'], // l10n-ignore
         builder: (context, ref) => const AccountStatusTile(),
       ),
+      // Scrobbling a ListenBrainz (0.9): opcional, con el token del usuario.
+      SettingOption(
+        section: SettingsSection.account,
+        title: tx.scrobblingListenBrainz,
+        subtitle: tx.scrobblingListenBrainzNota,
+        keywords: const ['scrobble', 'scrobbling', 'listenbrainz', 'lastfm', 'historial', 'history'], // l10n-ignore
+        builder: (context, ref) => const ListenBrainzTile(),
+      ),
       SettingOption(
         section: SettingsSection.account,
         title: tx.sincronizarConYoutube,
@@ -1299,6 +1487,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: Text(tx.paginaOficialDescripcion),
           trailing: const Icon(Icons.open_in_new_rounded),
           onTap: openOfficialPage,
+        ),
+      ),
+      // La política de privacidad (en la página, en el idioma de la app). Solo abre el enlace.
+      SettingOption(
+        section: SettingsSection.about,
+        title: tx.politicaDePrivacidad,
+        subtitle: tx.politicaDePrivacidadDescripcion,
+        keywords: const ['privacidad', 'privacy', 'datos', 'data', 'politica', 'policy'],
+        builder: (context, ref) => ListTile(
+          key: const Key('settings-privacy-policy'),
+          leading: const Icon(Icons.privacy_tip_outlined),
+          title: Text(tx.politicaDePrivacidad),
+          subtitle: Text(tx.politicaDePrivacidadDescripcion),
+          trailing: const Icon(Icons.open_in_new_rounded),
+          onTap: openPrivacyPolicy,
         ),
       ),
       SettingOption(

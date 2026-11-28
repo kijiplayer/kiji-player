@@ -5,7 +5,39 @@
 import '../../../models/track.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 
-/// Una playlist de Kiji. Vive solo en el teléfono.
+/// Vínculo de una playlist de Kiji con una de la cuenta de YouTube Music (sincronizar de ida y
+/// vuelta, 0.9). [base] son los videos que tenían las dos al terminar la última sincronización:
+/// con eso se sabe qué cambió en Kiji y qué en YouTube.
+class YtLink {
+  const YtLink({required this.id, required this.base, this.editable = true, this.syncedAt});
+
+  /// El id de la playlist en YouTube (sin «VL»).
+  final String id;
+  final List<String> base;
+
+  /// Es del usuario: YouTube deja cambiarla. Las guardadas de otros solo se leen.
+  final bool editable;
+  final DateTime? syncedAt;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'base': base,
+        if (!editable) 'editable': false,
+        if (syncedAt != null) 'syncedAt': syncedAt!.millisecondsSinceEpoch,
+      };
+
+  static YtLink? fromJson(Object? json) {
+    if (json is! Map || json['id'] is! String) return null;
+    return YtLink(
+      id: json['id'] as String,
+      base: [for (final v in json['base'] as List? ?? const []) if (v is String) v],
+      editable: json['editable'] != false,
+      syncedAt: json['syncedAt'] is int ? DateTime.fromMillisecondsSinceEpoch(json['syncedAt'] as int) : null,
+    );
+  }
+}
+
+/// Una playlist de Kiji. Vive solo en el teléfono (las de YouTube Music, con su [yt]).
 class Playlist {
   const Playlist({
     required this.id,
@@ -19,6 +51,7 @@ class Playlist {
     this.coverFile,
     this.pinned = false,
     this.originalName,
+    this.yt,
   });
 
   static const _keep = Object();
@@ -48,6 +81,9 @@ class Playlist {
   /// Nombre con el que se creó o importó, para "Restaurar original".
   final String? originalName;
 
+  /// Vinculada con una playlist de la cuenta de YouTube Music; null = de Kiji.
+  final YtLink? yt;
+
   bool get isCustomized =>
       description != null || colorValue != null || coverFile != null || (originalName != null && originalName != name);
 
@@ -59,6 +95,7 @@ class Playlist {
     Object? colorValue = _keep,
     Object? coverFile = _keep,
     bool? pinned,
+    Object? yt = _keep,
   }) =>
       Playlist(
         id: id,
@@ -72,6 +109,7 @@ class Playlist {
         coverFile: identical(coverFile, _keep) ? this.coverFile : coverFile as String?,
         pinned: pinned ?? this.pinned,
         originalName: originalName,
+        yt: identical(yt, _keep) ? this.yt : yt as YtLink?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -86,6 +124,7 @@ class Playlist {
         if (coverFile != null) 'coverFile': coverFile,
         if (pinned) 'pinned': true,
         if (originalName != null) 'originalName': originalName,
+        if (yt != null) 'yt': yt!.toJson(),
       };
 
   factory Playlist.fromJson(Map<String, dynamic> json) => Playlist(
@@ -103,6 +142,7 @@ class Playlist {
         coverFile: json['coverFile'] as String?,
         pinned: json['pinned'] == true,
         originalName: json['originalName'] as String?,
+        yt: YtLink.fromJson(json['yt']),
       );
 }
 

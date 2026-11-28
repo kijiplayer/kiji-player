@@ -63,6 +63,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
   flutter::DartProject project(L"data");
+  // Kiji 0.9: en la PC dibuja con Skia. Impeller sobre OpenGL ES (ANGLE) tardaba ~21 ms por cuadro
+  // al deslizar Inicio (no llegaba a 60 Hz); Skia, ~4 ms, con el mismo resultado en pantalla.
+  project.set_impeller_switch(flutter::ImpellerSwitch::Disabled);
 
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
