@@ -36,6 +36,7 @@ class AppSettings {
     this.dailyQuotes = true,
     this.realGlass = true,
     this.streakCard = true,
+    this.liquidGlassPro = false,
     this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
@@ -221,6 +222,9 @@ class AppSettings {
 
   /// La tarjeta de racha arriba de Inicio (0.9); se puede ocultar.
   final bool streakCard;
+  /// «Liquid Glass real» (0.9): barra, mini-reproductor y botones con liquid_glass_widgets.
+  /// Apagado de fábrica: pensado para teléfonos de gama alta.
+  final bool liquidGlassPro;
 
   /// Qué categorías de SponsorBlock saltar (nombres de su API).
   final List<String> sponsorBlockCategories;
@@ -399,6 +403,7 @@ class AppSettings {
     bool? dailyQuotes,
     bool? realGlass,
     bool? streakCard,
+    bool? liquidGlassPro,
     List<String>? sponsorBlockCategories,
     bool? ytSync,
     bool? theaterReactions,
@@ -476,6 +481,7 @@ class AppSettings {
         dailyQuotes: dailyQuotes ?? this.dailyQuotes,
         realGlass: realGlass ?? this.realGlass,
         streakCard: streakCard ?? this.streakCard,
+        liquidGlassPro: liquidGlassPro ?? this.liquidGlassPro,
         sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
@@ -552,6 +558,7 @@ class AppSettings {
         'dailyQuotes': dailyQuotes,
         'realGlass': realGlass,
         'streakCard': streakCard,
+        'liquidGlassPro': liquidGlassPro,
         'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
@@ -643,6 +650,7 @@ class AppSettings {
       dailyQuotes: read('dailyQuotes', d.dailyQuotes),
       realGlass: read('realGlass', d.realGlass),
       streakCard: read('streakCard', d.streakCard),
+      liquidGlassPro: read('liquidGlassPro', d.liquidGlassPro),
       sponsorBlockCategories: json['sponsorBlockCategories'] is List
           ? [
               for (final e in json['sponsorBlockCategories'] as List)

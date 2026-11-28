@@ -54,6 +54,7 @@ import '../../welcome/presentation/welcome_screen.dart';
 import '../../playback_extras/data/battery_optimization.dart';
 import '../../../widgets/nocturne/kiji_sheet.dart';
 import '../../../widgets/nocturne/real_glass.dart';
+import '../../../widgets/nocturne/liquid_glass_pro.dart';
 import '../../style/data/background_store.dart';
 import '../../style/presentation/accent_picker.dart';
 import '../../style/presentation/custom_background.dart';
@@ -373,6 +374,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onChanged: (value) =>
               ref.read(settingsProvider.notifier).update((s) => s.copyWith(playerButtonLabels: value)),
         ),
+      ),
+      // «Liquid Glass real» (0.9): liquid_glass_widgets en la barra, el mini-reproductor y los
+      // botones flotantes. Apagado de fábrica; si el equipo no puede, apagado con el motivo.
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.liquidGlassReal,
+        subtitle: tx.liquidGlassRealNota,
+        keywords: const ['liquid', 'glass', 'vidrio', 'liquido', 'ios', 'apple', 'barra', 'gama alta'], // l10n-ignore
+        builder: (context, ref) {
+          final block = LiquidGlassPro.block;
+          return SwitchListTile(
+            key: const Key('settings-liquid-glass-pro'),
+            secondary: const Icon(Icons.water_drop_outlined),
+            title: Text(tx.liquidGlassReal),
+            subtitle: Text(switch (block) {
+              LiquidGlassProBlock.none => tx.liquidGlassRealNota,
+              LiquidGlassProBlock.noShaders => tx.liquidGlassRealSinShaders,
+              LiquidGlassProBlock.arm32 => tx.liquidGlassReal32Bits,
+            }),
+            value: block == LiquidGlassProBlock.none && ref.watch(settingsProvider.select((s) => s.liquidGlassPro)),
+            onChanged: block != LiquidGlassProBlock.none
+                ? null
+                : (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(liquidGlassPro: v)),
+          );
+        },
       ),
       // Vidrio líquido real (0.9): refracción del fondo en el borde (shader propio).
       if (RealGlass.platformCanTry)

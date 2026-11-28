@@ -5518,7 +5518,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get compartirFrase => 'Share the quote';
 
   @override
-  String get vidrioReal => 'Real liquid glass';
+  String get vidrioReal => 'Refraction at the glass edge';
 
   @override
   String get vidrioRealNota =>
@@ -5660,6 +5660,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mesSiguiente => 'Next month';
+
+  @override
+  String get liquidGlassReal => 'Real Liquid Glass';
+
+  @override
+  String get liquidGlassRealNota =>
+      'Clear glass with refraction and water-like animations on the tab bar, the mini player and the buttons. Made for high-end phones. It may use more battery and feel less smooth on other phones.';
+
+  @override
+  String get liquidGlassRealSinShaders =>
+      'This phone can\'t: its graphics engine lacks the effects it needs. The usual glass stays.';
+
+  @override
+  String get liquidGlassReal32Bits =>
+      'This phone can\'t: it\'s 32-bit. The usual glass stays.';
 
   @override
   String get frasesDelDia => 'Quote of the day on Home';
