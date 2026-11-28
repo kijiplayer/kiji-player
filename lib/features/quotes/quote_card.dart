@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../theme/kiji_tokens.dart';
 import '../../widgets/kiji_logo.dart';
@@ -10,6 +9,7 @@ import '../share_cards/now_playing_card.dart' show kijiCardUrl;
 import 'quotes.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../utils/share_image.dart';
 
 /// En Inicio: la frase de ahora, con su autor y su fuente, y «Compartir».
 class DailyQuoteCard extends ConsumerWidget {
@@ -140,17 +140,8 @@ class _QuoteShareScreenState extends State<_QuoteShareScreen> {
     final file = await renderToPng(_key, 'kiji-frase');
     if (!mounted) return;
     setState(() => _sharing = false);
-    if (file == null) return;
-    try {
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: 'image/png')],
-          text: '«${widget.quote.text}» — ${widget.quote.authorText}',
-        ),
-      );
-    } catch (error) {
-      debugPrint('=== FRASES: no se pudo compartir la imagen: ${error.runtimeType} ===');
-    }
+    // Teléfono: el panel de compartir. PC sin panel: se guarda la imagen y se avisa dónde (0.9).
+    await KijiShare.shareImage(context, file, name: 'kiji-frase', text: '«${widget.quote.text}» — ${widget.quote.authorText}');
   }
 
   @override

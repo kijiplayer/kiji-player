@@ -1534,6 +1534,12 @@
   "liquidGlassRealNota": "Clear glass with refraction and water-like animations on the tab bar, the mini player and the buttons. Made for high-end phones. It may use more battery and feel less smooth on other phones.",
   "liquidGlassRealSinShaders": "This phone can't: its graphics engine lacks the effects it needs. The usual glass stays.",
   "liquidGlassReal32Bits": "This phone can't: it's 32-bit. The usual glass stays.",
+  "noSePudoPrepararLaImagen": "The image couldn't be prepared. Try again.",
+  "noSePudoCompartir": "Couldn't share. Try again.",
+  "imagenGuardadaEn": "Image saved in {path}",
+  "abrirCarpeta": "Open folder",
+  "rachaCompartirLogro": "Share the achievement",
+  "rachaLogroTitulo": "Streak achievement on Kiji",
   "frasesDelDia": "Quote of the day on Home",
   "frasesDelDiaNota": "Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device."
 }

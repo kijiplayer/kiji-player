@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/l10n.dart';
 import '../../providers/appearance_provider.dart';
@@ -15,6 +14,7 @@ import '../lyrics/presentation/lyrics_share.dart' show renderToPng;
 import '../settings/data/settings_store.dart';
 import '../share_cards/now_playing_card.dart' show kijiCardUrl;
 import 'streaks.dart';
+import '../../utils/share_image.dart';
 
 /// El ícono de cada logro (de menos a más).
 IconData streakBadgeIcon(int days) => switch (days) {
@@ -192,7 +192,8 @@ class StreakCard extends ConsumerWidget {
                         context,
                         message: tx.rachaOcultada,
                         actionLabel: tx.deshacer,
-                        onAction: (_) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(streakCard: true)),
+                        onAction: (_) =>
+                            ref.read(settingsProvider.notifier).update((s) => s.copyWith(streakCard: true)),
                       );
                     },
                     itemBuilder: (_) => [PopupMenuItem(value: 0, child: Text(tx.rachaOcultar))],
@@ -200,7 +201,10 @@ class StreakCard extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Padding(padding: const EdgeInsets.only(right: 12), child: StreakWeek(now: now)),
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: StreakWeek(now: now),
+              ),
             ],
           ),
         ),
@@ -222,24 +226,6 @@ class StreakScreen extends ConsumerStatefulWidget {
 
 class _StreakScreenState extends ConsumerState<StreakScreen> {
   late DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
-  final _shareKey = GlobalKey();
-  bool _sharing = false;
-
-  Future<void> _share() async {
-    setState(() => _sharing = true);
-    final file = await renderToPng(_shareKey, 'kiji-racha');
-    if (!mounted) return;
-    setState(() => _sharing = false);
-    if (file == null) return;
-    try {
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path, mimeType: 'image/png')], text: tx.rachaDias(ref.read(currentStreakProvider))),
-      );
-    } catch (error) {
-      debugPrint('=== RACHAS: no se pudo compartir: ${error.runtimeType} ===');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final data = ref.watch(streaksProvider);
@@ -303,20 +289,23 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
             runSpacing: 10,
             children: [
               for (final m in streakMilestones)
-                _Badge(days: m, earnedOn: data.achievements[m], missing: math.max(0, m - current)),
+                _Badge(
+                  days: m,
+                  earnedOn: data.achievements[m],
+                  missing: math.max(0, m - current),
+                  // Un logro ganado se puede compartir (0.9).
+                  onShare: data.achievements[m] == null
+                      ? null
+                      : () => StreakShareScreen.open(context, current: current, best: data.best, milestone: m),
+                ),
             ],
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
             key: const Key('streak-share'),
-            onPressed: _sharing ? null : _share,
+            onPressed: () => StreakShareScreen.open(context, current: current, best: data.best),
             icon: const Icon(Icons.ios_share_rounded),
             label: Text(tx.rachaCompartir),
-          ),
-          // La imagen que se comparte (fuera de la vista: se dibuja para la captura).
-          Offstage(
-            offstage: true,
-            child: RepaintBoundary(key: _shareKey, child: StreakShareImage(current: current, best: data.best)),
           ),
         ],
       ),
@@ -345,7 +334,10 @@ class _MonthGrid extends StatelessWidget {
             for (var i = 0; i < 7; i++)
               Expanded(
                 child: Center(
-                  child: Text(loc.narrowWeekdays[(first + i) % 7], style: KijiText.mono(size: 11, color: KijiColors.muted)),
+                  child: Text(
+                    loc.narrowWeekdays[(first + i) % 7],
+                    style: KijiText.mono(size: 11, color: KijiColors.muted),
+                  ),
                 ),
               ),
           ],
@@ -376,7 +368,10 @@ class _MonthGrid extends StatelessWidget {
                       ),
                       child: Text(
                         '$d',
-                        style: TextStyle(color: on ? KijiColors.onAccent : KijiColors.muted, fontWeight: on ? FontWeight.w700 : null),
+                        style: TextStyle(
+                          color: on ? KijiColors.onAccent : KijiColors.muted,
+                          fontWeight: on ? FontWeight.w700 : null,
+                        ),
                       ),
                     ),
                   );
@@ -390,11 +385,14 @@ class _MonthGrid extends StatelessWidget {
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge({required this.days, required this.earnedOn, required this.missing});
+  const _Badge({required this.days, required this.earnedOn, required this.missing, this.onShare});
 
   final int days;
   final String? earnedOn;
   final int missing;
+
+  /// Compartir este logro (solo si se ganó).
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -405,37 +403,126 @@ class _Badge extends StatelessWidget {
         : tx.rachaLogroFalta(missing);
     return Semantics(
       label: '${tx.rachaLogroDias(days)}. $detail',
+      button: onShare != null,
+      hint: onShare == null ? null : tx.rachaCompartirLogro,
       excludeSemantics: true,
-      child: SizedBox(
-        width: 104,
-        child: Column(
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: earned ? KijiColors.accentGradient : null,
-                color: earned ? null : KijiColors.surfaceHigh,
+      child: InkWell(
+        key: Key('streak-badge-$days'),
+        borderRadius: BorderRadius.circular(16),
+        onTap: onShare,
+        child: SizedBox(
+          width: 104,
+          child: Column(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: earned ? KijiColors.accentGradient : null,
+                  color: earned ? null : KijiColors.surfaceHigh,
+                ),
+                child: Icon(streakBadgeIcon(days), size: 32, color: earned ? KijiColors.onAccent : KijiColors.muted),
               ),
-              child: Icon(streakBadgeIcon(days), size: 32, color: earned ? KijiColors.onAccent : KijiColors.muted),
-            ),
-            const SizedBox(height: 6),
-            Text(tx.rachaLogroDias(days), style: KijiText.title(size: 14)),
-            Text(detail, textAlign: TextAlign.center, style: TextStyle(color: KijiColors.muted, fontSize: 11)),
-          ],
+              const SizedBox(height: 6),
+              Text(tx.rachaLogroDias(days), style: KijiText.title(size: 14)),
+              Text(
+                detail,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: KijiColors.muted, fontSize: 11),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// La tarjeta para compartir la racha (con el logo de Kiji).
-class StreakShareImage extends StatelessWidget {
-  const StreakShareImage({super.key, required this.current, required this.best});
+/// Compartir la racha (o un logro): la tarjeta a la vista y el botón (como las frases).
+class StreakShareScreen extends StatefulWidget {
+  const StreakShareScreen({super.key, required this.current, required this.best, this.milestone});
 
   final int current;
   final int best;
+
+  /// Un logro (días); null = la racha de hoy.
+  final int? milestone;
+
+  static Future<void> open(BuildContext context, {required int current, required int best, int? milestone}) =>
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => StreakShareScreen(current: current, best: best, milestone: milestone),
+        ),
+      );
+
+  @override
+  State<StreakShareScreen> createState() => _StreakShareScreenState();
+}
+
+class _StreakShareScreenState extends State<StreakShareScreen> {
+  final _key = GlobalKey();
+  bool _sharing = false;
+
+  Future<void> _share() async {
+    setState(() => _sharing = true);
+    final file = await renderToPng(_key, widget.milestone == null ? 'kiji-racha' : 'kiji-logro');
+    if (!mounted) return;
+    setState(() => _sharing = false);
+    await KijiShare.shareImage(
+      context,
+      file,
+      name: widget.milestone == null ? 'kiji-racha' : 'kiji-logro',
+      text: widget.milestone == null ? tx.rachaDias(widget.current) : tx.rachaLogroNuevo(widget.milestone!),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(widget.milestone == null ? tx.rachaCompartir : tx.rachaCompartirLogro)),
+    body: SafeArea(
+      child: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: FittedBox(
+                  child: RepaintBoundary(
+                    key: _key,
+                    child: StreakShareImage(current: widget.current, best: widget.best, milestone: widget.milestone),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: const Key('streak-share-image'),
+                onPressed: _sharing ? null : _share,
+                icon: const Icon(Icons.ios_share_rounded),
+                label: Text(tx.compartirImagen),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// La tarjeta para compartir la racha (con el logo de Kiji).
+class StreakShareImage extends StatelessWidget {
+  const StreakShareImage({super.key, required this.current, required this.best, this.milestone});
+
+  final int current;
+  final int best;
+
+  /// Un logro (días): se muestra su insignia en vez del fuego.
+  final int? milestone;
 
   @override
   Widget build(BuildContext context) {
@@ -462,12 +549,25 @@ class StreakShareImage extends StatelessWidget {
                   end: Alignment.topCenter,
                   colors: [Color(0xFF7C5CFF), Color(0xFF22D3EE)],
                 ).createShader(rect),
-                child: const Icon(Icons.local_fire_department_rounded, size: 120, color: Colors.white),
+                child: Icon(
+                  milestone == null ? Icons.local_fire_department_rounded : streakBadgeIcon(milestone!),
+                  size: 120,
+                  color: Colors.white,
+                ),
               ),
-              Text('$current', style: KijiText.display(size: 96).copyWith(color: Colors.white, height: 1)),
-              Text(tx.rachaDiasSeguidos(current), style: KijiText.title(size: 22).copyWith(color: Colors.white)),
+              Text(
+                '${milestone ?? current}',
+                style: KijiText.display(size: 96).copyWith(color: Colors.white, height: 1),
+              ),
+              Text(
+                tx.rachaDiasSeguidos(milestone ?? current),
+                style: KijiText.title(size: 22).copyWith(color: Colors.white),
+              ),
               const SizedBox(height: 8),
-              Text(tx.rachaMejor(best), style: TextStyle(color: muted, fontSize: 15)),
+              Text(
+                milestone == null ? tx.rachaMejor(best) : tx.rachaLogroTitulo,
+                style: TextStyle(color: muted, fontSize: 15),
+              ),
               const Spacer(),
               Row(
                 children: [

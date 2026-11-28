@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../models/track.dart';
 import '../../theme/kiji_tokens.dart';
@@ -13,6 +12,7 @@ import '../customize/presentation/track_text.dart' show displayTrack;
 import '../lyrics/presentation/lyrics_share.dart' show renderToPng;
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../utils/share_image.dart';
 
 /// Estilos de la tarjeta de la canción que suena (0.9). **Nunca lleva letras** (tienen derechos).
 enum ShareCardStyle {
@@ -270,17 +270,8 @@ class _ShareCardScreenState extends State<_ShareCardScreen> {
     final file = await renderToPng(_key, 'kiji-tarjeta');
     if (!mounted) return;
     setState(() => _sharing = false);
-    if (file == null) return;
-    try {
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: 'image/png')],
-          text: '${widget.track.title} — ${widget.track.artist}',
-        ),
-      );
-    } catch (error) {
-      debugPrint('=== TARJETAS: no se pudo compartir la imagen: ${error.runtimeType} ===');
-    }
+    // Teléfono: el panel de compartir. PC sin panel: se guarda la imagen y se avisa dónde (0.9).
+    await KijiShare.shareImage(context, file, name: 'kiji-tarjeta', text: '${widget.track.title} — ${widget.track.artist}');
   }
 
   Widget _chips<T>(String title, List<T> values, T selected, String Function(T) label, ValueChanged<T> onPick) =>

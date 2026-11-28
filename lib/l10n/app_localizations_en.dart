@@ -5689,6 +5689,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'This phone can\'t: it\'s 32-bit. The usual glass stays.';
 
   @override
+  String get noSePudoPrepararLaImagen =>
+      'The image couldn\'t be prepared. Try again.';
+
+  @override
+  String get noSePudoCompartir => 'Couldn\'t share. Try again.';
+
+  @override
+  String imagenGuardadaEn(String path) {
+    return 'Image saved in $path';
+  }
+
+  @override
+  String get abrirCarpeta => 'Open folder';
+
+  @override
+  String get rachaCompartirLogro => 'Share the achievement';
+
+  @override
+  String get rachaLogroTitulo => 'Streak achievement on Kiji';
+
+  @override
   String get frasesDelDia => 'Quote of the day on Home';
 
   @override

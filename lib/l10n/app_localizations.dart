@@ -9197,6 +9197,42 @@ abstract class AppLocalizations {
   /// **'Este teléfono no puede: es de 32 bits. Queda el vidrio de siempre.'**
   String get liquidGlassReal32Bits;
 
+  /// Compartir imágenes (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo preparar la imagen. Prueba de nuevo.'**
+  String get noSePudoPrepararLaImagen;
+
+  /// Compartir imágenes (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo compartir. Prueba de nuevo.'**
+  String get noSePudoCompartir;
+
+  /// Compartir imágenes (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen guardada en {path}'**
+  String imagenGuardadaEn(String path);
+
+  /// Compartir imágenes (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir carpeta'**
+  String get abrirCarpeta;
+
+  /// Compartir imágenes (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir el logro'**
+  String get rachaCompartirLogro;
+
+  /// Compartir imágenes (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Logro de racha en Kiji'**
+  String get rachaLogroTitulo;
+
   /// No description provided for @frasesDelDia.
   ///
   /// In es, this message translates to:
