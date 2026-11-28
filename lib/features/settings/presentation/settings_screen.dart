@@ -416,6 +416,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(realGlass: v)),
           ),
         ),
+      // Tarjeta de racha en Inicio (0.9).
+      SettingOption(
+        section: SettingsSection.appearance,
+        title: tx.rachaTarjetaAjuste,
+        subtitle: tx.rachaTarjetaAjusteNota,
+        keywords: const ['racha', 'streak', 'fuego', 'dias', 'logros', 'inicio'], // l10n-ignore
+        builder: (context, ref) => SwitchListTile(
+          key: const Key('settings-streak-card'),
+          secondary: const Icon(Icons.local_fire_department_outlined),
+          title: Text(tx.rachaTarjetaAjuste),
+          subtitle: Text(tx.rachaTarjetaAjusteNota),
+          value: ref.watch(settingsProvider.select((s) => s.streakCard)),
+          onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(streakCard: v)),
+        ),
+      ),
       // Frase del día en Inicio (0.9): de dominio público, elegida en el dispositivo.
       SettingOption(
         section: SettingsSection.appearance,

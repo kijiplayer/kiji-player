@@ -187,7 +187,7 @@ class _Remote {
 /// fábrica). Trae "Me gusta" (solo lectura) y las playlists de la cuenta, que en Kiji son playlists
 /// como las demás (vinculadas, ver [YtLink]); al sincronizar, lo que se agregó o quitó en Kiji se
 /// manda a YouTube Music (0.9). Todo va directo entre el dispositivo y YouTube. Lo leído queda
-/// solo en el dispositivo (`yt_sync.json` y `playlists.json`). Si YouTube rechaza la sesión, se avisa ("Vuelve a iniciarla") y Kiji sigue
+/// solo en el dispositivo (`yt_sync.json` y `playlists.json`; los dos van en la copia completa). Si YouTube rechaza la sesión, se avisa ("Vuelve a iniciarla") y Kiji sigue
 /// como invitado.
 class YtSyncNotifier extends Notifier<YtSyncState> {
   YtSyncNotifier({Future<Directory> Function()? directory}) : _directory = directory ?? getApplicationSupportDirectory;

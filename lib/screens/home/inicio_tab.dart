@@ -34,6 +34,8 @@ import '../../features/streaks/streaks.dart';
 import '../../features/quotes/quote_card.dart';
 
 import 'package:kiji_player/l10n/l10n.dart';
+import '../../features/streaks/streak_widgets.dart';
+import '../../features/settings/data/settings_store.dart';
 
 /// Saludo según la hora (5–12 mañana, 12–20 tarde, resto noche).
 String greetingFor(DateTime now) {
@@ -49,6 +51,12 @@ class InicioTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Racha (0.9): un logro recién ganado se festeja una vez (sin sonido ni notificaciones).
+    ref.listen(streaksProvider.select((s) => s.celebrate), (_, days) {
+      if (days == null) return;
+      ref.read(streaksProvider.notifier).celebrated();
+      unawaited(showStreakCelebration(context, days, calm: reduceMotion(context, ref)));
+    });
     // Solo canción y play/pausa: la posición cambia varias veces por segundo y no hace falta
     // redibujar todo Inicio por eso.
     final playback = ref.watch(playbackProvider.select((s) => (track: s.track, isPlaying: s.isPlaying)));
@@ -119,6 +127,11 @@ class InicioTab extends ConsumerWidget {
             children: staggered([
               const _Greeting(),
               const SizedBox(height: 14),
+              // La racha (0.9): tarjeta arriba de Inicio, que se puede ocultar.
+              if (ref.watch(settingsProvider.select((s) => s.streakCard))) ...[
+                const StreakCard(),
+                const SizedBox(height: 14),
+              ],
               // La frase del día (0.9): según la hora y lo que pasa en Kiji; se puede apagar.
               const DailyQuoteCard(),
               const SizedBox(height: 20),
@@ -436,7 +449,8 @@ class _StreakBadge extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final days = ref.watch(currentStreakProvider);
-    if (days < 2) return const SizedBox.shrink();
+    // Con la tarjeta de racha a la vista, el 🔥 chico sobra.
+    if (days < 2 || ref.watch(settingsProvider.select((s) => s.streakCard))) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(left: 10),
       child: Tooltip(

@@ -35,6 +35,7 @@ class AppSettings {
     this.startupResume = true,
     this.dailyQuotes = true,
     this.realGlass = true,
+    this.streakCard = true,
     this.liquidGlassPro = false,
     this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
@@ -219,6 +220,9 @@ class AppSettings {
   /// Impeller y Flutter GPU). Apagado, o si el dispositivo no puede, queda el vidrio de siempre.
   final bool realGlass;
 
+  /// La tarjeta de racha arriba de Inicio (0.9); se puede ocultar.
+  final bool streakCard;
+
   /// «Liquid Glass real» (0.9): barra, mini-reproductor y botones con liquid_glass_widgets.
   /// Apagado de fábrica: pensado para teléfonos de gama alta.
   final bool liquidGlassPro;
@@ -399,6 +403,7 @@ class AppSettings {
     bool? startupResume,
     bool? dailyQuotes,
     bool? realGlass,
+    bool? streakCard,
     bool? liquidGlassPro,
     List<String>? sponsorBlockCategories,
     bool? ytSync,
@@ -476,6 +481,7 @@ class AppSettings {
         startupResume: startupResume ?? this.startupResume,
         dailyQuotes: dailyQuotes ?? this.dailyQuotes,
         realGlass: realGlass ?? this.realGlass,
+        streakCard: streakCard ?? this.streakCard,
         liquidGlassPro: liquidGlassPro ?? this.liquidGlassPro,
         sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
@@ -552,6 +558,7 @@ class AppSettings {
         'startupResume': startupResume,
         'dailyQuotes': dailyQuotes,
         'realGlass': realGlass,
+        'streakCard': streakCard,
         'liquidGlassPro': liquidGlassPro,
         'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
@@ -643,6 +650,7 @@ class AppSettings {
       startupResume: read('startupResume', d.startupResume),
       dailyQuotes: read('dailyQuotes', d.dailyQuotes),
       realGlass: read('realGlass', d.realGlass),
+      streakCard: read('streakCard', d.streakCard),
       liquidGlassPro: read('liquidGlassPro', d.liquidGlassPro),
       sponsorBlockCategories: json['sponsorBlockCategories'] is List
           ? [
