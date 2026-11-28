@@ -30,8 +30,9 @@ List<WhatsNewItem> whatsNewItems({required bool desktop}) => [
     title: tx.novedades09RapidaTitulo,
     text: desktop ? tx.novedades09RapidaPcTexto : tx.novedades09RapidaTexto,
   ),
+  (icon: Icons.local_fire_department_rounded, title: tx.novedades09RachasTitulo, text: tx.novedades09RachasTexto),
+  (icon: Icons.water_drop_outlined, title: tx.novedades09LiquidTitulo, text: tx.novedades09LiquidTexto),
   (icon: Icons.ios_share_rounded, title: tx.novedades09TarjetasTitulo, text: tx.novedades09TarjetasTexto),
-  (icon: Icons.format_quote_rounded, title: tx.novedades09FrasesTitulo, text: tx.novedades09FrasesTexto),
   (icon: Icons.fast_forward_rounded, title: tx.novedades09SponsorTitulo, text: tx.novedades09SponsorTexto),
   if (!isPlayStore && !desktop)
     (icon: Icons.download_for_offline_outlined, title: tx.novedades09PlaylistTitulo, text: tx.novedades09PlaylistTexto),

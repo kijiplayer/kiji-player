@@ -5022,7 +5022,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get novedades09YoutubeTexto =>
-      'Tus playlists de YouTube Music en Kiji, con todas las opciones. Lo que cambies se manda a tu cuenta al tocar «Sincronizar». Es opcional.';
+      'Tus playlists de YouTube Music en Kiji, con todas las opciones. Lo que cambies se manda a tu cuenta al tocar «Sincronizar», en todas o en cada una. Es opcional.';
 
   @override
   String get novedades09RapidaTitulo => 'Más rápida';
@@ -5034,6 +5034,20 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get novedades09RapidaPcTexto =>
       'Abre en menos de un segundo, se desliza sin saltos y usa la mitad de memoria.';
+
+  @override
+  String get novedades09RachasTitulo => 'Rachas con logros';
+
+  @override
+  String get novedades09RachasTexto =>
+      'Tus días seguidos escuchando, tu mejor racha y logros de 3 a 365 días, arriba de Inicio.';
+
+  @override
+  String get novedades09LiquidTitulo => 'Liquid Glass real';
+
+  @override
+  String get novedades09LiquidTexto =>
+      'Pruébalo: la barra y el mini-reproductor de vidrio líquido, transparentes y con animaciones tipo agua. Se prende en Configuración → Apariencia.';
 
   @override
   String get novedades09Subtitulo =>
@@ -5068,18 +5082,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Descárgala con un toque, con pausa y cancelar.';
 
   @override
-  String get novedades09TarjetasTitulo => 'Tarjetas para compartir';
+  String get novedades09TarjetasTitulo => 'Tarjetas y frase del día';
 
   @override
   String get novedades09TarjetasTexto =>
-      'Comparte la canción que suena: Sonando ahora, Vinilo o Póster.';
-
-  @override
-  String get novedades09FrasesTitulo => 'Frase del día y rachas';
-
-  @override
-  String get novedades09FrasesTexto =>
-      'Frases de escritores, músicos y poetas, y los días seguidos que llevas escuchando, discretos en Inicio.';
+      'Comparte la canción que suena (Sonando ahora, Vinilo o Póster) y lee una frase de escritores, músicos y poetas cada día.';
 
   @override
   String get novedades09PcTitulo => 'En la PC';
