@@ -93,6 +93,7 @@ maintains them.
 | [libmpv](https://mpv.io) (build from [media-kit/libmpv-win32-video-build](https://github.com/media-kit/libmpv-win32-video-build)) | GPL-2.0 or later / LGPL | PC: the audio and video engine (includes FFmpeg). |
 | [ANGLE](https://chromium.googlesource.com/angle/angle) (`libGLESv2.dll`, `libEGL.dll`) | BSD-3-Clause | PC: draws the background video (comes with media_kit). |
 | [video_player](https://pub.dev/packages/video_player) (Flutter) | BSD-3-Clause | Phone: the video of your own background. |
+| [liquid_glass_widgets](https://pub.dev/packages/liquid_glass_widgets) 1.22.0 (Sebastian Degenaar) | MIT | “Real Liquid Glass” (optional): the tab bar, the mini player and the floating buttons. |
 | [sensors_plus](https://pub.dev/packages/sensors_plus) (Flutter Community, plus_plugins) | BSD-3-Clause | Phone: shake it to throw a tomato (only with the player on screen and music playing). |
 
 ## How to maintain this file
