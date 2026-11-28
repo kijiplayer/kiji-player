@@ -5011,7 +5011,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get novedades09YoutubeTexto =>
-      'Your YouTube Music playlists in Kiji, with every option. What you change is sent to your account when you tap “Sync”. It\'s optional.';
+      'Your YouTube Music playlists in Kiji, with every option. What you change is sent to your account when you tap “Sync”, for all of them or each one. It\'s optional.';
 
   @override
   String get novedades09RapidaTitulo => 'Faster';
@@ -5023,6 +5023,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get novedades09RapidaPcTexto =>
       'Opens in under a second, scrolls smoothly and uses half the memory.';
+
+  @override
+  String get novedades09RachasTitulo => 'Streaks with achievements';
+
+  @override
+  String get novedades09RachasTexto =>
+      'Your days in a row listening, your best streak and achievements from 3 to 365 days, at the top of Home.';
+
+  @override
+  String get novedades09LiquidTitulo => 'Real Liquid Glass';
+
+  @override
+  String get novedades09LiquidTexto =>
+      'Give it a try: a liquid glass tab bar and mini player, clear and with water-like animations. Turn it on in Settings → Appearance.';
 
   @override
   String get novedades09Subtitulo =>
@@ -5057,18 +5071,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Download it with one tap, with pause and cancel.';
 
   @override
-  String get novedades09TarjetasTitulo => 'Cards to share';
+  String get novedades09TarjetasTitulo => 'Cards and a quote of the day';
 
   @override
   String get novedades09TarjetasTexto =>
-      'Share the song that\'s playing: Now Playing, Vinyl or Poster.';
-
-  @override
-  String get novedades09FrasesTitulo => 'Quote of the day and streaks';
-
-  @override
-  String get novedades09FrasesTexto =>
-      'Quotes from writers, musicians and poets, and how many days in a row you\'ve been listening, quietly on Home.';
+      'Share the song that\'s playing (Now Playing, Vinyl or Poster) and read a quote from writers, musicians and poets every day.';
 
   @override
   String get novedades09PcTitulo => 'On your PC';

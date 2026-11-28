@@ -8114,7 +8114,7 @@ abstract class AppLocalizations {
   /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Tus playlists de YouTube Music en Kiji, con todas las opciones. Lo que cambies se manda a tu cuenta al tocar «Sincronizar». Es opcional.'**
+  /// **'Tus playlists de YouTube Music en Kiji, con todas las opciones. Lo que cambies se manda a tu cuenta al tocar «Sincronizar», en todas o en cada una. Es opcional.'**
   String get novedades09YoutubeTexto;
 
   /// Qué hay de nuevo (0.9.0)
@@ -8134,6 +8134,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Abre en menos de un segundo, se desliza sin saltos y usa la mitad de memoria.'**
   String get novedades09RapidaPcTexto;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Rachas con logros'**
+  String get novedades09RachasTitulo;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Tus días seguidos escuchando, tu mejor racha y logros de 3 a 365 días, arriba de Inicio.'**
+  String get novedades09RachasTexto;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Liquid Glass real'**
+  String get novedades09LiquidTitulo;
+
+  /// Qué hay de nuevo (0.9.0)
+  ///
+  /// In es, this message translates to:
+  /// **'Pruébalo: la barra y el mini-reproductor de vidrio líquido, transparentes y con animaciones tipo agua. Se prende en Configuración → Apariencia.'**
+  String get novedades09LiquidTexto;
 
   /// Qué hay de nuevo (0.9.0)
   ///
@@ -8192,26 +8216,14 @@ abstract class AppLocalizations {
   /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Tarjetas para compartir'**
+  /// **'Tarjetas y frase del día'**
   String get novedades09TarjetasTitulo;
 
   /// Qué hay de nuevo (0.9.0)
   ///
   /// In es, this message translates to:
-  /// **'Comparte la canción que suena: Sonando ahora, Vinilo o Póster.'**
+  /// **'Comparte la canción que suena (Sonando ahora, Vinilo o Póster) y lee una frase de escritores, músicos y poetas cada día.'**
   String get novedades09TarjetasTexto;
-
-  /// Qué hay de nuevo (0.9.0)
-  ///
-  /// In es, this message translates to:
-  /// **'Frase del día y rachas'**
-  String get novedades09FrasesTitulo;
-
-  /// Qué hay de nuevo (0.9.0)
-  ///
-  /// In es, this message translates to:
-  /// **'Frases de escritores, músicos y poetas, y los días seguidos que llevas escuchando, discretos en Inicio.'**
-  String get novedades09FrasesTexto;
 
   /// Qué hay de nuevo (0.9.0)
   ///

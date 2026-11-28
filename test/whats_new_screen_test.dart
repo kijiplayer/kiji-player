@@ -19,12 +19,13 @@ void main() {
   test('las novedades de la 0.9: el ecualizador solo en el teléfono y lo de la PC solo en la PC', () {
     final phone = whatsNewItems(desktop: false);
     final pc = whatsNewItems(desktop: true);
-    expect(phone, hasLength(8));
-    expect(pc, hasLength(7));
+    expect(phone, hasLength(9));
+    expect(pc, hasLength(8));
     expect(pc.last.title, 'En la PC');
     final titles = [for (final i in phone) i.title];
     expect(titles, contains('Biblioteca más simple'));
     expect(titles, contains('Ecualizador de 10 bandas'));
+    expect(titles, containsAll(['Rachas con logros', 'Liquid Glass real']));
     expect(titles[1], 'YouTube Music de ida y vuelta', reason: 'lo más importante primero');
     expect([for (final i in pc) i.title], isNot(contains('Ecualizador de 10 bandas')));
     // Lo que la 0.9 no trae no se nombra: ni Last.fm ni Linux.
