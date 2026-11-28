@@ -9197,6 +9197,24 @@ abstract class AppLocalizations {
   /// **'Este teléfono no puede: es de 32 bits. Queda el vidrio de siempre.'**
   String get liquidGlassReal32Bits;
 
+  /// Sincronizar: borrar copias con cambios sin subir (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Hay cambios sin subir a YouTube Music'**
+  String get cambiosSinSubirTitulo;
+
+  /// Sincronizar: borrar copias con cambios sin subir (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'En «{names}» agregaste o quitaste canciones que todavía no están en tu cuenta. Si borras las copias sin sincronizar, esos cambios se pierden.'**
+  String cambiosSinSubirTexto(String names);
+
+  /// Sincronizar: borrar copias con cambios sin subir (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar igual'**
+  String get borrarIgual;
+
   /// No description provided for @frasesDelDia.
   ///
   /// In es, this message translates to:

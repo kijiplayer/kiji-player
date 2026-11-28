@@ -5703,6 +5703,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este teléfono no puede: es de 32 bits. Queda el vidrio de siempre.';
 
   @override
+  String get cambiosSinSubirTitulo => 'Hay cambios sin subir a YouTube Music';
+
+  @override
+  String cambiosSinSubirTexto(String names) {
+    return 'En «$names» agregaste o quitaste canciones que todavía no están en tu cuenta. Si borras las copias sin sincronizar, esos cambios se pierden.';
+  }
+
+  @override
+  String get borrarIgual => 'Borrar igual';
+
+  @override
   String get frasesDelDia => 'Frase del día en Inicio';
 
   @override

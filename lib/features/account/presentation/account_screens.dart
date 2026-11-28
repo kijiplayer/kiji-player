@@ -20,6 +20,7 @@ import '../domain/yt_session.dart';
 import 'package:kiji_player/l10n/l10n.dart';
 import '../../../store_flavor.dart';
 import '../../../widgets/top_notice.dart';
+import '../../playlists/playlists_provider.dart';
 
 /// Advertencia que se muestra siempre antes de iniciar sesión.
 String get accountWarning => tx.youtubePuedeLimitarOSuspenderCuentas;
@@ -94,6 +95,7 @@ class AccountScreen extends ConsumerWidget {
               icon: const Icon(Icons.logout_rounded),
               label: Text(tx.cerrarSesionYBorrarla),
               onPressed: () async {
+                if (!await confirmDropYouTubeCopies(context, ref)) return;
                 await ref.read(accountProvider.notifier).signOut();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.sesionCerradaYBorrada)));
@@ -117,6 +119,7 @@ class AccountScreen extends ConsumerWidget {
               subtitle: Text(tx.sincronizarConYoutubeNota),
               value: ref.watch(settingsProvider.select((s) => s.ytSync)),
               onChanged: (v) async {
+                if (!v && !await confirmDropYouTubeCopies(context, ref)) return;
                 await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytSync: v));
                 if (v) {
                   await ref.read(ytSyncProvider.notifier).syncNow();
@@ -571,6 +574,7 @@ class AccountStatusTile extends ConsumerWidget {
           : OutlinedButton(
               key: const Key('account-sign-out'),
               onPressed: () async {
+                if (!await confirmDropYouTubeCopies(context, ref)) return;
                 await ref.read(accountProvider.notifier).signOut();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tx.sesionCerradaYBorrada)));
@@ -597,6 +601,7 @@ class SyncSwitchTile extends ConsumerWidget {
       onChanged: session == null
           ? null
           : (v) async {
+              if (!v && !await confirmDropYouTubeCopies(context, ref)) return;
               await ref.read(settingsProvider.notifier).update((s) => s.copyWith(ytSync: v, ytSyncOffered: true));
               if (v) {
                 await ref.read(ytSyncProvider.notifier).syncNow();
@@ -697,3 +702,49 @@ Future<void> syncOneYouTubePlaylist(BuildContext context, WidgetRef ref, String 
   );
 }
 
+/// Antes de borrar las copias de YouTube Music (apagar la sincronización o cerrar sesión, 0.9): si
+/// alguna playlist propia tiene cambios hechos en Kiji que todavía no se mandaron, se pregunta.
+/// «Sincronizar ahora» los manda y sigue; «Borrar igual» sigue sin mandarlos; «Cancelar» no hace
+/// nada. Devuelve si se puede seguir.
+Future<bool> confirmDropYouTubeCopies(BuildContext context, WidgetRef ref) async {
+  final pending = [
+    for (final pl in ref.read(playlistsProvider))
+      if (pl.yt?.editable ?? false)
+        if (ytPlaylistSyncStatus(pl, syncing: false) == YtPlaylistSyncStatus.pending) pl.name,
+  ];
+  if (pending.isEmpty) return true;
+  final choice = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(tx.cambiosSinSubirTitulo),
+      content: Text(tx.cambiosSinSubirTexto(pending.join('», «'))),
+      actions: [
+        TextButton(
+          key: const Key('drop-yt-cancel'),
+          onPressed: () => Navigator.pop(dialogContext, 'cancel'), // l10n-ignore
+          child: Text(tx.cancelar),
+        ),
+        TextButton(
+          key: const Key('drop-yt-anyway'),
+          onPressed: () => Navigator.pop(dialogContext, 'drop'), // l10n-ignore
+          child: Text(tx.borrarIgual),
+        ),
+        FilledButton(
+          key: const Key('drop-yt-sync'),
+          onPressed: () => Navigator.pop(dialogContext, 'sync'), // l10n-ignore
+          child: Text(tx.sincronizarAhora),
+        ),
+      ],
+    ),
+  );
+  switch (choice) {
+    case 'drop': // l10n-ignore
+      return true;
+    case 'sync': // l10n-ignore
+      final ok = await ref.read(ytSyncProvider.notifier).syncNow();
+      if (!ok && context.mounted) showTopNotice(context, message: tx.noSePudoSincronizar);
+      return ok;
+    default:
+      return false;
+  }
+}
