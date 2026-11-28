@@ -181,7 +181,14 @@ class _LiquidGlassShell extends ConsumerWidget {
         ],
         selectedIndex: ShellDestination.all.indexWhere((d) => d.tab == current),
         onTabSelected: (i) => selectShellTab(ref, ShellDestination.all[i].tab),
-        bottomAccessory: hasTrack ? const MiniPlayer(bare: true) : null,
+        // El accesorio va en su propia cápsula de vidrio (como el mini-reproductor de iOS 26).
+        bottomAccessory: hasTrack
+            ? const lgw.GlassContainer(
+                useOwnLayer: true,
+                shape: lgw.LiquidRoundedSuperellipse(borderRadius: KijiRadii.miniPlayer),
+                child: MiniPlayer(bare: true),
+              )
+            : null,
         bottomAccessoryEnabled: hasTrack,
         bottomAccessoryHeight: hasTrack ? miniPlayerHeight : null,
       ),
