@@ -8972,7 +8972,7 @@ abstract class AppLocalizations {
   /// Ajuste: vidrio líquido real (0.9)
   ///
   /// In es, this message translates to:
-  /// **'Vidrio líquido real'**
+  /// **'Refracción en el borde del vidrio'**
   String get vidrioReal;
 
   /// No description provided for @vidrioRealNota.
@@ -9046,6 +9046,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sincronizando…'**
   String get ytSincronizando;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Liquid Glass real'**
+  String get liquidGlassReal;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Vidrio transparente con refracción y animaciones tipo agua en la barra, el mini-reproductor y los botones. Pensado para teléfonos de gama alta. Puede gastar más batería y verse menos fluido en otros teléfonos.'**
+  String get liquidGlassRealNota;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Este teléfono no puede: su motor de dibujo no tiene los efectos que hacen falta. Queda el vidrio de siempre.'**
+  String get liquidGlassRealSinShaders;
+
+  /// Ajuste: Liquid Glass real (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Este teléfono no puede: es de 32 bits. Queda el vidrio de siempre.'**
+  String get liquidGlassReal32Bits;
 
   /// No description provided for @frasesDelDia.
   ///

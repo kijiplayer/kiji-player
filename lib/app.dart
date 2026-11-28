@@ -45,6 +45,9 @@ import 'features/account/data/account_store.dart';
 import 'features/account/presentation/account_screens.dart';
 import 'features/welcome/data/welcome_store.dart';
 import 'features/welcome/presentation/welcome_screen.dart';
+import 'widgets/nocturne/liquid_glass_pro.dart';
+
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' show LiquidGlassWidgets;
 
 class KijiApp extends ConsumerStatefulWidget {
   const KijiApp({super.key});
@@ -71,16 +74,18 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
       (_, on) => RealGlass.userOn.value = on,
       fireImmediately: true,
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(RealGlass.start()));
-    // Modo alto rendimiento: la pantalla a su frecuencia más alta (Android).
+    // «Liquid Glass real» (opcional): si está prendido y el equipo puede.
     ref.listenManual(
-      settingsProvider.select((s) => s.highPerformance),
-      (before, on) {
-        // Al abrir con el modo apagado no hace falta pedir nada.
-        if (before != null || on) applyHighRefreshRate(on);
-      },
+      settingsProvider.select((s) => s.liquidGlassPro),
+      (_, on) => LiquidGlassPro.setOn(on),
       fireImmediately: true,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(RealGlass.start()));
+    // Modo alto rendimiento: la pantalla a su frecuencia más alta (Android).
+    ref.listenManual(settingsProvider.select((s) => s.highPerformance), (before, on) {
+      // Al abrir con el modo apagado no hace falta pedir nada.
+      if (before != null || on) applyHighRefreshRate(on);
+    }, fireImmediately: true);
     // Android: la primera vez que suena música, explicar por qué conviene quitar la optimización de batería.
     ref.listenManual(playbackProvider.select((s) => s.isPlaying), (_, playing) {
       final context = kijiNavigatorKey.currentContext;
@@ -285,7 +290,9 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
     KijiEffects.calm = calm;
     // La primera vez (al abrir) no hace falta: todavía no se dibujó nada.
     if (!_appearanceReady) return;
-    debugPrint('=== APARIENCIA: estilo ${style.name}, tema $theme, acento $accent, letra $font, alto rendimiento $rich ===');
+    debugPrint(
+      '=== APARIENCIA: estilo ${style.name}, tema $theme, acento $accent, letra $font, alto rendimiento $rich ===',
+    );
     // Otro estilo: redibujar todo tarda (~0,7 s en el teléfono). Una foto de la pantalla de antes la
     // tapa mientras tanto y se desvanece: un fundido del estilo viejo al nuevo, sin el cuadro negro
     // que dejaba el velo del color de fondo. Si la foto no se puede sacar, queda ese velo. Con
@@ -374,38 +381,43 @@ class _KijiAppState extends ConsumerState<KijiApp> with WidgetsBindingObserver {
           ref.watch(settingsProvider.select((s) => s.timeFormat)),
           system: MediaQuery.alwaysUse24HourFormatOf(context),
         );
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: kijiUse24Hour),
-          child: BackdropGroup(
-            child: Stack(
-              children: [
-                RepaintBoundary(
-                  key: _screenKey,
-                  child: PlaybackShortcuts(
-                    child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+        return LiquidGlassWidgets.wrap(
+          brightnessResolver: Theme.maybeBrightnessOf,
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: kijiUse24Hour),
+            child: BackdropGroup(
+              child: Stack(
+                children: [
+                  RepaintBoundary(
+                    key: _screenKey,
+                    child: PlaybackShortcuts(
+                      child: GlobalMiniPlayer(observer: _routes, child: child ?? const SizedBox.shrink()),
+                    ),
                   ),
-                ),
-                // El velo del cambio de estilo: la pantalla de antes, que se desvanece en 300 ms
-                // (o, sin foto, el color de fondo).
-                ValueListenableBuilder<bool>(
-                  valueListenable: _veil,
-                  builder: (context, on, _) => IgnorePointer(
-                    child: AnimatedOpacity(
-                      key: const Key('style-veil'),
-                      opacity: on ? 1 : 0,
-                      duration: on ? Duration.zero : const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                      onEnd: _dropVeilShot,
-                      child: ValueListenableBuilder<ui.Image?>(
-                        valueListenable: _veilShot,
-                        builder: (context, shot, _) => shot == null
-                            ? (on ? ColoredBox(color: KijiColors.background, child: const SizedBox.expand()) : const SizedBox.expand())
-                            : RawImage(key: const Key('style-veil-shot'), image: shot, fit: BoxFit.fill),
+                  // El velo del cambio de estilo: la pantalla de antes, que se desvanece en 300 ms
+                  // (o, sin foto, el color de fondo).
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _veil,
+                    builder: (context, on, _) => IgnorePointer(
+                      child: AnimatedOpacity(
+                        key: const Key('style-veil'),
+                        opacity: on ? 1 : 0,
+                        duration: on ? Duration.zero : const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        onEnd: _dropVeilShot,
+                        child: ValueListenableBuilder<ui.Image?>(
+                          valueListenable: _veilShot,
+                          builder: (context, shot, _) => shot == null
+                              ? (on
+                                    ? ColoredBox(color: KijiColors.background, child: const SizedBox.expand())
+                                    : const SizedBox.expand())
+                              : RawImage(key: const Key('style-veil-shot'), image: shot, fit: BoxFit.fill),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
