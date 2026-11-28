@@ -35,6 +35,7 @@ class AppSettings {
     this.startupResume = true,
     this.dailyQuotes = true,
     this.realGlass = true,
+    this.liquidGlassPro = false,
     this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
@@ -218,6 +219,10 @@ class AppSettings {
   /// Impeller y Flutter GPU). Apagado, o si el dispositivo no puede, queda el vidrio de siempre.
   final bool realGlass;
 
+  /// «Liquid Glass real» (0.9): barra, mini-reproductor y botones con liquid_glass_widgets.
+  /// Apagado de fábrica: pensado para teléfonos de gama alta.
+  final bool liquidGlassPro;
+
   /// Qué categorías de SponsorBlock saltar (nombres de su API).
   final List<String> sponsorBlockCategories;
 
@@ -394,6 +399,7 @@ class AppSettings {
     bool? startupResume,
     bool? dailyQuotes,
     bool? realGlass,
+    bool? liquidGlassPro,
     List<String>? sponsorBlockCategories,
     bool? ytSync,
     bool? theaterReactions,
@@ -470,6 +476,7 @@ class AppSettings {
         startupResume: startupResume ?? this.startupResume,
         dailyQuotes: dailyQuotes ?? this.dailyQuotes,
         realGlass: realGlass ?? this.realGlass,
+        liquidGlassPro: liquidGlassPro ?? this.liquidGlassPro,
         sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
@@ -545,6 +552,7 @@ class AppSettings {
         'startupResume': startupResume,
         'dailyQuotes': dailyQuotes,
         'realGlass': realGlass,
+        'liquidGlassPro': liquidGlassPro,
         'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
@@ -635,6 +643,7 @@ class AppSettings {
       startupResume: read('startupResume', d.startupResume),
       dailyQuotes: read('dailyQuotes', d.dailyQuotes),
       realGlass: read('realGlass', d.realGlass),
+      liquidGlassPro: read('liquidGlassPro', d.liquidGlassPro),
       sponsorBlockCategories: json['sponsorBlockCategories'] is List
           ? [
               for (final e in json['sponsorBlockCategories'] as List)

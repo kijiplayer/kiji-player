@@ -1496,7 +1496,7 @@
   "compartirTarjetaNota": "An image with the cover, title and artist",
   "fraseDelDia": "Quote of the day",
   "compartirFrase": "Share the quote",
-  "vidrioReal": "Real liquid glass",
+  "vidrioReal": "Refraction at the glass edge",
   "vidrioRealNota": "True refraction and a hint of rainbow at the glass edges. If you turn it off or your device can't do it, the usual glass stays.",
   "misPlaylists": "MY PLAYLISTS",
   "seccionYoutubeMusic": "YOUTUBE MUSIC",
@@ -1507,6 +1507,10 @@
   "playlistVinculadaNota": "From your YouTube Music: what you add or remove here is sent to YouTube when you tap “Sync”.",
   "playlistAjenaNota": "Saved from someone else on YouTube Music: what you change here stays only in Kiji.",
   "youtubeMusicNombre": "YouTube Music",
+  "liquidGlassReal": "Real Liquid Glass",
+  "liquidGlassRealNota": "Clear glass with refraction and water-like animations on the tab bar, the mini player and the buttons. Made for high-end phones. It may use more battery and feel less smooth on other phones.",
+  "liquidGlassRealSinShaders": "This phone can't: its graphics engine lacks the effects it needs. The usual glass stays.",
+  "liquidGlassReal32Bits": "This phone can't: it's 32-bit. The usual glass stays.",
   "frasesDelDia": "Quote of the day on Home",
   "frasesDelDiaNota": "Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device."
 }

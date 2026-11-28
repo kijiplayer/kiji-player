@@ -5531,7 +5531,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get compartirFrase => 'Compartir la frase';
 
   @override
-  String get vidrioReal => 'Vidrio líquido real';
+  String get vidrioReal => 'Refracción en el borde del vidrio';
 
   @override
   String get vidrioRealNota =>
@@ -5577,6 +5577,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get youtubeMusicNombre => 'YouTube Music';
+
+  @override
+  String get liquidGlassReal => 'Liquid Glass real';
+
+  @override
+  String get liquidGlassRealNota =>
+      'Vidrio transparente con refracción y animaciones tipo agua en la barra, el mini-reproductor y los botones. Pensado para teléfonos de gama alta. Puede gastar más batería y verse menos fluido en otros teléfonos.';
+
+  @override
+  String get liquidGlassRealSinShaders =>
+      'Este teléfono no puede: su motor de dibujo no tiene los efectos que hacen falta. Queda el vidrio de siempre.';
+
+  @override
+  String get liquidGlassReal32Bits =>
+      'Este teléfono no puede: es de 32 bits. Queda el vidrio de siempre.';
 
   @override
   String get frasesDelDia => 'Frase del día en Inicio';

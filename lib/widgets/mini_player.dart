@@ -23,11 +23,18 @@ String coverHeroTag(Track track) => 'kiji-cover-${track.id}';
 /// Alto del mini-reproductor (botones de 48 + márgenes 18 + línea 2).
 const miniPlayerHeight = 68.0;
 
+/// El vidrio del mini-reproductor (o nada, si ya va adentro de otro vidrio).
+Widget _miniShell({required bool bare, required Widget child}) =>
+    bare ? child : Glass(radius: KijiRadii.miniPlayer, floating: true, child: child);
+
 class MiniPlayer extends ConsumerWidget {
-  const MiniPlayer({super.key, this.useAppNavigator = false});
+  const MiniPlayer({super.key, this.useAppNavigator = false, this.bare = false});
 
   /// true en el mini-reproductor global, que vive afuera del Navigator.
   final bool useAppNavigator;
+
+  /// Sin vidrio propio: va adentro del «Liquid Glass real» (0.9).
+  final bool bare;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,9 +44,8 @@ class MiniPlayer extends ConsumerWidget {
     if (track == null) return const SizedBox.shrink();
     BuildContext nav() => useAppNavigator ? (kijiNavigatorKey.currentContext ?? context) : context;
 
-    return Glass(
-      radius: KijiRadii.miniPlayer,
-      floating: true,
+    return _miniShell(
+      bare: bare,
       child: Material(
         type: MaterialType.transparency,
         child: Column(

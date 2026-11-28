@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/playback_provider.dart';
 import '../theme/kiji_tokens.dart';
 import 'mini_player.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
+import 'nocturne/liquid_glass_pro.dart';
 
 /// Navigator de toda la app: el mini-reproductor global vive afuera de él y
 /// lo usa para abrir el reproductor y las hojas.
@@ -153,9 +155,19 @@ class GlobalMiniPlayer extends ConsumerWidget {
                   child: Overlay(
                     initialEntries: [
                       OverlayEntry(
-                        builder: (_) => const Align(
+                        builder: (_) => Align(
                           alignment: Alignment.bottomCenter,
-                          child: MiniPlayer(useAppNavigator: true),
+                          // «Liquid Glass real» (0.9): el vidrio del paquete, tal como viene.
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: LiquidGlassPro.active,
+                            builder: (context, pro, _) => pro
+                                ? const lgw.GlassContainer(
+                                    useOwnLayer: true,
+                                    shape: lgw.LiquidRoundedSuperellipse(borderRadius: KijiRadii.miniPlayer),
+                                    child: MiniPlayer(useAppNavigator: true, bare: true),
+                                  )
+                                : const MiniPlayer(useAppNavigator: true),
+                          ),
                         ),
                       ),
                     ],
