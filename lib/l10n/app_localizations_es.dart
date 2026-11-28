@@ -5568,10 +5568,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo sincronizar. Prueba de nuevo en un rato.';
 
   @override
-  String get playlistVinculadaNota =>
-      'De tu YouTube Music: lo que agregues o quites aquí se manda a YouTube al tocar «Sincronizar».';
-
-  @override
   String get playlistAjenaNota =>
       'Guardada de otra persona en YouTube Music: lo que cambies aquí queda solo en Kiji.';
 
@@ -5674,6 +5670,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get mesSiguiente => 'Mes siguiente';
+
+  @override
+  String get ytSincronizada => 'Sincronizada con YouTube Music';
+
+  @override
+  String get ytCambiosSinSubir => 'Cambios sin subir a YouTube Music';
+
+  @override
+  String get ytSincronizando => 'Sincronizando…';
 
   @override
   String get liquidGlassReal => 'Liquid Glass real';
