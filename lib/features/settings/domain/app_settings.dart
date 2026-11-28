@@ -222,6 +222,7 @@ class AppSettings {
 
   /// La tarjeta de racha arriba de Inicio (0.9); se puede ocultar.
   final bool streakCard;
+
   /// «Liquid Glass real» (0.9): barra, mini-reproductor y botones con liquid_glass_widgets.
   /// Apagado de fábrica: pensado para teléfonos de gama alta.
   final bool liquidGlassPro;
