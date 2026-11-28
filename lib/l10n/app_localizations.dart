@@ -9017,12 +9017,6 @@ abstract class AppLocalizations {
   /// **'No se pudo sincronizar. Prueba de nuevo en un rato.'**
   String get noSePudoSincronizar;
 
-  /// No description provided for @playlistVinculadaNota.
-  ///
-  /// In es, this message translates to:
-  /// **'De tu YouTube Music: lo que agregues o quites aquí se manda a YouTube al tocar «Sincronizar».'**
-  String get playlistVinculadaNota;
-
   /// No description provided for @playlistAjenaNota.
   ///
   /// In es, this message translates to:
@@ -9034,6 +9028,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'YouTube Music'**
   String get youtubeMusicNombre;
+
+  /// Estado de una playlist de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizada con YouTube Music'**
+  String get ytSincronizada;
+
+  /// Estado de una playlist de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Cambios sin subir a YouTube Music'**
+  String get ytCambiosSinSubir;
+
+  /// Estado de una playlist de YouTube Music (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizando…'**
+  String get ytSincronizando;
 
   /// Ajuste: Liquid Glass real (0.9)
   ///
