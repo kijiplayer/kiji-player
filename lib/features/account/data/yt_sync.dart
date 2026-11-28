@@ -64,6 +64,7 @@ class YtSyncState {
     this.problem,
     this.sent = 0,
     this.merged = const [],
+    this.syncingIds = const {},
   });
 
   final List<Track> liked;
@@ -82,18 +83,43 @@ class YtSyncState {
   /// de los dos lados; se avisa).
   final List<String> merged;
 
+  /// Playlists que se están sincronizando solas (su botón «Sincronizar», 0.9): ids de YouTube.
+  final Set<String> syncingIds;
+
   bool get isEmpty => liked.isEmpty && recent.isEmpty && playlists.isEmpty;
 
-  YtSyncState copyWith({bool? syncing, SyncProblem? Function()? problem}) => YtSyncState(
+  YtSyncState copyWith({
+    bool? syncing,
+    SyncProblem? Function()? problem,
+    Set<String>? syncingIds,
+    int? sent,
+    List<String>? merged,
+  }) => YtSyncState(
     liked: liked,
     recent: recent,
     playlists: playlists,
     syncedAt: syncedAt,
     syncing: syncing ?? this.syncing,
     problem: problem == null ? this.problem : problem(),
-    sent: sent,
-    merged: merged,
+    sent: sent ?? this.sent,
+    merged: merged ?? this.merged,
+    syncingIds: syncingIds ?? this.syncingIds,
   );
+}
+
+/// Cómo está una playlist vinculada respecto de YouTube Music (para su botón «Sincronizar»).
+enum YtPlaylistSyncStatus { synced, pending, syncing }
+
+/// [syncing] = se está sincronizando ahora. Si no, «cambios sin subir» cuando lo de Kiji ya no es
+/// lo que había en la última sincronización.
+YtPlaylistSyncStatus ytPlaylistSyncStatus(Playlist playlist, {required bool syncing}) {
+  if (syncing) return YtPlaylistSyncStatus.syncing;
+  final link = playlist.yt;
+  if (link == null) return YtPlaylistSyncStatus.synced;
+  final local = [for (final t in playlist.tracks) ?t.youtubeVideoId];
+  final base = link.base.toSet();
+  final changed = local.length != base.length || local.any((id) => !base.contains(id));
+  return changed ? YtPlaylistSyncStatus.pending : YtPlaylistSyncStatus.synced;
 }
 
 /// YouTube rechazó la sesión: 401/403, o respondió como a alguien sin sesión.
@@ -315,17 +341,10 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
       final remotes = <_Remote>[];
       for (final pl in ids.take(maxPlaylists)) {
         try {
-          final pages = await _pages(reader, 'VL${pl.id}', session);
-          if (pages.isEmpty) continue;
-          final setVideoIds = {for (final page in pages) ...parsePlaylistSetVideoIds(page)};
-          // Al pie de las playlists propias YouTube Music agrega «Sugerencias» (cambian en cada
-          // lectura): no son de la playlist. Las canciones de verdad traen su setVideoId.
-          final tracks = [
-            for (final t in _tracks(pages))
-              if (setVideoIds.isEmpty || setVideoIds.containsKey(t.youtubeVideoId)) t,
-          ];
-          playlists.add(SyncedPlaylist(id: pl.id, name: pl.name, tracks: tracks));
-          remotes.add(_Remote(pl.id, pl.name, tracks, setVideoIds, isEditablePlaylist(pages.first)));
+          final remote = await _readRemote(reader, pl.id, pl.name, session);
+          if (remote == null) continue;
+          playlists.add(SyncedPlaylist(id: pl.id, name: pl.name, tracks: remote.tracks));
+          remotes.add(remote);
         } catch (error) {
           // La sesión venció: se corta todo (ver abajo). Otra falla: esta playlist queda como
           // estaba y siguen las demás (antes una sola hacía fallar toda la lectura).
@@ -366,7 +385,70 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
 
   /// Junta cada playlist de la cuenta con su copia en Kiji y manda a YouTube lo que cambió en Kiji.
   /// Devuelve cuántos cambios se mandaron y qué playlists cambiaron en los dos lados.
-  Future<(int, List<String>)> _syncPlaylists(List<_Remote> remotes, YtSession session, {required bool push}) async {
+  /// Lee una playlist de la cuenta: sus canciones (sin las «Sugerencias»), setVideoId y si es propia.
+  Future<_Remote?> _readRemote(YtAccountReader reader, String id, String name, YtSession session) async {
+    final pages = await _pages(reader, 'VL$id', session);
+    if (pages.isEmpty) return null;
+    final setVideoIds = {for (final page in pages) ...parsePlaylistSetVideoIds(page)};
+    // Al pie de las playlists propias YouTube Music agrega «Sugerencias» (cambian en cada
+    // lectura): no son de la playlist. Las canciones de verdad traen su setVideoId.
+    final tracks = [
+      for (final t in _tracks(pages))
+        if (setVideoIds.isEmpty || setVideoIds.containsKey(t.youtubeVideoId)) t,
+    ];
+    return _Remote(id, name, tracks, setVideoIds, isEditablePlaylist(pages.first));
+  }
+
+  /// «Sincronizar» de una sola playlist (su botón, 0.9): lee solo esa, la junta con la de Kiji y
+  /// manda a YouTube lo cambiado en Kiji. Las demás no se tocan. Devuelve false si no se pudo.
+  Future<bool> syncPlaylist(String ytId) async {
+    final session = YtSessionHolder.current;
+    if (!ref.read(settingsProvider).ytSync || session == null || state.syncing || state.syncingIds.contains(ytId)) {
+      return false;
+    }
+    final local = ref.read(playlistsProvider).where((pl) => pl.yt?.id == ytId).firstOrNull;
+    if (local == null) return false;
+    state = state.copyWith(syncingIds: {...state.syncingIds, ytId});
+    try {
+      final remote = await _readRemote(ref.read(ytAccountReaderProvider), ytId, local.name, session);
+      if (remote == null) {
+        state = state.copyWith(syncingIds: {...state.syncingIds}..remove(ytId));
+        return false;
+      }
+      final (sent, merged) = await _syncPlaylists([remote], session, push: true, prune: false);
+      YtSessionHolder.rejected = false;
+      // Lo leído también queda al día en la lista guardada de la cuenta.
+      final playlists = [
+        for (final pl in state.playlists) pl.id == ytId ? SyncedPlaylist(id: ytId, name: pl.name, tracks: remote.tracks) : pl,
+      ];
+      state = YtSyncState(
+        liked: state.liked,
+        recent: state.recent,
+        playlists: playlists,
+        syncedAt: state.syncedAt,
+        sent: sent,
+        merged: merged,
+        syncingIds: {...state.syncingIds}..remove(ytId),
+      );
+      debugPrint('=== SINCRONIZAR: una playlist, $sent cambios enviados ===');
+      return true;
+    } on SessionRejected {
+      YtSessionHolder.rejected = true;
+      state = state.copyWith(syncingIds: {...state.syncingIds}..remove(ytId), problem: () => SyncProblem.sessionRejected);
+      return false;
+    } catch (error) {
+      debugPrint('=== SINCRONIZAR: la playlist no se pudo sincronizar (${error.runtimeType}) ===');
+      state = state.copyWith(syncingIds: {...state.syncingIds}..remove(ytId), problem: () => SyncProblem.failed);
+      return false;
+    }
+  }
+
+  Future<(int, List<String>)> _syncPlaylists(
+    List<_Remote> remotes,
+    YtSession session, {
+    required bool push,
+    bool prune = true,
+  }) async {
     var sent = 0;
     final merged = <String>[];
     try {
@@ -447,7 +529,7 @@ class YtSyncNotifier extends Notifier<YtSyncState> {
         );
       }
       // Ya no está en la cuenta (se borró o se dejó de guardar): queda en Kiji, sin vínculo.
-      for (final pl in [...ref.read(playlistsProvider)]) {
+      for (final pl in prune ? [...ref.read(playlistsProvider)] : const <Playlist>[]) {
         if (pl.yt != null && !remoteIds.contains(pl.yt!.id)) store.unlink(pl.id);
       }
     } on SessionRejected {

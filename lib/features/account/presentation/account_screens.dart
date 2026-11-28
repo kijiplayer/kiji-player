@@ -677,3 +677,23 @@ Future<void> syncWithYouTube(BuildContext context, WidgetRef ref) async {
     duration: after.merged.isEmpty ? null : const Duration(seconds: 6),
   );
 }
+
+/// «Sincronizar» de una sola playlist de YouTube Music (0.9), con el mismo aviso que la general.
+Future<void> syncOneYouTubePlaylist(BuildContext context, WidgetRef ref, String ytId) async {
+  final ok = await ref.read(ytSyncProvider.notifier).syncPlaylist(ytId);
+  if (!context.mounted) return;
+  final after = ref.read(ytSyncProvider);
+  if (!ok) {
+    if (after.problem != SyncProblem.sessionRejected) showTopNotice(context, message: tx.noSePudoSincronizar);
+    return;
+  }
+  showTopNotice(
+    context,
+    message: [
+      tx.sincronizadoListo(after.sent),
+      if (after.merged.isNotEmpty) tx.sincronizadoJuntos(after.merged.join('», «')),
+    ].join(' '),
+    duration: after.merged.isEmpty ? null : const Duration(seconds: 6),
+  );
+}
+

@@ -22,7 +22,7 @@ import '../../moments/presentation/moments_screen.dart';
 import '../../../widgets/list_search_field.dart';
 import '../../selection/track_selection.dart';
 import '../../account/data/account_store.dart';
-import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard, syncWithYouTube;
+import '../../account/presentation/account_screens.dart' show SessionExpiredBanner, YtConnectCard, syncOneYouTubePlaylist, syncWithYouTube;
 import '../../account/data/yt_sync.dart';
 import '../../local_library/domain/local_groups.dart' show LocalGroup;
 import '../../local_library/presentation/local_group_screen.dart';
@@ -382,7 +382,7 @@ class _ListHeader extends ConsumerWidget {
     this.description,
     this.onMore,
     this.onDownload,
-    this.note,
+    this.footer,
   });
 
   final String title;
@@ -399,8 +399,8 @@ class _ListHeader extends ConsumerWidget {
   /// Descargar toda la playlist de un toque (0.9); null = sin botón.
   final VoidCallback? onDownload;
 
-  /// Una línea de aviso debajo (las de YouTube Music: cuándo se mandan los cambios).
-  final String? note;
+  /// Algo más al pie de la cabecera (las de YouTube Music: estado y «Sincronizar»).
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -429,17 +429,7 @@ class _ListHeader extends ConsumerWidget {
                 ],
               ),
               if (description != null) ...[const SizedBox(height: 10), Text(description!)],
-              if (note != null) ...[
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.sync_rounded, size: 16, color: KijiColors.muted),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text(note!, style: TextStyle(color: KijiColors.muted, fontSize: 13))),
-                  ],
-                ),
-              ],
+              if (footer != null) ...[const SizedBox(height: 8), footer!],
               const SizedBox(height: 12),
               // Flexibles: con la letra del sistema grande, los botones se achican y el texto se
               // corta con "…" en vez de salirse de la tarjeta.
@@ -682,11 +672,8 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                 subtitle: playlist.importedFrom == null
                     ? _count(playlist.tracks.length)
                     : tx.importadaDe(_count(playlist.tracks.length), playlist.importedFrom),
-                // De YouTube Music (0.9): qué pasa con lo que se cambie aquí.
-                note: switch (playlist.yt) {
-                  null => null,
-                  final yt => yt.editable ? tx.playlistVinculadaNota : tx.playlistAjenaNota,
-                },
+                // De YouTube Music (0.9): su estado y su propio «Sincronizar».
+                footer: playlist.yt == null ? null : YtPlaylistSyncRow(playlist: playlist),
                 tracks: playlist.tracks,
                 // De un toque: el mismo aviso de antes (cuánto ocupa) y después, la tarjeta con
                 // avance, Pausar/Seguir y Cancelar.
@@ -1003,3 +990,43 @@ class SmartListsScreen extends ConsumerWidget {
     );
   }
 }
+
+/// En la cabecera de una playlist de YouTube Music (0.9): cómo está respecto de la cuenta
+/// (sincronizada, cambios sin subir o sincronizando) y su propio «Sincronizar», que sincroniza
+/// solo esta playlist.
+class YtPlaylistSyncRow extends ConsumerWidget {
+  const YtPlaylistSyncRow({super.key, required this.playlist});
+
+  final Playlist playlist;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final link = playlist.yt!;
+    final syncing = ref.watch(ytSyncProvider.select((s) => s.syncing || s.syncingIds.contains(link.id)));
+    final status = ytPlaylistSyncStatus(playlist, syncing: syncing);
+    final (icon, text) = !link.editable && !syncing
+        ? (Icons.lock_outline_rounded, tx.playlistAjenaNota)
+        : switch (status) {
+            YtPlaylistSyncStatus.synced => (Icons.cloud_done_outlined, tx.ytSincronizada),
+            YtPlaylistSyncStatus.pending => (Icons.cloud_upload_outlined, tx.ytCambiosSinSubir),
+            YtPlaylistSyncStatus.syncing => (Icons.sync_rounded, tx.ytSincronizando),
+          };
+    return Row(
+      key: Key('yt-playlist-sync-${status.name}'),
+      children: [
+        Icon(icon, size: 18, color: status == YtPlaylistSyncStatus.pending ? KijiColors.cyan : KijiColors.muted),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, style: TextStyle(color: KijiColors.muted, fontSize: 13))),
+        TextButton.icon(
+          key: const Key('yt-playlist-sync-now'),
+          onPressed: syncing ? null : () => syncOneYouTubePlaylist(context, ref, link.id),
+          icon: syncing
+              ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.sync_rounded),
+          label: Text(tx.sincronizar),
+        ),
+      ],
+    );
+  }
+}
+

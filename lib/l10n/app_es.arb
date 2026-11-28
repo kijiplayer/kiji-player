@@ -3211,10 +3211,15 @@
   "sincronizadoJuntos": "En «{names}» había cambios en Kiji y en YouTube Music: se juntaron los dos.",
   "@sincronizadoJuntos": {"placeholders": {"names": {"type": "String"}}},
   "noSePudoSincronizar": "No se pudo sincronizar. Prueba de nuevo en un rato.",
-  "playlistVinculadaNota": "De tu YouTube Music: lo que agregues o quites aquí se manda a YouTube al tocar «Sincronizar».",
   "playlistAjenaNota": "Guardada de otra persona en YouTube Music: lo que cambies aquí queda solo en Kiji.",
   "youtubeMusicNombre": "YouTube Music",
   "@youtubeMusicNombre": {"description": "Nombre del servicio (marca)"},
+  "ytSincronizada": "Sincronizada con YouTube Music",
+  "@ytSincronizada": {"description": "Estado de una playlist de YouTube Music (0.9)"},
+  "ytCambiosSinSubir": "Cambios sin subir a YouTube Music",
+  "@ytCambiosSinSubir": {"description": "Estado de una playlist de YouTube Music (0.9)"},
+  "ytSincronizando": "Sincronizando…",
+  "@ytSincronizando": {"description": "Estado de una playlist de YouTube Music (0.9)"},
   "frasesDelDia": "Frase del día en Inicio",
   "frasesDelDiaNota": "Frases de escritores, músicos y poetas de dominio público, elegidas según la hora y lo que escuchas. Todo en el dispositivo."
 }

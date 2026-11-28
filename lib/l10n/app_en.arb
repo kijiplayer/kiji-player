@@ -1504,9 +1504,11 @@
   "sincronizadoListo": "Done: {count, plural, =0{everything was up to date} =1{1 change sent to YouTube Music} other{{count} changes sent to YouTube Music}}.",
   "sincronizadoJuntos": "“{names}” changed in Kiji and in YouTube Music: both sets of changes were kept.",
   "noSePudoSincronizar": "Couldn't sync. Try again in a while.",
-  "playlistVinculadaNota": "From your YouTube Music: what you add or remove here is sent to YouTube when you tap “Sync”.",
   "playlistAjenaNota": "Saved from someone else on YouTube Music: what you change here stays only in Kiji.",
   "youtubeMusicNombre": "YouTube Music",
+  "ytSincronizada": "Synced with YouTube Music",
+  "ytCambiosSinSubir": "Changes not sent to YouTube Music yet",
+  "ytSincronizando": "Syncing…",
   "frasesDelDia": "Quote of the day on Home",
   "frasesDelDiaNota": "Public-domain quotes from writers, musicians and poets, picked by the time and what you listen to. All on your device."
 }

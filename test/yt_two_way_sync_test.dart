@@ -290,6 +290,27 @@ void main() {
       expect(account.sent, isEmpty);
     });
 
+    test('«Sincronizar» de una playlist: solo esa, y su estado pasa de «sin subir» a «sincronizada»', () async {
+      account.playlists['PLotra'] = ['ccccccccccc'];
+      account.names['PLotra'] = 'Otra Lista';
+      await c.read(ytSyncProvider.notifier).syncNow();
+      Playlist otra() => c.read(playlistsProvider).singleWhere((pl) => pl.yt?.id == 'PLotra');
+      expect(ytPlaylistSyncStatus(linked(), syncing: false), YtPlaylistSyncStatus.synced);
+
+      final store = c.read(playlistsProvider.notifier);
+      store.addTracks(linked().id, [_t('kkkkkkkkkkk')]);
+      store.addTracks(otra().id, [_t('zzzzzzzzzzz')]);
+      expect(ytPlaylistSyncStatus(linked(), syncing: false), YtPlaylistSyncStatus.pending);
+      expect(ytPlaylistSyncStatus(linked(), syncing: true), YtPlaylistSyncStatus.syncing);
+
+      expect(await c.read(ytSyncProvider.notifier).syncPlaylist('PLmia'), isTrue);
+      expect(account.playlists['PLmia'], contains('kkkkkkkkkkk'));
+      expect(account.playlists['PLotra'], isNot(contains('zzzzzzzzzzz')), reason: 'la otra no se toca');
+      expect(ytPlaylistSyncStatus(linked(), syncing: false), YtPlaylistSyncStatus.synced);
+      expect(ytPlaylistSyncStatus(otra(), syncing: false), YtPlaylistSyncStatus.pending);
+      expect(c.read(ytSyncProvider).syncingIds, isEmpty);
+    });
+
     test('El vínculo se guarda en el dispositivo y vuelve al abrir', () async {
       await c.read(ytSyncProvider.notifier).syncNow();
       await c.read(playlistsProvider.notifier).flush();
