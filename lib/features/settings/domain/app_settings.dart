@@ -35,6 +35,7 @@ class AppSettings {
     this.startupResume = true,
     this.dailyQuotes = true,
     this.realGlass = true,
+    this.streakCard = true,
     this.sponsorBlockCategories = const ['music_offtopic', 'intro', 'outro'], // l10n-ignore
     this.ytSync = false,
     this.theaterReactions = true,
@@ -218,6 +219,9 @@ class AppSettings {
   /// Impeller y Flutter GPU). Apagado, o si el dispositivo no puede, queda el vidrio de siempre.
   final bool realGlass;
 
+  /// La tarjeta de racha arriba de Inicio (0.9); se puede ocultar.
+  final bool streakCard;
+
   /// Qué categorías de SponsorBlock saltar (nombres de su API).
   final List<String> sponsorBlockCategories;
 
@@ -394,6 +398,7 @@ class AppSettings {
     bool? startupResume,
     bool? dailyQuotes,
     bool? realGlass,
+    bool? streakCard,
     List<String>? sponsorBlockCategories,
     bool? ytSync,
     bool? theaterReactions,
@@ -470,6 +475,7 @@ class AppSettings {
         startupResume: startupResume ?? this.startupResume,
         dailyQuotes: dailyQuotes ?? this.dailyQuotes,
         realGlass: realGlass ?? this.realGlass,
+        streakCard: streakCard ?? this.streakCard,
         sponsorBlockCategories: sponsorBlockCategories ?? this.sponsorBlockCategories,
         ytSync: ytSync ?? this.ytSync,
         theaterReactions: theaterReactions ?? this.theaterReactions,
@@ -545,6 +551,7 @@ class AppSettings {
         'startupResume': startupResume,
         'dailyQuotes': dailyQuotes,
         'realGlass': realGlass,
+        'streakCard': streakCard,
         'sponsorBlockCategories': sponsorBlockCategories,
         'ytSync': ytSync,
         'theaterReactions': theaterReactions,
@@ -635,6 +642,7 @@ class AppSettings {
       startupResume: read('startupResume', d.startupResume),
       dailyQuotes: read('dailyQuotes', d.dailyQuotes),
       realGlass: read('realGlass', d.realGlass),
+      streakCard: read('streakCard', d.streakCard),
       sponsorBlockCategories: json['sponsorBlockCategories'] is List
           ? [
               for (final e in json['sponsorBlockCategories'] as List)

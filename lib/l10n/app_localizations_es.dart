@@ -5579,6 +5579,103 @@ class AppLocalizationsEs extends AppLocalizations {
   String get youtubeMusicNombre => 'YouTube Music';
 
   @override
+  String get rachaTitulo => 'Tu racha';
+
+  @override
+  String rachaDiasSeguidos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'días seguidos',
+      one: 'día seguido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaMejor(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count días',
+      one: '1 día',
+    );
+    return 'Mejor racha: $_temp0';
+  }
+
+  @override
+  String get rachaMejorTitulo => 'mejor racha';
+
+  @override
+  String get rachaEmpezar => 'Escucha algo hoy y empieza tu racha';
+
+  @override
+  String rachaSemana(int count) {
+    return 'Esta semana: $count de 7 días';
+  }
+
+  @override
+  String get rachaOcultar => 'Ocultar la tarjeta de racha';
+
+  @override
+  String get rachaOcultada =>
+      'Tarjeta de racha oculta. La vuelves a mostrar en Configuración → Apariencia.';
+
+  @override
+  String get rachaTarjetaAjuste => 'Tarjeta de racha en Inicio';
+
+  @override
+  String get rachaTarjetaAjusteNota =>
+      'Días seguidos escuchando, tu mejor racha y la semana. Todo queda en este dispositivo.';
+
+  @override
+  String get rachaLogros => 'Logros';
+
+  @override
+  String rachaLogroDias(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count días',
+      one: '1 día',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaLogroGanado(String date) {
+    return 'Ganado el $date';
+  }
+
+  @override
+  String rachaLogroFalta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Te faltan $count días',
+      one: 'Te falta 1 día',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaLogroNuevo(int count) {
+    return '¡Logro nuevo: $count días seguidos!';
+  }
+
+  @override
+  String get rachaCompartir => 'Compartir tu racha';
+
+  @override
+  String get rachaDiaEscuchado => 'escuchaste música';
+
+  @override
+  String get mesAnterior => 'Mes anterior';
+
+  @override
+  String get mesSiguiente => 'Mes siguiente';
+
+  @override
   String get frasesDelDia => 'Frase del día en Inicio';
 
   @override

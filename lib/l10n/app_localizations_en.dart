@@ -5565,6 +5565,103 @@ class AppLocalizationsEn extends AppLocalizations {
   String get youtubeMusicNombre => 'YouTube Music';
 
   @override
+  String get rachaTitulo => 'Your streak';
+
+  @override
+  String rachaDiasSeguidos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'days in a row',
+      one: 'day in a row',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaMejor(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return 'Best streak: $_temp0';
+  }
+
+  @override
+  String get rachaMejorTitulo => 'best streak';
+
+  @override
+  String get rachaEmpezar => 'Listen to something today and start your streak';
+
+  @override
+  String rachaSemana(int count) {
+    return 'This week: $count of 7 days';
+  }
+
+  @override
+  String get rachaOcultar => 'Hide the streak card';
+
+  @override
+  String get rachaOcultada =>
+      'Streak card hidden. Show it again in Settings → Appearance.';
+
+  @override
+  String get rachaTarjetaAjuste => 'Streak card on Home';
+
+  @override
+  String get rachaTarjetaAjusteNota =>
+      'Days in a row listening, your best streak and the week. Everything stays on this device.';
+
+  @override
+  String get rachaLogros => 'Achievements';
+
+  @override
+  String rachaLogroDias(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaLogroGanado(String date) {
+    return 'Earned $date';
+  }
+
+  @override
+  String rachaLogroFalta(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days to go',
+      one: '1 day to go',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rachaLogroNuevo(int count) {
+    return 'New achievement: $count days in a row!';
+  }
+
+  @override
+  String get rachaCompartir => 'Share your streak';
+
+  @override
+  String get rachaDiaEscuchado => 'you listened to music';
+
+  @override
+  String get mesAnterior => 'Previous month';
+
+  @override
+  String get mesSiguiente => 'Next month';
+
+  @override
   String get frasesDelDia => 'Quote of the day on Home';
 
   @override

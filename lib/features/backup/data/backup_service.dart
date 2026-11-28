@@ -28,6 +28,10 @@ const backedUpFiles = [
   'group_covers.json',
   // Reacciones de teatro (tomates y rosas de cada canción).
   'theater.json',
+  // Rachas (0.9): los días, la mejor racha y los logros.
+  'streaks.json',
+  // Lo leído de YouTube Music (0.9). Los vínculos de cada playlist van en playlists.json.
+  'yt_sync.json',
   // Versión del formato de los datos: al restaurar una copia vieja se ponen al día.
   dataVersionFile,
 ];

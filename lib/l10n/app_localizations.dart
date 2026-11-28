@@ -9035,6 +9035,120 @@ abstract class AppLocalizations {
   /// **'YouTube Music'**
   String get youtubeMusicNombre;
 
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Tu racha'**
+  String get rachaTitulo;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{día seguido} other{días seguidos}}'**
+  String rachaDiasSeguidos(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Mejor racha: {count, plural, =1{1 día} other{{count} días}}'**
+  String rachaMejor(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'mejor racha'**
+  String get rachaMejorTitulo;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Escucha algo hoy y empieza tu racha'**
+  String get rachaEmpezar;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Esta semana: {count} de 7 días'**
+  String rachaSemana(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar la tarjeta de racha'**
+  String get rachaOcultar;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Tarjeta de racha oculta. La vuelves a mostrar en Configuración → Apariencia.'**
+  String get rachaOcultada;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Tarjeta de racha en Inicio'**
+  String get rachaTarjetaAjuste;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Días seguidos escuchando, tu mejor racha y la semana. Todo queda en este dispositivo.'**
+  String get rachaTarjetaAjusteNota;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Logros'**
+  String get rachaLogros;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 día} other{{count} días}}'**
+  String rachaLogroDias(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Ganado el {date}'**
+  String rachaLogroGanado(String date);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{Te falta 1 día} other{Te faltan {count} días}}'**
+  String rachaLogroFalta(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'¡Logro nuevo: {count} días seguidos!'**
+  String rachaLogroNuevo(int count);
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Compartir tu racha'**
+  String get rachaCompartir;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'escuchaste música'**
+  String get rachaDiaEscuchado;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Mes anterior'**
+  String get mesAnterior;
+
+  /// Rachas (0.9)
+  ///
+  /// In es, this message translates to:
+  /// **'Mes siguiente'**
+  String get mesSiguiente;
+
   /// No description provided for @frasesDelDia.
   ///
   /// In es, this message translates to:

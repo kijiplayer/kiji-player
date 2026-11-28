@@ -12,6 +12,7 @@
     <include domain="file" path="track_overrides.json" />
     <include domain="file" path="group_covers.json" />
     <include domain="file" path="theater.json" />
+    <include domain="file" path="streaks.json" />
     <include domain="file" path="auto_downloads.json" />
     <include domain="file" path="welcome.json" />
     <include domain="file" path="data_version.json" />

@@ -327,7 +327,8 @@ void main() {
       final cloud = xml.contains('data_extraction')
           ? text.substring(text.indexOf('<cloud-backup>'), text.indexOf('</cloud-backup>'))
           : text;
-      for (final name in backedUpFiles) {
+      // Lo leído de la cuenta de YouTube va en la copia de Kiji, pero no a la nube de Google.
+      for (final name in backedUpFiles.where((f) => f != 'yt_sync.json')) {
         expect(cloud, contains('path="$name"'), reason: '$name va en la copia de Kiji: también en la de Android ($xml)');
       }
       for (final big in ['artwork', 'translation', 'downloads', 'backgrounds', 'covers', 'secrets', 'yt_sync']) {
